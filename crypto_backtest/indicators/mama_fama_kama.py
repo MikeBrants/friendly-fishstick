@@ -210,7 +210,7 @@ def compute_kama(src: pd.Series, length: int) -> pd.Series:
         .fillna(0.0)
         .to_numpy()
     )
-    er = np.where(noise != 0, change / noise, 0.0)
+    er = np.divide(change, noise, out=np.zeros_like(change), where=noise != 0)
 
     fast_sc = 2 / (2 + 1)
     slow_sc = 2 / (30 + 1)

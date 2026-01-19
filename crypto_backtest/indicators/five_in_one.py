@@ -256,8 +256,8 @@ class FiveInOneFilter:
         all_bear = distance_bear & volume_bear & reg_bear & kama_bear & ichi_bear
 
         if transition_mode:
-            prev_all_bull = all_bull.shift(1).fillna(False)
-            prev_all_bear = all_bear.shift(1).fillna(False)
+            prev_all_bull = all_bull.shift(1, fill_value=False)
+            prev_all_bear = all_bear.shift(1, fill_value=False)
             bull_signal = all_bull & ~prev_all_bull
             bear_signal = all_bear & ~prev_all_bear
         else:
@@ -287,7 +287,7 @@ class FiveInOneFilter:
             .fillna(0.0)
             .to_numpy()
         )
-        er = np.where(noise != 0, change / noise, 0.0)
+        er = np.divide(change, noise, out=np.zeros_like(change), where=noise != 0)
 
         fast_end = 0.666
         slow_end = 0.0645
