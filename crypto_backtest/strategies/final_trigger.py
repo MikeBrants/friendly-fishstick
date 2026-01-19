@@ -44,7 +44,12 @@ class FinalTriggerStrategy(BaseStrategy):
             raise ValueError(f"Missing columns for strategy: {sorted(missing)}")
 
         close = data["close"]
-        mama_fama = compute_mama_fama(close, self.params.mama_fast_limit, self.params.mama_slow_limit)
+        mama_fama = compute_mama_fama(
+            close,
+            self.params.mama_fast_limit,
+            self.params.mama_slow_limit,
+            er_length=self.params.kama_length,
+        )
         mama = mama_fama["mama"]
         fama = mama_fama["fama"]
         kama = compute_kama(close, self.params.kama_length)

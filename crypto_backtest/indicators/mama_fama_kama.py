@@ -93,10 +93,45 @@ def compute_mesa_period(src: pd.Series) -> pd.Series:
     return pd.Series(period, index=src.index, name="mesa_period")
 
 
-def compute_mama_fama(src: pd.Series, fast_limit: float, slow_limit: float) -> pd.DataFrame:
-    """Compute MAMA/FAMA series."""
+def _efficiency_ratio(src: pd.Series, length: int) -> np.ndarray:
     price = src.to_numpy(dtype=float)
     n = len(price)
+    change = np.abs(price - np.roll(price, length))
+    change[: min(length, n)] = 0.0
+    volatility = np.abs(np.diff(price, prepend=price[0]))
+    noise = (
+        pd.Series(volatility, index=src.index)
+        .rolling(length)
+        .sum()
+        .fillna(0.0)
+        .to_numpy()
+    )
+    return np.divide(change, noise, out=np.zeros_like(change), where=noise != 0)
+
+
+def _as_array(value: float | np.ndarray | pd.Series, n: int) -> np.ndarray:
+    if isinstance(value, pd.Series):
+        return value.to_numpy(dtype=float)
+    if isinstance(value, np.ndarray):
+        return value.astype(float)
+    return np.full(n, float(value))
+
+
+def compute_alpha(
+    src: pd.Series,
+    fast_limit: float | np.ndarray | pd.Series,
+    slow_limit: float | np.ndarray | pd.Series,
+) -> tuple[pd.Series, pd.Series]:
+    """Compute dynamic alpha/beta using MESA phase logic."""
+    price = src.to_numpy(dtype=float)
+    n = len(price)
+    if n == 0:
+        empty = pd.Series(dtype=float, index=src.index)
+        return empty, empty
+
+    fast_arr = _as_array(fast_limit, n)
+    slow_arr = _as_array(slow_limit, n)
+
     smooth = np.zeros(n, dtype=float)
     detrender = np.zeros(n, dtype=float)
     i1 = np.zeros(n, dtype=float)
@@ -109,14 +144,9 @@ def compute_mama_fama(src: pd.Series, fast_limit: float, slow_limit: float) -> p
     im = np.zeros(n, dtype=float)
     period = np.zeros(n, dtype=float)
     phase = np.zeros(n, dtype=float)
-    mama = np.zeros(n, dtype=float)
-    fama = np.zeros(n, dtype=float)
+    alpha = np.zeros(n, dtype=float)
 
-    if n == 0:
-        return pd.DataFrame(index=src.index, columns=["mama", "fama"], dtype=float)
-
-    mama[0] = price[0]
-    fama[0] = price[0]
+    alpha[0] = slow_arr[0]
 
     for i in range(1, n):
         if i >= 3:
@@ -165,6 +195,7 @@ def compute_mama_fama(src: pd.Series, fast_limit: float, slow_limit: float) -> p
                 period_raw = 2 * np.pi / np.arctan(im[i] / re[i])
             else:
                 period_raw = period[i - 1]
+
             if period[i - 1] > 0:
                 period_raw = min(period_raw, 1.5 * period[i - 1])
                 period_raw = max(period_raw, 0.67 * period[i - 1])
@@ -179,13 +210,49 @@ def compute_mama_fama(src: pd.Series, fast_limit: float, slow_limit: float) -> p
             delta_phase = phase[i - 1] - phase[i]
             if delta_phase < 1:
                 delta_phase = 1
-            alpha = fast_limit / delta_phase
-            alpha = min(max(alpha, slow_limit), fast_limit)
+            alpha_val = fast_arr[i] / delta_phase
+            if alpha_val < slow_arr[i]:
+                alpha_val = slow_arr[i]
         else:
-            alpha = slow_limit
+            alpha_val = slow_arr[i]
 
-        mama[i] = alpha * price[i] + (1 - alpha) * mama[i - 1]
-        fama[i] = 0.5 * alpha * mama[i] + (1 - 0.5 * alpha) * fama[i - 1]
+        alpha[i] = alpha_val
+
+    beta = alpha / 2.0
+    return pd.Series(alpha, index=src.index), pd.Series(beta, index=src.index)
+
+
+def compute_mama_fama(
+    src: pd.Series,
+    fast_limit: float,
+    slow_limit: float,
+    er_length: int | None = None,
+) -> pd.DataFrame:
+    """Compute MAMA/FAMA series."""
+    price = src.to_numpy(dtype=float)
+    n = len(price)
+    mama = np.zeros(n, dtype=float)
+    fama = np.zeros(n, dtype=float)
+
+    if n == 0:
+        return pd.DataFrame(index=src.index, columns=["mama", "fama"], dtype=float)
+
+    if er_length is None:
+        alpha, beta = compute_alpha(src, fast_limit, slow_limit)
+    else:
+        er = _efficiency_ratio(src, er_length)
+        alpha, beta = compute_alpha(src, er, er * 0.1)
+    alpha_arr = alpha.to_numpy(dtype=float)
+    beta_arr = beta.to_numpy(dtype=float)
+
+    mama[0] = price[0]
+    fama[0] = price[0]
+
+    for i in range(1, n):
+        a = alpha_arr[i]
+        b = beta_arr[i]
+        mama[i] = a * price[i] + (1 - a) * mama[i - 1]
+        fama[i] = b * mama[i] + (1 - b) * fama[i - 1]
 
     return pd.DataFrame({"mama": mama, "fama": fama}, index=src.index)
 
@@ -200,25 +267,15 @@ def compute_kama(src: pd.Series, length: int) -> pd.Series:
     if length < 1:
         raise ValueError("length must be >= 1")
 
-    change = np.abs(price - np.roll(price, length))
-    change[: min(length, n)] = 0.0
-    volatility = np.abs(np.diff(price, prepend=price[0]))
-    noise = (
-        pd.Series(volatility, index=src.index)
-        .rolling(length)
-        .sum()
-        .fillna(0.0)
-        .to_numpy()
-    )
-    er = np.divide(change, noise, out=np.zeros_like(change), where=noise != 0)
-
-    fast_sc = 2 / (2 + 1)
-    slow_sc = 2 / (30 + 1)
-    sc = (er * (fast_sc - slow_sc) + slow_sc) ** 2
+    er = _efficiency_ratio(src, length)
+    alpha, beta = compute_alpha(src, er, er * 0.1)
+    alpha_arr = alpha.to_numpy(dtype=float)
+    beta_arr = beta.to_numpy(dtype=float)
+    alpha_k = (er * (beta_arr - alpha_arr) + alpha_arr) ** 2
 
     kama = np.zeros(n, dtype=float)
     kama[0] = price[0]
     for i in range(1, n):
-        kama[i] = kama[i - 1] + sc[i] * (price[i] - kama[i - 1])
+        kama[i] = alpha_k[i] * price[i] + (1 - alpha_k[i]) * kama[i - 1]
 
     return pd.Series(kama, index=src.index, name="kama")
