@@ -44,6 +44,8 @@ Finaliser les briques d’analyse (metrics/visualisation), optimisation (Bayesia
 
 ## Problèmes connus / next steps
 - [x] ~~Ajouter un exemple `param_space` complet pour FinalTrigger v2 (ranges + toggles).~~
+- [x] ~~Fix: BayesianOptimizer convertit correctement dict → dataclass.~~
 - [ ] Valider la cohérence des signaux vs Pine sur données réelles (CSV export TradingView).
 - [ ] Ajouter tests unitaires pour `optimize_final_trigger.py` (param_space presets).
 - [ ] Documenter le workflow d'optimisation dans un README ou notebook.
+- [ ] Fix FutureWarning: `Hour.delta` deprecated dans `metrics.py:81`.
