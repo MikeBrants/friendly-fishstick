@@ -203,3 +203,45 @@ def test_short_tp1_then_stop():
     stop_trades = trades[trades["exit_reason"] == "stop"]
     assert len(stop_trades) == 2
     assert (stop_trades["exit_price"] == 100.0).all()
+
+
+def test_equity_sizing_uses_net_pnl():
+    index = pd.date_range("2020-01-01", periods=4, freq="h", tz="UTC")
+    data = pd.DataFrame(
+        {
+            "open": [100.0, 100.0, 100.0, 100.0],
+            "high": [100.0, 111.0, 100.0, 111.0],
+            "low": [100.0, 99.0, 100.0, 99.0],
+            "close": [100.0, 110.0, 100.0, 110.0],
+            "volume": [1.0, 1.0, 1.0, 1.0],
+        },
+        index=index,
+    )
+    signals = pd.DataFrame(
+        {
+            "signal": [1, 0, 1, 0],
+            "entry_price": [100.0, float("nan"), 100.0, float("nan")],
+            "sl_price": [90.0, float("nan"), 90.0, float("nan")],
+            "tp1_price": [110.0, float("nan"), 110.0, float("nan")],
+            "tp2_price": [120.0, float("nan"), 120.0, float("nan")],
+            "tp3_price": [130.0, float("nan"), 130.0, float("nan")],
+        },
+        index=index,
+    )
+    manager = MultiTPPositionManager([PositionLeg(size=1.0, tp_multiple=2.0)])
+
+    trades = manager.simulate(
+        signals,
+        data,
+        initial_capital=10_000.0,
+        sizing_mode="equity",
+        intrabar_order="tp_first",
+        fees_bps=10.0,
+        slippage_bps=0.0,
+    )
+
+    assert len(trades) == 2
+    first_trade = trades.iloc[0]
+    second_trade = trades.iloc[1]
+    expected_equity = 10_000.0 + first_trade["net_pnl"]
+    assert abs(second_trade["notional"] - expected_equity) < 1e-6

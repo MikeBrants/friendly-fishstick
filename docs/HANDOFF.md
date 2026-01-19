@@ -1,7 +1,7 @@
 # Handoff
 
 ## Objectif
-Implémenter la stratégie FINAL TRIGGER v2 + moteur de backtest multi-TP, puis préparer les prochaines étapes (metrics/optimisation).
+Finaliser les briques d’analyse (metrics/visualisation), optimisation (Bayesian + walk-forward) et validation des signaux.
 
 ## Plan actuel
 - [x] Scanner le repo et confirmer la structure
@@ -11,7 +11,8 @@ Implémenter la stratégie FINAL TRIGGER v2 + moteur de backtest multi-TP, puis 
 - [x] Stratégie Final Trigger + moteur de backtest + position manager multi-TP
 - [x] Rendre l’ordre intra-bar et le sizing configurables + tests associés
 - [x] Aligner compounding avec coûts + scénarios backtest multi-legs
-- [ ] Ajouter métriques/visualisation + optimisation (Bayesian, walk-forward) + example run
+- [x] Ajouter métriques/visualisation + optimisation (Bayesian, walk-forward)
+- [x] Ajouter un outil de comparaison des signaux Pine vs Python
 
 ## Décisions prises + raisons
 - Reproduction fidèle de la logique Pine (Puzzle + Grace + 5in1 + Ichimoku externe) pour éviter des écarts de signaux.
@@ -19,11 +20,18 @@ Implémenter la stratégie FINAL TRIGGER v2 + moteur de backtest multi-TP, puis 
 - Backtest initial simple (pnl agrégé par exit_time) pour itérer vite avant metrics/optimisation.
 - Ajout d’options `sizing_mode` (fixed/equity) et `intrabar_order` (stop_first/tp_first) pour expliciter l’hypothèse intra-bar.
 - Coûts appliqués à la sortie (net_pnl) pour un compounding cohérent en mode `equity`.
+- Param space standardisé via `base_params` + `search_space` pour Optuna.
 
 ## Fichiers modifiés
 - `.gitignore`
+- `crypto_backtest/analysis/metrics.py`
+- `crypto_backtest/analysis/visualization.py`
+- `crypto_backtest/analysis/validation.py`
 - `crypto_backtest/engine/backtest.py`
 - `crypto_backtest/engine/position_manager.py`
+- `crypto_backtest/examples/compare_signals.py`
+- `crypto_backtest/optimization/bayesian.py`
+- `crypto_backtest/optimization/walk_forward.py`
 - `tests/test_indicators.py`
 - `tests/test_backtest.py`
 
@@ -31,6 +39,5 @@ Implémenter la stratégie FINAL TRIGGER v2 + moteur de backtest multi-TP, puis 
 - `pytest -v`
 
 ## Problèmes connus / next steps
-- Ajouter des tests ciblés sur `sizing_mode="equity"` (compounding net of costs).
-- Implémenter metrics/visualisation + optimisation (Bayesian + walk-forward).
-- Valider la cohérence des signaux vs Pine sur données réelles.
+- Ajouter un exemple `param_space` complet pour FinalTrigger v2 (ranges + toggles).
+- Valider la cohérence des signaux vs Pine sur données réelles (CSV export TradingView).
