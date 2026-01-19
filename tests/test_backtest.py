@@ -1,5 +1,6 @@
 import pandas as pd
 
+from crypto_backtest.engine.backtest import VectorizedBacktester, BacktestConfig
 from crypto_backtest.engine.position_manager import MultiTPPositionManager, PositionLeg
 
 
@@ -205,26 +206,82 @@ def test_short_tp1_then_stop():
     assert (stop_trades["exit_price"] == 100.0).all()
 
 
-def test_equity_sizing_uses_net_pnl():
-    index = pd.date_range("2020-01-01", periods=4, freq="h", tz="UTC")
+# ============================================================
+# Tests sizing_mode="equity" (compounding net of costs)
+# ============================================================
+
+
+def test_sizing_mode_equity_compounding():
+    """Verify that net_pnl is used for equity compounding, not gross_pnl."""
+    index = pd.date_range("2020-01-01", periods=3, freq="h", tz="UTC")
+    # Trade 1: entry at 100, TP at 110 -> +10% gross
     data = pd.DataFrame(
         {
-            "open": [100.0, 100.0, 100.0, 100.0],
-            "high": [100.0, 111.0, 100.0, 111.0],
-            "low": [100.0, 99.0, 100.0, 99.0],
-            "close": [100.0, 110.0, 100.0, 110.0],
-            "volume": [1.0, 1.0, 1.0, 1.0],
+            "open": [100.0, 100.0, 100.0],
+            "high": [100.0, 115.0, 100.0],
+            "low": [100.0, 99.0, 99.0],
+            "close": [100.0, 110.0, 100.0],
+            "volume": [1.0, 1.0, 1.0],
         },
         index=index,
     )
     signals = pd.DataFrame(
         {
-            "signal": [1, 0, 1, 0],
-            "entry_price": [100.0, float("nan"), 100.0, float("nan")],
-            "sl_price": [90.0, float("nan"), 90.0, float("nan")],
-            "tp1_price": [110.0, float("nan"), 110.0, float("nan")],
-            "tp2_price": [120.0, float("nan"), 120.0, float("nan")],
-            "tp3_price": [130.0, float("nan"), 130.0, float("nan")],
+            "signal": [1, 0, 0],
+            "entry_price": [100.0, float("nan"), float("nan")],
+            "sl_price": [90.0, float("nan"), float("nan")],
+            "tp1_price": [110.0, float("nan"), float("nan")],
+            "tp2_price": [120.0, float("nan"), float("nan")],
+            "tp3_price": [130.0, float("nan"), float("nan")],
+        },
+        index=index,
+    )
+    manager = MultiTPPositionManager([PositionLeg(size=1.0, tp_multiple=2.0)])
+
+    # With fees/slippage, net_pnl < gross_pnl
+    trades = manager.simulate(
+        signals,
+        data,
+        initial_capital=10_000.0,
+        sizing_mode="equity",
+        intrabar_order="tp_first",
+        fees_bps=10.0,
+        slippage_bps=5.0,
+    )
+
+    assert len(trades) == 1
+    trade = trades.iloc[0]
+    # gross_pnl = (110 - 100) * (10000 / 100) = 1000
+    assert trade["gross_pnl"] == 1000.0
+    # costs = 10000 * (15/10000) * 2 = 30
+    assert trade["costs"] == 30.0
+    # net_pnl = 1000 - 30 = 970
+    assert trade["net_pnl"] == 970.0
+
+
+def test_sizing_mode_equity_second_trade_uses_updated_equity():
+    """Verify second trade notional is based on equity after first trade net PnL."""
+    index = pd.date_range("2020-01-01", periods=5, freq="h", tz="UTC")
+    # Trade 1: entry bar 0, TP bar 1
+    # Trade 2: entry bar 2, TP bar 3
+    data = pd.DataFrame(
+        {
+            "open": [100.0, 100.0, 100.0, 100.0, 100.0],
+            "high": [100.0, 115.0, 100.0, 115.0, 100.0],
+            "low": [100.0, 99.0, 100.0, 99.0, 100.0],
+            "close": [100.0, 110.0, 100.0, 110.0, 100.0],
+            "volume": [1.0, 1.0, 1.0, 1.0, 1.0],
+        },
+        index=index,
+    )
+    signals = pd.DataFrame(
+        {
+            "signal": [1, 0, 1, 0, 0],
+            "entry_price": [100.0, float("nan"), 100.0, float("nan"), float("nan")],
+            "sl_price": [90.0, float("nan"), 90.0, float("nan"), float("nan")],
+            "tp1_price": [110.0, float("nan"), 110.0, float("nan"), float("nan")],
+            "tp2_price": [120.0, float("nan"), 120.0, float("nan"), float("nan")],
+            "tp3_price": [130.0, float("nan"), 130.0, float("nan"), float("nan")],
         },
         index=index,
     )
@@ -237,11 +294,20 @@ def test_equity_sizing_uses_net_pnl():
         sizing_mode="equity",
         intrabar_order="tp_first",
         fees_bps=10.0,
-        slippage_bps=0.0,
+        slippage_bps=5.0,
     )
 
     assert len(trades) == 2
-    first_trade = trades.iloc[0]
-    second_trade = trades.iloc[1]
-    expected_equity = 10_000.0 + first_trade["net_pnl"]
-    assert abs(second_trade["notional"] - expected_equity) < 1e-6
+    # Trade 1: notional = 10000, net_pnl = 970 -> equity = 10970
+    trade1 = trades.iloc[0]
+    assert trade1["notional"] == 10_000.0
+    assert trade1["net_pnl"] == 970.0
+
+    # Trade 2: notional should be 10970 (equity after trade 1)
+    trade2 = trades.iloc[1]
+    assert trade2["notional"] == 10_970.0
+    # gross_pnl = (110 - 100) * (10970 / 100) = 1097
+    assert trade2["gross_pnl"] == 1097.0
+    # costs = 10970 * (15/10000) * 2 = 32.91
+    expected_costs = 10_970.0 * (15 / 10_000) * 2
+    assert abs(trade2["costs"] - expected_costs) < 0.01

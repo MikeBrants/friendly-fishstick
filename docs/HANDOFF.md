@@ -5,12 +5,13 @@ Finaliser les briques d’analyse (metrics/visualisation), optimisation (Bayesia
 
 ## Plan actuel
 - [x] Scanner le repo et confirmer la structure
-- [x] Poser l’ossature des modules/fichiers
+- [x] Poser l'ossature des modules/fichiers
 - [x] Implémenter la couche data (fetcher/cache/preprocess)
 - [x] Indicateurs core + tests unitaires de base
 - [x] Stratégie Final Trigger + moteur de backtest + position manager multi-TP
-- [x] Rendre l’ordre intra-bar et le sizing configurables + tests associés
+- [x] Rendre l'ordre intra-bar et le sizing configurables + tests associés
 - [x] Aligner compounding avec coûts + scénarios backtest multi-legs
+- [x] Tests `sizing_mode="equity"` (compounding net of costs)
 - [x] Ajouter métriques/visualisation + optimisation (Bayesian, walk-forward)
 - [x] Ajouter un outil de comparaison des signaux Pine vs Python
 
@@ -18,9 +19,10 @@ Finaliser les briques d’analyse (metrics/visualisation), optimisation (Bayesia
 - Reproduction fidèle de la logique Pine (Puzzle + Grace + 5in1 + Ichimoku externe) pour éviter des écarts de signaux.
 - Manager multi-TP avec trailing (SL -> BE après TP1, SL -> TP1 après TP2) pour refléter le comportement visuel Pine.
 - Backtest initial simple (pnl agrégé par exit_time) pour itérer vite avant metrics/optimisation.
-- Ajout d’options `sizing_mode` (fixed/equity) et `intrabar_order` (stop_first/tp_first) pour expliciter l’hypothèse intra-bar.
+- Ajout d'options `sizing_mode` (fixed/equity) et `intrabar_order` (stop_first/tp_first) pour expliciter l'hypothèse intra-bar.
 - Coûts appliqués à la sortie (net_pnl) pour un compounding cohérent en mode `equity`.
 - Param space standardisé via `base_params` + `search_space` pour Optuna.
+- Tests multi-scénarios (long/short, 3 legs, trailing, compounding) pour verrouiller le comportement du moteur.
 
 ## Fichiers modifiés
 - `.gitignore`
