@@ -10,7 +10,7 @@ Convertir l'indicateur TradingView "FINAL TRIGGER v2 - State/Transition + A/D Li
 
 ---
 
-## ✅ État Actuel (82% complété)
+## ✅ État Actuel (88% complété)
 
 ### Architecture Implémentée
 
@@ -117,6 +117,9 @@ use_transition_mode = False       # Pine: OFF (State mode)
 - [x] Sizing basé sur le risque (`risk_per_trade`) + export backtest CSV
 - [x] Autoriser réentrée sur la bougie de sortie (backtest)
 - [x] Fix comptage métriques: par signal (pas par leg) pour matcher Pine
+- [x] Script téléchargement données historiques CCXT (`scripts/download_historical_data.py`)
+- [x] Test optimisation bayésienne sur dataset réel
+- [x] Simulation Monte Carlo (bootstrap trades)
 
 ### À Faire
 - [ ] Valider cohérence signaux vs Pine sur CSV 2000+ bougies
@@ -222,9 +225,44 @@ python crypto_backtest/examples/simple_backtest.py --file data/BYBIT_BTCUSDT-60.
 
 ---
 
+## 📈 Résultats Optimisation (Dataset 5 mois)
+
+### Paramètres Default vs Optimisés
+
+| Param | Default | Optimisé |
+|-------|---------|----------|
+| SL | 3.0 ATR | **4.0 ATR** |
+| TP1 | 2.0 ATR | **2.5 ATR** |
+| TP2 | 6.0 ATR | **4.5 ATR** |
+| TP3 | 10.0 ATR | **7.0 ATR** |
+
+### Performance Comparée
+
+| Métrique | Default | Optimisé |
+|----------|---------|----------|
+| Win Rate | 45% | **67.6%** |
+| Profit Factor | 0.43 | **1.07** |
+| Total Return | -6.8% | **+0.4%** |
+| Max Drawdown | -7.7% | **-1.8%** |
+
+### Monte Carlo (1000 simulations, 34 signaux)
+
+| Percentile | Equity Finale | Max DD |
+|------------|---------------|--------|
+| 5% | $9,642 | -4.5% |
+| 50% (médiane) | $10,036 | -2.1% |
+| 95% | $10,411 | -1.0% |
+
+- **Probabilité profit**: 56.7%
+- **Probabilité perte >10%**: 0%
+
+> Note: Dataset trop petit (34 signaux). Télécharger 2 ans de données pour résultats fiables.
+
+---
+
 ## 🎯 Next Steps Prioritaires
 
-1. **Exporter CSV TradingView** avec 2000+ bougies et signaux Pine
-2. **Lancer `compare_signals.py`** et vérifier 100% match après warmup
-3. **Créer test E2E** validant signaux sur données réelles
-4. **Documenter workflow** dans README principal
+1. **Télécharger 2 ans de données** via `python scripts/download_historical_data.py`
+2. **Relancer optimisation** sur dataset complet (~250 signaux)
+3. **Valider Monte Carlo** avec plus de données
+4. **Créer `overfitting_guard.py`** (Deflated Sharpe, PBO)
