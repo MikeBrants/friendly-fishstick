@@ -57,13 +57,25 @@ def compute_metrics(equity_curve: pd.Series, trades: pd.DataFrame) -> dict[str, 
 
 
 def _trade_pnl(trades: pd.DataFrame) -> pd.Series:
+    """Return PnL aggregated by signal (entry_time), not by leg."""
     if trades is None or trades.empty:
         return pd.Series(dtype=float)
+
+    # Determine PnL column
     if "pnl" in trades.columns:
-        return trades["pnl"].astype(float)
-    if "net_pnl" in trades.columns:
-        return trades["net_pnl"].astype(float)
-    return trades.get("gross_pnl", pd.Series(dtype=float)).astype(float)
+        pnl_col = "pnl"
+    elif "net_pnl" in trades.columns:
+        pnl_col = "net_pnl"
+    elif "gross_pnl" in trades.columns:
+        pnl_col = "gross_pnl"
+    else:
+        return pd.Series(dtype=float)
+
+    # Group by entry_time to count by signal (not by leg)
+    if "entry_time" in trades.columns:
+        return trades.groupby("entry_time")[pnl_col].sum().astype(float)
+
+    return trades[pnl_col].astype(float)
 
 
 def _ratio(numerator: float, denominator: float) -> float:
