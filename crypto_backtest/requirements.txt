@@ -1,0 +1,29 @@
+# Core dependencies
+pandas>=2.0.0
+numpy>=1.24.0
+ccxt>=4.0.0
+numba>=0.58.0
+
+# Optimization
+optuna>=4.0.0
+
+# Data validation
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# Analysis & Visualization
+plotly>=5.18.0
+scipy>=1.11.0
+quantstats>=0.0.62
+
+# Data storage
+pyarrow>=14.0.0
+
+# Utilities
+python-dotenv>=1.0.0
+rich>=13.0.0
+tqdm>=4.66.0
+
+# Development & Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
