@@ -28,8 +28,17 @@ def main() -> None:
     data = pd.read_csv(args.ohlcv)
     if args.time_col not in data.columns:
         raise ValueError(f"Missing time column '{args.time_col}' in {args.ohlcv}")
-    data[args.time_col] = pd.to_datetime(data[args.time_col], utc=True, errors="coerce")
+    time_series = data[args.time_col]
+    if pd.api.types.is_numeric_dtype(time_series):
+        time_max = time_series.max()
+        # Heuristic: seconds vs milliseconds timestamps.
+        time_unit = "ms" if time_max >= 1_000_000_000_000 else "s"
+        data[args.time_col] = pd.to_datetime(time_series, unit=time_unit, utc=True, errors="coerce")
+    else:
+        data[args.time_col] = pd.to_datetime(time_series, utc=True, errors="coerce")
     data = data.dropna(subset=[args.time_col]).set_index(args.time_col)
+    if "volume" not in data.columns:
+        data["volume"] = 0.0
 
     if args.pine:
         pine_signals = load_pine_signals(
