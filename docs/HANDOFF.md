@@ -32,6 +32,7 @@ Finaliser les briques d’analyse (metrics/visualisation), optimisation (Bayesia
 - `crypto_backtest/engine/backtest.py`
 - `crypto_backtest/engine/position_manager.py`
 - `crypto_backtest/examples/compare_signals.py`
+- `crypto_backtest/examples/optimize_final_trigger.py` ← **NEW**
 - `crypto_backtest/optimization/bayesian.py`
 - `crypto_backtest/optimization/walk_forward.py`
 - `tests/test_indicators.py`
@@ -39,7 +40,10 @@ Finaliser les briques d’analyse (metrics/visualisation), optimisation (Bayesia
 
 ## Commandes pour run/test
 - `pytest -v`
+- `python crypto_backtest/examples/optimize_final_trigger.py` (demo 10 trials)
 
 ## Problèmes connus / next steps
-- Ajouter un exemple `param_space` complet pour FinalTrigger v2 (ranges + toggles).
-- Valider la cohérence des signaux vs Pine sur données réelles (CSV export TradingView).
+- [x] ~~Ajouter un exemple `param_space` complet pour FinalTrigger v2 (ranges + toggles).~~
+- [ ] Valider la cohérence des signaux vs Pine sur données réelles (CSV export TradingView).
+- [ ] Ajouter tests unitaires pour `optimize_final_trigger.py` (param_space presets).
+- [ ] Documenter le workflow d'optimisation dans un README ou notebook.
