@@ -116,6 +116,7 @@ use_transition_mode = False       # Pine: OFF (State mode)
 - [x] Aligner defaults Python sur config Pine utilisateur
 - [x] Sizing basé sur le risque (`risk_per_trade`) + export backtest CSV
 - [x] Autoriser réentrée sur la bougie de sortie (backtest)
+- [x] Fix comptage métriques: par signal (pas par leg) pour matcher Pine
 
 ### À Faire
 - [ ] Valider cohérence signaux vs Pine sur CSV 2000+ bougies
@@ -139,6 +140,12 @@ Pine vérifie `barstate.isconfirmed` avant de générer des signaux. Python n'a 
 
 **Impact**: En backtest historique, toutes les bougies sont "confirmées". En live, attention à la dernière bougie.
 
+### 3. Dataset et Win Rate
+Le CSV actuel (3737 bars, ~5 mois) génère ~40 signaux vs ~259 dans Pine (2+ ans).
+Win Rate Python 45% vs Pine 71% sur des périodes différentes.
+
+**Solution**: Utiliser `scripts/download_historical_data.py` pour télécharger 2 ans de données via CCXT.
+
 ---
 
 ## 📊 Décisions Techniques
@@ -155,6 +162,7 @@ Pine vérifie `barstate.isconfirmed` avant de générer des signaux. Python n'a 
 | Defaults alignés sur la config Pine | Light + State, filtre MAMA/KAMA désactivé |
 | Sizing risk-based (`risk_per_trade`) | Risque fixe par trade, notional ajusté au stop |
 | Réentrée sur bougie de sortie | Permet d'enchaîner les signaux sans attente |
+| Métriques par signal (pas par leg) | Pine compte 1 signal = 1 trade, même avec 3 legs |
 
 ---
 
