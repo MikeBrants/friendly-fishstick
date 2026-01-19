@@ -52,20 +52,18 @@ crypto_backtest/
 
 ---
 
-## 🧩 Ajouts Ichimoku Light (repo root)
+## 🧩 Validation Pine (FINAL LONG/SHORT)
 
-Implémentation dédiée de la state machine Ichimoku Light en dehors de `crypto_backtest`
-pour coller aux exports Pine (mode Light + State + lock).
+Le script `tests/compare_signals.py` compare désormais les signaux Python
+à `FINAL LONG` / `FINAL SHORT` et génère les entrées via le pipeline
+`FinalTriggerStrategy` (Ichimoku externe + 5in1 Light + Puzzle/Grace).
 
 ### Fichiers ajoutés/modifiés
-- `indicators/ichimoku.py` (Light state + composants)
-- `indicators/signals.py` (state machine + lock)
-- `indicators/__init__.py`
-- `tests/compare_signals.py` (script de comparaison Pine)
+- `tests/compare_signals.py` (comparaison FINAL LONG/SHORT + debug trend)
 - `data/BYBIT_BTCUSDT-60.csv` (dataset TradingView)
 
 ### Résultats
-- `python tests/compare_signals.py` : non relancé après ajout dans `friendly-fishstick`.
+- `python tests/compare_signals.py --file data/BYBIT_BTCUSDT-60.csv --warmup 150` : non relancé après modif.
 
 ---
 
