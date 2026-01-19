@@ -16,7 +16,7 @@ from .base import BaseStrategy
 @dataclass(frozen=True)
 class FinalTriggerParams:
     grace_bars: int = 1
-    use_mama_kama_filter: bool = True
+    use_mama_kama_filter: bool = False  # Pine default: OFF
     require_fama_between: bool = False
     strict_lock_5in1_last: bool = False
     mama_fast_limit: float = 0.5
