@@ -47,47 +47,50 @@ class MultiTPPositionManager:
         equity = initial_capital
         cost_rate = (fees_bps + slippage_bps) / 10_000.0
 
+        def open_position(signal_value: int, idx: int, ts, equity_value: float) -> dict[str, Any] | None:
+            if signal_value == 0:
+                return None
+            entry = float(signals["entry_price"].iloc[idx])
+            sl = float(signals["sl_price"].iloc[idx])
+            tp1 = float(signals["tp1_price"].iloc[idx])
+            tp2 = float(signals["tp2_price"].iloc[idx])
+            tp3 = float(signals["tp3_price"].iloc[idx])
+            if any(np.isnan([entry, sl, tp1, tp2, tp3])):
+                return None
+
+            trade_capital = initial_capital if sizing_mode == "fixed" else equity_value
+            legs = []
+            for i, leg in enumerate(self.legs):
+                notional = trade_capital * leg.size
+                quantity = 0.0 if entry == 0 else notional / entry
+                legs.append(
+                    {
+                        "index": i,
+                        "size": leg.size,
+                        "tp": [tp1, tp2, tp3][i],
+                        "tp_multiple": leg.tp_multiple,
+                        "quantity": quantity,
+                        "notional": notional,
+                        "active": True,
+                    }
+                )
+
+            return {
+                "direction": signal_value,
+                "entry_price": entry,
+                "entry_time": ts,
+                "stop": sl,
+                "tp1": tp1,
+                "legs": legs,
+                "realized_pnl": 0.0,
+            }
+
         for idx, ts in enumerate(data.index):
             bar = data.iloc[idx]
             signal = int(signals["signal"].iloc[idx])
 
             if position is None:
-                if signal == 0:
-                    continue
-                entry = float(signals["entry_price"].iloc[idx])
-                sl = float(signals["sl_price"].iloc[idx])
-                tp1 = float(signals["tp1_price"].iloc[idx])
-                tp2 = float(signals["tp2_price"].iloc[idx])
-                tp3 = float(signals["tp3_price"].iloc[idx])
-                if any(np.isnan([entry, sl, tp1, tp2, tp3])):
-                    continue
-
-                trade_capital = initial_capital if sizing_mode == "fixed" else equity
-                legs = []
-                for i, leg in enumerate(self.legs):
-                    notional = trade_capital * leg.size
-                    quantity = 0.0 if entry == 0 else notional / entry
-                    legs.append(
-                        {
-                            "index": i,
-                            "size": leg.size,
-                            "tp": [tp1, tp2, tp3][i],
-                            "tp_multiple": leg.tp_multiple,
-                            "quantity": quantity,
-                            "notional": notional,
-                            "active": True,
-                        }
-                    )
-
-                position = {
-                    "direction": signal,
-                    "entry_price": entry,
-                    "entry_time": ts,
-                    "stop": sl,
-                    "tp1": tp1,
-                    "legs": legs,
-                    "realized_pnl": 0.0,
-                }
+                position = open_position(signal, idx, ts, equity)
                 continue
 
             direction = position["direction"]
@@ -105,6 +108,7 @@ class MultiTPPositionManager:
                         )
                         equity += position["realized_pnl"] if sizing_mode == "equity" else 0.0
                         position = None
+                        position = open_position(signal, idx, ts, equity)
                         continue
                     self._process_tp_hits(
                         trades, position, ts, entry_price, bar["high"], direction, cost_rate
@@ -121,6 +125,7 @@ class MultiTPPositionManager:
                         )
                         equity += position["realized_pnl"] if sizing_mode == "equity" else 0.0
                         position = None
+                        position = open_position(signal, idx, ts, equity)
                         continue
 
             else:
@@ -135,6 +140,7 @@ class MultiTPPositionManager:
                         )
                         equity += position["realized_pnl"] if sizing_mode == "equity" else 0.0
                         position = None
+                        position = open_position(signal, idx, ts, equity)
                         continue
                     self._process_tp_hits(
                         trades, position, ts, entry_price, bar["low"], direction, cost_rate
@@ -151,12 +157,16 @@ class MultiTPPositionManager:
                         )
                         equity += position["realized_pnl"] if sizing_mode == "equity" else 0.0
                         position = None
+                        position = open_position(signal, idx, ts, equity)
                         continue
 
             if position is not None and all(not leg["active"] for leg in position["legs"]):
                 if sizing_mode == "equity":
                     equity += position["realized_pnl"]
                 position = None
+                new_position = open_position(signal, idx, ts, equity)
+                if new_position is not None:
+                    position = new_position
 
         return pd.DataFrame(trades)
 
