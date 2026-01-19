@@ -78,7 +78,11 @@ def _periods_per_year(index: pd.Index) -> float:
     freq = pd.infer_freq(index)
     if freq:
         offset = pd.tseries.frequencies.to_offset(freq)
-        return pd.Timedelta(days=365.25) / offset.delta
+        try:
+            delta = offset.as_timedelta()
+        except AttributeError:
+            delta = pd.Timedelta(offset.nanos, unit="ns")
+        return pd.Timedelta(days=365.25) / delta
     delta = (index[1:] - index[:-1]).median()
     if delta <= pd.Timedelta(0):
         return 252.0
