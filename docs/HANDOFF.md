@@ -52,6 +52,23 @@ crypto_backtest/
 
 ---
 
+## 🧩 Ajouts Ichimoku Light (repo root)
+
+Implémentation dédiée de la state machine Ichimoku Light en dehors de `crypto_backtest`
+pour coller aux exports Pine (mode Light + State + lock).
+
+### Fichiers ajoutés/modifiés
+- `indicators/ichimoku.py` (Light state + composants)
+- `indicators/signals.py` (state machine + lock)
+- `indicators/__init__.py`
+- `tests/compare_signals.py` (script de comparaison Pine)
+- `data/BYBIT_BTCUSDT-60.csv` (dataset TradingView)
+
+### Résultats
+- `python tests/compare_signals.py` : non relancé après ajout dans `friendly-fishstick`.
+
+---
+
 ## 🔧 Configuration Pine Utilisateur
 
 La configuration par défaut Python est alignée sur Pine:
