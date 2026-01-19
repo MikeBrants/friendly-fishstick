@@ -251,12 +251,15 @@ def test_sizing_mode_equity_compounding():
 
     assert len(trades) == 1
     trade = trades.iloc[0]
-    # gross_pnl = (110 - 100) * (10000 / 100) = 1000
-    assert trade["gross_pnl"] == 1000.0
-    # costs = 10000 * (15/10000) * 2 = 30
-    assert trade["costs"] == 30.0
-    # net_pnl = 1000 - 30 = 970
-    assert trade["net_pnl"] == 970.0
+    # risk_amount = 10000 * 0.005 = 50, stop_distance = 10/100 = 0.1
+    # notional = 50 / 0.1 = 500
+    assert abs(trade["notional"] - 500.0) < 1e-6
+    # gross_pnl = (110 - 100) * (500 / 100) = 50
+    assert abs(trade["gross_pnl"] - 50.0) < 1e-6
+    # costs = 500 * (15/10000) * 2 = 1.5
+    assert abs(trade["costs"] - 1.5) < 1e-6
+    # net_pnl = 50 - 1.5 = 48.5
+    assert abs(trade["net_pnl"] - 48.5) < 1e-6
 
 
 def test_sizing_mode_equity_second_trade_uses_updated_equity():
@@ -298,16 +301,19 @@ def test_sizing_mode_equity_second_trade_uses_updated_equity():
     )
 
     assert len(trades) == 2
-    # Trade 1: notional = 10000, net_pnl = 970 -> equity = 10970
+    # Trade 1: notional = 500, net_pnl = 48.5 -> equity = 10048.5
     trade1 = trades.iloc[0]
-    assert trade1["notional"] == 10_000.0
-    assert trade1["net_pnl"] == 970.0
+    assert abs(trade1["notional"] - 500.0) < 1e-6
+    assert abs(trade1["net_pnl"] - 48.5) < 1e-6
 
-    # Trade 2: notional should be 10970 (equity after trade 1)
+    # Trade 2: notional scales with equity after trade 1
     trade2 = trades.iloc[1]
-    assert trade2["notional"] == 10_970.0
-    # gross_pnl = (110 - 100) * (10970 / 100) = 1097
-    assert trade2["gross_pnl"] == 1097.0
-    # costs = 10970 * (15/10000) * 2 = 32.91
-    expected_costs = 10_970.0 * (15 / 10_000) * 2
-    assert abs(trade2["costs"] - expected_costs) < 0.01
+    # equity = 10048.5, risk_amount = 50.2425, stop_distance = 0.1
+    expected_notional = 50.2425 / 0.1
+    assert abs(trade2["notional"] - expected_notional) < 1e-6
+    # gross_pnl = (110 - 100) * (notional / 100)
+    expected_gross = (110.0 - 100.0) * (expected_notional / 100.0)
+    assert abs(trade2["gross_pnl"] - expected_gross) < 1e-6
+    # costs = notional * (15/10000) * 2
+    expected_costs = expected_notional * (15 / 10_000) * 2
+    assert abs(trade2["costs"] - expected_costs) < 1e-6

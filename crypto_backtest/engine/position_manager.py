@@ -29,6 +29,7 @@ class MultiTPPositionManager:
         intrabar_order: Literal["stop_first", "tp_first"] = "stop_first",
         fees_bps: float = 0.0,
         slippage_bps: float = 0.0,
+        risk_per_trade: float = 0.005,
     ) -> pd.DataFrame:
         """Simulate multi-TP trade management and return trades."""
         required = {"signal", "entry_price", "sl_price", "tp1_price", "tp2_price", "tp3_price"}
@@ -41,6 +42,8 @@ class MultiTPPositionManager:
             raise ValueError("sizing_mode must be 'fixed' or 'equity'")
         if intrabar_order not in {"stop_first", "tp_first"}:
             raise ValueError("intrabar_order must be 'stop_first' or 'tp_first'")
+        if risk_per_trade <= 0:
+            raise ValueError("risk_per_trade must be > 0")
 
         trades: list[dict[str, Any]] = []
         position: dict[str, Any] | None = None
@@ -57,11 +60,19 @@ class MultiTPPositionManager:
             tp3 = float(signals["tp3_price"].iloc[idx])
             if any(np.isnan([entry, sl, tp1, tp2, tp3])):
                 return None
+            if entry == 0:
+                return None
+
+            stop_distance = abs(entry - sl) / entry
+            if stop_distance <= 0:
+                return None
 
             trade_capital = initial_capital if sizing_mode == "fixed" else equity_value
+            risk_amount = trade_capital * risk_per_trade
+            total_notional = risk_amount / stop_distance
             legs = []
             for i, leg in enumerate(self.legs):
-                notional = trade_capital * leg.size
+                notional = total_notional * leg.size
                 quantity = 0.0 if entry == 0 else notional / entry
                 legs.append(
                     {

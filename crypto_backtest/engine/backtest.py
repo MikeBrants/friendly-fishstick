@@ -18,6 +18,7 @@ class BacktestConfig:
     initial_capital: float = 10_000.0
     sizing_mode: Literal["fixed", "equity"] = "fixed"
     intrabar_order: Literal["stop_first", "tp_first"] = "stop_first"
+    risk_per_trade: float = 0.005
 
 
 @dataclass(frozen=True)
@@ -51,6 +52,7 @@ class VectorizedBacktester:
             intrabar_order=self.config.intrabar_order,
             fees_bps=self.config.fees_bps,
             slippage_bps=self.config.slippage_bps,
+            risk_per_trade=self.config.risk_per_trade,
         )
         if trades.empty:
             equity_curve = pd.Series(self.config.initial_capital, index=data.index)
