@@ -59,11 +59,36 @@ def _instantiate_strategy(strategy_class, params: Any):
     if params is None:
         return strategy_class()
     if isinstance(params, dict):
-        try:
-            return strategy_class(**params)
-        except TypeError:
-            return strategy_class(params)
+        # Convert nested dicts to dataclasses if strategy expects a params dataclass
+        params_obj = _dict_to_params(strategy_class, params)
+        return strategy_class(params_obj)
     return strategy_class(params)
+
+
+def _dict_to_params(strategy_class, params_dict: dict) -> Any:
+    """Convert a nested dict to the appropriate params dataclass."""
+    import inspect
+    from crypto_backtest.strategies.final_trigger import FinalTriggerParams
+    from crypto_backtest.indicators.ichimoku import IchimokuConfig
+    from crypto_backtest.indicators.five_in_one import FiveInOneConfig
+
+    # Check if strategy expects FinalTriggerParams
+    sig = inspect.signature(strategy_class.__init__)
+    param_names = list(sig.parameters.keys())
+    if len(param_names) >= 2:  # self + params
+        first_param = param_names[1]
+        annotation = sig.parameters[first_param].annotation
+        if annotation is FinalTriggerParams or str(annotation) == 'FinalTriggerParams':
+            # Convert nested dicts
+            d = dict(params_dict)
+            if 'ichimoku' in d and isinstance(d['ichimoku'], dict):
+                d['ichimoku'] = IchimokuConfig(**d['ichimoku'])
+            if 'five_in_one' in d and isinstance(d['five_in_one'], dict):
+                d['five_in_one'] = FiveInOneConfig(**d['five_in_one'])
+            return FinalTriggerParams(**d)
+
+    # Fallback: try to instantiate directly
+    return params_dict
 
 
 def _suggest_params(trial, search_space: dict[str, Any]) -> dict[str, Any]:
