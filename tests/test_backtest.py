@@ -64,3 +64,142 @@ def test_intrabar_order_tp_first():
 
     assert len(trades) == 1
     assert trades.iloc[0]["exit_reason"] == "tp1"
+
+
+def test_three_legs_tp1_then_stop():
+    index = pd.date_range("2020-01-01", periods=3, freq="h", tz="UTC")
+    data = pd.DataFrame(
+        {
+            "open": [100.0, 100.0, 100.0],
+            "high": [100.0, 111.0, 105.0],
+            "low": [100.0, 99.0, 99.0],
+            "close": [100.0, 105.0, 100.0],
+            "volume": [1.0, 1.0, 1.0],
+        },
+        index=index,
+    )
+    signals = pd.DataFrame(
+        {
+            "signal": [1, 0, 0],
+            "entry_price": [100.0, float("nan"), float("nan")],
+            "sl_price": [90.0, float("nan"), float("nan")],
+            "tp1_price": [110.0, float("nan"), float("nan")],
+            "tp2_price": [120.0, float("nan"), float("nan")],
+            "tp3_price": [130.0, float("nan"), float("nan")],
+        },
+        index=index,
+    )
+    manager = MultiTPPositionManager(
+        [
+            PositionLeg(size=0.5, tp_multiple=2.0),
+            PositionLeg(size=0.3, tp_multiple=6.0),
+            PositionLeg(size=0.2, tp_multiple=10.0),
+        ]
+    )
+
+    trades = manager.simulate(
+        signals,
+        data,
+        initial_capital=10_000.0,
+        sizing_mode="fixed",
+        intrabar_order="stop_first",
+    )
+
+    assert len(trades) == 3
+    assert (trades["exit_reason"] == "tp1").sum() == 1
+    stop_trades = trades[trades["exit_reason"] == "stop"]
+    assert len(stop_trades) == 2
+    assert (stop_trades["exit_price"] == 100.0).all()
+
+
+def test_tp1_tp2_same_bar_then_stop_moves_tp1():
+    index = pd.date_range("2020-01-01", periods=3, freq="h", tz="UTC")
+    data = pd.DataFrame(
+        {
+            "open": [100.0, 100.0, 100.0],
+            "high": [100.0, 125.0, 115.0],
+            "low": [100.0, 99.0, 109.0],
+            "close": [100.0, 120.0, 110.0],
+            "volume": [1.0, 1.0, 1.0],
+        },
+        index=index,
+    )
+    signals = pd.DataFrame(
+        {
+            "signal": [1, 0, 0],
+            "entry_price": [100.0, float("nan"), float("nan")],
+            "sl_price": [90.0, float("nan"), float("nan")],
+            "tp1_price": [110.0, float("nan"), float("nan")],
+            "tp2_price": [120.0, float("nan"), float("nan")],
+            "tp3_price": [130.0, float("nan"), float("nan")],
+        },
+        index=index,
+    )
+    manager = MultiTPPositionManager(
+        [
+            PositionLeg(size=0.5, tp_multiple=2.0),
+            PositionLeg(size=0.3, tp_multiple=6.0),
+            PositionLeg(size=0.2, tp_multiple=10.0),
+        ]
+    )
+
+    trades = manager.simulate(
+        signals,
+        data,
+        initial_capital=10_000.0,
+        sizing_mode="fixed",
+        intrabar_order="tp_first",
+    )
+
+    assert len(trades) == 3
+    assert (trades["exit_reason"] == "tp1").sum() == 1
+    assert (trades["exit_reason"] == "tp2").sum() == 1
+    stop_trades = trades[trades["exit_reason"] == "stop"]
+    assert len(stop_trades) == 1
+    assert float(stop_trades.iloc[0]["exit_price"]) == 110.0
+
+
+def test_short_tp1_then_stop():
+    index = pd.date_range("2020-01-01", periods=3, freq="h", tz="UTC")
+    data = pd.DataFrame(
+        {
+            "open": [100.0, 100.0, 100.0],
+            "high": [100.0, 105.0, 101.0],
+            "low": [100.0, 89.0, 95.0],
+            "close": [100.0, 90.0, 100.0],
+            "volume": [1.0, 1.0, 1.0],
+        },
+        index=index,
+    )
+    signals = pd.DataFrame(
+        {
+            "signal": [-1, 0, 0],
+            "entry_price": [100.0, float("nan"), float("nan")],
+            "sl_price": [110.0, float("nan"), float("nan")],
+            "tp1_price": [90.0, float("nan"), float("nan")],
+            "tp2_price": [80.0, float("nan"), float("nan")],
+            "tp3_price": [70.0, float("nan"), float("nan")],
+        },
+        index=index,
+    )
+    manager = MultiTPPositionManager(
+        [
+            PositionLeg(size=0.5, tp_multiple=2.0),
+            PositionLeg(size=0.3, tp_multiple=6.0),
+            PositionLeg(size=0.2, tp_multiple=10.0),
+        ]
+    )
+
+    trades = manager.simulate(
+        signals,
+        data,
+        initial_capital=10_000.0,
+        sizing_mode="fixed",
+        intrabar_order="stop_first",
+    )
+
+    assert len(trades) == 3
+    assert (trades["exit_reason"] == "tp1").sum() == 1
+    stop_trades = trades[trades["exit_reason"] == "stop"]
+    assert len(stop_trades) == 2
+    assert (stop_trades["exit_price"] == 100.0).all()

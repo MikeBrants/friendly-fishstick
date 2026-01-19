@@ -49,17 +49,22 @@ class VectorizedBacktester:
             self.config.initial_capital,
             sizing_mode=self.config.sizing_mode,
             intrabar_order=self.config.intrabar_order,
+            fees_bps=self.config.fees_bps,
+            slippage_bps=self.config.slippage_bps,
         )
         if trades.empty:
             equity_curve = pd.Series(self.config.initial_capital, index=data.index)
             return BacktestResult(equity_curve=equity_curve, trades=trades)
 
-        trades["pnl"] = apply_fees_and_slippage(
-            trades["gross_pnl"],
-            trades["notional"],
-            self.config.fees_bps,
-            self.config.slippage_bps,
-        )
+        if "net_pnl" in trades.columns:
+            trades["pnl"] = trades["net_pnl"]
+        else:
+            trades["pnl"] = apply_fees_and_slippage(
+                trades["gross_pnl"],
+                trades["notional"],
+                self.config.fees_bps,
+                self.config.slippage_bps,
+            )
 
         pnl_by_time = trades.groupby("exit_time")["pnl"].sum()
         pnl_series = pnl_by_time.reindex(data.index, fill_value=0.0)
