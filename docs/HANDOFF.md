@@ -25,9 +25,11 @@ Finaliser les briques d’analyse (metrics/visualisation), optimisation (Bayesia
 - Coûts appliqués à la sortie (net_pnl) pour un compounding cohérent en mode `equity`.
 - Param space standardisé via `base_params` + `search_space` pour Optuna.
 - Tests multi-scénarios (long/short, 3 legs, trailing, compounding) pour verrouiller le comportement du moteur.
+- Conserver les exports CSV de comparaison dans le repo pour traçabilité des écarts (Pine vs Python).
 
 ## Fichiers modifiés
 - `.gitignore`
+- `btc_for_compare_signals.csv`
 - `crypto_backtest/analysis/metrics.py`
 - `crypto_backtest/analysis/visualization.py`
 - `crypto_backtest/analysis/validation.py`
@@ -39,6 +41,8 @@ Finaliser les briques d’analyse (metrics/visualisation), optimisation (Bayesia
 - `crypto_backtest/optimization/bayesian.py`
 - `crypto_backtest/optimization/walk_forward.py`
 - `crypto_backtest/strategies/final_trigger.py`
+- `compare_report.csv`
+- `kama.csv`
 - `tests/test_indicators.py`
 - `tests/test_backtest.py`
 
@@ -50,6 +54,7 @@ Finaliser les briques d’analyse (metrics/visualisation), optimisation (Bayesia
 - [x] ~~Ajouter un exemple `param_space` complet pour FinalTrigger v2 (ranges + toggles).~~
 - [x] ~~Fix: BayesianOptimizer convertit correctement dict → dataclass.~~
 - [ ] Valider la cohérence des signaux vs Pine sur données réelles (CSV export TradingView).
+- [ ] Inspecter `compare_report.csv` pour isoler les divergences par segment/condition.
 - [ ] Ajouter tests unitaires pour `optimize_final_trigger.py` (param_space presets).
 - [ ] Documenter le workflow d'optimisation dans un README ou notebook.
 - [ ] Fix FutureWarning: `Hour.delta` deprecated dans `metrics.py:81`.
@@ -58,3 +63,4 @@ Finaliser les briques d’analyse (metrics/visualisation), optimisation (Bayesia
 - Implémentation de `compute_alpha()` (MESA) et KAMA principal basé sur alpha/beta dynamiques.
 - La stratégie passe `er_length` à MAMA/FAMA pour refléter `len` Pine.
 - Tests: `pytest -v` (17 passed).
+- Ajout des exports CSV de comparaison (Pine vs Python). Tests non relancés.
