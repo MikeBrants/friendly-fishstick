@@ -26,6 +26,7 @@ Finaliser les briques d’analyse (metrics/visualisation), optimisation (Bayesia
 - Param space standardisé via `base_params` + `search_space` pour Optuna.
 - Tests multi-scénarios (long/short, 3 legs, trailing, compounding) pour verrouiller le comportement du moteur.
 - Conserver les exports CSV de comparaison dans le repo pour traçabilité des écarts (Pine vs Python).
+- Aligner les defaults Python sur la config Pine (mode Light + State, sans filtre MAMA/KAMA).
 
 ## Fichiers modifiés
 - `.gitignore`
@@ -57,10 +58,11 @@ Finaliser les briques d’analyse (metrics/visualisation), optimisation (Bayesia
 - [ ] Inspecter `compare_report.csv` pour isoler les divergences par segment/condition.
 - [ ] Ajouter tests unitaires pour `optimize_final_trigger.py` (param_space presets).
 - [ ] Documenter le workflow d'optimisation dans un README ou notebook.
-- [ ] Fix FutureWarning: `Hour.delta` deprecated dans `metrics.py:81`.
+- [x] Fix FutureWarning: `Hour.delta` deprecated dans `metrics.py:81`.
 
 ## Dernières MAJ
 - Implémentation de `compute_alpha()` (MESA) et KAMA principal basé sur alpha/beta dynamiques.
 - La stratégie passe `er_length` à MAMA/FAMA pour refléter `len` Pine.
 - Tests: `pytest -v` (17 passed).
 - Ajout des exports CSV de comparaison (Pine vs Python). Tests non relancés.
+- Defaults alignés sur config Pine (MAMA/KAMA OFF, Ichimoku 5in1 Light, mode State).

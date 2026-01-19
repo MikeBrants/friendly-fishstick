@@ -18,8 +18,8 @@ class FiveInOneConfig:
     use_norm: bool = True
     ad_norm_period: int = 50
     use_ad_line: bool = True
-    ichi5in1_strict: bool = True
-    use_transition_mode: bool = True
+    ichi5in1_strict: bool = False
+    use_transition_mode: bool = False
     use_distance_filter: bool = False
     use_volume_filter: bool = False
     use_regression_cloud: bool = False
@@ -121,22 +121,40 @@ class FiveInOneFilter:
 
     def kama_oscillator(self, close: pd.Series) -> pd.Series:
         """KAMA oscillator normalized to [-0.5, 0.5]."""
-        ch = (close - close.shift(self.config.er_period)).abs()
-        volatility = (close - close.shift(1)).abs().rolling(self.config.er_period).sum()
-        er_val = ch / volatility.replace(0, np.nan)
-        er_val = er_val.fillna(0.0)
+        price = close.to_numpy(dtype=float)
+        n = len(price)
+        if n == 0:
+            return pd.Series(dtype=float, index=close.index)
+        if self.config.er_period < 1:
+            raise ValueError("er_period must be >= 1")
+
+        change = np.abs(price - np.roll(price, self.config.er_period))
+        change[: min(self.config.er_period, n)] = 0.0
+        volatility = np.abs(np.diff(price, prepend=price[0]))
+        noise = (
+            pd.Series(volatility, index=close.index)
+            .rolling(self.config.er_period)
+            .sum()
+            .fillna(0.0)
+            .to_numpy()
+        )
+        er = np.divide(change, noise, out=np.zeros_like(change), where=noise != 0)
 
         fast = 2 / (self.config.fast_period + 1)
         slow = 2 / (self.config.slow_period + 1)
-        sc = er_val * (fast - slow) + slow
-        ema_fast = close.ewm(span=self.config.fast_period, adjust=False).mean()
-        kama_val = ema_fast + sc * (close - ema_fast)
+        alpha = (er * (fast - slow) + slow) ** 2
 
-        lowest = kama_val.rolling(self.config.norm_period).min()
-        highest = kama_val.rolling(self.config.norm_period).max()
+        kama_val = np.zeros(n, dtype=float)
+        kama_val[0] = price[0]
+        for i in range(1, n):
+            kama_val[i] = alpha[i] * price[i] + (1 - alpha[i]) * kama_val[i - 1]
+        kama_series = pd.Series(kama_val, index=close.index)
+
+        lowest = kama_series.rolling(self.config.norm_period).min()
+        highest = kama_series.rolling(self.config.norm_period).max()
         denom = (highest - lowest).clip(lower=1e-10)
-        normalized = (kama_val - lowest) / denom - 0.5
-        kama_osc = normalized if self.config.use_norm else kama_val
+        normalized = (kama_series - lowest) / denom - 0.5
+        kama_osc = normalized if self.config.use_norm else kama_series
 
         kama_bull = kama_osc > 0
         kama_bear = kama_osc < 0

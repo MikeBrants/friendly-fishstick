@@ -16,9 +16,12 @@ from .base import BaseStrategy
 @dataclass(frozen=True)
 class FinalTriggerParams:
     grace_bars: int = 1
-    use_mama_kama_filter: bool = True
+    use_mama_kama_filter: bool = False
     require_fama_between: bool = False
     strict_lock_5in1_last: bool = False
+    price_tol_pct: float = 0.0001
+    debug_signals: bool = False
+    debug_signals_path: str = "debug_signals.csv"
     mama_fast_limit: float = 0.5
     mama_slow_limit: float = 0.05
     kama_length: int = 20
@@ -54,8 +57,10 @@ class FinalTriggerStrategy(BaseStrategy):
         fama = mama_fama["fama"]
         kama = compute_kama(close, self.params.kama_length)
 
-        cond_mk_long_base = (close > mama) & (mama > kama)
-        cond_mk_short_base = (close < mama) & (mama < kama)
+        # Apply a small relative tolerance to reduce boundary flips vs Pine.
+        tol = close * self.params.price_tol_pct
+        cond_mk_long_base = (close > mama + tol) & (mama > kama)
+        cond_mk_short_base = (close < mama - tol) & (mama < kama)
         cond_fama_between_long = (kama < fama) & (fama < mama)
         cond_fama_between_short = (mama < fama) & (fama < kama)
 
@@ -78,6 +83,7 @@ class FinalTriggerStrategy(BaseStrategy):
         all_bearish = ichi.all_bearish(close).fillna(False)
 
         n = len(data)
+        debug_enabled = self.params.debug_signals
         buy_signal_raw = np.zeros(n, dtype=bool)
         sell_signal_raw = np.zeros(n, dtype=bool)
         ichi_long_active = np.zeros(n, dtype=bool)
@@ -110,6 +116,21 @@ class FinalTriggerStrategy(BaseStrategy):
 
         new_long_close = np.zeros(n, dtype=bool)
         new_short_close = np.zeros(n, dtype=bool)
+        if debug_enabled:
+            armed_long_strict_state = np.zeros(n, dtype=bool)
+            armed_short_strict_state = np.zeros(n, dtype=bool)
+            armed_long_grace_state = np.zeros(n, dtype=bool)
+            armed_short_grace_state = np.zeros(n, dtype=bool)
+            pending_long_state = np.zeros(n, dtype=bool)
+            pending_short_state = np.zeros(n, dtype=bool)
+            lock_long_cycle_state = np.zeros(n, dtype=bool)
+            lock_short_cycle_state = np.zeros(n, dtype=bool)
+            allow_long_state = np.zeros(n, dtype=bool)
+            allow_short_state = np.zeros(n, dtype=bool)
+            trigger_long_state = np.zeros(n, dtype=bool)
+            trigger_short_state = np.zeros(n, dtype=bool)
+            final_long_active_state = np.zeros(n, dtype=bool)
+            final_short_active_state = np.zeros(n, dtype=bool)
 
         lock_long_cycle = False
         lock_short_cycle = False
@@ -209,6 +230,21 @@ class FinalTriggerStrategy(BaseStrategy):
                 final_long_active = False
                 pending_short = False
                 new_short_close[i] = True
+            if debug_enabled:
+                armed_long_strict_state[i] = armed_long_strict
+                armed_short_strict_state[i] = armed_short_strict
+                armed_long_grace_state[i] = armed_long_grace_ok
+                armed_short_grace_state[i] = armed_short_grace_ok
+                pending_long_state[i] = pending_long
+                pending_short_state[i] = pending_short
+                lock_long_cycle_state[i] = lock_long_cycle
+                lock_short_cycle_state[i] = lock_short_cycle
+                allow_long_state[i] = allow_long
+                allow_short_state[i] = allow_short
+                trigger_long_state[i] = trigger_long
+                trigger_short_state[i] = trigger_short
+                final_long_active_state[i] = final_long_active
+                final_short_active_state[i] = final_short_active
 
         atr = compute_atr(data["high"], data["low"], close, self.params.atr_length)
         signal = np.zeros(n, dtype=int)
@@ -237,6 +273,48 @@ class FinalTriggerStrategy(BaseStrategy):
                 tp1_price[i] = entry - self.params.tp1_mult * atr_val
                 tp2_price[i] = entry - self.params.tp2_mult * atr_val
                 tp3_price[i] = entry - self.params.tp3_mult * atr_val
+        if debug_enabled:
+            debug_df = pd.DataFrame(
+                {
+                    "close": close,
+                    "mama": mama,
+                    "fama": fama,
+                    "kama": kama,
+                    "tol": tol,
+                    "cond_mk_long": cond_mk_long,
+                    "cond_mk_short": cond_mk_short,
+                    "cross_long_ok": cross_long_ok,
+                    "cross_short_ok": cross_short_ok,
+                    "all_bullish": all_bullish,
+                    "all_bearish": all_bearish,
+                    "buy_signal_raw": buy_signal_raw,
+                    "sell_signal_raw": sell_signal_raw,
+                    "ichi_long_active": ichi_long_active,
+                    "ichi_short_active": ichi_short_active,
+                    "five_signal": five_signal,
+                    "bullish_signal": bullish_signal,
+                    "bearish_signal": bearish_signal,
+                    "armed_long_strict": armed_long_strict_state,
+                    "armed_short_strict": armed_short_strict_state,
+                    "armed_long_grace_ok": armed_long_grace_state,
+                    "armed_short_grace_ok": armed_short_grace_state,
+                    "pending_long": pending_long_state,
+                    "pending_short": pending_short_state,
+                    "lock_long_cycle": lock_long_cycle_state,
+                    "lock_short_cycle": lock_short_cycle_state,
+                    "allow_long": allow_long_state,
+                    "allow_short": allow_short_state,
+                    "trigger_long": trigger_long_state,
+                    "trigger_short": trigger_short_state,
+                    "final_long_active": final_long_active_state,
+                    "final_short_active": final_short_active_state,
+                    "new_long": new_long_close,
+                    "new_short": new_short_close,
+                    "signal": signal,
+                },
+                index=data.index,
+            )
+            debug_df.to_csv(self.params.debug_signals_path)
 
         return pd.DataFrame(
             {
