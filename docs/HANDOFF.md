@@ -63,7 +63,8 @@ Le script `tests/compare_signals.py` compare désormais les signaux Python
 - `data/BYBIT_BTCUSDT-60.csv` (dataset TradingView)
 
 ### Résultats
-- `python tests/compare_signals.py --file data/BYBIT_BTCUSDT-60.csv --warmup 150` : non relancé après modif.
+- `python tests/compare_signals.py --file data/BYBIT_BTCUSDT-60.csv --warmup 150` : 100% match FINAL LONG/SHORT.
+- Backtest local exporté sur `crypto_backtest/BYBIT_BTCUSDT, 60 (1).csv` (fichiers dans `outputs/`).
 
 ---
 
@@ -113,6 +114,8 @@ use_transition_mode = False       # Pine: OFF (State mode)
 - [x] Fix FutureWarning: `Hour.delta` deprecated dans `metrics.py`
 - [x] Fix: BayesianOptimizer convertit correctement dict → dataclass
 - [x] Aligner defaults Python sur config Pine utilisateur
+- [x] Sizing basé sur le risque (`risk_per_trade`) + export backtest CSV
+- [x] Autoriser réentrée sur la bougie de sortie (backtest)
 
 ### À Faire
 - [ ] Valider cohérence signaux vs Pine sur CSV 2000+ bougies
@@ -150,6 +153,8 @@ Pine vérifie `barstate.isconfirmed` avant de générer des signaux. Python n'a 
 | Exports CSV comparaison dans repo | Traçabilité des écarts |
 | Filtres modulaires avec toggles | Flexibilité pour tester configs |
 | Defaults alignés sur la config Pine | Light + State, filtre MAMA/KAMA désactivé |
+| Sizing risk-based (`risk_per_trade`) | Risque fixe par trade, notional ajusté au stop |
+| Réentrée sur bougie de sortie | Permet d'enchaîner les signaux sans attente |
 
 ---
 
@@ -167,6 +172,9 @@ python crypto_backtest/examples/optimize_final_trigger.py
 
 # Backtest simple
 python crypto_backtest/examples/run_backtest.py
+
+# Backtest CSV local (export via script simple)
+python crypto_backtest/examples/simple_backtest.py --file data/BYBIT_BTCUSDT-60.csv --warmup 150
 ```
 
 ---
