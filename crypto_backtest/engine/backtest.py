@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Literal
 import pandas as pd
 
 from crypto_backtest.strategies.base import BaseStrategy
@@ -15,6 +16,8 @@ class BacktestConfig:
     fees_bps: float = 5.0
     slippage_bps: float = 2.0
     initial_capital: float = 10_000.0
+    sizing_mode: Literal["fixed", "equity"] = "fixed"
+    intrabar_order: Literal["stop_first", "tp_first"] = "stop_first"
 
 
 @dataclass(frozen=True)
@@ -40,7 +43,13 @@ class VectorizedBacktester:
                 PositionLeg(size=0.2, tp_multiple=10.0),
             ]
         )
-        trades = position_manager.simulate(signals, data, self.config.initial_capital)
+        trades = position_manager.simulate(
+            signals,
+            data,
+            self.config.initial_capital,
+            sizing_mode=self.config.sizing_mode,
+            intrabar_order=self.config.intrabar_order,
+        )
         if trades.empty:
             equity_curve = pd.Series(self.config.initial_capital, index=data.index)
             return BacktestResult(equity_curve=equity_curve, trades=trades)

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal
 import numpy as np
 import pandas as pd
 
@@ -25,6 +25,8 @@ class MultiTPPositionManager:
         signals: pd.DataFrame,
         data: pd.DataFrame,
         initial_capital: float,
+        sizing_mode: Literal["fixed", "equity"] = "fixed",
+        intrabar_order: Literal["stop_first", "tp_first"] = "stop_first",
     ) -> pd.DataFrame:
         """Simulate multi-TP trade management and return trades."""
         required = {"signal", "entry_price", "sl_price", "tp1_price", "tp2_price", "tp3_price"}
@@ -33,9 +35,14 @@ class MultiTPPositionManager:
             raise ValueError(f"Missing signal columns: {sorted(missing)}")
         if signals.empty:
             return pd.DataFrame()
+        if sizing_mode not in {"fixed", "equity"}:
+            raise ValueError("sizing_mode must be 'fixed' or 'equity'")
+        if intrabar_order not in {"stop_first", "tp_first"}:
+            raise ValueError("intrabar_order must be 'stop_first' or 'tp_first'")
 
         trades: list[dict[str, Any]] = []
         position: dict[str, Any] | None = None
+        equity = initial_capital
 
         for idx, ts in enumerate(data.index):
             bar = data.iloc[idx]
@@ -52,9 +59,10 @@ class MultiTPPositionManager:
                 if any(np.isnan([entry, sl, tp1, tp2, tp3])):
                     continue
 
+                trade_capital = initial_capital if sizing_mode == "fixed" else equity
                 legs = []
                 for i, leg in enumerate(self.legs):
-                    notional = initial_capital * leg.size
+                    notional = trade_capital * leg.size
                     quantity = 0.0 if entry == 0 else notional / entry
                     legs.append(
                         {
@@ -75,49 +83,103 @@ class MultiTPPositionManager:
                     "stop": sl,
                     "tp1": tp1,
                     "legs": legs,
+                    "realized_pnl": 0.0,
                 }
                 continue
 
             direction = position["direction"]
             entry_price = position["entry_price"]
-            stop = position["stop"]
 
             if direction == 1:
-                if bar["low"] <= stop:
-                    self._close_all_legs(trades, position, ts, stop, "stop")
-                    position = None
-                    continue
-
-                for leg in position["legs"]:
-                    if not leg["active"]:
+                stop_hit = bar["low"] <= position["stop"]
+                tp_hit = bar["high"] >= min(
+                    [leg["tp"] for leg in position["legs"] if leg["active"]] or [np.inf]
+                )
+                if intrabar_order == "stop_first":
+                    if stop_hit:
+                        position["realized_pnl"] += self._close_all_legs(
+                            trades, position, ts, position["stop"], "stop"
+                        )
+                        equity += position["realized_pnl"] if sizing_mode == "equity" else 0.0
+                        position = None
                         continue
-                    if bar["high"] >= leg["tp"]:
-                        self._close_leg(trades, position, leg, ts, leg["tp"], f"tp{leg['index'] + 1}")
-                        if leg["index"] == 0:
-                            position["stop"] = entry_price
-                        elif leg["index"] == 1:
-                            position["stop"] = position["tp1"]
+                    self._process_tp_hits(
+                        trades, position, ts, entry_price, bar["high"], direction
+                    )
+                else:
+                    if tp_hit:
+                        self._process_tp_hits(
+                            trades, position, ts, entry_price, bar["high"], direction
+                        )
+                    stop_hit = bar["low"] <= position["stop"]
+                    if stop_hit and position is not None and any(leg["active"] for leg in position["legs"]):
+                        position["realized_pnl"] += self._close_all_legs(
+                            trades, position, ts, position["stop"], "stop"
+                        )
+                        equity += position["realized_pnl"] if sizing_mode == "equity" else 0.0
+                        position = None
+                        continue
 
             else:
-                if bar["high"] >= stop:
-                    self._close_all_legs(trades, position, ts, stop, "stop")
-                    position = None
-                    continue
-
-                for leg in position["legs"]:
-                    if not leg["active"]:
+                stop_hit = bar["high"] >= position["stop"]
+                tp_hit = bar["low"] <= max(
+                    [leg["tp"] for leg in position["legs"] if leg["active"]] or [-np.inf]
+                )
+                if intrabar_order == "stop_first":
+                    if stop_hit:
+                        position["realized_pnl"] += self._close_all_legs(
+                            trades, position, ts, position["stop"], "stop"
+                        )
+                        equity += position["realized_pnl"] if sizing_mode == "equity" else 0.0
+                        position = None
                         continue
-                    if bar["low"] <= leg["tp"]:
-                        self._close_leg(trades, position, leg, ts, leg["tp"], f"tp{leg['index'] + 1}")
-                        if leg["index"] == 0:
-                            position["stop"] = entry_price
-                        elif leg["index"] == 1:
-                            position["stop"] = position["tp1"]
+                    self._process_tp_hits(
+                        trades, position, ts, entry_price, bar["low"], direction
+                    )
+                else:
+                    if tp_hit:
+                        self._process_tp_hits(
+                            trades, position, ts, entry_price, bar["low"], direction
+                        )
+                    stop_hit = bar["high"] >= position["stop"]
+                    if stop_hit and position is not None and any(leg["active"] for leg in position["legs"]):
+                        position["realized_pnl"] += self._close_all_legs(
+                            trades, position, ts, position["stop"], "stop"
+                        )
+                        equity += position["realized_pnl"] if sizing_mode == "equity" else 0.0
+                        position = None
+                        continue
 
             if position is not None and all(not leg["active"] for leg in position["legs"]):
+                if sizing_mode == "equity":
+                    equity += position["realized_pnl"]
                 position = None
 
         return pd.DataFrame(trades)
+
+    def _process_tp_hits(
+        self,
+        trades: list[dict[str, Any]],
+        position: dict[str, Any],
+        exit_time,
+        entry_price: float,
+        extreme_price: float,
+        direction: int,
+    ) -> None:
+        for leg in position["legs"]:
+            if not leg["active"]:
+                continue
+            if (direction == 1 and extreme_price >= leg["tp"]) or (
+                direction == -1 and extreme_price <= leg["tp"]
+            ):
+                pnl = self._close_leg(
+                    trades, position, leg, exit_time, leg["tp"], f"tp{leg['index'] + 1}"
+                )
+                position["realized_pnl"] += pnl
+                if leg["index"] == 0:
+                    position["stop"] = entry_price
+                elif leg["index"] == 1:
+                    position["stop"] = position["tp1"]
 
     def _close_leg(
         self,
@@ -127,7 +189,7 @@ class MultiTPPositionManager:
         exit_time,
         exit_price: float,
         reason: str,
-    ) -> None:
+    ) -> float:
         direction = position["direction"]
         pnl = (exit_price - position["entry_price"]) * direction * leg["quantity"]
         trades.append(
@@ -146,6 +208,7 @@ class MultiTPPositionManager:
             }
         )
         leg["active"] = False
+        return pnl
 
     def _close_all_legs(
         self,
@@ -154,7 +217,9 @@ class MultiTPPositionManager:
         exit_time,
         exit_price: float,
         reason: str,
-    ) -> None:
+    ) -> float:
+        pnl_total = 0.0
         for leg in position["legs"]:
             if leg["active"]:
-                self._close_leg(trades, position, leg, exit_time, exit_price, reason)
+                pnl_total += self._close_leg(trades, position, leg, exit_time, exit_price, reason)
+        return pnl_total

@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 
 from crypto_backtest.indicators.five_in_one import FiveInOneConfig, FiveInOneFilter
+from crypto_backtest.indicators.atr import compute_atr
 from crypto_backtest.indicators.ichimoku import Ichimoku, IchimokuConfig, donchian
 from crypto_backtest.indicators.mama_fama_kama import (
     compute_kama,
@@ -85,3 +86,12 @@ def test_five_in_one_signals():
 
     assert len(signal) == len(data)
     assert set(signal.dropna().unique()).issubset({-1, 0, 1})
+
+
+def test_atr_constant_range():
+    index = pd.date_range("2020-01-01", periods=20, freq="h", tz="UTC")
+    high = pd.Series(110.0, index=index)
+    low = pd.Series(100.0, index=index)
+    close = pd.Series(105.0, index=index)
+    atr = compute_atr(high, low, close, length=14)
+    assert abs(atr.iloc[-1] - 10.0) < 1e-6
