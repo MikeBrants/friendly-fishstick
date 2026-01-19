@@ -10,6 +10,7 @@ Implémenter la stratégie FINAL TRIGGER v2 + moteur de backtest multi-TP, puis 
 - [x] Indicateurs core + tests unitaires de base
 - [x] Stratégie Final Trigger + moteur de backtest + position manager multi-TP
 - [x] Rendre l’ordre intra-bar et le sizing configurables + tests associés
+- [x] Aligner compounding avec coûts + scénarios backtest multi-legs
 - [ ] Ajouter métriques/visualisation + optimisation (Bayesian, walk-forward) + example run
 
 ## Décisions prises + raisons
@@ -17,8 +18,10 @@ Implémenter la stratégie FINAL TRIGGER v2 + moteur de backtest multi-TP, puis 
 - Manager multi-TP avec trailing (SL -> BE après TP1, SL -> TP1 après TP2) pour refléter le comportement visuel Pine.
 - Backtest initial simple (pnl agrégé par exit_time) pour itérer vite avant metrics/optimisation.
 - Ajout d’options `sizing_mode` (fixed/equity) et `intrabar_order` (stop_first/tp_first) pour expliciter l’hypothèse intra-bar.
+- Coûts appliqués à la sortie (net_pnl) pour un compounding cohérent en mode `equity`.
 
 ## Fichiers modifiés
+- `.gitignore`
 - `crypto_backtest/engine/backtest.py`
 - `crypto_backtest/engine/position_manager.py`
 - `tests/test_indicators.py`
@@ -28,6 +31,6 @@ Implémenter la stratégie FINAL TRIGGER v2 + moteur de backtest multi-TP, puis 
 - `pytest -v`
 
 ## Problèmes connus / next steps
-- Étendre les tests backtest (TP/SL/trailing multi-legs + compounding).
+- Ajouter des tests ciblés sur `sizing_mode="equity"` (compounding net of costs).
 - Implémenter metrics/visualisation + optimisation (Bayesian + walk-forward).
 - Valider la cohérence des signaux vs Pine sur données réelles.
