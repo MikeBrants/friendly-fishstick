@@ -18,8 +18,8 @@ class FiveInOneConfig:
     use_norm: bool = True
     ad_norm_period: int = 50
     use_ad_line: bool = True
-    ichi5in1_strict: bool = False
-    use_transition_mode: bool = False
+    ichi5in1_strict: bool = False  # Pine default: OFF (Light mode = 3 cond bear)
+    use_transition_mode: bool = False  # Pine default: OFF (State mode)
     use_distance_filter: bool = False
     use_volume_filter: bool = False
     use_regression_cloud: bool = False
