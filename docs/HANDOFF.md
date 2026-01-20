@@ -1,5 +1,42 @@
 # Handoff — FINAL TRIGGER v2 Backtest System
 
+> **Date de transmission**: 2026-01-20
+> **État**: PRODUCTION READY — Portfolio 3 assets validé (BTC/ETH/XRP)
+
+---
+
+## EXECUTIVE SUMMARY (Pour Agent Suivant)
+
+### Qu'est-ce que c'est ?
+Pipeline de backtest complet pour la stratégie TradingView "FINAL TRIGGER v2" convertie en Python. Inclut optimisation bayésienne (ATR + Ichimoku), validation walk-forward, tests Monte Carlo, analyse de régimes, et construction de portfolio multi-asset.
+
+### État Final
+- **Portfolio Production**: BTC + ETH + XRP (validés individuellement)
+- **Assets Exclus**: SOL (params incompatibles), AAVE (WFE 0.44 = overfitting)
+- **Sharpe Portfolio**: ~4.52 (weights optimisés)
+- **Tous les tests de robustesse passés**: WFE, Monte Carlo, Bootstrap, Sensitivity
+
+### Fichiers Critiques
+| Fichier | Description |
+|---------|-------------|
+| `crypto_backtest/config/asset_config.py` | Config production (params optimaux par asset) |
+| `docs/HANDOFF.md` | Ce document - contexte complet |
+| `outputs/portfolio_construction.csv` | Résultats portfolio optimisé |
+| `outputs/optim_*_best_params.json` | Params optimaux par asset |
+
+### Prochaines Étapes Suggérées
+1. **P1 - Multi-Timeframe**: Tester params sur 4H et Daily
+2. **P2 - Displacement Grid**: Optimiser displacement [26-78]
+3. **P3 - Live Trading**: Implémenter connecteur exchange live
+
+### Données (Local Only)
+Les fichiers `data/Binance_*_1h.csv` sont ignorés par git. Pour régénérer:
+```bash
+python fetch_binance_data.py  # ou relancer les scripts de fetch
+```
+
+---
+
 ## 🎯 Objectif
 
 Convertir l'indicateur TradingView "FINAL TRIGGER v2 - State/Transition + A/D Line + Ichi Light" en Python avec système de backtest professionnel, walk-forward analysis et optimisation bayésienne.
