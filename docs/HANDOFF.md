@@ -103,6 +103,25 @@ Randomisation des points d'entrée (durées conservées), 1000 itérations.
 
 ---
 
+## ⚠️ Market Regime Analysis
+
+Regime dependent: **YES** (Bear/Sidways sous-performent).  
+Target Sharpe > 1.0 **non atteint** en BEAR et SIDEWAYS.
+
+| Regime | Sharpe | Return | Win Rate | PF | Trades |
+|--------|--------|--------|----------|----|--------|
+| **BULL** | 2.11 | +3.79% | 37.04% | 1.06 | 108 |
+| **BEAR** | -0.64 | -1.18% | 56.12% | 2.73 | 98 |
+| **HIGH_VOL** | 4.30 | +7.77% | 38.38% | 1.38 | 99 |
+| **SIDEWAYS** | 0.00 | 0.00% | 0.00% | 0.00 | 0 |
+| **OTHER** | 2.95 | +4.66% | 43.24% | 1.50 | 111 |
+
+**Outputs**:
+- `outputs/regime_analysis.csv`
+- `outputs/regime_analysis_report.txt`
+
+---
+
 ## 🏗️ Architecture Implémentée
 
 ```
@@ -172,6 +191,14 @@ Outputs: outputs/sensitivity_grid_results.csv, outputs/sensitivity_report.txt
 [INSTRUCTION-GUARD-001]
 Résultat: p-value 0.0030 (SIGNIFICANT)
 Outputs: outputs/monte_carlo_results.csv, outputs/monte_carlo_report.txt
+```
+
+### ⚠️ P0 — Market Regime Analysis (DONE)
+
+```
+[INSTRUCTION-GUARD-002]
+Résultat: REGIME_DEPENDENT (BEAR/SIDEWAYS)
+Outputs: outputs/regime_analysis.csv, outputs/regime_analysis_report.txt
 ```
 
 ### 🟠 P1 — Multi-Timeframe Validation
