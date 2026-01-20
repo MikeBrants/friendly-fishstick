@@ -1,7 +1,7 @@
 # Handoff — FINAL TRIGGER v2 Backtest System
 
 > **Date de transmission**: 2026-01-20
-> **État**: PRODUCTION READY — Portfolio 7 assets validé (TF 1H)
+> **État**: PRODUCTION READY — Portfolio 1H validé (guards)
 
 ---
 
@@ -11,8 +11,9 @@
 Pipeline de backtest complet pour la stratégie TradingView "FINAL TRIGGER v2" convertie en Python. Inclut optimisation bayésienne (ATR + Ichimoku), validation walk-forward, tests Monte Carlo, analyse de régimes, et construction de portfolio multi-asset.
 
 ### État Final
-- **Portfolio Production**: BTC + ETH + XRP + AVAX + UNI + SUI + SEI (7 assets validés)
-- **Assets Exclus**: SOL, AAVE, HYPE, ATOM, ARB, LINK, INJ, TIA (WFE < 0.6 ou overfit)
+- **Portfolio Production (scan)**: BTC + ETH + XRP + AVAX + UNI + SUI + SEI (7 assets validés)
+- **Portfolio Production (full guards)**: BTC + ETH + AVAX + UNI + SEI (SUI exclu)
+- **Assets Exclus**: SOL, AAVE, HYPE, ATOM, ARB, LINK, INJ, TIA (WFE < 0.6 ou overfit), SUI (guards)
 - **Sharpe Portfolio Original**: ~4.52 (BTC/ETH/XRP weights optimisés)
 - **Tous les tests de robustesse passés**: WFE, Monte Carlo, Bootstrap, Sensitivity
 - **Clustering**: invalidé (CLUSTERFAIL) → fallback params individuels (voir `outputs/pine_plan.csv`)
@@ -24,6 +25,7 @@ Pipeline de backtest complet pour la stratégie TradingView "FINAL TRIGGER v2" c
 | `docs/HANDOFF.md` | Ce document - contexte complet |
 | `outputs/portfolio_construction.csv` | Résultats portfolio optimisé |
 | `outputs/optim_*_best_params.json` | Params optimaux par asset |
+| `outputs/pine_plan_fullguards.csv` | Plan Pine pour assets full guards |
 
 ### Prochaines Étapes Suggérées
 1. **P1 - Multi-Timeframe**: DONE → rester en 1H (4H/1D insuffisant)
@@ -574,6 +576,28 @@ python -m crypto_backtest.analysis.mtf_validation --scan outputs/multiasset_scan
 - **Plan Pine**: `outputs/pine_plan.csv`
 
 **Portfolio Total Validé**: BTC + ETH + XRP + AVAX + UNI + SUI + SEI (7 assets)
+
+### ✅ Full Production Guards (ETH/AVAX/UNI/SUI/SEI)
+
+Run: `python scripts/run_guards_multiasset.py --assets ETH AVAX UNI SUI SEI --params-file outputs/pine_plan.csv --workers 4`
+
+**Résultats Guards (7)**:
+| Asset | GUARD-001 | GUARD-002 | GUARD-003 | GUARD-005 | GUARD-006 | GUARD-007 | ALL |
+|-------|----------|-----------|-----------|-----------|-----------|-----------|-----|
+| ETH | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| AVAX | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| UNI | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| SEI | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| SUI | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ | ❌ |
+
+**Décision**: SUI exclu (Bootstrap CI Sharpe lower < 1.0, Top 10 trades > 40%).
+
+**Outputs**:
+- `outputs/multiasset_guards_summary.csv`
+- `outputs/multiasset_guards_minireport.txt`
+- `outputs/pine_plan_fullguards.csv`
+- `outputs/{asset}_montecarlo.csv`, `outputs/{asset}_sensitivity.csv`, `outputs/{asset}_bootstrap.csv`
+- `outputs/{asset}_tradedist.csv`, `outputs/{asset}_stresstest.csv`, `outputs/{asset}_regime.csv`
 
 ---
 

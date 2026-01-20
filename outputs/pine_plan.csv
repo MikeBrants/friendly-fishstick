@@ -1,0 +1,7 @@
+asset,mode,sl_mult,tp1_mult,tp2_mult,tp3_mult,tenkan,kijun,tenkan_5,kijun_5
+BTC,individual,4.5,4.25,7.5,9.5,6,37,9,29
+ETH,individual,4.5,4.75,3.0,4.5,17,31,13,20
+AVAX,individual,2.75,1.5,10.5,8.0,20,23,12,16
+UNI,individual,4.25,4.5,3.0,9.5,7,23,8,28
+SUI,individual,1.5,5.0,12.0,8.5,6,23,9,30
+SEI,individual,4.25,4.75,3.0,9.5,20,33,8,28

@@ -1,0 +1,10 @@
+GUARDS VALIDATION REPORT: SEI
+======================================================================
+GUARD-001 Monte Carlo p-value: 0.0000 -> PASS
+GUARD-002 Sensitivity variance: 2.95% -> PASS
+GUARD-003 Bootstrap Sharpe CI lower: 5.28 -> PASS
+GUARD-005 Trade distribution top10: 10.76% -> PASS
+GUARD-006 Stress1 Sharpe: 3.32 -> PASS
+GUARD-007 Regime reconciliation mismatch: 0.00% -> PASS
+----------------------------------------------------------------------
+ALL PASS: YES
