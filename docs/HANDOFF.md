@@ -139,6 +139,19 @@ Targets:
 
 ---
 
+## ✅ Regime Reconciliation (No Look-Ahead)
+
+SIDEWAYS contribution: **79.50%** of total PnL  
+Verdict: **SIDEWAYS PROFITABLE**  
+Flag: **REGIME_V2_HAD_LOOKAHEAD_BUG**
+
+**Outputs**:
+- `outputs/regime_reconciliation.csv`
+- `outputs/regime_reconciliation_report.txt`
+- `outputs/trades_with_regime.csv`
+
+---
+
 ## ✅ Bootstrap Confidence & Trade Distribution
 
 **Bootstrap 95% CI**:
@@ -277,6 +290,14 @@ Outputs: outputs/regime_analysis.csv, outputs/regime_analysis_report.txt
 [INSTRUCTION-GUARD-002-V2]
 Résultat: REGIME_DEPENDENT + CRITICAL (SIDEWAYS)
 Outputs: outputs/regime_analysis_v2.csv, outputs/regime_analysis_v2_report.txt
+```
+
+### ✅ P0 — Regime Reconciliation (DONE)
+
+```
+[INSTRUCTION-REGIME-RECONCILIATION]
+Résultat: SIDEWAYS profitable (79.50% PnL), V2 had look-ahead bug
+Outputs: outputs/regime_reconciliation.csv, outputs/regime_reconciliation_report.txt
 ```
 
 ### ✅ P0 — Bootstrap & Trade Distribution (DONE)

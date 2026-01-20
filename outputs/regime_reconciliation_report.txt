@@ -1,0 +1,9 @@
+REGIME RECONCILIATION REPORT
+======================================================================
+Total trades: 416
+Total PnL: $1568.88
+Sum of regime PnL: $1568.88
+Baseline return: 15.69%
+SIDEWAYS contribution: 79.50%
+Verdict: SIDEWAYS is PROFITABLE
+Flag: REGIME_V2_HAD_LOOKAHEAD_BUG
