@@ -1,118 +1,119 @@
-# friendly-fishstick
+# FINAL TRIGGER v2 — Backtest System
 
-Backtest system for **FINAL TRIGGER v2** — Python implementation of the TradingView indicator.
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Status](https://img.shields.io/badge/status-82%25%20complete-green.svg)](docs/HANDOFF.md)
 
----
+> Système de backtest professionnel pour **FINAL TRIGGER v2** — Implémentation Python de l'indicateur TradingView avec walk-forward analysis et optimisation bayésienne.
 
-## 🎯 Simplified Logic (Default Config)
+## 🎯 Objectif
 
-With the default configuration (`use_mama_kama_filter=False`, `use_ichimoku_filter=True`, all other 5in1 filters OFF, `use_transition_mode=False`), the signal pipeline is:
-
-| Step | Component | Role |
-|------|-----------|------|
-| 1 | **Ichimoku External** | State machine → `ichi_long_active` / `ichi_short_active` |
-| 2 | **5in1 (Ichi Light only)** | `allBull` / `allBear` in state mode → `bullish_signal` / `bearish_signal` |
-| 3 | **Puzzle + Grace** | `trigger_long` = (5in1 bull AND ichi_long_active) OR pending_grace |
-| 4 | **ATR** | Generates SL / TP1 / TP2 / TP3 on entry |
-
-**Result:** Entry signals (`FINAL LONG` / `FINAL SHORT`) match 100% with Pine Script export after warmup.
+Convertir l'indicateur TradingView "FINAL TRIGGER v2 - State/Transition + A/D Line + Ichi Light" (1223 lignes Pine Script) en Python avec :
+- Backtest vectorisé haute performance
+- Walk-forward analysis
+- Optimisation bayésienne (Optuna)
+- Validation Pine vs Python
 
 ---
 
-## 🚀 Quick Start
+## ⚙️ Configuration Active (Default)
 
-### 1. Run a Backtest
+> **IMPORTANT**: Seuls 2 filtres sont actifs dans la configuration par défaut.
+
+| Paramètre | Valeur | Description |
+|-----------|--------|-------------|
+| `use_ichimoku_filter` | **TRUE** | Ichimoku Externe (17 bull / 3 bear Light) |
+| `use_5in1_ichi_light` | **TRUE** | Ichi Light dans le 5-in-1 Filter |
+| `use_mama_kama_filter` | FALSE | MAMA/FAMA/KAMA désactivé |
+| `use_transition_mode` | FALSE | Mode transition désactivé |
+| Autres filtres 5in1 | FALSE | Distance, Volume, AD Line, Regression, KAMA Osc |
+
+### Pipeline de Signaux Simplifié
+
+```
+Ichimoku External (17/3) → ichi_long_active / ichi_short_active
+        ↓
+Ichi Light (5in1) → allBull / allBear → bullish_signal / bearish_signal  
+        ↓
+Puzzle + Grace → trigger_long = (bullish_signal AND ichi_long_active) OR pending_grace
+        ↓
+ATR → SL / TP1 / TP2 / TP3
+```
+
+---
+
+## 📊 Composants Implémentés
+
+| Composant | Status | Description |
+|-----------|--------|-------------|
+| **Ichimoku Externe** | ✅ Actif | State machine biais directionnel |
+| **Ichi Light (5in1)** | ✅ Actif | Filtre Ichimoku simplifié |
+| **Puzzle + Grace** | ✅ Implémenté | Validation avec fenêtre 1 bar |
+| **ATR Multi-TP** | ✅ Implémenté | SL + 3 TP (50%/30%/20%) + trailing |
+| MAMA/FAMA/KAMA | ⚪ Inactif | Disponible mais désactivé |
+| Autres 5in1 | ⚪ Inactif | Distance, Volume, AD, Regression, KAMA Osc |
+
+---
+
+## 🏗️ Structure du Projet
+
+```
+crypto_backtest/
+├── config/settings.py          # Paramètres globaux
+├── data/
+│   ├── fetcher.py              # CCXT multi-exchange
+│   ├── storage.py              # Cache Parquet
+│   └── preprocessor.py         # Nettoyage données
+├── indicators/
+│   ├── ichimoku.py             # Ichimoku (17 bull + 3 bear) ✅ ACTIF
+│   ├── five_in_one.py          # Ichi Light uniquement ✅ ACTIF
+│   └── mama_fama_kama.py       # MESA Adaptive MA (inactif)
+├── strategies/
+│   └── final_trigger.py        # Logique principale
+└── engine/
+    ├── backtest.py             # Moteur vectorisé
+    └── position_manager.py     # Multi-TP + trailing SL
+```
+
+---
+
+## ⚡ Quick Start
+
+### Installation
 
 ```bash
-python crypto_backtest/examples/run_backtest.py
+pip install -r requirements.txt
 ```
 
-Or in Python:
-
-```python
-import pandas as pd
-from crypto_backtest.strategies.final_trigger import FinalTriggerStrategy, FinalTriggerParams
-from crypto_backtest.engine.backtest import BacktestEngine
-
-# Load your OHLCV data
-data = pd.read_csv("data/BYBIT_BTCUSDT-60.csv")
-data = data[["open", "high", "low", "close"]].copy()
-data["volume"] = 0.0  # if missing
-
-# Run backtest
-strategy = FinalTriggerStrategy(FinalTriggerParams())
-engine = BacktestEngine(strategy)
-results = engine.run(data)
-```
-
-### 2. Validate Signals vs Pine
+### Lancer un backtest
 
 ```bash
-python tests/compare_signals.py --file data/BYBIT_BTCUSDT-60.csv --warmup 150
+python backtest_optimized.py
 ```
 
-Expected output:
-```
-FINAL LONG match: 100.0%
-FINAL SHORT match: 100.0%
-```
-
-### 3. Run Optimization
+### Optimisation (10 trials)
 
 ```bash
-python crypto_backtest/examples/optimize_final_trigger.py
+python crypto_backtest/examples/optimize_final_trigger.py --trials 10
+```
+
+### Valider signaux Pine vs Python
+
+```bash
+python tests/compare_signals.py --file data/your_export.csv --warmup 150
 ```
 
 ---
 
-## ⚙️ Default Configuration (Aligned with Pine)
+## 📁 Fichiers Clés
 
-```python
-# FinalTriggerParams defaults
-use_mama_kama_filter = False      # Pine: OFF
-require_fama_between = False      # Pine: OFF
-strict_lock_5in1_last = False     # Pine: OFF
-grace_bars = 1                    # Pine: 1
-
-# FiveInOneConfig defaults
-use_distance_filter = False       # Pine: OFF
-use_volume_filter = False         # Pine: OFF
-use_regression_cloud = False      # Pine: OFF
-use_kama_oscillator = False       # Pine: OFF
-use_ichimoku_filter = True        # Pine: ON ← ONLY ACTIVE FILTER
-ichi5in1_strict = False           # Pine: OFF (Light = 3 bear conditions)
-use_transition_mode = False       # Pine: OFF (State mode)
-```
-
----
-
-## 📋 Optimization Workflow
-
-1. **Prepare OHLCV data** (CSV/Parquet) with UTC timestamps
-2. **Run the demo optimizer:**
-   ```bash
-   python crypto_backtest/examples/optimize_final_trigger.py
-   ```
-3. **Customize the param space:**
-   - Edit `get_param_space()` in `crypto_backtest/examples/optimize_final_trigger.py`
-   - Modes: `quick`, `full`, `toggles`
-4. **Validate signals vs Pine** (when CSV export is available):
-   ```bash
-   python tests/compare_signals.py --file data/your_export.csv --warmup 150
-   ```
-
----
-
-## 📁 Key Files
-
-| File | Description |
-|------|-------------|
-| `crypto_backtest/strategies/final_trigger.py` | Main strategy (Puzzle + Grace logic) |
-| `crypto_backtest/indicators/ichimoku.py` | Ichimoku external (17 bull / 3 bear Light) |
-| `crypto_backtest/indicators/five_in_one.py` | 5 combinable filters |
-| `crypto_backtest/engine/backtest.py` | Vectorized backtest engine |
+| Fichier | Description |
+|---------|-------------|
+| `crypto_backtest/strategies/final_trigger.py` | Stratégie principale (Puzzle + Grace) |
+| `crypto_backtest/indicators/ichimoku.py` | Ichimoku externe (17 bull / 3 bear) |
+| `crypto_backtest/indicators/five_in_one.py` | Ichi Light (seul filtre 5in1 actif) |
+| `crypto_backtest/engine/backtest.py` | Moteur de backtest vectorisé |
 | `crypto_backtest/engine/position_manager.py` | Multi-TP (50/30/20) + trailing SL |
-| `tests/compare_signals.py` | Pine vs Python signal validation |
+| `tests/compare_signals.py` | Validation Pine vs Python |
 
 ---
 
@@ -124,6 +125,22 @@ pytest -v
 
 ---
 
-## 📖 Full Documentation
+## 📚 Documentation
 
-See [docs/HANDOFF.md](docs/HANDOFF.md) for complete technical documentation, known issues, and next steps.
+- **[claude.md](claude.md)** — Plan détaillé et spécifications techniques
+- **[docs/HANDOFF.md](docs/HANDOFF.md)** — Documentation technique complète, issues connues et prochaines étapes
+
+---
+
+## 🚀 Next Steps
+
+1. ✅ Exporter CSV TradingView avec 2000+ bougies et signaux Pine
+2. ⏳ Lancer `compare_signals.py` et vérifier 100% match après warmup
+3. ⏳ Créer test E2E validant signaux sur données réelles
+4. ⏳ Walk-forward analysis complète
+
+---
+
+## 📄 License
+
+MIT

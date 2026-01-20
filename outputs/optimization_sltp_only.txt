@@ -1,0 +1,10 @@
+SL/TP OPTIMIZATION ONLY (4 parameters)
+Best sharpe_ratio: 1.4272
+
+Optimal SL/TP ratios:
+  sl_mult: 3.75 (default: 3.0)
+  tp1_mult: 3.75 (default: 2.0)
+  tp2_mult: 9.0 (default: 6.0)
+  tp3_mult: 7.0 (default: 10.0)
+
+All other parameters at DEFAULT values

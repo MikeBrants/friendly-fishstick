@@ -1,0 +1,17 @@
+Best sharpe_ratio: 1.6145
+
+Best parameters:
+  five_in_one.ad_norm_period: 24
+  five_in_one.fast_period: 11
+  five_in_one.slow_period: 21
+  grace_bars: 1
+  ichimoku.displacement: 47
+  ichimoku.kijun: 34
+  ichimoku.tenkan: 11
+  kama_length: 10
+  mama_fast_limit: 0.55
+  mama_slow_limit: 0.06999999999999999
+  sl_mult: 3.5
+  tp1_mult: 3.5
+  tp2_mult: 6.0
+  tp3_mult: 8.0

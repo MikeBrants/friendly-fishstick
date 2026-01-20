@@ -200,6 +200,12 @@ python crypto_backtest/examples/compare_signals.py
 # Demo optimisation (10 trials)
 python crypto_backtest/examples/optimize_final_trigger.py
 
+# Optimisation Ichimoku (Tenkan/Kijun)
+python optimize_ichimoku.py
+
+# Walk-forward analysis
+python walk_forward_analysis.py
+
 # Backtest simple
 python crypto_backtest/examples/run_backtest.py
 
@@ -248,6 +254,28 @@ Les **ratios SL/TP sont LE facteur clé de performance**. L'optimisation a montr
 
 ---
 
+## 🎯 Optimisation Ichimoku (Tenkan/Kijun) — 20 janvier 2026
+
+### Résultats (50 trials, SL/TP fixés à 3.75/3.75/9.0/7.0)
+
+**Best Sharpe**: 2.1352
+
+**Paramètres optimaux**:
+- `ichimoku.tenkan`: 13 (défaut: 9)
+- `ichimoku.kijun`: 34 (défaut: 26)
+- `five_in_one.tenkan_5`: 12 (défaut: 9)
+- `five_in_one.kijun_5`: 21 (défaut: 26)
+
+### Comparaison
+
+- **SL/TP optimisés + Ichimoku défaut**: Sharpe 1.43
+- **SL/TP + Ichimoku optimisés**: Sharpe 2.14
+- **Gain**: +0.71
+
+**Output**: `outputs/optimization_ichimoku_results.txt`
+
+---
+
 ## 📁 Fichiers Clés
 
 | Fichier | Description |
@@ -259,6 +287,7 @@ Les **ratios SL/TP sont LE facteur clé de performance**. L'optimisation a montr
 | `engine/position_manager.py` | Gestion multi-TP (50/30/20) + trailing SL |
 | `optimization/bayesian.py` | Optimisation Optuna TPE |
 | `examples/compare_signals.py` | Validation signaux Pine vs Python |
+| `walk_forward_analysis.py` | Script WFA (IS/OOS) avec optimisation SL/TP |
 
 ---
 

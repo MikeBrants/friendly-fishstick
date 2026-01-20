@@ -1,0 +1,14 @@
+ICHIMOKU OPTIMIZATION (4 parameters: tenkan/kijun)
+SL/TP fixed at optimized values: 3.75/3.75/9.0/7.0
+
+Best sharpe_ratio: 2.1352
+
+Optimal Ichimoku parameters:
+  five_in_one.kijun_5: 21
+  five_in_one.tenkan_5: 12
+  ichimoku.kijun: 34
+  ichimoku.tenkan: 13
+
+Fixed parameters:
+  displacement: 52
+  displacement_5: 52
