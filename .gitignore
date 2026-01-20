@@ -2,3 +2,4 @@ __pycache__/
 *.pyc
 .pytest_cache/
 btc_usdt_1h_sample.parquet
+data/Binance_BTCUSDT_1h.csv
