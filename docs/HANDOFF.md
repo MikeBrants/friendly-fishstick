@@ -27,7 +27,8 @@ Pipeline de backtest complet pour la stratégie TradingView "FINAL TRIGGER v2" c
 ### Prochaines Étapes Suggérées
 1. **P1 - Multi-Timeframe**: Tester params sur 4H et Daily
 2. **P2 - Displacement Grid**: Optimiser displacement [26-78]
-3. **P3 - Live Trading**: Implémenter connecteur exchange live
+3. ✅ **P3 - CODEX-005**: Multi-Asset Scan 10 Alts + Clustering — **IMPLEMENTED**
+4. **P4 - Live Trading**: Implémenter connecteur exchange live
 
 ### Données (Local Only)
 Les fichiers `data/Binance_*_1h.csv` sont ignorés par git. Pour régénérer:
@@ -487,6 +488,53 @@ Critère: Sharpe > 1.5 sur au moins 1 autre TF
 Objectif: Grid search displacement [26, 39, 52, 65, 78]
 Critère: Amélioration Sharpe > 0.1
 ```
+
+### 🟢 P3 — Multi-Asset Scan 10 Alts + Clustering (CODEX-005) — IMPLEMENTED
+
+```
+[CODEX-MULTI-ASSET-005]
+Status: IMPLEMENTED (2026-01-20)
+Objectif: Scanner 10 nouveaux alts, clustering des params similaires
+```
+
+**Nouveaux Assets à Scanner**:
+HYPE, AVAX, ATOM, ARB, LINK, UNI, SUI, INJ, TIA, SEI
+
+**Fichiers Créés**:
+| Fichier | Description |
+|---------|-------------|
+| `crypto_backtest/config/scan_assets.py` | Config scan (assets, search spaces, critères) |
+| `scripts/download_data.py` | Download OHLCV via CCXT multi-exchange |
+| `crypto_backtest/optimization/parallel_optimizer.py` | Optimisation parallèle joblib |
+| `crypto_backtest/analysis/cluster_params.py` | K-means clustering des params |
+| `scripts/run_full_pipeline.py` | Pipeline complet (download→optimize→cluster) |
+
+**Usage**:
+```bash
+# Full pipeline
+python scripts/run_full_pipeline.py --workers 8
+
+# Skip download si data présente
+python scripts/run_full_pipeline.py --skip-download --workers 8
+
+# Assets spécifiques
+python scripts/run_full_pipeline.py --assets HYPE AVAX SUI --workers 4
+
+# Clustering seul sur résultats existants
+python -m crypto_backtest.analysis.cluster_params --input outputs/multiasset_scan_*.csv
+```
+
+**Critères de Succès**:
+- OOS Sharpe > 1.0
+- WFE > 0.6
+- OOS Trades > 50
+- Max DD < 15%
+- Silhouette Score > 0.5 (qualité clusters)
+
+**Outputs Attendus**:
+- `outputs/multiasset_scan_{ts}.csv` — Résultats scan
+- `outputs/cluster_analysis_{ts}.json` — Clusters JSON
+- `crypto_backtest/config/cluster_params.py` — Config Python générée
 
 ---
 
