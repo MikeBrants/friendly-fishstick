@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 from datetime import timedelta
+import argparse
 
 from crypto_backtest.strategies.final_trigger import FinalTriggerStrategy, FinalTriggerParams
 from crypto_backtest.indicators.five_in_one import FiveInOneConfig
@@ -73,6 +74,168 @@ def run_backtest_with_params(data: pd.DataFrame, sl: float, tp1: float, tp2: flo
             "trades": len(result.trades),
         }
     return None
+
+def _build_optimized_params() -> FinalTriggerParams:
+    """Return FinalTriggerParams using the current optimized Ichimoku + SL/TP."""
+    five_in_one = FiveInOneConfig(
+        fast_period=7,
+        slow_period=19,
+        er_period=8,
+        norm_period=50,
+        use_norm=True,
+        ad_norm_period=50,
+        use_ad_line=True,
+        ichi5in1_strict=False,
+        use_transition_mode=False,
+        use_distance_filter=False,
+        use_volume_filter=False,
+        use_regression_cloud=False,
+        use_kama_oscillator=False,
+        use_ichimoku_filter=True,
+        tenkan_5=12,
+        kijun_5=21,
+        displacement_5=52,
+    )
+
+    ichimoku = IchimokuConfig(
+        tenkan=13,
+        kijun=34,
+        displacement=52,
+    )
+
+    return FinalTriggerParams(
+        grace_bars=1,
+        use_mama_kama_filter=False,
+        require_fama_between=False,
+        strict_lock_5in1_last=False,
+        mama_fast_limit=0.5,
+        mama_slow_limit=0.05,
+        kama_length=20,
+        atr_length=14,
+        sl_mult=3.75,
+        tp1_mult=3.75,
+        tp2_mult=9.0,
+        tp3_mult=7.0,
+        ichimoku=ichimoku,
+        five_in_one=five_in_one,
+    )
+
+def _run_backtest_segment(data: pd.DataFrame, params: FinalTriggerParams, config: BacktestConfig) -> dict:
+    """Run a backtest on a segment and return enriched metrics."""
+    backtester = VectorizedBacktester(config)
+    result = backtester.run(data, FinalTriggerStrategy(params))
+
+    metrics = compute_metrics(result.equity_curve, result.trades)
+    final_equity = float(result.equity_curve.iloc[-1]) if len(result.equity_curve) else config.initial_capital
+    total_return = (final_equity / config.initial_capital - 1) * 100 if config.initial_capital else 0.0
+
+    pnl_col = None
+    for col in ("pnl", "net_pnl", "gross_pnl"):
+        if col in result.trades.columns:
+            pnl_col = col
+            break
+    pnl = result.trades[pnl_col] if pnl_col else pd.Series(dtype=float)
+    winners = pnl[pnl > 0]
+    losers = pnl[pnl < 0]
+
+    return {
+        "total_return_pct": total_return,
+        "max_drawdown_pct": metrics.get("max_drawdown", 0.0) * 100,
+        "win_rate_pct": metrics.get("win_rate", 0.0) * 100,
+        "profit_factor": metrics.get("profit_factor", 0.0),
+        "trades": int(len(result.trades)),
+        "avg_win": float(winners.mean()) if len(winners) else 0.0,
+        "avg_loss": float(losers.mean()) if len(losers) else 0.0,
+        "sharpe": metrics.get("sharpe_ratio", 0.0),
+        "sortino": metrics.get("sortino_ratio", 0.0),
+    }
+
+def oos_validation(
+    data: pd.DataFrame,
+    split: tuple[float, float, float] = (0.6, 0.2, 0.2),
+    baseline_is_sharpe: float = 2.13,
+    output_csv: str = "outputs/oos_validation_results.csv",
+    output_report: str = "outputs/oos_validation_report.txt",
+) -> pd.DataFrame:
+    """Run 60/20/20 OOS validation with fixed optimized params."""
+    if not np.isclose(sum(split), 1.0):
+        raise ValueError("Split must sum to 1.0 (e.g., 0.6, 0.2, 0.2).")
+
+    print("=" * 70)
+    print("OOS VALIDATION (60/20/20 SPLIT)")
+    print("=" * 70)
+
+    n = len(data)
+    is_end = int(n * split[0])
+    val_end = int(n * (split[0] + split[1]))
+
+    train_data = data.iloc[:is_end]
+    val_data = data.iloc[is_end:val_end]
+    oos_data = data.iloc[val_end:]
+
+    print(f"Total bars: {n}")
+    print(f"IS:  {train_data.index[0]} to {train_data.index[-1]} ({len(train_data)} bars)")
+    print(f"VAL: {val_data.index[0]} to {val_data.index[-1]} ({len(val_data)} bars)")
+    print(f"OOS: {oos_data.index[0]} to {oos_data.index[-1]} ({len(oos_data)} bars)")
+
+    params = _build_optimized_params()
+    config = BacktestConfig(
+        initial_capital=10000.0,
+        fees_bps=5.0,
+        slippage_bps=2.0,
+        sizing_mode="fixed",
+        intrabar_order="stop_first",
+    )
+
+    rows = []
+    for label, segment in (("IS", train_data), ("VAL", val_data), ("OOS", oos_data)):
+        metrics = _run_backtest_segment(segment, params, config)
+        metrics["segment"] = label
+        metrics["bars"] = len(segment)
+        metrics["start"] = str(segment.index[0])
+        metrics["end"] = str(segment.index[-1])
+        rows.append(metrics)
+
+    df = pd.DataFrame(rows)
+    oos_sharpe = float(df.loc[df["segment"] == "OOS", "sharpe"].iloc[0])
+    wfe = oos_sharpe / baseline_is_sharpe if baseline_is_sharpe else 0.0
+    overfit_risk = wfe < 0.6
+
+    df["wfe_vs_baseline"] = np.where(df["segment"] == "OOS", wfe, np.nan)
+    df["wfe_target_pass"] = np.where(df["segment"] == "OOS", not overfit_risk, np.nan)
+
+    Path("outputs").mkdir(exist_ok=True)
+    df.to_csv(output_csv, index=False)
+
+    with open(output_report, "w") as f:
+        f.write("OOS VALIDATION REPORT (60/20/20 SPLIT)\n")
+        f.write("=" * 70 + "\n")
+        f.write(f"Baseline IS Sharpe: {baseline_is_sharpe:.2f}\n")
+        f.write(f"OOS Sharpe: {oos_sharpe:.2f}\n")
+        f.write(f"WFE (OOS/IS): {wfe:.2f}\n")
+        f.write(f"Overfitting risk: {'YES' if overfit_risk else 'NO'}\n\n")
+
+        def _fmt_row(row: pd.Series) -> str:
+            return (
+                f"{row['segment']}: return={row['total_return_pct']:+.2f}%, "
+                f"sharpe={row['sharpe']:.2f}, sortino={row['sortino']:.2f}, "
+                f"max_dd={row['max_drawdown_pct']:.2f}%, win_rate={row['win_rate_pct']:.2f}%, "
+                f"pf={row['profit_factor']:.2f}, trades={int(row['trades'])}, "
+                f"avg_win={row['avg_win']:.2f}, avg_loss={row['avg_loss']:.2f}"
+            )
+
+        for _, row in df.iterrows():
+            f.write(_fmt_row(row) + "\n")
+
+    print("\nComparison report (IS vs OOS):")
+    print(f"  Baseline IS Sharpe: {baseline_is_sharpe:.2f}")
+    print(f"  OOS Sharpe: {oos_sharpe:.2f}")
+    print(f"  WFE (OOS/IS): {wfe:.2f}")
+    print(f"  Overfitting risk: {'YES' if overfit_risk else 'NO'}")
+    print(f"\nSaved CSV: {output_csv}")
+    print(f"Saved report: {output_report}")
+
+    return df
 
 def walk_forward_analysis(data: pd.DataFrame, in_sample_months: int = 6, out_sample_months: int = 1):
     """
@@ -248,14 +411,24 @@ def walk_forward_analysis(data: pd.DataFrame, in_sample_months: int = 6, out_sam
         return None
 
 def main():
-    # Load data
+    parser = argparse.ArgumentParser(description="Walk-forward or OOS validation.")
+    parser.add_argument(
+        "--mode",
+        choices=["walk_forward", "oos"],
+        default="oos",
+        help="Run standard walk-forward or 60/20/20 OOS validation.",
+    )
+    args = parser.parse_args()
+
     print("\nLoading data...")
     data = load_binance_data(warmup=200)
     print(f"Data loaded: {len(data)} bars")
     print(f"Date range: {data.index[0]} to {data.index[-1]}")
 
-    # Run walk-forward analysis
-    results = walk_forward_analysis(data, in_sample_months=6, out_sample_months=1)
+    if args.mode == "walk_forward":
+        walk_forward_analysis(data, in_sample_months=6, out_sample_months=1)
+    else:
+        oos_validation(data)
 
 if __name__ == "__main__":
     main()

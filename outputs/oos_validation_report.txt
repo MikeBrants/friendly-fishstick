@@ -1,0 +1,10 @@
+OOS VALIDATION REPORT (60/20/20 SPLIT)
+======================================================================
+Baseline IS Sharpe: 2.13
+OOS Sharpe: 2.63
+WFE (OOS/IS): 1.23
+Overfitting risk: NO
+
+IS: return=+9.41%, sharpe=2.14, sortino=0.34, max_dd=-2.85%, win_rate=42.75%, pf=1.53, trades=255, avg_win=24.83, avg_loss=-12.09
+VAL: return=+2.75%, sharpe=2.05, sortino=0.30, max_dd=-1.54%, win_rate=43.06%, pf=1.56, trades=72, avg_win=24.84, avg_loss=-12.08
+OOS: return=+3.94%, sharpe=2.63, sortino=0.43, max_dd=-1.85%, win_rate=49.35%, pf=1.73, trades=77, avg_win=24.58, avg_loss=-13.85
