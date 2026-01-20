@@ -3,3 +3,5 @@ __pycache__/
 .pytest_cache/
 btc_usdt_1h_sample.parquet
 data/Binance_BTCUSDT_1h.csv
+data/Binance_*_1h.csv
+data/cache/binance/*.parquet
