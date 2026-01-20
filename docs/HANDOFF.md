@@ -86,6 +86,23 @@ Paramètres fixes: SL/TP 3.75/3.75/9.0/7.0, displacement 52.
 
 ---
 
+## ✅ Monte Carlo Permutation Test
+
+Randomisation des points d'entrée (durées conservées), 1000 itérations.  
+**P-value**: **0.0030** → **SIGNIFICANT** (pas d'overfitting).
+
+**Stats**:
+- Actual Sharpe: 2.1352
+- Mean random Sharpe: 0.0435
+- Std random Sharpe: 0.7054
+
+**Outputs**:
+- `outputs/monte_carlo_results.csv`
+- `outputs/monte_carlo_distribution.png`
+- `outputs/monte_carlo_report.txt`
+
+---
+
 ## 🏗️ Architecture Implémentée
 
 ```
@@ -147,6 +164,14 @@ Outputs: outputs/oos_validation_results.csv, outputs/oos_validation_report.txt
 [INSTRUCTION-SENS-002]
 Résultat: variance locale 4.98% (ROBUST)
 Outputs: outputs/sensitivity_grid_results.csv, outputs/sensitivity_report.txt
+```
+
+### ✅ P0 — Monte Carlo Permutation Test (DONE)
+
+```
+[INSTRUCTION-GUARD-001]
+Résultat: p-value 0.0030 (SIGNIFICANT)
+Outputs: outputs/monte_carlo_results.csv, outputs/monte_carlo_report.txt
 ```
 
 ### 🟠 P1 — Multi-Timeframe Validation

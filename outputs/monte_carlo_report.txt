@@ -1,0 +1,9 @@
+MONTE CARLO PERMUTATION REPORT
+======================================================================
+Actual Sharpe (computed): 2.1352
+Actual Sharpe (target): 2.14
+Mean random Sharpe: 0.0435
+Std random Sharpe: 0.7054
+P-value (>= actual): 0.0030
+Significance: SIGNIFICANT
+Flag: OK
