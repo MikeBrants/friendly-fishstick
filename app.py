@@ -41,26 +41,66 @@ st.set_page_config(
 )
 
 # =============================================================================
-# SIDEBAR
+# SIDEBAR - Navigation Groupée
 # =============================================================================
 st.sidebar.title("🎯 FINAL TRIGGER v2")
 st.sidebar.markdown("---")
 
-page = st.sidebar.radio(
-    "Navigation",
-    ["📊 Dashboard", "📥 Download Data", "⚡ Optimization", "🛡️ Guards", "📈 Results", "🏆 Comparaison", "📉 Visualisation"],
+# Section: Accueil
+st.sidebar.markdown("### 🏠 Accueil")
+nav_home = st.sidebar.radio(
+    "Home",
+    ["📊 Dashboard"],
+    label_visibility="collapsed",
+    key="nav_home",
 )
 
+# Section: Données
+st.sidebar.markdown("### 📁 Données")
+nav_data = st.sidebar.radio(
+    "Data",
+    ["📥 Download OHLCV", "🔄 Comparateur Pine"],
+    label_visibility="collapsed",
+    key="nav_data",
+)
+
+# Section: Optimisation
+st.sidebar.markdown("### ⚙️ Optimisation")
+nav_optim = st.sidebar.radio(
+    "Optim",
+    ["⚡ Bayesian", "🎚️ Displacement Grid", "🛡️ Guards"],
+    label_visibility="collapsed",
+    key="nav_optim",
+)
+
+# Section: Analyse
+st.sidebar.markdown("### 🔍 Analyse")
+nav_analysis = st.sidebar.radio(
+    "Analysis",
+    ["🏆 Comparaison Assets", "💼 Portfolio Builder", "📉 Visualisation", "📈 Fichiers"],
+    label_visibility="collapsed",
+    key="nav_analysis",
+)
+
+# Determine active page
+page = None
+if nav_home == "📊 Dashboard":
+    page = "📊 Dashboard"
+elif nav_data in ["📥 Download OHLCV", "🔄 Comparateur Pine"]:
+    page = nav_data
+elif nav_optim in ["⚡ Bayesian", "🎚️ Displacement Grid", "🛡️ Guards"]:
+    page = nav_optim
+elif nav_analysis in ["🏆 Comparaison Assets", "💼 Portfolio Builder", "📉 Visualisation", "📈 Fichiers"]:
+    page = nav_analysis
+
 st.sidebar.markdown("---")
-st.sidebar.markdown("### Assets Validés")
+st.sidebar.markdown("### ✅ Assets Validés")
 st.sidebar.success("BTC, ETH, AVAX, UNI, SEI")
 
-st.sidebar.markdown("### Critères de Validation")
+st.sidebar.markdown("### 📋 Critères")
 st.sidebar.info(f"""
-- OOS Sharpe > {PASS_CRITERIA['oos_sharpe_min']}
-- WFE > {PASS_CRITERIA['wfe_min']}
-- Max DD < {PASS_CRITERIA['max_dd_max']*100:.0f}%
-- Trades > {PASS_CRITERIA['oos_trades_min']}
+Sharpe > {PASS_CRITERIA['oos_sharpe_min']} | WFE > {PASS_CRITERIA['wfe_min']}
+Max DD < {PASS_CRITERIA['max_dd_max']*100:.0f}% | Trades > {PASS_CRITERIA['oos_trades_min']}
 """)
 
 
@@ -216,7 +256,7 @@ if page == "📊 Dashboard":
 # -----------------------------------------------------------------------------
 # DOWNLOAD DATA
 # -----------------------------------------------------------------------------
-elif page == "📥 Download Data":
+elif page == "📥 Download OHLCV":
     st.title("📥 Télécharger les Données OHLCV")
 
     st.markdown("""
@@ -311,9 +351,267 @@ elif page == "📥 Download Data":
 
 
 # -----------------------------------------------------------------------------
-# OPTIMIZATION
+# COMPARATEUR PINE VS PYTHON
 # -----------------------------------------------------------------------------
-elif page == "⚡ Optimization":
+elif page == "🔄 Comparateur Pine":
+    st.title("🔄 Comparateur Pine Script vs Python")
+
+    st.markdown("""
+    Compare les signaux FINAL LONG/SHORT générés par Pine Script (TradingView)
+    avec ceux générés par l'implémentation Python.
+
+    **Format CSV attendu** (export TradingView):
+    - Colonnes OHLCV: `time`, `open`, `high`, `low`, `close`
+    - Signaux Pine: `FINAL LONG` (1/0), `FINAL SHORT` (1/0)
+    """)
+
+    st.markdown("---")
+
+    # File upload
+    uploaded_file = st.file_uploader(
+        "📁 Uploader le CSV exporté de TradingView",
+        type=["csv"],
+        help="Le fichier doit contenir les colonnes OHLCV et les signaux FINAL LONG/SHORT"
+    )
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        warmup = st.slider(
+            "Période de warmup (bougies à ignorer)",
+            min_value=50,
+            max_value=500,
+            value=150,
+            step=10,
+            help="Les indicateurs MESA nécessitent ~150-300 bougies pour converger"
+        )
+
+    with col2:
+        debug_trend = st.checkbox(
+            "Mode debug (Ichimoku trend state)",
+            value=False,
+            help="Compare aussi l'état de tendance Ichimoku si disponible"
+        )
+
+    if uploaded_file is not None:
+        st.markdown("---")
+
+        try:
+            # Load uploaded file
+            import io
+            import numpy as np
+
+            df = pd.read_csv(io.StringIO(uploaded_file.getvalue().decode("utf-8")))
+            df.columns = [col.strip() for col in df.columns]
+
+            st.success(f"✅ Fichier chargé: {len(df)} lignes")
+
+            # Show preview
+            with st.expander("📋 Aperçu des données"):
+                st.dataframe(df.head(20), use_container_width=True)
+                st.caption(f"Colonnes: {', '.join(df.columns.tolist())}")
+
+            # Check required columns
+            required_ohlc = {"open", "high", "low", "close"}
+            required_signals = {"FINAL LONG", "FINAL SHORT"}
+
+            missing_ohlc = required_ohlc - set(df.columns)
+            missing_signals = required_signals - set(df.columns)
+
+            if missing_ohlc:
+                st.error(f"❌ Colonnes OHLC manquantes: {missing_ohlc}")
+                st.stop()
+
+            if missing_signals:
+                st.error(f"❌ Colonnes signaux manquantes: {missing_signals}")
+                st.info("Le CSV doit contenir les colonnes 'FINAL LONG' et 'FINAL SHORT' exportées de Pine Script")
+                st.stop()
+
+            # Run comparison
+            if st.button("🚀 Lancer la comparaison", type="primary", use_container_width=True):
+                with st.spinner("Comparaison en cours..."):
+                    # Import comparison logic
+                    from crypto_backtest.indicators.five_in_one import FiveInOneConfig
+                    from crypto_backtest.strategies.final_trigger import (
+                        FinalTriggerParams,
+                        FinalTriggerStrategy,
+                    )
+
+                    # Prepare OHLCV data
+                    data = df.copy()
+                    if "volume" not in data.columns:
+                        data["volume"] = 0.0
+                    if "time" in data.columns:
+                        time_series = data["time"]
+                        if pd.api.types.is_numeric_dtype(time_series):
+                            time_unit = "ms" if time_series.max() >= 1_000_000_000_000 else "s"
+                            data["time"] = pd.to_datetime(time_series, unit=time_unit, utc=True, errors="coerce")
+                        else:
+                            data["time"] = pd.to_datetime(time_series, utc=True, errors="coerce")
+                        data = data.dropna(subset=["time"]).set_index("time")
+
+                    ohlcv = data[["open", "high", "low", "close", "volume"]]
+
+                    # Build strategy with default params
+                    five_in_one = FiveInOneConfig(
+                        use_distance_filter=False,
+                        use_volume_filter=False,
+                        use_regression_cloud=False,
+                        use_kama_oscillator=False,
+                        use_ichimoku_filter=True,
+                        ichi5in1_strict=False,
+                        use_transition_mode=False,
+                    )
+                    params = FinalTriggerParams(
+                        grace_bars=1,
+                        use_mama_kama_filter=False,
+                        require_fama_between=False,
+                        strict_lock_5in1_last=False,
+                        five_in_one=five_in_one,
+                    )
+                    strategy = FinalTriggerStrategy(params)
+
+                    # Generate Python signals
+                    signals_df = strategy.generate_signals(ohlcv)
+                    signals_py = signals_df["signal"].to_numpy()
+
+                    # Get Pine signals
+                    final_long_pine = df["FINAL LONG"].fillna(0).astype(int).values
+                    final_short_pine = df["FINAL SHORT"].fillna(0).astype(int).values
+
+                    # Compare (after warmup)
+                    long_py = (signals_py == 1)[warmup:]
+                    short_py = (signals_py == -1)[warmup:]
+                    long_pine = final_long_pine[warmup:]
+                    short_pine = final_short_pine[warmup:]
+
+                    # Calculate matches
+                    long_match = int(np.sum(long_py & (long_pine == 1)))
+                    short_match = int(np.sum(short_py & (short_pine == 1)))
+                    long_total_pine = int(np.sum(long_pine == 1))
+                    short_total_pine = int(np.sum(short_pine == 1))
+                    long_total_py = int(np.sum(long_py))
+                    short_total_py = int(np.sum(short_py))
+
+                    long_rate = (long_match / max(long_total_pine, 1)) * 100.0
+                    short_rate = (short_match / max(short_total_pine, 1)) * 100.0
+
+                    st.markdown("---")
+                    st.subheader("📊 Résultats de la Comparaison")
+
+                    # Metrics
+                    col1, col2, col3 = st.columns(3)
+
+                    with col1:
+                        st.markdown("#### 🟢 LONG Signals")
+                        st.metric("Python", long_total_py)
+                        st.metric("Pine Script", long_total_pine)
+                        if long_rate >= 95:
+                            st.success(f"Match: {long_rate:.1f}%")
+                        elif long_rate >= 80:
+                            st.warning(f"Match: {long_rate:.1f}%")
+                        else:
+                            st.error(f"Match: {long_rate:.1f}%")
+
+                    with col2:
+                        st.markdown("#### 🔴 SHORT Signals")
+                        st.metric("Python", short_total_py)
+                        st.metric("Pine Script", short_total_pine)
+                        if short_rate >= 95:
+                            st.success(f"Match: {short_rate:.1f}%")
+                        elif short_rate >= 80:
+                            st.warning(f"Match: {short_rate:.1f}%")
+                        else:
+                            st.error(f"Match: {short_rate:.1f}%")
+
+                    with col3:
+                        st.markdown("#### 📈 Global")
+                        total_pine = long_total_pine + short_total_pine
+                        total_match = long_match + short_match
+                        global_rate = (total_match / max(total_pine, 1)) * 100.0
+                        st.metric("Total Signaux Pine", total_pine)
+                        st.metric("Signaux Matchés", total_match)
+                        if global_rate >= 95:
+                            st.success(f"Match Global: {global_rate:.1f}%")
+                        elif global_rate >= 80:
+                            st.warning(f"Match Global: {global_rate:.1f}%")
+                        else:
+                            st.error(f"Match Global: {global_rate:.1f}%")
+
+                    # Show divergences
+                    st.markdown("---")
+                    st.subheader("🔍 Analyse des Divergences")
+
+                    # Find divergence indices
+                    long_diverge = (long_py != (long_pine == 1))
+                    short_diverge = (short_py != (short_pine == 1))
+
+                    long_div_count = int(np.sum(long_diverge))
+                    short_div_count = int(np.sum(short_diverge))
+
+                    if long_div_count == 0 and short_div_count == 0:
+                        st.success("✅ Aucune divergence après warmup! Les signaux sont identiques.")
+                    else:
+                        st.warning(f"⚠️ {long_div_count} divergences LONG, {short_div_count} divergences SHORT")
+
+                        # Create divergence report
+                        report_data = []
+                        for i in range(len(long_py)):
+                            actual_idx = warmup + i
+                            if long_diverge[i] or short_diverge[i]:
+                                report_data.append({
+                                    "Index": actual_idx,
+                                    "Time": ohlcv.index[actual_idx] if actual_idx < len(ohlcv) else "N/A",
+                                    "Close": float(ohlcv.iloc[actual_idx]["close"]) if actual_idx < len(ohlcv) else 0,
+                                    "Python LONG": bool(long_py[i]),
+                                    "Pine LONG": bool(long_pine[i]),
+                                    "Python SHORT": bool(short_py[i]),
+                                    "Pine SHORT": bool(short_pine[i]),
+                                })
+
+                        if report_data:
+                            report_df = pd.DataFrame(report_data[:100])  # Limit to 100
+                            st.dataframe(report_df, use_container_width=True)
+
+                            if len(report_data) > 100:
+                                st.caption(f"Affichage limité aux 100 premières divergences sur {len(report_data)}")
+
+                            # Download button
+                            full_report = pd.DataFrame(report_data)
+                            csv = full_report.to_csv(index=False)
+                            st.download_button(
+                                "📥 Télécharger le rapport complet",
+                                csv,
+                                file_name="pine_python_divergences.csv",
+                                mime="text/csv",
+                            )
+
+        except Exception as e:
+            st.error(f"❌ Erreur lors du traitement: {e}")
+            import traceback
+            st.code(traceback.format_exc())
+
+    else:
+        st.info("👆 Uploadez un fichier CSV pour commencer la comparaison")
+
+        # Show example format
+        with st.expander("📝 Exemple de format CSV"):
+            example_df = pd.DataFrame({
+                "time": [1704067200000, 1704070800000, 1704074400000],
+                "open": [42000.0, 42100.0, 42050.0],
+                "high": [42150.0, 42200.0, 42100.0],
+                "low": [41950.0, 42000.0, 41980.0],
+                "close": [42100.0, 42050.0, 42080.0],
+                "FINAL LONG": [0, 1, 0],
+                "FINAL SHORT": [0, 0, 0],
+            })
+            st.dataframe(example_df, use_container_width=True)
+
+
+# -----------------------------------------------------------------------------
+# OPTIMIZATION - BAYESIAN
+# -----------------------------------------------------------------------------
+elif page == "⚡ Bayesian":
     st.title("⚡ Optimisation Bayésienne")
 
     st.markdown("""
@@ -399,6 +697,223 @@ elif page == "⚡ Optimization":
                         st.dataframe(df, use_container_width=True)
                 else:
                     st.error(f"❌ Erreur (code {returncode})")
+
+
+# -----------------------------------------------------------------------------
+# DISPLACEMENT GRID OPTIMIZATION
+# -----------------------------------------------------------------------------
+elif page == "🎚️ Displacement Grid":
+    st.title("🎚️ Optimisation Displacement Grid")
+
+    st.markdown("""
+    **Priorité P1** - Optimise le paramètre `displacement` de l'Ichimoku sur les assets validés.
+
+    Le displacement contrôle la projection du nuage (Kumo) dans le futur.
+    Valeurs testées: **26, 39, 52 (défaut), 65, 78**
+    """)
+
+    st.markdown("---")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("Configuration")
+
+        # Assets selection
+        available_data = get_available_data()
+
+        if not available_data:
+            st.error("⚠️ Aucune donnée disponible. Téléchargez d'abord les données.")
+            st.stop()
+
+        # Default to validated assets
+        default_assets = [a for a in VALIDATED_ASSETS if a in available_data]
+
+        selected_assets = st.multiselect(
+            "Assets à tester",
+            available_data,
+            default=default_assets,
+        )
+
+        displacement_values = st.multiselect(
+            "Valeurs de displacement à tester",
+            [26, 39, 52, 65, 78],
+            default=[26, 39, 52, 65, 78],
+        )
+
+        import os
+        max_workers = os.cpu_count() or 4
+        workers = st.slider("Workers", 1, max_workers, min(4, max_workers))
+
+    with col2:
+        st.subheader("Explication")
+
+        st.markdown("""
+        **Impact du Displacement:**
+
+        | Valeur | Effet |
+        |--------|-------|
+        | 26 | Plus réactif, signaux plus fréquents |
+        | 39 | Intermédiaire |
+        | **52** | Standard Ichimoku (défaut) |
+        | 65 | Plus conservateur |
+        | 78 | Très lent, moins de trades |
+
+        **Critère de succès:**
+        Amélioration du Sharpe OOS > 0.1 par rapport au défaut (52)
+        """)
+
+    st.markdown("---")
+
+    if not selected_assets:
+        st.warning("Sélectionnez au moins un asset")
+    elif not displacement_values:
+        st.warning("Sélectionnez au moins une valeur de displacement")
+    else:
+        if st.button("🚀 Lancer le Grid Search", type="primary", use_container_width=True):
+            with st.spinner(f"Test de {len(displacement_values)} valeurs sur {len(selected_assets)} assets..."):
+
+                # Progress tracking
+                progress_bar = st.progress(0)
+                status_text = st.empty()
+                results_placeholder = st.empty()
+
+                results = []
+                total_tests = len(selected_assets) * len(displacement_values)
+                current_test = 0
+
+                try:
+                    from crypto_backtest.engine.backtest import BacktestConfig, VectorizedBacktester
+                    from crypto_backtest.analysis.metrics import compute_metrics
+                    from crypto_backtest.optimization.parallel_optimizer import load_data, build_strategy_params
+                    from crypto_backtest.optimization.bayesian import _instantiate_strategy
+                    from crypto_backtest.strategies.final_trigger import FinalTriggerStrategy
+                    from crypto_backtest.config.scan_assets import OPTIM_CONFIG
+
+                    base_config = BacktestConfig(
+                        initial_capital=10000.0,
+                        fees_bps=5.0,
+                        slippage_bps=2.0,
+                        sizing_mode="fixed",
+                    )
+
+                    for asset in selected_assets:
+                        status_text.text(f"Testing {asset}...")
+
+                        # Load data
+                        data = load_data(asset, "data")
+                        if data.index.tz is None:
+                            data.index = data.index.tz_localize("UTC")
+                        warmup = OPTIM_CONFIG["warmup_bars"]
+                        data = data.iloc[warmup:]
+
+                        for disp in displacement_values:
+                            current_test += 1
+                            progress_bar.progress(current_test / total_tests)
+
+                            # Build params with this displacement
+                            params = build_strategy_params(
+                                sl_mult=2.5,
+                                tp1_mult=2.0,
+                                tp2_mult=6.0,
+                                tp3_mult=10.0,
+                                tenkan=9,
+                                kijun=26,
+                                tenkan_5=12,
+                                kijun_5=26,
+                                displacement=disp,  # Variable
+                            )
+
+                            strategy = _instantiate_strategy(FinalTriggerStrategy, params)
+                            backtester = VectorizedBacktester(base_config)
+                            result = backtester.run(data, strategy)
+
+                            metrics = compute_metrics(result.equity_curve, result.trades)
+
+                            results.append({
+                                "asset": asset,
+                                "displacement": disp,
+                                "sharpe": float(metrics.get("sharpe_ratio", 0) or 0),
+                                "return_pct": float(metrics.get("total_return", 0) or 0) * 100,
+                                "max_dd_pct": float(metrics.get("max_drawdown", 0) or 0) * 100,
+                                "trades": len(result.trades),
+                            })
+
+                    progress_bar.progress(1.0)
+                    status_text.text("✅ Terminé!")
+
+                    # Display results
+                    st.markdown("---")
+                    st.subheader("📊 Résultats")
+
+                    results_df = pd.DataFrame(results)
+
+                    # Find best displacement per asset
+                    best_per_asset = results_df.loc[results_df.groupby("asset")["sharpe"].idxmax()]
+
+                    col1, col2 = st.columns(2)
+
+                    with col1:
+                        st.markdown("#### Meilleur Displacement par Asset")
+                        st.dataframe(
+                            best_per_asset[["asset", "displacement", "sharpe", "return_pct"]].style.format({
+                                "sharpe": "{:.2f}",
+                                "return_pct": "{:.1f}%",
+                            }),
+                            use_container_width=True,
+                        )
+
+                    with col2:
+                        st.markdown("#### Comparaison vs Défaut (52)")
+                        default_results = results_df[results_df["displacement"] == 52].set_index("asset")["sharpe"]
+
+                        comparison = []
+                        for _, row in best_per_asset.iterrows():
+                            default_sharpe = default_results.get(row["asset"], 0)
+                            improvement = row["sharpe"] - default_sharpe
+                            comparison.append({
+                                "asset": row["asset"],
+                                "best_disp": int(row["displacement"]),
+                                "best_sharpe": row["sharpe"],
+                                "default_sharpe": default_sharpe,
+                                "improvement": improvement,
+                                "status": "✅" if improvement > 0.1 else "➖",
+                            })
+
+                        comp_df = pd.DataFrame(comparison)
+                        st.dataframe(
+                            comp_df.style.format({
+                                "best_sharpe": "{:.2f}",
+                                "default_sharpe": "{:.2f}",
+                                "improvement": "{:+.2f}",
+                            }),
+                            use_container_width=True,
+                        )
+
+                    # Full results table
+                    st.markdown("---")
+                    st.subheader("📋 Résultats Complets")
+
+                    # Pivot table
+                    pivot = results_df.pivot(index="asset", columns="displacement", values="sharpe")
+                    st.dataframe(
+                        pivot.style.format("{:.2f}").background_gradient(cmap="RdYlGn", axis=1),
+                        use_container_width=True,
+                    )
+
+                    # Download
+                    csv = results_df.to_csv(index=False)
+                    st.download_button(
+                        "📥 Télécharger les résultats",
+                        csv,
+                        file_name="displacement_grid_results.csv",
+                        mime="text/csv",
+                    )
+
+                except Exception as e:
+                    st.error(f"❌ Erreur: {e}")
+                    import traceback
+                    st.code(traceback.format_exc())
 
 
 # -----------------------------------------------------------------------------
@@ -517,7 +1032,7 @@ elif page == "🛡️ Guards":
 # -----------------------------------------------------------------------------
 # RESULTS
 # -----------------------------------------------------------------------------
-elif page == "📈 Results":
+elif page == "📈 Fichiers":
     st.title("📈 Visualisation des Résultats")
 
     outputs_dir = Path("outputs")
@@ -660,7 +1175,7 @@ elif page == "📈 Results":
 # -----------------------------------------------------------------------------
 # COMPARAISON
 # -----------------------------------------------------------------------------
-elif page == "🏆 Comparaison":
+elif page == "🏆 Comparaison Assets":
     st.title("🏆 Comparaison des Assets")
 
     st.markdown("""
@@ -921,6 +1436,376 @@ elif page == "🏆 Comparaison":
                     st.plotly_chart(fig, use_container_width=True)
     else:
         st.info("Aucun fichier de paramètres disponible")
+
+
+# -----------------------------------------------------------------------------
+# PORTFOLIO BUILDER
+# -----------------------------------------------------------------------------
+elif page == "💼 Portfolio Builder":
+    st.title("💼 Portfolio Builder")
+
+    import numpy as np
+    import plotly.express as px
+    import plotly.graph_objects as go
+
+    st.markdown("""
+    Construis un portfolio optimisé en sélectionnant des assets complémentaires (faible corrélation).
+    """)
+
+    outputs_dir = Path("outputs")
+    scan_results = get_scan_results()
+
+    if not scan_results:
+        st.warning("Aucun résultat de scan disponible. Lancez d'abord une optimisation.")
+        st.stop()
+
+    scan_df = pd.read_csv(scan_results[0])
+
+    st.markdown("---")
+
+    # Tabs
+    portfolio_tabs = st.tabs(["📊 Corrélations", "🤖 Auto-Sélection", "✋ Sélection Manuelle"])
+
+    # -------------------------------------------------------------------------
+    # TAB 1: Correlations
+    # -------------------------------------------------------------------------
+    with portfolio_tabs[0]:
+        st.subheader("Matrice de Corrélation des Returns")
+
+        # Load equity curves if available
+        equity_files = list(outputs_dir.glob("*_equity.csv"))
+
+        if not equity_files:
+            st.info("""
+            Les fichiers d'equity curves ne sont pas encore générés.
+
+            Pour calculer les corrélations, vous devez d'abord lancer un backtest complet
+            qui sauvegarde les equity curves dans `outputs/`.
+
+            **Alternative**: Utilisez les corrélations basées sur les métriques disponibles.
+            """)
+
+            # Use metrics correlation as fallback
+            if len(scan_df) > 2:
+                metric_cols = ["oos_sharpe", "wfe", "oos_return", "oos_max_dd"]
+                available_metrics = [c for c in metric_cols if c in scan_df.columns]
+
+                if available_metrics:
+                    corr_data = scan_df.set_index("asset")[available_metrics].T
+                    asset_corr = corr_data.corr()
+
+                    st.markdown("#### Corrélation basée sur les métriques")
+
+                    fig = px.imshow(
+                        asset_corr,
+                        title="Corrélation des profils de performance",
+                        color_continuous_scale="RdBu_r",
+                        aspect="auto",
+                        text_auto=".2f",
+                        zmin=-1, zmax=1,
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+
+                    st.caption("Note: Cette corrélation est basée sur les métriques de performance, pas sur les returns journaliers.")
+
+        else:
+            # Load and compute real correlations
+            returns_dict = {}
+            for eq_file in equity_files:
+                asset = eq_file.stem.replace("_equity", "")
+                try:
+                    eq_df = pd.read_csv(eq_file, parse_dates=["time"], index_col="time")
+                    returns = eq_df["equity"].pct_change().dropna()
+                    returns_dict[asset] = returns
+                except Exception:
+                    continue
+
+            if returns_dict:
+                returns_df = pd.DataFrame(returns_dict)
+                corr_matrix = returns_df.corr()
+
+                fig = px.imshow(
+                    corr_matrix,
+                    title="Corrélation des Returns",
+                    color_continuous_scale="RdBu_r",
+                    aspect="auto",
+                    text_auto=".2f",
+                    zmin=-1, zmax=1,
+                )
+                st.plotly_chart(fig, use_container_width=True)
+
+    # -------------------------------------------------------------------------
+    # TAB 2: Auto Selection
+    # -------------------------------------------------------------------------
+    with portfolio_tabs[1]:
+        st.subheader("🤖 Sélection Automatique d'Assets Complémentaires")
+
+        st.markdown("""
+        L'algorithme sélectionne les meilleurs assets en maximisant le Sharpe
+        tout en minimisant la corrélation entre eux.
+        """)
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            max_assets = st.slider(
+                "Nombre maximum d'assets",
+                min_value=2,
+                max_value=min(15, len(scan_df)),
+                value=min(5, len(scan_df)),
+            )
+
+            min_sharpe = st.slider(
+                "Sharpe minimum requis",
+                min_value=0.0,
+                max_value=3.0,
+                value=1.0,
+                step=0.1,
+            )
+
+            max_correlation = st.slider(
+                "Corrélation maximum entre assets",
+                min_value=0.1,
+                max_value=1.0,
+                value=0.7,
+                step=0.05,
+            )
+
+        with col2:
+            st.markdown("""
+            **Algorithme:**
+            1. Filtre les assets avec Sharpe >= seuil
+            2. Trie par Sharpe décroissant
+            3. Ajoute les assets un par un si corrélation < max
+            4. S'arrête quand nombre max atteint
+            """)
+
+        if st.button("🚀 Lancer la sélection automatique", type="primary"):
+            # Filter by sharpe
+            candidates = scan_df[scan_df["oos_sharpe"] >= min_sharpe].copy()
+            candidates = candidates.sort_values("oos_sharpe", ascending=False)
+
+            if len(candidates) == 0:
+                st.warning(f"Aucun asset avec Sharpe >= {min_sharpe}")
+            else:
+                # Simple greedy selection (using metric correlation as proxy)
+                selected = [candidates.iloc[0]["asset"]]
+
+                metric_cols = ["oos_sharpe", "wfe", "oos_return", "oos_max_dd"]
+                available_metrics = [c for c in metric_cols if c in candidates.columns]
+
+                if available_metrics and len(candidates) > 1:
+                    profile_data = candidates.set_index("asset")[available_metrics]
+
+                    for _, row in candidates.iloc[1:].iterrows():
+                        if len(selected) >= max_assets:
+                            break
+
+                        asset = row["asset"]
+                        asset_profile = profile_data.loc[asset]
+
+                        # Check correlation with all selected
+                        max_corr_found = 0
+                        for sel_asset in selected:
+                            sel_profile = profile_data.loc[sel_asset]
+                            corr = np.corrcoef(asset_profile.values, sel_profile.values)[0, 1]
+                            max_corr_found = max(max_corr_found, abs(corr))
+
+                        if max_corr_found < max_correlation:
+                            selected.append(asset)
+
+                st.success(f"✅ {len(selected)} assets sélectionnés")
+
+                # Display selected
+                selected_df = scan_df[scan_df["asset"].isin(selected)].copy()
+                selected_df = selected_df.sort_values("oos_sharpe", ascending=False)
+
+                st.dataframe(
+                    selected_df[["asset", "oos_sharpe", "wfe", "oos_return", "oos_max_dd", "oos_trades"]].style.format({
+                        "oos_sharpe": "{:.2f}",
+                        "wfe": "{:.2f}",
+                        "oos_return": "{:.1f}%",
+                        "oos_max_dd": "{:.1f}%",
+                    }),
+                    use_container_width=True,
+                )
+
+                # Portfolio metrics
+                st.markdown("---")
+                st.subheader("📊 Métriques du Portfolio")
+
+                col1, col2, col3, col4 = st.columns(4)
+
+                with col1:
+                    avg_sharpe = selected_df["oos_sharpe"].mean()
+                    st.metric("Sharpe Moyen", f"{avg_sharpe:.2f}")
+
+                with col2:
+                    total_trades = selected_df["oos_trades"].sum()
+                    st.metric("Total Trades", int(total_trades))
+
+                with col3:
+                    avg_return = selected_df["oos_return"].mean()
+                    st.metric("Return Moyen", f"{avg_return:.1f}%")
+
+                with col4:
+                    max_dd = selected_df["oos_max_dd"].max()
+                    st.metric("Pire DD", f"{max_dd:.1f}%")
+
+    # -------------------------------------------------------------------------
+    # TAB 3: Manual Selection
+    # -------------------------------------------------------------------------
+    with portfolio_tabs[2]:
+        st.subheader("✋ Sélection Manuelle du Portfolio")
+
+        # Multi-select assets
+        available_assets = scan_df["asset"].tolist()
+
+        selected_assets = st.multiselect(
+            "Sélectionnez vos assets",
+            available_assets,
+            default=available_assets[:3] if len(available_assets) >= 3 else available_assets,
+        )
+
+        if selected_assets:
+            selected_df = scan_df[scan_df["asset"].isin(selected_assets)].copy()
+
+            st.markdown("---")
+            st.subheader("📊 Métriques du Pack Sélectionné")
+
+            # Summary metrics
+            col1, col2, col3, col4, col5 = st.columns(5)
+
+            with col1:
+                st.metric("Assets", len(selected_df))
+
+            with col2:
+                avg_sharpe = selected_df["oos_sharpe"].mean()
+                st.metric("Sharpe Moyen", f"{avg_sharpe:.2f}")
+
+            with col3:
+                total_trades = selected_df["oos_trades"].sum()
+                st.metric("Total Trades", int(total_trades))
+
+            with col4:
+                # Estimate combined Profit Factor
+                if "oos_pf" in selected_df.columns:
+                    avg_pf = selected_df["oos_pf"].mean()
+                else:
+                    avg_pf = 1.5  # Placeholder
+                st.metric("Profit Factor Moy.", f"{avg_pf:.2f}")
+
+            with col5:
+                avg_wfe = selected_df["wfe"].mean()
+                st.metric("WFE Moyen", f"{avg_wfe:.2f}")
+
+            st.markdown("---")
+
+            # Detailed table
+            st.subheader("📋 Détails par Asset")
+
+            display_cols = ["asset", "oos_sharpe", "wfe", "oos_return", "oos_max_dd", "oos_trades"]
+            display_cols = [c for c in display_cols if c in selected_df.columns]
+
+            st.dataframe(
+                selected_df[display_cols].style.format({
+                    "oos_sharpe": "{:.2f}",
+                    "wfe": "{:.2f}",
+                    "oos_return": "{:.1f}%",
+                    "oos_max_dd": "{:.1f}%",
+                }),
+                use_container_width=True,
+            )
+
+            # Correlation heatmap for selected
+            if len(selected_df) > 1:
+                st.markdown("---")
+                st.subheader("🔗 Corrélation du Pack")
+
+                metric_cols = ["oos_sharpe", "wfe", "oos_return", "oos_max_dd"]
+                available_metrics = [c for c in metric_cols if c in selected_df.columns]
+
+                if available_metrics:
+                    profile_data = selected_df.set_index("asset")[available_metrics].T
+                    pack_corr = profile_data.corr()
+
+                    fig = px.imshow(
+                        pack_corr,
+                        title="Corrélation entre assets sélectionnés",
+                        color_continuous_scale="RdBu_r",
+                        aspect="auto",
+                        text_auto=".2f",
+                        zmin=-1, zmax=1,
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
+
+                    # Average correlation
+                    mask = np.triu(np.ones_like(pack_corr, dtype=bool), k=1)
+                    upper_corr = pack_corr.where(mask)
+                    avg_corr = upper_corr.stack().mean()
+
+                    if avg_corr < 0.3:
+                        st.success(f"✅ Excellente diversification (corrélation moyenne: {avg_corr:.2f})")
+                    elif avg_corr < 0.6:
+                        st.info(f"ℹ️ Bonne diversification (corrélation moyenne: {avg_corr:.2f})")
+                    else:
+                        st.warning(f"⚠️ Assets trop corrélés (corrélation moyenne: {avg_corr:.2f})")
+
+            # Risk summary
+            st.markdown("---")
+            st.subheader("⚠️ Analyse de Risque")
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.markdown("**Points forts:**")
+                strengths = []
+                if avg_sharpe >= 1.5:
+                    strengths.append(f"- Sharpe élevé ({avg_sharpe:.2f})")
+                if avg_wfe >= 0.8:
+                    strengths.append(f"- Robustesse validée (WFE {avg_wfe:.2f})")
+                if len(selected_df) >= 3:
+                    strengths.append(f"- Diversification ({len(selected_df)} assets)")
+                if total_trades >= 100:
+                    strengths.append(f"- Volume de trades suffisant ({int(total_trades)})")
+
+                if strengths:
+                    for s in strengths:
+                        st.markdown(s)
+                else:
+                    st.markdown("- Aucun point fort notable")
+
+            with col2:
+                st.markdown("**Points d'attention:**")
+                weaknesses = []
+                if avg_sharpe < 1.0:
+                    weaknesses.append(f"- Sharpe faible ({avg_sharpe:.2f})")
+                if avg_wfe < 0.6:
+                    weaknesses.append(f"- Risque d'overfit (WFE {avg_wfe:.2f})")
+                if len(selected_df) < 3:
+                    weaknesses.append(f"- Concentration ({len(selected_df)} assets)")
+                max_dd = selected_df["oos_max_dd"].max()
+                if max_dd > 10:
+                    weaknesses.append(f"- Drawdown élevé ({max_dd:.1f}%)")
+
+                if weaknesses:
+                    for w in weaknesses:
+                        st.markdown(w)
+                else:
+                    st.markdown("- Aucun point d'attention majeur")
+
+            # Export
+            st.markdown("---")
+            csv = selected_df.to_csv(index=False)
+            st.download_button(
+                "📥 Exporter le portfolio",
+                csv,
+                file_name="portfolio_selection.csv",
+                mime="text/csv",
+            )
+
+        else:
+            st.info("👆 Sélectionnez des assets pour voir les métriques combinées")
 
 
 # -----------------------------------------------------------------------------
