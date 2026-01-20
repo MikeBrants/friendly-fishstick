@@ -1,9 +1,27 @@
 # FINAL TRIGGER v2 — Backtest System
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Status](https://img.shields.io/badge/status-82%25%20complete-green.svg)](docs/HANDOFF.md)
+[![Status](https://img.shields.io/badge/status-Phase%202%20Complete-green.svg)](docs/HANDOFF.md)
+[![Sharpe](https://img.shields.io/badge/Sharpe-2.13-brightgreen.svg)](instructions.md)
 
 > Système de backtest professionnel pour **FINAL TRIGGER v2** — Implémentation Python de l'indicateur TradingView avec walk-forward analysis et optimisation bayésienne.
+
+---
+
+## 📈 Résultats Actuels (Phase 2 Complétée)
+
+| Métrique | Baseline | Current | Δ |
+|----------|----------|---------|---|
+| **Return** | -6.44% | **+15.69%** | +22.13pp |
+| **Sharpe** | -0.80 | **2.13** | +2.93 |
+| **Max DD** | -9.2% | **-2.85%** | +6.35pp |
+| **Win Rate** | 33.6% | **43.51%** | +9.9pp |
+| **Profit Factor** | 0.86 | **1.54** | +0.68 |
+| **Trades** | - | 416 | - |
+| **Expectancy** | - | +$3.77/trade | - |
+| **Recovery Factor** | - | 5.50 | - |
+
+---
 
 ## 🎯 Objectif
 
@@ -27,7 +45,27 @@ Convertir l'indicateur TradingView "FINAL TRIGGER v2 - State/Transition + A/D Li
 | `use_transition_mode` | FALSE | Mode transition désactivé |
 | Autres filtres 5in1 | FALSE | Distance, Volume, AD Line, Regression, KAMA Osc |
 
-### Pipeline de Signaux Simplifié
+### Paramètres Optimaux (Phase 2)
+
+```yaml
+ATR:
+  sl_atr_mult: 3.75
+  tp_atr_mult: 3.75
+  trailing_start: 9.0
+  trailing_step: 7.0
+
+Ichimoku General:
+  tenkan: 13
+  kijun: 34
+  displacement: 52
+
+Ichimoku 5in1:
+  tenkan_5: 12
+  kijun_5: 21
+  displacement_5: 52
+```
+
+### Pipeline de Signaux
 
 ```
 Ichimoku External (17/3) → ichi_long_active / ichi_short_active
@@ -45,8 +83,8 @@ ATR → SL / TP1 / TP2 / TP3
 
 | Composant | Status | Description |
 |-----------|--------|-------------|
-| **Ichimoku Externe** | ✅ Actif | State machine biais directionnel |
-| **Ichi Light (5in1)** | ✅ Actif | Filtre Ichimoku simplifié |
+| **Ichimoku Externe** | ✅ Actif | State machine biais directionnel (13/34) |
+| **Ichi Light (5in1)** | ✅ Actif | Filtre Ichimoku simplifié (12/21) |
 | **Puzzle + Grace** | ✅ Implémenté | Validation avec fenêtre 1 bar |
 | **ATR Multi-TP** | ✅ Implémenté | SL + 3 TP (50%/30%/20%) + trailing |
 | MAMA/FAMA/KAMA | ⚪ Inactif | Disponible mais désactivé |
@@ -64,8 +102,8 @@ crypto_backtest/
 │   ├── storage.py              # Cache Parquet
 │   └── preprocessor.py         # Nettoyage données
 ├── indicators/
-│   ├── ichimoku.py             # Ichimoku (17 bull + 3 bear) ✅ ACTIF
-│   ├── five_in_one.py          # Ichi Light uniquement ✅ ACTIF
+│   ├── ichimoku.py             # Ichimoku (13/34) ✅ ACTIF
+│   ├── five_in_one.py          # Ichi Light (12/21) ✅ ACTIF
 │   └── mama_fama_kama.py       # MESA Adaptive MA (inactif)
 ├── strategies/
 │   └── final_trigger.py        # Logique principale
@@ -90,30 +128,32 @@ pip install -r requirements.txt
 python backtest_optimized.py
 ```
 
-### Optimisation (10 trials)
+### Optimisation
 
 ```bash
-python crypto_backtest/examples/optimize_final_trigger.py --trials 10
-```
-
-### Valider signaux Pine vs Python
-
-```bash
-python tests/compare_signals.py --file data/your_export.csv --warmup 150
+python optimize_ichimoku.py
 ```
 
 ---
 
-## 📁 Fichiers Clés
+## 🚀 Phases du Projet
 
-| Fichier | Description |
-|---------|-------------|
-| `crypto_backtest/strategies/final_trigger.py` | Stratégie principale (Puzzle + Grace) |
-| `crypto_backtest/indicators/ichimoku.py` | Ichimoku externe (17 bull / 3 bear) |
-| `crypto_backtest/indicators/five_in_one.py` | Ichi Light (seul filtre 5in1 actif) |
-| `crypto_backtest/engine/backtest.py` | Moteur de backtest vectorisé |
-| `crypto_backtest/engine/position_manager.py` | Multi-TP (50/30/20) + trailing SL |
-| `tests/compare_signals.py` | Validation Pine vs Python |
+| Phase | Status | Description |
+|-------|--------|-------------|
+| Phase 1 | ✅ | ATR TP/SL Optimization (Sharpe: 1.43) |
+| Phase 2 | ✅ | Ichimoku Optimization (Sharpe: 2.13) |
+| Phase 3 | 🔴 P0 | Walk-Forward OOS Validation |
+| Phase 4 | 🔴 P0 | Sensitivity Analysis |
+| Phase 5 | 🟠 P1 | Multi-Timeframe Validation |
+| Phase 6 | 🟡 P2 | Displacement Optimization |
+
+---
+
+## 📚 Documentation
+
+- **[instructions.md](instructions.md)** — Prompt Agent Comet + instructions GPT Codex
+- **[claude.md](claude.md)** — Plan détaillé et spécifications techniques
+- **[docs/HANDOFF.md](docs/HANDOFF.md)** — Documentation technique complète
 
 ---
 
@@ -122,22 +162,6 @@ python tests/compare_signals.py --file data/your_export.csv --warmup 150
 ```bash
 pytest -v
 ```
-
----
-
-## 📚 Documentation
-
-- **[claude.md](claude.md)** — Plan détaillé et spécifications techniques
-- **[docs/HANDOFF.md](docs/HANDOFF.md)** — Documentation technique complète, issues connues et prochaines étapes
-
----
-
-## 🚀 Next Steps
-
-1. ✅ Exporter CSV TradingView avec 2000+ bougies et signaux Pine
-2. ⏳ Lancer `compare_signals.py` et vérifier 100% match après warmup
-3. ⏳ Créer test E2E validant signaux sur données réelles
-4. ⏳ Walk-forward analysis complète
 
 ---
 
