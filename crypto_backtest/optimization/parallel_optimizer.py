@@ -5,16 +5,23 @@ Uses joblib for parallel execution across multiple assets
 from __future__ import annotations
 
 import json
+import os
 import warnings
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from contextlib import contextmanager
 from typing import Any
 
 import numpy as np
 import pandas as pd
 
 warnings.filterwarnings("ignore")
+
+try:
+    import fcntl  # type: ignore[attr-defined]
+except ImportError:
+    fcntl = None
 
 from crypto_backtest.analysis.metrics import compute_metrics
 from crypto_backtest.config.scan_assets import (
@@ -46,11 +53,22 @@ BASE_CONFIG = BacktestConfig(
 )
 
 
+SEED = 42  # Global seed for reproducibility
+
+
 @dataclass
 class AssetScanResult:
     """Result of scanning a single asset."""
     asset: str
     status: str
+    # Metadata
+    exchange: str = ""
+    timeframe: str = "1H"
+    start_date: str = ""
+    end_date: str = ""
+    total_bars: int = 0
+    seed: int = SEED
+    fail_reason: str = ""
     # ATR params
     sl_mult: float = 0.0
     tp1_mult: float = 0.0
@@ -80,6 +98,74 @@ class AssetScanResult:
     mc_p: float = 1.0
     # Error info
     error: str = ""
+
+
+@contextmanager
+def _locked_file(path: Path):
+    """Open a file with an exclusive lock when supported."""
+    path.parent.mkdir(exist_ok=True)
+    with open(path, "a+", newline="") as handle:
+        if fcntl is not None:
+            fcntl.flock(handle, fcntl.LOCK_EX)
+        try:
+            yield handle
+        finally:
+            if fcntl is not None:
+                fcntl.flock(handle, fcntl.LOCK_UN)
+
+
+def _log_progress(asset: str, stage: str) -> None:
+    print(f"[{asset}] {stage}")
+
+
+def _result_to_row(result: AssetScanResult) -> dict[str, Any]:
+    return {
+        "asset": result.asset,
+        "status": result.status,
+        "exchange": result.exchange,
+        "timeframe": result.timeframe,
+        "start_date": result.start_date,
+        "end_date": result.end_date,
+        "total_bars": result.total_bars,
+        "seed": result.seed,
+        "fail_reason": result.fail_reason,
+        "sl_mult": result.sl_mult,
+        "tp1_mult": result.tp1_mult,
+        "tp2_mult": result.tp2_mult,
+        "tp3_mult": result.tp3_mult,
+        "tenkan": result.tenkan,
+        "kijun": result.kijun,
+        "tenkan_5": result.tenkan_5,
+        "kijun_5": result.kijun_5,
+        "is_sharpe": result.is_sharpe,
+        "is_return": result.is_return,
+        "is_trades": result.is_trades,
+        "val_sharpe": result.val_sharpe,
+        "val_return": result.val_return,
+        "val_trades": result.val_trades,
+        "oos_sharpe": result.oos_sharpe,
+        "oos_return": result.oos_return,
+        "oos_trades": result.oos_trades,
+        "oos_max_dd": result.oos_max_dd,
+        "oos_pf": result.oos_pf,
+        "wfe": result.wfe,
+        "mc_p": result.mc_p,
+        "error": result.error,
+    }
+
+
+def append_partial_result(
+    result: AssetScanResult,
+    output_path: str = "outputs/multi_asset_scan_partial.csv",
+) -> None:
+    """Append a single result row to a partial CSV for live progress."""
+    row = _result_to_row(result)
+    path = Path(output_path)
+
+    with _locked_file(path) as handle:
+        handle.seek(0, os.SEEK_END)
+        header_needed = handle.tell() == 0
+        pd.DataFrame([row]).to_csv(handle, header=header_needed, index=False)
 
 
 def load_data(asset: str, data_dir: str = "data") -> pd.DataFrame:
@@ -310,22 +396,33 @@ def optimize_single_asset(
     n_trials_atr = n_trials_atr or OPTIM_CONFIG["n_trials_atr"]
     n_trials_ichi = n_trials_ichi or OPTIM_CONFIG["n_trials_ichi"]
     min_trades = OPTIM_CONFIG["min_trades"]
+    exchange = EXCHANGE_MAP.get(asset, "binance")
+    start_date = ""
+    end_date = ""
+    total_bars_raw = 0
 
-    print(f"[{asset}] Starting optimization...")
+    _log_progress(asset, "START")
 
     try:
         # 1. Load and split data
+        _log_progress(asset, "download")
         df = load_data(asset, data_dir)
+        total_bars_raw = len(df)
+        start_date = str(df.index[0])[:10] if len(df) > 0 else ""
+        end_date = str(df.index[-1])[:10] if len(df) > 0 else ""
+
         df = df.iloc[OPTIM_CONFIG["warmup_bars"]:]
         df_is, df_val, df_oos = split_data(df)
 
-        print(f"[{asset}] Data: IS={len(df_is)}, VAL={len(df_val)}, OOS={len(df_oos)} bars")
+        print(f"[{asset}] Data: IS={len(df_is)}, VAL={len(df_val)}, OOS={len(df_oos)} bars [{start_date} → {end_date}]")
 
         # 2. ATR Optimization on IS
+        _log_progress(asset, "ATR opt")
         atr_params, atr_sharpe = optimize_atr(df_is, n_trials_atr, min_trades)
         print(f"[{asset}] ATR done: Sharpe={atr_sharpe:.2f}, params={atr_params}")
 
         # 3. Ichimoku Optimization on IS
+        _log_progress(asset, "Ichi opt")
         ichi_params, ichi_sharpe = optimize_ichimoku(df_is, atr_params, n_trials_ichi, min_trades)
         print(f"[{asset}] Ichi done: Sharpe={ichi_sharpe:.2f}, params={ichi_params}")
 
@@ -342,6 +439,7 @@ def optimize_single_asset(
         )
 
         # 5. Evaluate on all segments
+        _log_progress(asset, "WF")
         is_results = run_backtest(df_is, final_params)
         val_results = run_backtest(df_val, final_params)
         oos_results = run_backtest(df_oos, final_params)
@@ -350,24 +448,41 @@ def optimize_single_asset(
         wfe = oos_results["sharpe"] / is_results["sharpe"] if is_results["sharpe"] > 0 else 0
 
         # 7. Monte Carlo p-value
+        _log_progress(asset, "MC")
         mc_p = monte_carlo_pvalue(df_oos, final_params, oos_results["sharpe"], mc_iterations)
 
-        # 8. Determine status
+        # 8. Determine status and fail_reason
         status = "SUCCESS"
-        if (
-            oos_results["sharpe"] < PASS_CRITERIA["oos_sharpe_min"]
-            or wfe < PASS_CRITERIA["wfe_min"]
-            or oos_results["trades"] < PASS_CRITERIA["oos_trades_min"]
-            or abs(oos_results["max_drawdown"]) > PASS_CRITERIA["max_dd_max"] * 100
-        ):
-            status = "FAIL"
+        fail_reasons = []
 
+        if oos_results["sharpe"] < PASS_CRITERIA["oos_sharpe_min"]:
+            fail_reasons.append(f"OOS_SHARPE<{PASS_CRITERIA['oos_sharpe_min']}")
+        if wfe < PASS_CRITERIA["wfe_min"]:
+            fail_reasons.append(f"WFE<{PASS_CRITERIA['wfe_min']}")
+        if oos_results["trades"] < PASS_CRITERIA["oos_trades_min"]:
+            fail_reasons.append(f"TRADES<{PASS_CRITERIA['oos_trades_min']}")
+        if abs(oos_results["max_drawdown"]) > PASS_CRITERIA["max_dd_max"] * 100:
+            fail_reasons.append(f"DD>{PASS_CRITERIA['max_dd_max']*100}%")
+
+        if fail_reasons:
+            status = "FAIL"
         if wfe < 0.6:
-            status = f"{status} (OVERFIT)"
+            fail_reasons.append("OVERFIT")
+            if status == "SUCCESS":
+                status = "FAIL"
+
+        fail_reason = "; ".join(fail_reasons) if fail_reasons else ""
 
         result = AssetScanResult(
             asset=asset,
             status=status,
+            exchange=exchange,
+            timeframe="1H",
+            start_date=start_date,
+            end_date=end_date,
+            total_bars=total_bars_raw,
+            seed=SEED,
+            fail_reason=fail_reason,
             sl_mult=atr_params["sl_mult"],
             tp1_mult=atr_params["tp1_mult"],
             tp2_mult=atr_params["tp2_mult"],
@@ -391,12 +506,33 @@ def optimize_single_asset(
             mc_p=mc_p,
         )
 
+        _log_progress(asset, "DONE")
         print(f"[{asset}] ✓ Complete: OOS Sharpe={oos_results['sharpe']:.2f}, WFE={wfe:.2f}, Status={status}")
+        try:
+            append_partial_result(result)
+        except Exception as append_error:
+            print(f"[{asset}] Partial CSV append failed: {append_error}")
         return result
 
     except Exception as e:
         print(f"[{asset}] ✗ Error: {e}")
-        return AssetScanResult(asset=asset, status="FAILED", error=str(e))
+        result = AssetScanResult(
+            asset=asset,
+            status="FAIL",
+            exchange=exchange,
+            timeframe="1H",
+            start_date=start_date,
+            end_date=end_date,
+            total_bars=total_bars_raw,
+            seed=SEED,
+            fail_reason=f"ERROR: {str(e)}",
+            error=str(e)
+        )
+        try:
+            append_partial_result(result)
+        except Exception as append_error:
+            print(f"[{asset}] Partial CSV append failed: {append_error}")
+        return result
 
 
 def run_parallel_scan(
@@ -405,6 +541,8 @@ def run_parallel_scan(
     n_workers: int = None,
     n_trials_atr: int = None,
     n_trials_ichi: int = None,
+    cluster: bool = False,
+    cluster_count: int = None,
 ) -> pd.DataFrame:
     """Run optimization for all assets in parallel."""
     from joblib import Parallel, delayed
@@ -427,34 +565,7 @@ def run_parallel_scan(
     )
 
     # Convert to DataFrame
-    rows = []
-    for r in results:
-        rows.append({
-            "asset": r.asset,
-            "status": r.status,
-            "sl_mult": r.sl_mult,
-            "tp1_mult": r.tp1_mult,
-            "tp2_mult": r.tp2_mult,
-            "tp3_mult": r.tp3_mult,
-            "tenkan": r.tenkan,
-            "kijun": r.kijun,
-            "tenkan_5": r.tenkan_5,
-            "kijun_5": r.kijun_5,
-            "is_sharpe": r.is_sharpe,
-            "is_return": r.is_return,
-            "is_trades": r.is_trades,
-            "val_sharpe": r.val_sharpe,
-            "val_return": r.val_return,
-            "val_trades": r.val_trades,
-            "oos_sharpe": r.oos_sharpe,
-            "oos_return": r.oos_return,
-            "oos_trades": r.oos_trades,
-            "oos_max_dd": r.oos_max_dd,
-            "oos_pf": r.oos_pf,
-            "wfe": r.wfe,
-            "mc_p": r.mc_p,
-            "error": r.error,
-        })
+    rows = [_result_to_row(r) for r in results]
 
     df = pd.DataFrame(rows)
 
@@ -462,7 +573,9 @@ def run_parallel_scan(
     timestamp = datetime.now().strftime("%Y%m%d_%H%M")
     Path("outputs").mkdir(exist_ok=True)
     output_path = f"outputs/multiasset_scan_{timestamp}.csv"
+    debug_output_path = f"outputs/multi_asset_scan_{timestamp}.csv"
     df.to_csv(output_path, index=False)
+    df.to_csv(debug_output_path, index=False)
 
     # Print summary
     print("\n" + "=" * 60)
@@ -480,6 +593,13 @@ def run_parallel_scan(
         print(failed_df[["asset", "status", "oos_sharpe", "wfe"]].to_string(index=False))
 
     print(f"\nResults saved to: {output_path}")
+    print(f"Debug copy saved to: {debug_output_path}")
+
+    if cluster:
+        from crypto_backtest.analysis.cluster_params import run_full_analysis
+
+        print("\nRunning clustering analysis...")
+        run_full_analysis(output_path, cluster_count)
 
     return df
 
@@ -494,6 +614,8 @@ def main():
     parser.add_argument("--trials-atr", type=int, default=100, help="ATR optimization trials")
     parser.add_argument("--trials-ichi", type=int, default=100, help="Ichimoku optimization trials")
     parser.add_argument("--data-dir", type=str, default="data", help="Data directory")
+    parser.add_argument("--cluster", action="store_true", help="Run clustering on successful assets")
+    parser.add_argument("--clusters", type=int, default=None, help="Force number of clusters")
     args = parser.parse_args()
 
     assets = args.assets or SCAN_ASSETS
@@ -504,6 +626,8 @@ def main():
         n_workers=args.workers,
         n_trials_atr=args.trials_atr,
         n_trials_ichi=args.trials_ichi,
+        cluster=args.cluster,
+        cluster_count=args.clusters,
     )
 
 

@@ -1,7 +1,7 @@
 # Handoff — FINAL TRIGGER v2 Backtest System
 
 > **Date de transmission**: 2026-01-20
-> **État**: PRODUCTION READY — Portfolio 7 assets validé
+> **État**: PRODUCTION READY — Portfolio 7 assets validé (TF 1H)
 
 ---
 
@@ -15,6 +15,7 @@ Pipeline de backtest complet pour la stratégie TradingView "FINAL TRIGGER v2" c
 - **Assets Exclus**: SOL, AAVE, HYPE, ATOM, ARB, LINK, INJ, TIA (WFE < 0.6 ou overfit)
 - **Sharpe Portfolio Original**: ~4.52 (BTC/ETH/XRP weights optimisés)
 - **Tous les tests de robustesse passés**: WFE, Monte Carlo, Bootstrap, Sensitivity
+- **Clustering**: invalidé (CLUSTERFAIL) → fallback params individuels (voir `outputs/pine_plan.csv`)
 
 ### Fichiers Critiques
 | Fichier | Description |
@@ -25,7 +26,7 @@ Pipeline de backtest complet pour la stratégie TradingView "FINAL TRIGGER v2" c
 | `outputs/optim_*_best_params.json` | Params optimaux par asset |
 
 ### Prochaines Étapes Suggérées
-1. **P1 - Multi-Timeframe**: Tester params sur 4H et Daily
+1. **P1 - Multi-Timeframe**: DONE → rester en 1H (4H/1D insuffisant)
 2. **P2 - Displacement Grid**: Optimiser displacement [26-78]
 3. ✅ **P3 - CODEX-005**: Multi-Asset Scan 10 Alts + Clustering — **IMPLEMENTED**
 4. **P4 - Live Trading**: Implémenter connecteur exchange live
@@ -473,12 +474,13 @@ Résultat: ETH/SOL/XRP PASS, AAVE FAIL (WFE 0.44). Portfolio construit avec PASS
 Outputs: outputs/multi_asset_optimized_summary.csv, outputs/portfolio_construction.csv, outputs/optim_*_{atr,ichi,best_params,validation}.csv/json
 ```
 
-### 🟠 P1 — Multi-Timeframe Validation
+### ✅ P1 — Multi-Timeframe Validation (DONE → rester en 1H)
 
 ```
 [INSTRUCTION-MTF-001]
-Objectif: Tester params sur 4H et Daily
-Critère: Sharpe > 1.5 sur au moins 1 autre TF
+Résultat: 4H faible sur BTC/ETH/UNI, 1D sans trades (Sharpe=0).
+SEI seul >1.5 en 4H (Sharpe 3.92) mais décision globale: rester en TF 1H.
+Outputs: outputs/mtf_validation.csv
 ```
 
 ### 🟡 P2 — Displacement Optimization
@@ -507,6 +509,8 @@ HYPE, AVAX, ATOM, ARB, LINK, UNI, SUI, INJ, TIA, SEI
 | `scripts/download_data.py` | Download OHLCV via CCXT multi-exchange |
 | `crypto_backtest/optimization/parallel_optimizer.py` | Optimisation parallèle joblib |
 | `crypto_backtest/analysis/cluster_params.py` | K-means clustering des params |
+| `crypto_backtest/analysis/cluster_guard.py` | Re-backtest OOS par cluster + fallback Pine |
+| `crypto_backtest/analysis/mtf_validation.py` | Validation multi-TF (4H/1D) via resample |
 | `scripts/run_full_pipeline.py` | Pipeline complet (download→optimize→cluster) |
 
 **Usage**:
@@ -522,6 +526,12 @@ python scripts/run_full_pipeline.py --assets HYPE AVAX SUI --workers 4
 
 # Clustering seul sur résultats existants
 python -m crypto_backtest.analysis.cluster_params --input outputs/multiasset_scan_*.csv
+
+# Cluster guard (param loss + fallback Pine)
+python -m crypto_backtest.analysis.cluster_guard --scan outputs/multiasset_scan_*.csv --cluster-json outputs/cluster_analysis_*.json
+
+# Multi-timeframe 4H/1D sur assets PASS (resample 1H)
+python -m crypto_backtest.analysis.mtf_validation --scan outputs/multiasset_scan_*.csv
 ```
 
 **Critères de Succès**:
@@ -535,6 +545,8 @@ python -m crypto_backtest.analysis.cluster_params --input outputs/multiasset_sca
 - `outputs/multiasset_scan_{ts}.csv` — Résultats scan
 - `outputs/cluster_analysis_{ts}.json` — Clusters JSON
 - `crypto_backtest/config/cluster_params.py` — Config Python générée
+- `outputs/cluster_paramloss.csv` — Param loss OOS (cluster guard)
+- `outputs/pine_plan.csv` — Plan Pine individuel (fallback)
 
 ### ✅ CODEX-005 Scan Results (2026-01-20)
 
@@ -552,9 +564,14 @@ python -m crypto_backtest.analysis.cluster_params --input outputs/multiasset_sca
 | INJ | 0.79 | 0.19 | ❌ OVERFIT |
 | TIA | 0.43 | 0.16 | ❌ OVERFIT |
 
-**Clusters (K-means k=2)**:
-- **Cluster 0** (UNI, SUI, SEI): SL=3.25, TP1=4.75, tenkan=11, kijun=26, avg Sharpe=3.42
-- **Cluster 1** (AVAX): SL=2.75, TP1=1.5, tenkan=20, kijun=23, Sharpe=4.22
+**Clusters (K-means k=2, SUCCESS assets)**:
+- **Cluster 0** (BTC, UNI, SUI, SEI): SL=3.5, TP1=4.5, TP2=6.5, TP3=9.0, tenkan=10, kijun=29
+- **Cluster 1** (ETH, AVAX): SL=3.5, TP1=3.0, TP2=7.0, TP3=6.0, tenkan=18, kijun=27
+
+**Cluster Guard (param loss OOS)**:
+- **CLUSTERFAIL** (loss > 15% sur ≥1 asset, cluster_size < 3 sur cluster_1)
+- **Décision**: ignorer les clusters → fallback params individuels
+- **Plan Pine**: `outputs/pine_plan.csv`
 
 **Portfolio Total Validé**: BTC + ETH + XRP + AVAX + UNI + SUI + SEI (7 assets)
 
