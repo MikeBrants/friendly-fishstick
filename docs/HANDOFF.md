@@ -122,6 +122,24 @@ Target Sharpe > 1.0 **non atteint** en BEAR et SIDEWAYS.
 
 ---
 
+## ✅ Bootstrap Confidence & Trade Distribution
+
+**Bootstrap 95% CI**:
+- Sharpe CI lower: **1.84**
+- Return CI lower: **+7.52%**
+→ **STATISTICALLY_WEAK: NO**
+
+**Trade distribution**:
+- Top 5 trades: **11.29%** of total return
+- Top 10 trades: **22.55%** of total return
+→ **OUTLIER_DEPENDENT: NO**
+
+**Outputs**:
+- `outputs/bootstrap_confidence.csv`
+- `outputs/trade_distribution.csv`
+
+---
+
 ## 🏗️ Architecture Implémentée
 
 ```
@@ -199,6 +217,15 @@ Outputs: outputs/monte_carlo_results.csv, outputs/monte_carlo_report.txt
 [INSTRUCTION-GUARD-002]
 Résultat: REGIME_DEPENDENT (BEAR/SIDEWAYS)
 Outputs: outputs/regime_analysis.csv, outputs/regime_analysis_report.txt
+```
+
+### ✅ P0 — Bootstrap & Trade Distribution (DONE)
+
+```
+[INSTRUCTION-GUARD-003 / GUARD-005]
+Résultat: CI Sharpe lower 1.84, Return lower +7.52% (OK)
+Top 10 trades 22.55% (OK)
+Outputs: outputs/bootstrap_confidence.csv, outputs/trade_distribution.csv
 ```
 
 ### 🟠 P1 — Multi-Timeframe Validation
