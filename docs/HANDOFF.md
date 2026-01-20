@@ -163,6 +163,8 @@ Targets:
 **SIDEWAYS 50% sizing**: 416 trades, return +9.92%, sharpe 2.144, max_dd -1.95%  
 **SIDEWAYS 100% filter**: 81 trades, return +4.15%, sharpe 1.284, max_dd -1.53%
 
+**Décision**: conserver la **baseline** (pas de sizing réduit en SIDEWAYS) pour préserver le retour global.
+
 **Outputs**:
 - `outputs/backtest_sideways_filter_50pct.csv`
 - `outputs/backtest_sideways_filter_100pct.csv`
