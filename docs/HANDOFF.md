@@ -28,10 +28,11 @@ Pipeline de backtest complet pour la stratégie TradingView "FINAL TRIGGER v2" c
 | `outputs/pine_plan_fullguards.csv` | Plan Pine pour assets full guards |
 
 ### Prochaines Étapes Suggérées
-1. **P1 - Multi-Timeframe**: DONE → rester en 1H (4H/1D insuffisant)
-2. **P2 - Displacement Grid**: Optimiser displacement [26-78]
-3. ✅ **P3 - CODEX-005**: Multi-Asset Scan 10 Alts + Clustering — **IMPLEMENTED**
-4. **P4 - Live Trading**: Implémenter connecteur exchange live
+1. ✅ ~~**P1 - Multi-Timeframe**~~: DONE → rester en 1H (4H/1D insuffisant)
+2. 🔴 **P1 - Displacement Grid**: Optimiser displacement [26, 39, 52, 65, 78] — **PRIORITAIRE**
+3. ✅ **P2 - CODEX-005**: Multi-Asset Scan 10 Alts + Clustering — **IMPLEMENTED**
+4. 🟡 **P3 - Dashboard Streamlit**: Interface visuelle pour lancer les scripts
+5. **P4 - Live Trading**: Implémenter connecteur exchange live
 
 ### Données (Local Only)
 Les fichiers `data/Binance_*_1h.csv` sont ignorés par git. Pour régénérer:
@@ -485,15 +486,30 @@ SEI seul >1.5 en 4H (Sharpe 3.92) mais décision globale: rester en TF 1H.
 Outputs: outputs/mtf_validation.csv
 ```
 
-### 🟡 P2 — Displacement Optimization
+### 🔴 P1 — Displacement Optimization (PRIORITAIRE)
 
 ```
 [INSTRUCTION-DISP-001]
-Objectif: Grid search displacement [26, 39, 52, 65, 78]
+Objectif: Grid search displacement [26, 39, 52, 65, 78] sur tous les assets validés
 Critère: Amélioration Sharpe > 0.1
+Assets: BTC, ETH, AVAX, UNI, SEI
 ```
 
-### 🟢 P3 — Multi-Asset Scan 10 Alts + Clustering (CODEX-005) — IMPLEMENTED
+**Méthodologie**:
+1. Pour chaque asset, tester les 5 valeurs de displacement
+2. Garder les autres paramètres fixes (optimaux actuels)
+3. Comparer Sharpe OOS pour chaque valeur
+4. Sélectionner le meilleur displacement par asset
+
+### 🟡 P3 — Dashboard Streamlit
+
+```
+[INSTRUCTION-UI-001]
+Objectif: Interface visuelle pour piloter les backtests
+Fonctionnalités: Download data, Run optimization, View results, Run guards
+```
+
+### ✅ P2 — Multi-Asset Scan 10 Alts + Clustering (CODEX-005) — IMPLEMENTED
 
 ```
 [CODEX-MULTI-ASSET-005]
