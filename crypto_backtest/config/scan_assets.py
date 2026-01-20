@@ -1,38 +1,163 @@
 """
 Multi-Asset Scan Configuration
-Generated: 2026-01-20
+Updated: 2026-01-20
+Top 50 Cryptos by Market Cap (excluding stablecoins)
 """
 
-# Assets to scan (new alts)
-SCAN_ASSETS = [
-    "HYPE",   # Hyperliquid - DEX Perp
-    "AVAX",   # Avalanche - L1
-    "ATOM",   # Cosmos - IBC
-    "ARB",    # Arbitrum - L2
-    "LINK",   # Chainlink - Oracle
-    "UNI",    # Uniswap - DeFi
-    "SUI",    # Sui - L1 Move
-    "INJ",    # Injective - DeFi/Perp
-    "TIA",    # Celestia - Modular
-    "SEI",    # Sei - L1 Fast
+# =============================================================================
+# TOP 50 CRYPTOS (by market cap, excluding stablecoins)
+# =============================================================================
+
+# Tier 1 - Top 10 (Blue chips)
+TIER1_ASSETS = [
+    "BTC",    # Bitcoin
+    "ETH",    # Ethereum
+    "XRP",    # Ripple
+    "BNB",    # Binance Coin
+    "SOL",    # Solana
+    "ADA",    # Cardano
+    "DOGE",   # Dogecoin
+    "AVAX",   # Avalanche
+    "TRX",    # Tron
+    "DOT",    # Polkadot
 ]
 
-# Already validated assets (for clustering comparison)
-VALIDATED_ASSETS = ["BTC", "ETH", "XRP"]
+# Tier 2 - Top 11-25 (Large caps)
+TIER2_ASSETS = [
+    "LINK",   # Chainlink - Oracle
+    "MATIC",  # Polygon (POL)
+    "TON",    # Toncoin
+    "SHIB",   # Shiba Inu
+    "LTC",    # Litecoin
+    "BCH",    # Bitcoin Cash
+    "ATOM",   # Cosmos
+    "UNI",    # Uniswap
+    "XLM",    # Stellar
+    "NEAR",   # Near Protocol
+    "APT",    # Aptos
+    "ICP",    # Internet Computer
+    "FIL",    # Filecoin
+    "ARB",    # Arbitrum
+    "OP",     # Optimism
+]
 
-# All assets
-ALL_ASSETS = VALIDATED_ASSETS + SCAN_ASSETS
+# Tier 3 - Top 26-40 (Mid caps)
+TIER3_ASSETS = [
+    "HBAR",   # Hedera
+    "VET",    # VeChain
+    "MKR",    # Maker
+    "AAVE",   # Aave
+    "INJ",    # Injective
+    "SUI",    # Sui
+    "IMX",    # Immutable X
+    "RUNE",   # THORChain
+    "GRT",    # The Graph
+    "TIA",    # Celestia
+    "SEI",    # Sei
+    "STX",    # Stacks
+    "ALGO",   # Algorand
+    "FTM",    # Fantom
+    "EGLD",   # MultiversX
+]
 
-# Exchange mapping per asset
+# Tier 4 - Top 41-50 (Mid-small caps)
+TIER4_ASSETS = [
+    "SAND",   # Sandbox
+    "MANA",   # Decentraland
+    "FLOW",   # Flow
+    "XTZ",    # Tezos
+    "AXS",    # Axie Infinity
+    "GALA",   # Gala Games
+    "THETA",  # Theta Network
+    "EOS",    # EOS
+    "KAVA",   # Kava
+    "RENDER", # Render Network
+]
+
+# Bonus - High potential / Trending
+BONUS_ASSETS = [
+    "HYPE",   # Hyperliquid
+    "WIF",    # Dogwifhat
+    "PEPE",   # Pepe
+    "BONK",   # Bonk
+    "JUP",    # Jupiter
+    "W",      # Wormhole
+    "STRK",   # Starknet
+    "PYTH",   # Pyth Network
+    "JTO",    # Jito
+    "WLD",    # Worldcoin
+]
+
+# =============================================================================
+# ASSET GROUPS
+# =============================================================================
+
+# Already validated assets (production ready)
+VALIDATED_ASSETS = ["BTC", "ETH", "XRP", "AVAX", "UNI", "SEI"]
+
+# Assets excluded (failed guards or overfit)
+EXCLUDED_ASSETS = ["SOL", "AAVE", "SUI", "HYPE", "ATOM", "ARB", "LINK", "INJ", "TIA"]
+
+# New assets to scan (not yet tested)
+SCAN_ASSETS = [
+    # From Tier 1
+    "BNB", "ADA", "DOGE", "TRX", "DOT",
+    # From Tier 2
+    "MATIC", "TON", "SHIB", "LTC", "BCH", "XLM", "NEAR", "APT", "ICP", "FIL", "OP",
+    # From Tier 3
+    "HBAR", "VET", "MKR", "IMX", "RUNE", "GRT", "STX", "ALGO", "FTM", "EGLD",
+    # From Tier 4
+    "SAND", "MANA", "FLOW", "XTZ", "AXS", "GALA", "THETA", "EOS", "KAVA", "RENDER",
+    # Bonus
+    "WIF", "PEPE", "BONK", "JUP", "W", "STRK", "PYTH", "JTO", "WLD",
+]
+
+# All top 50 assets
+TOP50_ASSETS = TIER1_ASSETS + TIER2_ASSETS + TIER3_ASSETS + TIER4_ASSETS
+
+# All assets (for full download)
+ALL_ASSETS = list(set(TOP50_ASSETS + BONUS_ASSETS))
+
+# =============================================================================
+# EXCHANGE MAPPING
+# =============================================================================
+
+# Default exchange for each asset
+# Most are on Binance, exceptions noted
 EXCHANGE_MAP = {
-    "BTC": "binance", "ETH": "binance", "XRP": "binance",
-    "HYPE": "bybit",
-    "AVAX": "binance", "ATOM": "binance", "ARB": "binance",
-    "LINK": "binance", "UNI": "binance", "SUI": "binance",
-    "INJ": "binance", "TIA": "binance", "SEI": "binance",
+    # Tier 1
+    "BTC": "binance", "ETH": "binance", "XRP": "binance", "BNB": "binance",
+    "SOL": "binance", "ADA": "binance", "DOGE": "binance", "AVAX": "binance",
+    "TRX": "binance", "DOT": "binance",
+
+    # Tier 2
+    "LINK": "binance", "MATIC": "binance", "TON": "binance", "SHIB": "binance",
+    "LTC": "binance", "BCH": "binance", "ATOM": "binance", "UNI": "binance",
+    "XLM": "binance", "NEAR": "binance", "APT": "binance", "ICP": "binance",
+    "FIL": "binance", "ARB": "binance", "OP": "binance",
+
+    # Tier 3
+    "HBAR": "binance", "VET": "binance", "MKR": "binance", "AAVE": "binance",
+    "INJ": "binance", "SUI": "binance", "IMX": "binance", "RUNE": "binance",
+    "GRT": "binance", "TIA": "binance", "SEI": "binance", "STX": "binance",
+    "ALGO": "binance", "FTM": "binance", "EGLD": "binance",
+
+    # Tier 4
+    "SAND": "binance", "MANA": "binance", "FLOW": "binance", "XTZ": "binance",
+    "AXS": "binance", "GALA": "binance", "THETA": "binance", "EOS": "binance",
+    "KAVA": "binance", "RENDER": "binance",
+
+    # Bonus (some on Bybit)
+    "HYPE": "bybit",    # Hyperliquid - only on Bybit/own DEX
+    "WIF": "binance", "PEPE": "binance", "BONK": "binance", "JUP": "binance",
+    "W": "binance", "STRK": "binance", "PYTH": "binance", "JTO": "binance",
+    "WLD": "binance",
 }
 
-# Optimization parameters
+# =============================================================================
+# OPTIMIZATION PARAMETERS
+# =============================================================================
+
 OPTIM_CONFIG = {
     "n_trials_atr": 100,
     "n_trials_ichi": 100,
