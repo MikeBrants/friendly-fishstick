@@ -122,6 +122,23 @@ Target Sharpe > 1.0 **non atteint** en BEAR et SIDEWAYS.
 
 ---
 
+## ⚠️ Market Regime Analysis (V2)
+
+**REGIME_DEPENDENT**: YES  
+**CRITICAL**: YES  
+**ACCEPTABLE**: YES (losing share 24.76%)
+
+Targets:
+- Sharpe > 0.8 (regimes >30 trades) → **FAILED** in SIDEWAYS
+- Return < -2% → **FAILED** in SIDEWAYS (-7.71%)
+
+**Outputs**:
+- `outputs/regime_analysis_v2.csv`
+- `outputs/regime_analysis_v2_report.txt`
+- `outputs/regime_distribution.png`
+
+---
+
 ## ✅ Bootstrap Confidence & Trade Distribution
 
 **Bootstrap 95% CI**:
@@ -217,6 +234,14 @@ Outputs: outputs/monte_carlo_results.csv, outputs/monte_carlo_report.txt
 [INSTRUCTION-GUARD-002]
 Résultat: REGIME_DEPENDENT (BEAR/SIDEWAYS)
 Outputs: outputs/regime_analysis.csv, outputs/regime_analysis_report.txt
+```
+
+### ⚠️ P0 — Market Regime Analysis V2 (DONE)
+
+```
+[INSTRUCTION-GUARD-002-V2]
+Résultat: REGIME_DEPENDENT + CRITICAL (SIDEWAYS)
+Outputs: outputs/regime_analysis_v2.csv, outputs/regime_analysis_v2_report.txt
 ```
 
 ### ✅ P0 — Bootstrap & Trade Distribution (DONE)

@@ -1,0 +1,17 @@
+REGIME ANALYSIS REPORT (V2)
+======================================================================
+REGIME_DEPENDENT (>20 trades, sharpe < 0.5): YES
+CRITICAL (>20 trades, return < -3%): YES
+ACCEPTABLE (losing share < 30%): YES
+Losing return share: 24.76%
+Target Sharpe > 0.8 failed (>30 trades): SIDEWAYS
+Return < -2% regimes: SIDEWAYS
+
+Per-regime metrics:
+CRASH: sharpe=0.00, return=+0.00%, win_rate=0.00%, pf=0.00, trades=0, bars=7, avg_win=0.00, avg_loss=0.00, max_win=0.00, max_loss=0.00
+HIGH_VOL: sharpe=13.24, return=+9.48%, win_rate=39.39%, pf=1.97, trades=33, bars=937, avg_win=24.39, avg_loss=-8.06, max_win=35.29, max_loss=-26.18
+BEAR: sharpe=11.38, return=+3.53%, win_rate=0.00%, pf=0.00, trades=3, bars=829, avg_win=0.00, avg_loss=-17.27, max_win=0.00, max_loss=-25.91
+BULL: sharpe=13.15, return=+8.21%, win_rate=28.57%, pf=0.94, trades=21, bars=1309, avg_win=24.89, avg_loss=-10.62, max_win=35.50, max_loss=-26.23
+SIDEWAYS: sharpe=-1.74, return=-7.71%, win_rate=44.16%, pf=1.54, trades=308, bars=12998, avg_win=24.60, avg_loss=-12.61, max_win=35.44, max_loss=-27.84
+RECOVERY: sharpe=11.11, return=+0.23%, win_rate=0.00%, pf=0.00, trades=3, bars=72, avg_win=0.00, avg_loss=-17.15, max_win=0.00, max_loss=-25.73
+OTHER: sharpe=3.84, return=+1.97%, win_rate=54.17%, pf=2.11, trades=48, bars=1169, avg_win=25.56, avg_loss=-14.34, max_win=35.45, max_loss=-27.07
