@@ -1,0 +1,19 @@
+SENSITIVITY ANALYSIS REPORT
+======================================================================
+Grid:
+  tenkan: 11-15
+  kijun: 32-36
+  tenkan_5: 10-14
+  kijun_5: 19-23
+
+Fixed params:
+  ATR SL/TP: 3.75/3.75/9.0/7.0
+  displacement: 52
+  displacement_5: 52
+  warmup: 200 bars
+
+Neighborhood (±1 around 13/34, 12/21):
+  mean sharpe: 2.0358
+  std sharpe: 0.1014
+  variance % (std/mean): 4.98%
+  robustness: ROBUST
