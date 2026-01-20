@@ -28,6 +28,9 @@ def main():
     print("ICHIMOKU OPTIMIZATION (Tenkan/Kijun only)")
     print("=" * 70)
 
+    include_displacement = False
+    displacement_choices = [26, 39, 52, 65, 78]
+
     # Load data
     print("\nLoading data...")
     data = load_binance_data(warmup=200)
@@ -88,6 +91,20 @@ def main():
         "five_in_one.kijun_5": {"type": "int", "low": 20, "high": 35},
     }
 
+    if include_displacement:
+        SEARCH_SPACE.update(
+            {
+                "ichimoku.displacement": {
+                    "type": "categorical",
+                    "choices": displacement_choices,
+                },
+                "five_in_one.displacement_5": {
+                    "type": "categorical",
+                    "choices": displacement_choices,
+                },
+            }
+        )
+
     param_space = {
         "base_params": BASE_PARAMS,
         "search_space": SEARCH_SPACE,
@@ -110,8 +127,11 @@ def main():
 
     print("\nParameters FIXED:")
     print(f"  - SL/TP: {BASE_PARAMS['sl_mult']}/{BASE_PARAMS['tp1_mult']}/{BASE_PARAMS['tp2_mult']}/{BASE_PARAMS['tp3_mult']} (optimized)")
-    print(f"  - ichimoku.displacement: 52")
-    print(f"  - five_in_one.displacement_5: 52")
+    if include_displacement:
+        print("  - displacement included in Bayesian search")
+    else:
+        print(f"  - ichimoku.displacement: 52")
+        print(f"  - five_in_one.displacement_5: 52")
 
     # Run optimization
     n_trials = 50
@@ -176,8 +196,12 @@ def main():
         for key, value in sorted(result.best_params.items()):
             f.write(f"  {key}: {value}\n")
         f.write("\nFixed parameters:\n")
-        f.write("  displacement: 52\n")
-        f.write("  displacement_5: 52\n")
+        if include_displacement:
+            f.write("  displacement: optimized (Bayesian search)\n")
+            f.write("  displacement_5: optimized (Bayesian search)\n")
+        else:
+            f.write("  displacement: 52\n")
+            f.write("  displacement_5: 52\n")
 
     print(f"\nResults saved to: {output_file}")
 
