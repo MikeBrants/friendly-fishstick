@@ -256,6 +256,10 @@ PASS criteria: Sharpe > 1.0, WFE > 0.6, MC p < 0.05, trades >= 100, max DD < 15%
 - `outputs/multi_asset_optimized_summary.csv`
 - `outputs/portfolio_construction.csv`
 
+**Note data**:
+- Les fichiers `data/Binance_*_1h.csv` et `data/cache/binance/*.parquet` sont ignorés par git (local only).
+- Pour régénérer: relancer les scripts de fetch (ex: `fetch_binance_data.py`) sur la même plage de dates.
+
 ---
 
 ## 🏗️ Architecture Implémentée
