@@ -1,0 +1,581 @@
+# Plan: Système de Backtest Pro pour "FINAL TRIGGER v2"
+
+**Dernière MAJ**: 20 janvier 2026
+
+## Objectif
+Convertir l'indicateur TradingView "FINAL TRIGGER v2 - State/Transition + A/D Line + Ichi Light" en Python et créer un système de backtest professionnel avec walk-forward analysis et optimisation bayésienne.
+
+## État Actuel: 82% Complété ✅
+
+**Tests**: 17 tests passent (`pytest -v`)
+**Validation**: 100% match FINAL LONG/SHORT vs Pine Script (après warmup)
+**Commit récent**: Risk-based position sizing + réentrée sur bougie de sortie
+
+## Résumé du Code Pine Script (1223 lignes)
+
+**Architecture de la stratégie:**
+1. **MAMA/FAMA/KAMA** - MESA Adaptive Moving Average avec Hilbert Transform
+2. **Ichimoku Externe** - Donne le biais directionnel (17 conditions bullish, 3 bearish)
+3. **5-in-1 Filter** - 5 sous-filtres combinés avec toggles individuels
+4. **Puzzle + Grace Logic** - Système de validation avec fenêtre de grâce 1 bar
+5. **ATR Multi-TP** - SL + 3 niveaux TP avec trailing (50%/30%/20%)
+
+**Configuration par défaut (alignée sur Pine):**
+- `use_mama_kama_filter = False` (OFF)
+- `use_ichimoku_filter = True` (ON - SEUL FILTRE ACTIF)
+- `ichi5in1_strict = False` (Light - 3 cond bearish)
+- `use_transition_mode = False` (State mode)
+- `grace_bars = 1`
+
+---
+
+## Architecture du Projet
+
+```
+crypto_backtest/
+├── config/
+│   ├── __init__.py
+│   └── settings.py              # Paramètres globaux (fees, exchanges)
+├── data/
+│   ├── __init__.py
+│   ├── fetcher.py               # CCXT multi-exchange
+│   ├── storage.py               # Cache Parquet
+│   └── preprocessor.py          # Nettoyage données
+├── indicators/
+│   ├── __init__.py
+│   ├── base.py                  # Interface abstraite
+│   ├── mama_fama_kama.py        # MESA Adaptive MA + Hilbert Transform
+│   ├── ichimoku.py              # Système Ichimoku complet
+│   ├── five_in_one.py           # Distance, OBV, RegCloud, KAMA Osc
+│   └── atr.py                   # ATR pour SL/TP
+├── strategies/
+│   ├── __init__.py
+│   ├── base.py                  # Classe abstraite Strategy
+│   └── final_trigger.py         # Stratégie FINAL TRIGGER complète
+├── engine/
+│   ├── __init__.py
+│   ├── backtest.py              # Moteur vectorisé
+│   ├── execution.py             # Simulation fees/slippage
+│   └── position_manager.py      # Gestion multi-TP (50%/30%/20%)
+├── optimization/
+│   ├── __init__.py
+│   ├── walk_forward.py          # Walk-forward analysis
+│   ├── bayesian.py              # Optuna TPE
+│   └── overfitting_guard.py     # Deflated Sharpe, PBO
+├── analysis/
+│   ├── __init__.py
+│   ├── metrics.py               # Sharpe, Sortino, Calmar, etc.
+│   └── visualization.py         # Plotly charts
+├── requirements.txt
+└── examples/
+    └── run_backtest.py          # Script principal
+```
+
+---
+
+## Phase 1: Setup & Data Layer
+
+### 1.1 Dépendances (`requirements.txt`)
+```
+pandas>=2.0.0
+numpy>=1.24.0
+ccxt>=4.0.0
+numba>=0.58.0
+optuna>=4.0.0
+pydantic>=2.0.0
+plotly>=5.18.0
+scipy>=1.11.0
+quantstats>=0.0.62
+pyarrow>=14.0.0
+python-dotenv>=1.0.0
+rich>=13.0.0
+pytest>=7.4.0
+```
+
+### 1.2 Data Fetcher (`data/fetcher.py`)
+- Classe `DataFetcher` utilisant CCXT
+- Support Binance, Bybit, OKX via interface unifiée
+- Pagination automatique pour historique long
+- Cache local en Parquet pour éviter re-téléchargement
+
+### 1.3 Preprocessor (`data/preprocessor.py`)
+- Validation des données (gaps, outliers)
+- Normalisation timezone UTC
+- Split train/test avec gap de sécurité
+
+---
+
+## Phase 2: Conversion des Indicateurs
+
+### 2.1 MAMA/FAMA/KAMA (`indicators/mama_fama_kama.py`)
+
+**Éléments Pine Script à convertir:**
+```python
+# Hilbert Transform
+def hilbert_transform(x: np.ndarray) -> np.ndarray:
+    """0.0962*x + 0.5769*x[2] - 0.5769*x[4] - 0.0962*x[6]"""
+
+# MESA Period computation
+def compute_mesa_period(src: pd.Series) -> pd.Series:
+    """Calcul adaptatif de la période MESA"""
+
+# MAMA/FAMA
+def compute_mama_fama(src: pd.Series, fast_limit: float, slow_limit: float):
+    """
+    mama = a * src + (1-a) * mama[1]
+    fama = b * mama + (1-b) * fama[1]
+    """
+
+# KAMA avec ER
+def compute_kama(src: pd.Series, length: int) -> pd.Series:
+    """KAMA basé sur Efficiency Ratio"""
+```
+
+**Paramètres optimisables:**
+- `len` (défaut: 20)
+- `requireFamaBetween` (bool)
+
+### 2.2 Ichimoku (`indicators/ichimoku.py`)
+
+**Fonctions à implémenter:**
+```python
+def donchian(high: pd.Series, low: pd.Series, length: int) -> pd.Series:
+    """(highest + lowest) / 2"""
+
+class Ichimoku:
+    def __init__(self, tenkan: int = 9, kijun: int = 26, displacement: int = 52):
+        pass
+
+    def compute(self, data: pd.DataFrame) -> pd.DataFrame:
+        """Retourne Tenkan, Kijun, KumoA, KumoB"""
+
+    def all_bullish(self, close: pd.Series) -> pd.Series:
+        """Condition bullish complète (17 conditions)"""
+
+    def all_bearish(self, close: pd.Series) -> pd.Series:
+        """Condition bearish complète"""
+```
+
+**Paramètres optimisables:**
+- `TS_D1` (9), `KS_D1` (26), `displacement` (52)
+
+### 2.3 Five-in-One Filter (`indicators/five_in_one.py`)
+
+**5 sous-filtres:**
+
+```python
+class FiveInOneFilter:
+    def __init__(self, config: FiveInOneConfig):
+        pass
+
+    # 1. Distance Filter - KAMA multi-périodes
+    def distance_filter(self, ohlc4: pd.Series) -> pd.Series:
+        """18 KAMAs (5,10,15...100), calcul distance moyenne"""
+
+    # 2. Volume Filter (A/D Line OU OBV classique)
+    def ad_line_filter(self, high, low, close, volume) -> pd.Series:
+        """
+        A/D Line (Chaikin): MFM = ((close-low) - (high-close)) / (high-low)
+        Normalisé sur adNormPeriod, avec slope sur 3 bars
+        Bull: adNorm > 0.1 AND adSlope > 0
+        """
+
+    def obv_filter(self, close: pd.Series, volume: pd.Series) -> pd.Series:
+        """OBV classique + EMA(3,9,21), signal bull/bear"""
+
+    # 3. Regression Cloud
+    def regression_cloud_filter(self, close: pd.Series) -> pd.Series:
+        """
+        Slopes sur 8 périodes (10,20,50,100,200,300,400,500)
+        cloudLine = SMA(100) + regTotalDistance * 0.1
+        """
+
+    # 4. KAMA Oscillator
+    def kama_oscillator(self, close: pd.Series) -> pd.Series:
+        """KAMA normalisé [-0.5, 0.5]"""
+
+    # 5. Ichimoku 5in1 (Strict vs Light)
+    def ichimoku_5_filter(self, data: pd.DataFrame, strict: bool) -> pd.Series:
+        """
+        Strict: 17 conditions bullish, 17 conditions bearish
+        Light: 3 conditions bearish seulement (close < KumoA[25], < KumoB[25], < KumoB)
+        """
+
+    def compute_combined(self, data: pd.DataFrame, transition_mode: bool) -> pd.Series:
+        """
+        Combine les 5 filtres selon config
+        Si transition_mode: exige changement d'état (not prevAllBull/Bear)
+        """
+```
+
+**Paramètres optimisables:**
+- `fast_period` (7), `slow_period` (19), `er_period` (8)
+- `norm_period` (50), `useNorm` (bool)
+- `adNormPeriod` (50) - pour A/D Line
+- `useADLine` (bool) - A/D Line vs OBV
+- `ichi5in1Strict` (bool) - Strict vs Light
+- `useTransitionMode` (bool) - State vs Transition
+- Toggles pour chaque filtre
+
+---
+
+## Phase 3: Stratégie FINAL TRIGGER
+
+### 3.1 Logic Core (`strategies/final_trigger.py`)
+
+```python
+class FinalTriggerStrategy(BaseStrategy):
+    """
+    Logique Puzzle + Grace:
+    1. Ichimoku donne le biais directionnel (ichi_long_active/short_active)
+    2. MAMA/KAMA donne la confirmation (cond_mk_long/short)
+    3. 5in1 donne le timing (bullishSignal_close)
+    4. Grace window permet 1 bar de délai si conditions presque OK
+    """
+
+    def __init__(self, params: FinalTriggerParams):
+        self.params = params
+
+    def generate_signals(self, data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Retourne DataFrame avec colonnes:
+        - signal: 1 (long), -1 (short), 0 (neutral)
+        - entry_price, sl_price, tp1_price, tp2_price, tp3_price
+        - qty_split: [0.50, 0.30, 0.20]
+        """
+```
+
+### 3.2 Position Manager (`engine/position_manager.py`)
+
+**Gestion multi-TP spécifique:**
+```python
+class MultiTPPositionManager:
+    """
+    Gère les 3 ordres par trade:
+    - Order 1: 50% du capital, TP1 (2R)
+    - Order 2: 30% du capital, TP2 (6R)
+    - Order 3: 20% du capital, TP3 runner (10R)
+
+    Trailing logic:
+    - Après TP1: SL → Breakeven (entry)
+    - Après TP2: SL → TP1
+    """
+```
+
+---
+
+## Phase 4: Moteur de Backtest
+
+### 4.1 Backtest Engine (`engine/backtest.py`)
+
+```python
+class VectorizedBacktester:
+    def __init__(self, config: BacktestConfig):
+        self.config = config  # fees, slippage, capital
+
+    def run(self, data: pd.DataFrame, strategy: BaseStrategy) -> BacktestResult:
+        """
+        1. Génère signaux vectorisés
+        2. Simule positions avec multi-TP
+        3. Applique fees/slippage
+        4. Calcule equity curve
+        """
+```
+
+### 4.2 Métriques (`analysis/metrics.py`)
+
+**Métriques calculées:**
+- Total Return, Annual Return (CAGR)
+- Sharpe Ratio, Sortino Ratio, Calmar Ratio
+- Max Drawdown (% et durée)
+- Win Rate, Profit Factor
+- Expectancy (R-multiple moyen)
+- VaR 95%, CVaR 95%
+- Stats par heure UTC (6 blocs de 4h)
+- Stats par jour de semaine
+
+---
+
+## Phase 5: Walk-Forward Analysis
+
+### 5.1 Implementation (`optimization/walk_forward.py`)
+
+```python
+class WalkForwardAnalyzer:
+    def __init__(self, config: WalkForwardConfig):
+        self.in_sample_days = 180   # 6 mois training
+        self.out_of_sample_days = 30  # 1 mois test
+        self.optimizer = BayesianOptimizer()
+
+    def analyze(self, data, strategy_class, param_space) -> WalkForwardResult:
+        """
+        Pour chaque fenêtre:
+        1. Optimise sur in-sample
+        2. Teste sur out-of-sample (non vu)
+        3. Combine tous les OOS pour performance réelle
+        """
+```
+
+**Métriques de robustesse:**
+- Degradation Ratio (OOS/IS performance)
+- Efficiency Ratio (% performance retenue)
+- Parameter Stability (variation des params optimaux)
+
+### 5.2 Optimisation Bayésienne (`optimization/bayesian.py`)
+
+```python
+class BayesianOptimizer:
+    """Utilise Optuna TPE pour exploration efficace"""
+
+    def optimize(self, data, strategy_class, param_space, n_trials=100):
+        # Définit l'espace de recherche
+        # Exécute n_trials avec pruning
+        # Retourne meilleurs params + importance
+```
+
+**Paramètres à optimiser pour FINAL TRIGGER v2:**
+
+| Paramètre | Range | Type | Description |
+|-----------|-------|------|-------------|
+| len (MAMA) | 10-50 | int | Période MAMA |
+| TS_D1 | 5-15 | int | Tenkan-sen Ichimoku |
+| KS_D1 | 20-35 | int | Kijun-sen Ichimoku |
+| fast_period | 5-15 | int | 5in1 Fast Period |
+| slow_period | 15-30 | int | 5in1 Slow Period |
+| adNormPeriod | 20-100 | int | A/D Line normalisation |
+| slMult | 1.5-5.0 | float | SL en multiples ATR |
+| tp1Mult | 1.0-4.0 | float | TP1 en multiples ATR |
+| tp2Mult | 4.0-10.0 | float | TP2 en multiples ATR |
+| tp3Mult | 6.0-15.0 | float | TP3 Runner en multiples ATR |
+| graceBars | 0-1 | int | Fenêtre de grâce |
+
+**Toggles binaires (combinatoires):**
+| Toggle | Défaut | Impact |
+|--------|--------|--------|
+| useADLine | true | A/D Line vs OBV classique |
+| ichi5in1Strict | true | 17 cond vs 3 cond bearish |
+| useTransitionMode | true | Exige changement d'état |
+| requireFamaBetween | false | FAMA entre MAMA et KAMA |
+| strictLock_5in1Last | false | 5in1 doit être dernier signal |
+
+---
+
+## Phase 6: Vérification & Tests
+
+### 6.1 Tests Unitaires
+```bash
+pytest tests/ -v
+```
+
+- `test_indicators.py`: Vérifier MAMA/KAMA/Ichimoku vs valeurs Pine Script
+- `test_backtest.py`: Vérifier calculs P&L corrects
+- `test_metrics.py`: Vérifier formules Sharpe/Sortino
+
+### 6.2 Validation End-to-End
+
+```python
+# examples/run_backtest.py
+
+from data.fetcher import DataFetcher
+from strategies.final_trigger import FinalTriggerStrategy
+from optimization.walk_forward import WalkForwardAnalyzer
+
+# 1. Fetch data
+fetcher = DataFetcher("binance")
+data = fetcher.fetch_ohlcv("BTC/USDT", "1h", days=365*2)
+
+# 2. Run walk-forward
+analyzer = WalkForwardAnalyzer()
+result = analyzer.analyze(data, FinalTriggerStrategy, PARAM_SPACE)
+
+# 3. Print results
+print(f"Combined Sharpe: {result.combined_metrics['sharpe_ratio']:.2f}")
+print(f"Efficiency Ratio: {result.efficiency_ratio:.1f}%")
+print(f"Degradation: {result.degradation_ratio:.2%}")
+```
+
+---
+
+## État d'Implémentation
+
+| Étape | Fichiers | Statut |
+|-------|----------|--------|
+| 1 | `requirements.txt`, `config/settings.py` | ✅ Complété |
+| 2 | `data/fetcher.py`, `data/storage.py`, `data/preprocessor.py` | ✅ Complété |
+| 3 | `indicators/mama_fama_kama.py` | ✅ Complété (compute_alpha aligné Pine) |
+| 4 | `indicators/ichimoku.py` | ✅ Complété (17 bull + 3 bear Light) |
+| 5 | `indicators/five_in_one.py` | ✅ Complété (5 filtres avec toggles) |
+| 6 | `indicators/atr.py` | ✅ Complété |
+| 7 | `strategies/final_trigger.py` | ✅ Complété (Puzzle + Grace) |
+| 8 | `engine/backtest.py`, `position_manager.py` | ✅ Complété (Multi-TP + trailing) |
+| 9 | `engine/execution.py` | ✅ Complété (fees/slippage) |
+| 10 | `analysis/metrics.py`, `visualization.py` | ✅ Complété |
+| 11 | `analysis/validation.py` | ✅ Complété |
+| 12 | `optimization/bayesian.py`, `walk_forward.py` | ✅ Complété |
+| 13 | `examples/run_backtest.py`, `simple_backtest.py` | ✅ Complété |
+| 14 | `examples/compare_signals.py` | ✅ Complété |
+| 15 | `examples/optimize_final_trigger.py` | ✅ Complété |
+
+---
+
+## Librairies Clés
+
+- **pandas/numpy**: Calculs vectorisés
+- **numba**: JIT pour indicateurs complexes (Hilbert Transform)
+- **ccxt**: API exchanges unifiée
+- **optuna**: Optimisation bayésienne TPE
+- **quantstats**: Métriques financières
+- **plotly**: Visualisation interactive
+
+---
+
+## Notes pour Débutant
+
+1. **Chaque fichier est commenté** avec explications détaillées
+2. **Exemples inclus** dans `examples/`
+3. **Tests pour valider** chaque composant
+4. **Architecture modulaire**: modifier un indicateur sans toucher au reste
+
+---
+
+## Configuration Choisie
+
+- **Timeframe principal**: 1h
+- **Directions**: LONG + SHORT (bidirectionnel)
+- **Source données**: CCXT multi-exchange (Binance, Bybit, etc.)
+
+### Configuration Indicateurs (défaut utilisateur)
+```
+useMamaKamaFilter = OFF      # Pas de filtre MAMA > KAMA
+useDistanceFilter = OFF      # Pas de Distance Filter
+useObvFilter = OFF           # Pas de Volume Filter
+  └─ useADLine = ON          # (mais A/D Line prête si besoin)
+useRegCloudFilter = OFF      # Pas de Regression Cloud
+useKamaFilter = OFF          # Pas de KAMA Oscillator
+ichimokuFilter = ON          # ✅ SEUL FILTRE ACTIF
+  └─ ichi5in1Strict = OFF    # Version Light (3 conditions bearish)
+useTransitionMode = OFF      # Mode State (pas Transition)
+```
+
+**Logique simplifiée résultante:**
+1. Ichimoku externe donne le biais (ichi_long_active / ichi_short_active)
+2. 5in1 = Ichimoku Light seul → signal quand allBull/allBear (state mode)
+3. Puzzle combine les deux + grace window
+4. Entry génère SL/TP1/TP2/TP3 basés sur ATR
+
+---
+
+## Checklist de Progression
+
+### ✅ Complété
+
+- [x] Scanner le repo et confirmer la structure
+- [x] Poser l'ossature des modules/fichiers
+- [x] Implémenter la couche data (fetcher/cache/preprocess)
+- [x] Indicateurs core + tests unitaires de base
+- [x] Aligner MAMA/FAMA/KAMA sur `computeAlpha()` MESA (alpha/beta dynamiques)
+- [x] Stratégie Final Trigger + moteur de backtest + position manager multi-TP
+- [x] Rendre l'ordre intra-bar et le sizing configurables + tests associés
+- [x] Aligner compounding avec coûts + scénarios backtest multi-legs
+- [x] Tests `sizing_mode="equity"` (compounding net of costs)
+- [x] Ajouter métriques/visualisation + optimisation (Bayesian, walk-forward)
+- [x] Ajouter un outil de comparaison des signaux Pine vs Python
+- [x] Fix FutureWarning: `Hour.delta` deprecated dans `metrics.py`
+- [x] Fix: BayesianOptimizer convertit correctement dict → dataclass
+- [x] Aligner defaults Python sur config Pine utilisateur
+- [x] Sizing basé sur le risque (`risk_per_trade`) + export backtest CSV
+- [x] Autoriser réentrée sur la bougie de sortie (backtest)
+
+### 🔄 À Faire (Priorité)
+
+- [ ] Valider cohérence signaux vs Pine sur CSV 2000+ bougies
+- [ ] Inspecter `compare_report.csv` pour isoler divergences résiduelles
+- [ ] Ajouter tests unitaires pour `optimize_final_trigger.py`
+- [ ] Créer `optimization/overfitting_guard.py` (Deflated Sharpe, PBO)
+- [ ] Documenter le workflow d'optimisation dans README
+- [ ] Notebook tutoriel optimisation
+
+---
+
+## Problèmes Connus
+
+### 1. Warmup Indicateurs MESA
+Les indicateurs MAMA/FAMA/KAMA nécessitent ~200-300 bougies pour converger. Les premiers signaux peuvent diverger du Pine pendant cette période.
+
+**Solution**: Ignorer les 300 premières bougies dans les comparaisons (flag `--warmup 150`).
+
+### 2. barstate.isconfirmed
+Pine vérifie `barstate.isconfirmed` avant de générer des signaux. Python n'a pas cet équivalent explicite.
+
+**Impact**: En backtest historique, toutes les bougies sont "confirmées". En live, attention à la dernière bougie.
+
+---
+
+## Décisions Techniques
+
+| Décision | Raison |
+|----------|--------|
+| Reproduction fidèle logique Pine | Éviter écarts de signaux |
+| Manager multi-TP avec trailing | Refléter comportement visuel Pine |
+| MAMA/FAMA/KAMA via `computeAlpha()` MESA | Coller au Pine (alpha/beta dynamiques) |
+| Coûts appliqués à la sortie (net_pnl) | Compounding cohérent en mode `equity` |
+| Param space standardisé `base_params` + `search_space` | Optuna compatible |
+| Exports CSV comparaison dans repo | Traçabilité des écarts |
+| Filtres modulaires avec toggles | Flexibilité pour tester configs |
+| Defaults alignés sur la config Pine | Light + State, filtre MAMA/KAMA désactivé |
+| Sizing risk-based (`risk_per_trade`) | Risque fixe par trade, notional ajusté au stop |
+| Réentrée sur bougie de sortie | Permet d'enchaîner les signaux sans attente |
+
+---
+
+## Commandes Utiles
+
+```bash
+# Tests
+pytest -v
+
+# Comparer signaux Pine vs Python
+python tests/compare_signals.py --file data/BYBIT_BTCUSDT-60.csv --warmup 150
+
+# Demo optimisation (10 trials)
+python crypto_backtest/examples/optimize_final_trigger.py
+
+# Backtest simple
+python crypto_backtest/examples/run_backtest.py
+
+# Backtest CSV local (export via script simple)
+python crypto_backtest/examples/simple_backtest.py --file data/BYBIT_BTCUSDT-60.csv --warmup 150
+```
+
+---
+
+## Prochaines Étapes Prioritaires
+
+1. **Exporter CSV TradingView** avec 2000+ bougies et signaux Pine
+2. **Lancer `compare_signals.py`** et vérifier 100% match après warmup
+3. **Créer test E2E** validant signaux sur données réelles
+4. **Documenter workflow** dans README principal
+5. **Protection overfitting**: Deflated Sharpe Ratio, PBO (Probability of Backtest Overfitting)
+
+---
+
+## Fichiers Clés
+
+| Fichier | Description |
+|---------|-------------|
+| [crypto_backtest/strategies/final_trigger.py](crypto_backtest/strategies/final_trigger.py) | Main strategy (Puzzle + Grace logic) |
+| [crypto_backtest/indicators/ichimoku.py](crypto_backtest/indicators/ichimoku.py) | Ichimoku externe (17 bull / 3 bear Light) |
+| [crypto_backtest/indicators/five_in_one.py](crypto_backtest/indicators/five_in_one.py) | 5 combinable filters |
+| [crypto_backtest/engine/backtest.py](crypto_backtest/engine/backtest.py) | Vectorized backtest engine |
+| [crypto_backtest/engine/position_manager.py](crypto_backtest/engine/position_manager.py) | Multi-TP (50/30/20) + trailing SL |
+| [tests/compare_signals.py](tests/compare_signals.py) | Pine vs Python signal validation |
+
+---
+
+## Estimation de Complexité
+
+- **Indicateurs**: ~600 lignes (MAMA/Hilbert + 5in1 complet)
+- **Stratégie**: ~250 lignes (Puzzle + Grace logic)
+- **Backtest engine**: ~350 lignes (Multi-TP + trailing)
+- **Optimization**: ~400 lignes (Walk-forward + Bayesian)
+- **Total**: ~1600 lignes de code Python (COMPLÉTÉ)

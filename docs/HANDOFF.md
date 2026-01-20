@@ -1,6 +1,8 @@
 # Handoff — FINAL TRIGGER v2 Backtest System
 
-**Dernière MAJ**: 19 janvier 2026
+**Dernière MAJ**: 20 janvier 2026
+
+**📋 Plan Complet**: Voir [claude.md](../claude.md) à la racine du projet
 
 ---
 
@@ -68,32 +70,60 @@ Le script `tests/compare_signals.py` compare désormais les signaux Python
 
 ---
 
-## 🔧 Configuration Pine Utilisateur
+## 🔧 Configuration Par Défaut (Alignée Pine)
 
-La configuration par défaut Python est alignée sur Pine:
+### ⚠️ FILTRES ACTIFS (IMPORTANT)
+
+**NOIR SUR BLANC**: Seuls **2 filtres Ichimoku** sont actifs avec la config par défaut :
+
+1. **Ichimoku Externe** (Puzzle) - 17 conditions bullish, 3 conditions bearish Light
+2. **Ichimoku 5-in-1** (Five-in-One) - Seul filtre actif dans le système 5-in-1
+
+**TOUS les autres filtres sont DÉSACTIVÉS** :
+- ❌ MAMA/KAMA filter (`use_mama_kama_filter = False`)
+- ❌ Distance filter (`use_distance_filter = False`)
+- ❌ Volume filter (`use_volume_filter = False`)
+- ❌ Regression Cloud (`use_regression_cloud = False`)
+- ❌ KAMA Oscillator (`use_kama_oscillator = False`)
+
+### Configuration Complète
 
 ```python
 # FinalTriggerParams defaults
-use_mama_kama_filter = False      # Pine: OFF
-require_fama_between = False      # Pine: OFF
-strict_lock_5in1_last = False     # Pine: OFF
-grace_bars = 1                    # Pine: 1
+use_mama_kama_filter = False      # ❌ OFF - MAMA/KAMA ignorés
+require_fama_between = False      # ❌ OFF
+strict_lock_5in1_last = False     # ❌ OFF
+grace_bars = 1                    # ✅ 1 bar grace window
 
-# FiveInOneConfig defaults  
-use_distance_filter = False       # Pine: OFF
-use_volume_filter = False         # Pine: OFF (mais use_ad_line = True prêt)
-use_regression_cloud = False      # Pine: OFF
-use_kama_oscillator = False       # Pine: OFF
-use_ichimoku_filter = True        # Pine: ON ← SEUL FILTRE ACTIF
-ichi5in1_strict = False           # Pine: OFF (Light = 3 cond bear)
-use_transition_mode = False       # Pine: OFF (State mode)
+# FiveInOneConfig defaults
+use_distance_filter = False       # ❌ OFF
+use_volume_filter = False         # ❌ OFF
+use_regression_cloud = False      # ❌ OFF
+use_kama_oscillator = False       # ❌ OFF
+use_ichimoku_filter = True        # ✅ ON - SEUL FILTRE 5IN1 ACTIF
+ichi5in1_strict = False           # Light mode (3 cond bear)
+use_transition_mode = False       # State mode (pas Transition)
 ```
 
-**Logique simplifiée effective:**
-1. Ichimoku externe donne le biais (ichi_long_active / ichi_short_active)
-2. 5in1 = Ichimoku Light seul → signal quand allBull/allBear (state mode)
-3. Puzzle combine les deux + grace window 1 bar
-4. Entry génère SL/TP1/TP2/TP3 basés sur ATR
+### Logique Simplifiée Effective
+
+1. **Ichimoku Externe** → Donne le biais directionnel (`ichi_long_active` / `ichi_short_active`)
+2. **5-in-1 = Ichimoku Light uniquement** → Signal quand `allBull` / `allBear` (state mode)
+3. **Puzzle** → Combine les deux Ichimoku + grace window 1 bar
+4. **Entry** → Génère SL/TP1/TP2/TP3 basés sur ATR
+
+### Paramètres Réellement Actifs
+
+Avec cette config, les **SEULS paramètres ayant un impact** sur les signaux sont:
+
+| Catégorie | Paramètres | Impact |
+|-----------|------------|--------|
+| **ATR SL/TP** | `sl_mult`, `tp1_mult`, `tp2_mult`, `tp3_mult` | ⭐⭐⭐ MAJEUR (performance) |
+| **Ichimoku Externe** | `tenkan`, `kijun`, `displacement` | ⭐⭐ Modéré (timing signaux) |
+| **Ichimoku 5-in-1** | `tenkan_5`, `kijun_5`, `displacement_5` | ⭐⭐ Modéré (validation) |
+| **Grace** | `grace_bars` | ⭐ Mineur (0 ou 1) |
+
+**Tous les autres paramètres** (MAMA/KAMA lengths, fast/slow periods, etc.) n'ont **AUCUN EFFET** car les filtres correspondants sont désactivés.
 
 ---
 
@@ -176,6 +206,45 @@ python crypto_backtest/examples/run_backtest.py
 # Backtest CSV local (export via script simple)
 python crypto_backtest/examples/simple_backtest.py --file data/BYBIT_BTCUSDT-60.csv --warmup 150
 ```
+
+---
+
+## 🎯 Optimisation SL/TP (20 janvier 2026)
+
+### Résultats Optimisation Bayésienne (50 trials)
+
+**Dataset**: Binance BTCUSDT 1h, 2 ans (17,320 bars après warmup)
+
+**Paramètres optimisés**: Uniquement les 4 ratios ATR SL/TP (tous les autres paramètres aux valeurs par défaut)
+
+| Config | SL | TP1 | TP2 | TP3 | Return | Sharpe | Max DD | Win Rate |
+|--------|-----|-----|-----|-----|--------|--------|--------|----------|
+| **Défaut** | 3.0 | 2.0 | 6.0 | 10.0 | -6.44% | -0.14 | -9.2% | 33.6% |
+| **Optimisé** | 3.75 | 3.75 | 9.0 | 7.0 | +10.76% | 1.43 | -2.9% | 40.9% |
+| **Amélioration** | +25% | +87% | +50% | -30% | **+17.2pp** | **+1.57** | **-6.3pp** | **+7.3pp** |
+
+### Insights Clés
+
+1. **TP1 beaucoup plus haut (3.75)** = Laisse courir les profits au lieu de prendre trop tôt
+2. **SL plus large (3.75)** = Moins de faux stops, meilleure win rate
+3. **TP2 plus loin (9.0)** = Capture les grands mouvements
+4. **TP3 réduit (7.0)** = Le runner est rarement atteint, autant le rapprocher
+
+### Impact Mesurable
+
+- **Return**: De **perdant (-6.44%)** à **gagnant (+10.76%)**
+- **Sharpe Ratio**: De **négatif (-0.14)** à **solide (1.43)**
+- **Max Drawdown**: Réduit de **71%** (-9.2% → -2.9%)
+- **Profit Factor**: De **0.86** (perdant) à **1.33** (gagnant)
+- **Trades**: 425 au lieu de 575 (sélectivité accrue)
+
+### Conclusion
+
+Les **ratios SL/TP sont LE facteur clé de performance**. L'optimisation a montré que:
+- Avec les paramètres par défaut + SL/TP optimisés → **Sharpe 1.43**
+- Avec 14 paramètres optimisés (incluant Ichimoku, 5in1, etc.) → **Sharpe 1.61**
+
+**Différence**: Seulement +0.18 de Sharpe pour 10 paramètres additionnels, confirmant que **SL/TP >> tout le reste**.
 
 ---
 
