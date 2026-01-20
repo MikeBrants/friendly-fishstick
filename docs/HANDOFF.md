@@ -157,6 +157,18 @@ Targets:
 
 ---
 
+## ✅ SIDEWAYS Filter Test (Sizing)
+
+**Baseline**: 416 trades, return +15.69%, sharpe 2.135, max_dd -2.85%  
+**SIDEWAYS 50% sizing**: 416 trades, return +9.92%, sharpe 2.144, max_dd -1.95%  
+**SIDEWAYS 100% filter**: 81 trades, return +4.15%, sharpe 1.284, max_dd -1.53%
+
+**Outputs**:
+- `outputs/backtest_sideways_filter_50pct.csv`
+- `outputs/backtest_sideways_filter_100pct.csv`
+
+---
+
 ## 🏗️ Architecture Implémentée
 
 ```
@@ -251,6 +263,14 @@ Outputs: outputs/regime_analysis_v2.csv, outputs/regime_analysis_v2_report.txt
 Résultat: CI Sharpe lower 1.84, Return lower +7.52% (OK)
 Top 10 trades 22.55% (OK)
 Outputs: outputs/bootstrap_confidence.csv, outputs/trade_distribution.csv
+```
+
+### ✅ P0 — SIDEWAYS Filter Test (DONE)
+
+```
+[INSTRUCTION-FILTER-SIDEWAYS-PARTIAL]
+Résultat: 50% sizing → Sharpe 2.144, Return +9.92%, MaxDD -1.95%
+Outputs: outputs/backtest_sideways_filter_50pct.csv, outputs/backtest_sideways_filter_100pct.csv
 ```
 
 ### 🟠 P1 — Multi-Timeframe Validation
