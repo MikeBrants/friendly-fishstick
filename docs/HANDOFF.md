@@ -1,7 +1,7 @@
 # Handoff — FINAL TRIGGER v2 Backtest System
 
 > **Date de transmission**: 2026-01-20
-> **État**: PRODUCTION READY — Portfolio 3 assets validé (BTC/ETH/XRP)
+> **État**: PRODUCTION READY — Portfolio 7 assets validé
 
 ---
 
@@ -11,9 +11,9 @@
 Pipeline de backtest complet pour la stratégie TradingView "FINAL TRIGGER v2" convertie en Python. Inclut optimisation bayésienne (ATR + Ichimoku), validation walk-forward, tests Monte Carlo, analyse de régimes, et construction de portfolio multi-asset.
 
 ### État Final
-- **Portfolio Production**: BTC + ETH + XRP (validés individuellement)
-- **Assets Exclus**: SOL (params incompatibles), AAVE (WFE 0.44 = overfitting)
-- **Sharpe Portfolio**: ~4.52 (weights optimisés)
+- **Portfolio Production**: BTC + ETH + XRP + AVAX + UNI + SUI + SEI (7 assets validés)
+- **Assets Exclus**: SOL, AAVE, HYPE, ATOM, ARB, LINK, INJ, TIA (WFE < 0.6 ou overfit)
+- **Sharpe Portfolio Original**: ~4.52 (BTC/ETH/XRP weights optimisés)
 - **Tous les tests de robustesse passés**: WFE, Monte Carlo, Bootstrap, Sensitivity
 
 ### Fichiers Critiques
@@ -535,6 +535,28 @@ python -m crypto_backtest.analysis.cluster_params --input outputs/multiasset_sca
 - `outputs/multiasset_scan_{ts}.csv` — Résultats scan
 - `outputs/cluster_analysis_{ts}.json` — Clusters JSON
 - `crypto_backtest/config/cluster_params.py` — Config Python générée
+
+### ✅ CODEX-005 Scan Results (2026-01-20)
+
+**Résultats Scan 10 Alts**:
+| Asset | OOS Sharpe | WFE | Status |
+|-------|------------|-----|--------|
+| **AVAX** | 4.22 | 1.10 | ✅ PASS |
+| **UNI** | 3.83 | 1.78 | ✅ PASS |
+| **SUI** | 2.56 | 1.13 | ✅ PASS |
+| **SEI** | 3.88 | 1.02 | ✅ PASS |
+| HYPE | -7.01 | 0.00 | ❌ (short history) |
+| ATOM | -1.93 | -1.10 | ❌ OVERFIT |
+| ARB | -2.59 | -1.04 | ❌ OVERFIT |
+| LINK | 2.37 | 0.52 | ❌ OVERFIT |
+| INJ | 0.79 | 0.19 | ❌ OVERFIT |
+| TIA | 0.43 | 0.16 | ❌ OVERFIT |
+
+**Clusters (K-means k=2)**:
+- **Cluster 0** (UNI, SUI, SEI): SL=3.25, TP1=4.75, tenkan=11, kijun=26, avg Sharpe=3.42
+- **Cluster 1** (AVAX): SL=2.75, TP1=1.5, tenkan=20, kijun=23, Sharpe=4.22
+
+**Portfolio Total Validé**: BTC + ETH + XRP + AVAX + UNI + SUI + SEI (7 assets)
 
 ---
 

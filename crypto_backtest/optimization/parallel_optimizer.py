@@ -26,6 +26,7 @@ from crypto_backtest.config.scan_assets import (
 )
 from crypto_backtest.engine.backtest import BacktestConfig, VectorizedBacktester
 from crypto_backtest.strategies.final_trigger import FinalTriggerStrategy
+from crypto_backtest.optimization.bayesian import _instantiate_strategy, _apply_overrides
 
 
 # Suppress Optuna logging
@@ -171,7 +172,7 @@ def run_backtest(
     config: BacktestConfig = BASE_CONFIG,
 ) -> dict[str, float]:
     """Run backtest and return metrics dict."""
-    strategy = FinalTriggerStrategy(**params)
+    strategy = _instantiate_strategy(FinalTriggerStrategy, params)
     backtester = VectorizedBacktester(config)
     result = backtester.run(data, strategy)
     metrics = compute_metrics(result.equity_curve, result.trades)
@@ -268,7 +269,7 @@ def monte_carlo_pvalue(
     seed: int = 42,
 ) -> float:
     """Quick Monte Carlo permutation test."""
-    strategy = FinalTriggerStrategy(**params)
+    strategy = _instantiate_strategy(FinalTriggerStrategy, params)
     backtester = VectorizedBacktester(BASE_CONFIG)
     result = backtester.run(data, strategy)
 
