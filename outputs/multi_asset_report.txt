@@ -1,0 +1,22 @@
+MULTI-ASSET VALIDATION REPORT
+======================================================================
+Date range: 2024-01-21 07:00:00+00:00 to 2026-01-20 07:00:00+00:00
+Params: ATR 3.75/3.75/9.0/7.0, Ichi 13/34/52, 5in1 12/21/52
+
+Per-asset metrics:
+BTC: return=+15.69%, sharpe=2.14, sortino=0.34, max_dd=-2.85%, pf=1.54, trades=416, win_rate=43.51%, expectancy=3.77
+ETH: return=-5.42%, sharpe=-0.67, sortino=-0.12, max_dd=-12.95%, pf=0.86, trades=429, win_rate=31.70%, expectancy=-1.26
+SOL: return=-0.41%, sharpe=-0.04, sortino=-0.01, max_dd=-6.79%, pf=0.99, trades=390, win_rate=33.85%, expectancy=-0.11
+
+Comparison vs BTC baseline:
+| Asset | Return | Sharpe | MaxDD | Trades | Status |
+|-------|--------|--------|-------|--------|--------|
+| ETH | -5.42% | -0.67 | -12.95% | 429 | FAIL |
+| SOL | -0.41% | -0.04 | -6.79% | 390 | FAIL |
+
+BTC baseline: return=+15.69%, sharpe=2.14, max_dd=-2.85%
+
+Flags:
+ASSET_SPECIFIC: YES
+TRANSFERABLE: NO
+PORTFOLIO_READY: NO

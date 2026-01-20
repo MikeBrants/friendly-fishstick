@@ -82,8 +82,9 @@ def build_optimized_params() -> FinalTriggerParams:
 
 def classify_regimes(data: pd.DataFrame) -> pd.Series:
     """Classify each bar into regimes."""
-    returns = data["close"].pct_change()
-    volatility = returns.rolling(50).std()
+    # Shifted inputs prevent look-ahead in regime labeling.
+    returns = data["close"].pct_change().shift(1)
+    volatility = returns.rolling(50).std().shift(1)
 
     vol_median = float(volatility.median())
     vol_p75 = float(volatility.quantile(0.75))

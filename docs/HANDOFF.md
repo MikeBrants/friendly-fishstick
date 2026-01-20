@@ -141,9 +141,20 @@ Targets:
 
 ## ✅ Regime Reconciliation (No Look-Ahead)
 
-SIDEWAYS contribution: **79.50%** of total PnL  
+Total PnL: **$1568.88** (**+15.69%**)  
+SIDEWAYS contribution: **79.50%** of total PnL (**+12.47%** return, 320 trades)  
 Verdict: **SIDEWAYS PROFITABLE**  
 Flag: **REGIME_V2_HAD_LOOKAHEAD_BUG**
+
+| Regime | Trades | Return | Net PnL | % Total PnL | Avg PnL/Trade |
+|--------|--------|--------|---------|-------------|----------------|
+| CRASH | 0 | +0.00% | $0.00 | 0.00% | $0.00 |
+| HIGH_VOL | 18 | +0.62% | $62.10 | 3.96% | $3.45 |
+| BEAR | 3 | -0.52% | -$51.81 | -3.30% | -$17.27 |
+| BULL | 21 | -0.10% | -$10.03 | -0.64% | -$0.48 |
+| SIDEWAYS | 320 | +12.47% | $1247.23 | 79.50% | $3.90 |
+| RECOVERY | 3 | -0.51% | -$51.46 | -3.28% | -$17.15 |
+| OTHER | 51 | +3.73% | $372.86 | 23.77% | $7.31 |
 
 **Outputs**:
 - `outputs/regime_reconciliation.csv`
@@ -202,6 +213,48 @@ Flag: **REGIME_V2_HAD_LOOKAHEAD_BUG**
 **Outputs**:
 - `outputs/stress_test_fees.csv`
 - `outputs/stress_test_fees_report.txt`
+
+---
+
+## ⚠️ Multi-Asset Validation (BTC params, ETH/SOL 1H)
+
+**ETH**: return **-5.42%**, sharpe **-0.67**, max_dd **-12.95%**, trades **429**  
+**SOL**: return **-0.41%**, sharpe **-0.04**, max_dd **-6.79%**, trades **390**
+
+**Flags**:
+- **ASSET_SPECIFIC**: YES  
+- **TRANSFERABLE**: NO  
+- **PORTFOLIO_READY**: NO
+
+**Outputs**:
+- `outputs/multi_asset_validation.csv`
+- `outputs/multi_asset_report.txt`
+
+---
+
+## ✅ Multi-Asset Optimization (ETH/SOL/XRP/AAVE 1H)
+
+PASS criteria: Sharpe > 1.0, WFE > 0.6, MC p < 0.05, trades >= 100, max DD < 15%.
+
+| Asset | Return | Sharpe | Max DD | Trades | WFE | MC p | Status |
+|-------|--------|--------|--------|--------|-----|------|--------|
+| **ETH** | +20.41% | 2.90 | -2.61% | 450 | 2.46 | 0.00 | **PASS** |
+| **SOL** | +9.01% | 2.61 | -1.01% | 300 | 0.70 | 0.00 | **PASS** |
+| **XRP** | +27.89% | 3.44 | -1.67% | 483 | 0.80 | 0.00 | **PASS** |
+| **AAVE** | +41.21% | 2.86 | -3.06% | 651 | 0.44 | 0.00 | **FAIL (OVERFIT)** |
+
+**Portfolio (PASS assets only: ETH/SOL/XRP)**:
+- Equal-weight: return **+18.92%**, sharpe **4.35**, max_dd **-0.63%**
+- Optimized weights (min 10%): ETH **0.2155**, SOL **0.5229**, XRP **0.2617**  
+  Return **+16.18%**, sharpe **4.52**, max_dd **-0.47%**
+
+**Outputs**:
+- `outputs/optim_ETH_atr.csv`, `outputs/optim_ETH_ichi.csv`, `outputs/optim_ETH_best_params.json`, `outputs/optim_ETH_validation.csv`
+- `outputs/optim_SOL_atr.csv`, `outputs/optim_SOL_ichi.csv`, `outputs/optim_SOL_best_params.json`, `outputs/optim_SOL_validation.csv`
+- `outputs/optim_XRP_atr.csv`, `outputs/optim_XRP_ichi.csv`, `outputs/optim_XRP_best_params.json`, `outputs/optim_XRP_validation.csv`
+- `outputs/optim_AAVE_atr.csv`, `outputs/optim_AAVE_ichi.csv`, `outputs/optim_AAVE_best_params.json`, `outputs/optim_AAVE_validation.csv`
+- `outputs/multi_asset_optimized_summary.csv`
+- `outputs/portfolio_construction.csv`
 
 ---
 
@@ -323,6 +376,22 @@ Outputs: outputs/backtest_sideways_filter_50pct.csv, outputs/backtest_sideways_f
 [INSTRUCTION-GUARD-006]
 Résultat: WEAK_EDGE, edge buffer 19 bps
 Outputs: outputs/stress_test_fees.csv, outputs/stress_test_fees_report.txt
+```
+
+### ⚠️ P1 — Multi-Asset Validation (DONE)
+
+```
+[INSTRUCTION-MULTI-ASSET-001]
+Résultat: ETH/SOL Sharpe < 0 (FAIL)
+Outputs: outputs/multi_asset_validation.csv, outputs/multi_asset_report.txt
+```
+
+### ✅ P1 — Multi-Asset Optimization (DONE)
+
+```
+[INSTRUCTION-MULTI-ASSET-002]
+Résultat: ETH/SOL/XRP PASS, AAVE FAIL (WFE 0.44). Portfolio construit avec PASS assets.
+Outputs: outputs/multi_asset_optimized_summary.csv, outputs/portfolio_construction.csv, outputs/optim_*_{atr,ichi,best_params,validation}.csv/json
 ```
 
 ### 🟠 P1 — Multi-Timeframe Validation

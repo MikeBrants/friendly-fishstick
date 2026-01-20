@@ -1,0 +1,66 @@
+{
+  "asset": "AAVE",
+  "atr_best": {
+    "sl_mult": 2.0,
+    "tp1_mult": 5.0,
+    "tp2_mult": 3.0,
+    "tp3_mult": 5.5
+  },
+  "ichi_best": {
+    "ichimoku.tenkan": 14,
+    "ichimoku.kijun": 32,
+    "five_in_one.tenkan_5": 14,
+    "five_in_one.kijun_5": 15
+  },
+  "full_params": {
+    "grace_bars": 1,
+    "use_mama_kama_filter": false,
+    "require_fama_between": false,
+    "strict_lock_5in1_last": false,
+    "mama_fast_limit": 0.5,
+    "mama_slow_limit": 0.05,
+    "kama_length": 20,
+    "atr_length": 14,
+    "sl_mult": 2.0,
+    "tp1_mult": 5.0,
+    "tp2_mult": 3.0,
+    "tp3_mult": 5.5,
+    "ichimoku": {
+      "tenkan": 14,
+      "kijun": 32,
+      "displacement": 52
+    },
+    "five_in_one": {
+      "fast_period": 7,
+      "slow_period": 19,
+      "er_period": 8,
+      "norm_period": 50,
+      "use_norm": true,
+      "ad_norm_period": 50,
+      "use_ad_line": true,
+      "ichi5in1_strict": false,
+      "use_transition_mode": false,
+      "use_distance_filter": false,
+      "use_volume_filter": false,
+      "use_regression_cloud": false,
+      "use_kama_oscillator": false,
+      "use_ichimoku_filter": true,
+      "tenkan_5": 14,
+      "kijun_5": 15,
+      "displacement_5": 52
+    }
+  },
+  "summary": {
+    "total_return_pct": 41.20612985616978,
+    "sharpe": 2.8637302506795677,
+    "sortino": 4.504182148644059,
+    "max_drawdown_pct": -3.0553284592443553,
+    "profit_factor": 1.6536831884570755,
+    "trades": 651,
+    "win_rate_pct": 44.70046082949309,
+    "expectancy": 6.32966664457293
+  },
+  "wfe": 0.43641685158536225,
+  "mc_p": 0.0,
+  "bootstrap_sharpe_ci_lower": 3.6845591695092565
+}

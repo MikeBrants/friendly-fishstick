@@ -1,0 +1,66 @@
+{
+  "asset": "ETH",
+  "atr_best": {
+    "sl_mult": 5.0,
+    "tp1_mult": 5.0,
+    "tp2_mult": 3.0,
+    "tp3_mult": 8.0
+  },
+  "ichi_best": {
+    "ichimoku.tenkan": 7,
+    "ichimoku.kijun": 23,
+    "five_in_one.tenkan_5": 13,
+    "five_in_one.kijun_5": 25
+  },
+  "full_params": {
+    "grace_bars": 1,
+    "use_mama_kama_filter": false,
+    "require_fama_between": false,
+    "strict_lock_5in1_last": false,
+    "mama_fast_limit": 0.5,
+    "mama_slow_limit": 0.05,
+    "kama_length": 20,
+    "atr_length": 14,
+    "sl_mult": 5.0,
+    "tp1_mult": 5.0,
+    "tp2_mult": 3.0,
+    "tp3_mult": 8.0,
+    "ichimoku": {
+      "tenkan": 7,
+      "kijun": 23,
+      "displacement": 52
+    },
+    "five_in_one": {
+      "fast_period": 7,
+      "slow_period": 19,
+      "er_period": 8,
+      "norm_period": 50,
+      "use_norm": true,
+      "ad_norm_period": 50,
+      "use_ad_line": true,
+      "ichi5in1_strict": false,
+      "use_transition_mode": false,
+      "use_distance_filter": false,
+      "use_volume_filter": false,
+      "use_regression_cloud": false,
+      "use_kama_oscillator": false,
+      "use_ichimoku_filter": true,
+      "tenkan_5": 13,
+      "kijun_5": 25,
+      "displacement_5": 52
+    }
+  },
+  "summary": {
+    "total_return_pct": 20.405504707870016,
+    "sharpe": 2.8979557675622054,
+    "sortino": 4.870425809576855,
+    "max_drawdown_pct": -2.611269480018552,
+    "profit_factor": 1.860934337774634,
+    "trades": 450,
+    "win_rate_pct": 69.33333333333334,
+    "expectancy": 4.534556601748894
+  },
+  "wfe": 2.4568020507222292,
+  "mc_p": 0.0,
+  "bootstrap_sharpe_ci_lower": 3.9410149415742963
+}
