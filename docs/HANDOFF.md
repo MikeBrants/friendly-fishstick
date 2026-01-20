@@ -171,6 +171,27 @@ Targets:
 
 ---
 
+## ⚠️ Stress Test — Execution Costs
+
+**Edge buffer**: 19 bps  
+**FRAGILE**: NO  
+**WEAK_EDGE**: YES  
+**ROBUST**: NO
+
+| Scenario | Fees/Slippage (bps) | Return | Sharpe | Max DD |
+|----------|---------------------|--------|--------|--------|
+| Base | 5 / 2 | +15.69% | 2.14 | -2.85% |
+| Stress 1 | 10 / 5 | +10.99% | 1.48 | -3.08% |
+| Stress 2 | 15 / 10 | +5.13% | 0.69 | -3.45% |
+| Stress 3 | 20 / 15 | -0.74% | -0.07 | -6.65% |
+| Stress 4 | 25 / 20 | -6.61% | -0.80 | -10.73% |
+
+**Outputs**:
+- `outputs/stress_test_fees.csv`
+- `outputs/stress_test_fees_report.txt`
+
+---
+
 ## 🏗️ Architecture Implémentée
 
 ```
@@ -273,6 +294,14 @@ Outputs: outputs/bootstrap_confidence.csv, outputs/trade_distribution.csv
 [INSTRUCTION-FILTER-SIDEWAYS-PARTIAL]
 Résultat: 50% sizing → Sharpe 2.144, Return +9.92%, MaxDD -1.95%
 Outputs: outputs/backtest_sideways_filter_50pct.csv, outputs/backtest_sideways_filter_100pct.csv
+```
+
+### ⚠️ P0 — Stress Test Execution Costs (DONE)
+
+```
+[INSTRUCTION-GUARD-006]
+Résultat: WEAK_EDGE, edge buffer 19 bps
+Outputs: outputs/stress_test_fees.csv, outputs/stress_test_fees_report.txt
 ```
 
 ### 🟠 P1 — Multi-Timeframe Validation

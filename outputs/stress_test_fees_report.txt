@@ -1,0 +1,6 @@
+STRESS TEST FEES REPORT
+======================================================================
+edge_buffer_bps: 19.0
+FRAGILE (Sharpe < 1.0 at Stress 1): NO
+WEAK_EDGE (Sharpe < 1.5 at Stress 1 OR break_even < 15): YES
+ROBUST (Sharpe > 1.5 at Stress 2): NO
