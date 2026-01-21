@@ -1,15 +1,17 @@
 # Plan: Système de Backtest Pro pour "FINAL TRIGGER v2"
 
-**Dernière MAJ**: 20 janvier 2026
+**Dernière MAJ**: 21 janvier 2026
 
 ## Objectif
 Convertir l'indicateur TradingView "FINAL TRIGGER v2 - State/Transition + A/D Line + Ichi Light" en Python et créer un système de backtest professionnel avec walk-forward analysis et optimisation bayésienne.
 
-## État Actuel: 82% Complété ✅
+## État Actuel: 90% Complété ✅
 
 **Tests**: 17 tests passent (`pytest -v`)
 **Validation**: 100% match FINAL LONG/SHORT vs Pine Script (après warmup)
-**Commit récent**: Risk-based position sizing + réentrée sur bougie de sortie
+**Portfolio Production**: 5 assets validés (BTC, ETH, AVAX, UNI, SEI)
+**Dashboard Streamlit**: Interface visuelle opérationnelle (Dark Trading Theme)
+**Commit récent**: Fix navigation Streamlit + portfolio correlation analysis
 
 ## Résumé du Code Pine Script (1223 lignes)
 
@@ -70,6 +72,38 @@ crypto_backtest/
 └── examples/
     └── run_backtest.py          # Script principal
 ```
+
+---
+
+## Dashboard Streamlit (`app.py`)
+
+Interface visuelle complète pour piloter les backtests sans ligne de commande.
+
+**Fonctionnalités**:
+- **Dashboard** — Vue d'ensemble (données, optimisations, guards)
+- **Download OHLCV** — Téléchargement données (Top 50 cryptos par tiers)
+- **Comparateur Pine** — Compare signaux Python vs Pine Script
+- **Bayesian** — Optimisation bayésienne (ATR + Ichimoku + Displacement)
+- **Displacement Grid** — Grid search displacement isolé [26-78]
+- **Guards** — Tests de robustesse (7 guards: Monte Carlo, WFE, Bootstrap, etc.)
+- **Comparaison Assets** — Tri/filtre des résultats multi-asset
+- **Portfolio Builder** — Corrélations + auto-sélection assets décorrélés
+- **Visualisation** — Graphiques Plotly interactifs (equity curves, heatmaps)
+
+**Design**: Dark Trading Theme
+- Fond noir (#0E1117), accent cyan (#00D4FF)
+- Gradient cards, glow buttons, styled tabs
+- Navigation par boutons avec session_state
+
+**Usage**:
+```bash
+streamlit run app.py
+# Accès: http://localhost:8501
+```
+
+**Changelog**:
+- 2026-01-21: Fix navigation sidebar (radio → session_state buttons)
+- 2026-01-20: Première version complète (~2300 lignes)
 
 ---
 
@@ -531,8 +565,20 @@ Pine vérifie `barstate.isconfirmed` avant de générer des signaux. Python n'a 
 ## Commandes Utiles
 
 ```bash
+# Dashboard Streamlit (interface visuelle)
+streamlit run app.py
+
 # Tests
 pytest -v
+
+# Pipeline complet: download → optimize → cluster
+python scripts/run_full_pipeline.py --workers 8
+
+# Optimisation multi-asset avec guards
+python scripts/run_guards_multiasset.py --assets BTC ETH AVAX UNI SEI --workers 4
+
+# Analyse corrélations portfolio
+python scripts/portfolio_correlation.py
 
 # Comparer signaux Pine vs Python
 python tests/compare_signals.py --file data/BYBIT_BTCUSDT-60.csv --warmup 150
@@ -542,20 +588,17 @@ python crypto_backtest/examples/optimize_final_trigger.py
 
 # Backtest simple
 python crypto_backtest/examples/run_backtest.py
-
-# Backtest CSV local (export via script simple)
-python crypto_backtest/examples/simple_backtest.py --file data/BYBIT_BTCUSDT-60.csv --warmup 150
 ```
 
 ---
 
 ## Prochaines Étapes Prioritaires
 
-1. **Exporter CSV TradingView** avec 2000+ bougies et signaux Pine
-2. **Lancer `compare_signals.py`** et vérifier 100% match après warmup
-3. **Créer test E2E** validant signaux sur données réelles
-4. **Documenter workflow** dans README principal
-5. **Protection overfitting**: Deflated Sharpe Ratio, PBO (Probability of Backtest Overfitting)
+1. ✅ ~~**Dashboard Streamlit**~~: Interface visuelle complète (DONE)
+2. 🔴 **Displacement Grid Optimization**: Grid search [26, 39, 52, 65, 78] sur 5 assets (PRIORITAIRE)
+3. **Live Trading Connector**: Implémenter connecteur exchange pour trading live
+4. **Documentation README**: Workflow complet et guide utilisateur
+5. **Tests E2E supplémentaires**: Validation signaux sur datasets étendus
 
 ---
 
@@ -563,12 +606,21 @@ python crypto_backtest/examples/simple_backtest.py --file data/BYBIT_BTCUSDT-60.
 
 | Fichier | Description |
 |---------|-------------|
+| [app.py](app.py) | Dashboard Streamlit principal (~2300 lignes) |
+| [docs/HANDOFF.md](docs/HANDOFF.md) | Documentation complète du projet (contexte, résultats, next steps) |
+| [crypto_backtest/config/asset_config.py](crypto_backtest/config/asset_config.py) | Config production (params optimaux par asset) |
+| [crypto_backtest/config/scan_assets.py](crypto_backtest/config/scan_assets.py) | Top 50 cryptos (tiers) + critères de validation |
 | [crypto_backtest/strategies/final_trigger.py](crypto_backtest/strategies/final_trigger.py) | Main strategy (Puzzle + Grace logic) |
 | [crypto_backtest/indicators/ichimoku.py](crypto_backtest/indicators/ichimoku.py) | Ichimoku externe (17 bull / 3 bear Light) |
 | [crypto_backtest/indicators/five_in_one.py](crypto_backtest/indicators/five_in_one.py) | 5 combinable filters |
 | [crypto_backtest/engine/backtest.py](crypto_backtest/engine/backtest.py) | Vectorized backtest engine |
 | [crypto_backtest/engine/position_manager.py](crypto_backtest/engine/position_manager.py) | Multi-TP (50/30/20) + trailing SL |
+| [crypto_backtest/optimization/parallel_optimizer.py](crypto_backtest/optimization/parallel_optimizer.py) | Optimisation parallèle multi-asset (joblib) |
+| [crypto_backtest/analysis/cluster_params.py](crypto_backtest/analysis/cluster_params.py) | K-means clustering des paramètres optimaux |
+| [scripts/run_full_pipeline.py](scripts/run_full_pipeline.py) | Pipeline complet (download → optimize → cluster) |
+| [scripts/portfolio_correlation.py](scripts/portfolio_correlation.py) | Analyse corrélations et drawdowns concurrents |
 | [tests/compare_signals.py](tests/compare_signals.py) | Pine vs Python signal validation |
+| [outputs/pine_plan_fullguards.csv](outputs/pine_plan_fullguards.csv) | Plan Pine pour assets validés (full guards) |
 
 ---
 
