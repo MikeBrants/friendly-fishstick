@@ -167,13 +167,117 @@ python backtest_optimized.py
 
 ---
 
+## 🗂️ Gestion des Runs (Éviter l'écrasement des résultats)
+
+### Problème
+
+Avant: Si vous relancez un scan sur BTC, les anciens fichiers sont écrasés:
+- `optim_BTC_best_params.json` ← Écrasé ❌
+- `multiasset_guards_summary.csv` ← Écrasé ❌
+
+### Solution: RunManager
+
+Chaque run est isolé dans un dossier timestampé:
+
+```
+outputs/
+├── run_20260121_120000/
+│   ├── manifest.json          # Métadonnées (description, assets, config)
+│   ├── scan.csv                # Résultats scan
+│   ├── guards.csv              # Résultats guards
+│   └── params/
+│       ├── BTC.json            # Params optimaux BTC
+│       └── ETH.json            # Params optimaux ETH
+└── run_20260121_150000/        # Nouveau scan, aucun conflit
+    └── ...
+```
+
+### Usage Python
+
+```python
+from crypto_backtest.utils.run_manager import RunManager
+
+# Créer un nouveau run
+run = RunManager.create_run(
+    description="Displacement grid test [26-78]",
+    assets=["BTC", "ETH", "AVAX"],
+    metadata={"displacement_range": [26, 39, 52, 65, 78]}
+)
+
+# Sauvegarder résultats
+run.save_scan_results(scan_df)
+run.save_params("BTC", btc_params)
+run.save_guards_summary(guards_df)
+
+# Lister tous les runs
+runs = RunManager.list_runs()
+for r in runs:
+    print(r.run_id, r.get_summary())
+
+# Charger un run spécifique
+run = RunManager.load_run("run_20260121_120000")
+scan_df = run.load_scan_results()
+btc_params = run.load_params("BTC")
+
+# Trouver tous les runs avec un asset
+btc_runs = RunManager.find_runs_with_asset("BTC")
+```
+
+### Exemple Complet
+
+Voir [examples/run_manager_usage.py](examples/run_manager_usage.py) pour des exemples détaillés.
+
+### Workflow Typique
+
+1. **Avant un scan**: `run = RunManager.create_run(description="...")`
+2. **Pendant**: `run.save_scan_results(df)`, `run.save_params(asset, params)`
+3. **Guards**: `run.save_guards_summary(guards_df)`
+4. **Après**: `run.get_summary()` pour vérifier
+5. **Comparaison**: `RunManager.list_runs()` pour comparer les résultats
+
+### Migration Legacy
+
+Si vous avez des anciens fichiers (`outputs/optim_*.json`, `multiasset_guards_summary.csv`):
+
+```bash
+# Les scripts Streamlit gèrent automatiquement les deux formats
+# Les anciens fichiers restent accessibles en lecture seule
+# Les nouveaux runs utilisent la structure de dossiers
+```
+
+---
+
 ## 📁 Outputs et Interprétation (Pour Agents)
 
-Le dashboard Streamlit génère des fichiers dans `outputs/`. Voici comment les interpréter en ligne de commande:
+Le dashboard Streamlit génère des fichiers dans `outputs/`. Depuis la version v2, les outputs sont organisés par **run** (dossiers timestampés). Les anciens fichiers legacy (racine `outputs/`) restent compatibles.
+
+### Structure des Outputs
+
+**Nouveau format** (recommandé):
+```
+outputs/run_20260121_120000/
+├── manifest.json     # Métadonnées
+├── scan.csv          # Résultats scan
+├── guards.csv        # Résultats guards
+└── params/
+    ├── BTC.json
+    └── ETH.json
+```
+
+**Format legacy** (lecture seule):
+```
+outputs/
+├── multiasset_scan_20260121_120000.csv
+├── multiasset_guards_summary.csv      # Écrasé à chaque run
+└── optim_BTC_best_params.json         # Écrasé à chaque run
+```
+
+Voici comment interpréter les fichiers en ligne de commande:
 
 ### 1. Scan Multi-Asset
 
-**Fichier**: `outputs/multiasset_scan_YYYYMMDD_HHMMSS.csv`
+**Nouveau format**: `outputs/run_YYYYMMDD_HHMMSS/scan.csv`
+**Legacy**: `outputs/multiasset_scan_YYYYMMDD_HHMMSS.csv`
 
 Colonnes clés:
 - `asset` — Symbole de l'asset
@@ -184,27 +288,44 @@ Colonnes clés:
 - `status` — PASS/FAIL
 
 ```python
+# Option 1: Via RunManager (recommandé)
+from crypto_backtest.utils.run_manager import RunManager
+run = RunManager.get_latest_run()
+df = run.load_scan_results()
+passed = df[df['status'] == 'PASS']
+print(passed[['asset', 'oos_sharpe', 'wfe', 'max_dd']])
+
+# Option 2: Lecture directe
 import pandas as pd
-df = pd.read_csv("outputs/multiasset_scan_YYYYMMDD_HHMMSS.csv")
+df = pd.read_csv("outputs/run_20260121_120000/scan.csv")
 passed = df[df['status'] == 'PASS']
 print(passed[['asset', 'oos_sharpe', 'wfe', 'max_dd']])
 ```
 
 ### 2. Paramètres Optimaux par Asset
 
-**Fichiers**: `outputs/optim_{ASSET}_best_params.json`
+**Nouveau format**: `outputs/run_YYYYMMDD_HHMMSS/params/{ASSET}.json`
+**Legacy**: `outputs/optim_{ASSET}_best_params.json`
 
 ```python
-import json
-with open("outputs/optim_BTC_best_params.json") as f:
-    params = json.load(f)
+# Option 1: Via RunManager (recommandé)
+from crypto_backtest.utils.run_manager import RunManager
+run = RunManager.get_latest_run()
+params = run.load_params("BTC")
 print(f"SL: {params['sl_atr_mult']}, TP: {params['tp_atr_mult']}")
 print(f"Tenkan: {params['tenkan']}, Kijun: {params['kijun']}")
+
+# Option 2: Lecture directe
+import json
+with open("outputs/run_20260121_120000/params/BTC.json") as f:
+    params = json.load(f)
+print(f"SL: {params['sl_atr_mult']}, TP: {params['tp_atr_mult']}")
 ```
 
 ### 3. Guards Summary
 
-**Fichier**: `outputs/multiasset_guards_summary.csv`
+**Nouveau format**: `outputs/run_YYYYMMDD_HHMMSS/guards.csv`
+**Legacy**: `outputs/multiasset_guards_summary.csv`
 
 Les 7 guards testés:
 - `GUARD-001` — Monte Carlo (p-value < 0.05)
@@ -216,9 +337,16 @@ Les 7 guards testés:
 - `WFE` — Walk-Forward Efficiency (> 0.6)
 
 ```python
+# Option 1: Via RunManager (recommandé)
+from crypto_backtest.utils.run_manager import RunManager
+run = RunManager.get_latest_run()
+df = run.load_guards_summary()
+all_pass = df[df['all_guards_pass'] == True]
+print(all_pass[['asset', 'oos_sharpe', 'wfe']])
+
+# Option 2: Lecture directe
 import pandas as pd
-df = pd.read_csv("outputs/multiasset_guards_summary.csv")
-# Assets passant tous les guards
+df = pd.read_csv("outputs/run_20260121_120000/guards.csv")
 all_pass = df[df['all_guards_pass'] == True]
 print(all_pass[['asset', 'oos_sharpe', 'wfe']])
 ```

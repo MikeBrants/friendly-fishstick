@@ -44,6 +44,53 @@ Le dashboard Streamlit génère automatiquement des CSV/JSON dans `outputs/`. Po
 
 **Exemples Python** pour lire ces fichiers disponibles dans le README.
 
+### Gestion des Runs (RunManager)
+
+**Problème résolu**: Éviter l'écrasement des résultats lors de scans multiples.
+
+Depuis 2026-01-21, les outputs sont organisés par **run timestampé**:
+
+```
+outputs/
+├── run_20260121_120000/
+│   ├── manifest.json    # Métadonnées (description, assets, config)
+│   ├── scan.csv         # Résultats scan
+│   ├── guards.csv       # Résultats guards
+│   └── params/
+│       ├── BTC.json     # Params optimaux par asset
+│       └── ETH.json
+└── run_20260121_150000/ # Nouveau scan, pas de conflit
+    └── ...
+```
+
+**Usage**:
+```python
+from crypto_backtest.utils.run_manager import RunManager
+
+# Créer un nouveau run
+run = RunManager.create_run(
+    description="Displacement grid [26-78]",
+    assets=["BTC", "ETH"],
+    metadata={"displacement_range": [26, 39, 52, 65, 78]}
+)
+
+# Sauvegarder résultats
+run.save_scan_results(scan_df)
+run.save_params("BTC", btc_params)
+run.save_guards_summary(guards_df)
+
+# Lister et comparer
+runs = RunManager.list_runs()
+latest = RunManager.get_latest_run()
+scan_df = latest.load_scan_results()
+```
+
+**Fichiers**:
+- `crypto_backtest/utils/run_manager.py` — Module principal
+- `examples/run_manager_usage.py` — Exemples détaillés
+
+**Migration**: Les anciens fichiers legacy (`outputs/optim_*.json`, `multiasset_guards_summary.csv`) restent accessibles en lecture seule. Les nouveaux scans utilisent automatiquement la structure de runs.
+
 ### Prochaines Étapes Suggérées
 1. ✅ ~~**P1 - Multi-Timeframe**~~: DONE → rester en 1H (4H/1D insuffisant)
 2. 🔴 **P1 - Displacement Grid**: Optimiser displacement [26, 39, 52, 65, 78] — **PRIORITAIRE**
