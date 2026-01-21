@@ -1473,6 +1473,57 @@ if page == "📊 Dashboard":
                 ),
                 use_container_width=True,
             )
+
+            scan_labels = {
+                f"{row['timestamp']} · {row['scan']}": row["scan"]
+                for row in history_rows
+            }
+            selected_label = st.selectbox(
+                "Voir le détail d'un scan",
+                list(scan_labels.keys()),
+                key="dashboard_scan_history_select",
+            )
+            selected_name = scan_labels[selected_label]
+            selected_path = next(
+                (p for p in scan_history if p.name == selected_name), None
+            )
+            if selected_path and selected_path.exists():
+                detail_df = pd.read_csv(selected_path)
+                assets = detail_df["asset"].tolist() if "asset" in detail_df.columns else []
+                st.markdown(
+                    f"**Assets ({len(assets)}):** "
+                    f"{', '.join(assets) if assets else '—'}"
+                )
+
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button(
+                        "📂 Charger ces assets dans la session",
+                        use_container_width=True,
+                    ):
+                        if st.session_state.get("active_session"):
+                            session = st.session_state.active_session
+                            session["assets"] = assets
+                            save_session(session)
+                            st.session_state.active_session = session
+                            st.success("Assets chargés dans la session active.")
+                        else:
+                            st.warning("Créez une session avant de charger des assets.")
+                with col2:
+                    st.download_button(
+                        "⬇️ Télécharger ce scan",
+                        detail_df.to_csv(index=False),
+                        file_name=selected_path.name,
+                        mime="text/csv",
+                        use_container_width=True,
+                    )
+
+                st.dataframe(
+                    detail_df[["asset", "oos_sharpe", "wfe", "oos_return", "status"]]
+                    if "status" in detail_df.columns
+                    else detail_df[["asset", "oos_sharpe", "wfe", "oos_return"]],
+                    use_container_width=True,
+                )
         else:
             st.info("Impossible de lire l'historique des scans.")
 
