@@ -1,0 +1,577 @@
+//@version=6
+strategy("FT_ETH", overlay = true, pyramiding = 0,
+    default_qty_type = strategy.fixed, default_qty_value = 1,
+    initial_capital = 5000,
+    commission_type = strategy.commission.percent, commission_value = 0.05,
+    slippage = 2, process_orders_on_close = true, calc_on_every_tick = false)
+
+// General inputs
+strictLock_5in1Last = input.bool(false, "Strict lock: 5in1 must be last")
+requireFamaBetween = input.bool(false, "Strict MAMA: require FAMA between MAMA and KAMA")
+
+// Grace window
+graceBars = input.int(1, "Grace window (bars)", minval = 0, maxval = 1)
+showGrace = input.bool(true, "Show grace marker")
+
+// MAMA
+len = input.int(20, "Length (MAMA)")
+src = input.source(close, "Source (MAMA)")
+
+// Filters
+useMamaKamaFilter = input.bool(true, "Puzzle: require MAMA > KAMA alignment")
+useDistanceFilter = input.bool(false, "5in1: Use distance filter")
+useObvFilter = input.bool(false, "5in1: Use volume filter")
+useADLine = input.bool(true, "5in1: Use A/D line (vs OBV)")
+adNormPeriod = input.int(50, "A/D norm period", minval = 10)
+useRegCloudFilter = input.bool(false, "5in1: Use regression cloud filter")
+useKamaFilter = input.bool(false, "5in1: Use KAMA oscillator filter")
+ichimokuFilter = input.bool(true, "5in1: Use Ichimoku filter")
+ichi5in1Strict = input.bool(true, "Ichi 5in1: strict")
+
+// 5in1 transition
+useTransitionMode = input.bool(false, "5in1: Require transition (vs state)")
+fast_period = input.int(7, "5in1 Fast Period")
+slow_period = input.int(19, "5in1 Slow Period")
+er_period = input.int(8, "5in1 ER Period")
+useNorm = input.bool(true, "5in1 Use normalization")
+norm_period = input.int(50, "5in1 Norm lookback")
+
+// ATR and sizing
+atrLen = input.int(14, "ATR Length")
+capitalUsd = input.float(5000, "Capital ($)", step = 100)
+riskPct = input.float(0.5, "Risk %", step = 0.1)
+qtyStep = input.float(0.001, "Qty step (exchange)", step = 0.001)
+
+// Warmup
+warmupBars = input.int(200, "Warmup bars", minval = 0)
+
+// Debug
+showDebug5in1 = input.bool(false, "Debug: show 5in1 state")
+
+// Frozen optimization parameters (do not change)
+slMult = 4.50
+tp1Mult = 4.75
+tp2Mult = 3.00
+tp3Mult = 4.50
+
+TS_D1 = 17
+KS_D1 = 31
+TS_5 = 13
+KS_5 = 20
+displacement = 52
+disp_5 = 52
+
+// 1) MAMA / FAMA / KAMA
+// 
+PI = 2 * math.asin(1)
+
+hilbertTransform(x) =>
+    0.0962 * x + 0.5769 * nz(x[2]) - 0.5769 * nz(x[4]) - 0.0962 * nz(x[6])
+
+computeComponent(x, mesaPeriodMult) =>
+    hilbertTransform(x) * mesaPeriodMult
+
+computeAlpha(_src, fastLimit, slowLimit) =>
+    float mesaPeriod = 0.0
+    float mesaPeriodMult = 0.075 * nz(mesaPeriod[1]) + 0.54
+    float smooth = 0.0
+    smooth := (4 * _src + 3 * nz(_src[1]) + 2 * nz(_src[2]) + nz(_src[3])) / 10
+    float detrender = 0.0
+    detrender := computeComponent(smooth, mesaPeriodMult)
+    float I1 = nz(detrender[3])
+    float Q1 = computeComponent(detrender, mesaPeriodMult)
+    float jI = computeComponent(I1, mesaPeriodMult)
+    float jQ = computeComponent(Q1, mesaPeriodMult)
+    float I2 = 0.0
+    float Q2 = 0.0
+    I2 := I1 - jQ
+    Q2 := Q1 + jI
+    I2 := 0.2 * I2 + 0.8 * nz(I2[1])
+    Q2 := 0.2 * Q2 + 0.8 * nz(Q2[1])
+    float Re = I2 * nz(I2[1]) + Q2 * nz(Q2[1])
+    float Im = I2 * nz(Q2[1]) - Q2 * nz(I2[1])
+    Re := 0.2 * Re + 0.8 * nz(Re[1])
+    Im := 0.2 * Im + 0.8 * nz(Im[1])
+    if Re != 0 and Im != 0
+        mesaPeriod := 2 * PI / math.atan(Im / Re)
+        mesaPeriod
+    if mesaPeriod > 1.5 * nz(mesaPeriod[1])
+        mesaPeriod := 1.5 * nz(mesaPeriod[1])
+        mesaPeriod
+    if mesaPeriod < 0.67 * nz(mesaPeriod[1])
+        mesaPeriod := 0.67 * nz(mesaPeriod[1])
+        mesaPeriod
+    if mesaPeriod < 6
+        mesaPeriod := 6
+        mesaPeriod
+    if mesaPeriod > 50
+        mesaPeriod := 50
+        mesaPeriod
+    mesaPeriod := 0.2 * mesaPeriod + 0.8 * nz(mesaPeriod[1])
+    float phase = 0.0
+    if I1 != 0
+        phase := 180 / PI * math.atan(Q1 / I1)
+        phase
+    float deltaPhase = nz(phase[1]) - phase
+    if deltaPhase < 1
+        deltaPhase := 1
+        deltaPhase
+    float alpha = fastLimit / deltaPhase
+    if alpha < slowLimit
+        alpha := slowLimit
+        alpha
+    [alpha, alpha / 2.0]
+
+er = math.abs(ta.change(src, len)) / math.sum(math.abs(ta.change(src)), len)
+[a, b] = computeAlpha(src, er, er * 0.1)
+
+var float mama = na
+var float fama = na
+var float kama = na
+
+mama := na(mama[1]) ? src : a * src + (1 - a) * mama[1]
+fama := na(fama[1]) ? mama : b * mama + (1 - b) * fama[1]
+
+alphaK = math.pow(er * (b - a) + a, 2)
+kama := na(kama[1]) ? src : alphaK * src + (1 - alphaK) * kama[1]
+
+cond_mk_long_base = close > mama and mama > kama
+cond_mk_short_base = close < mama and mama < kama
+
+cond_fama_between_long = kama < fama and fama < mama
+cond_fama_between_short = mama < fama and fama < kama
+
+cond_mk_long = cond_mk_long_base and (not requireFamaBetween or cond_fama_between_long)
+cond_mk_short = cond_mk_short_base and (not requireFamaBetween or cond_fama_between_short)
+
+plot(mama, 'MAMA', color = color.new(color.blue, 0), display = display.none)
+plot(kama, 'KAMA', color = color.new(color.red, 0), display = display.none)
+
+// 
+// 2) ICHIMOKU EXTERNE (PUZZLE)
+// 
+donchian(l) =>
+    math.avg(ta.lowest(l), ta.highest(l))
+
+Tenkan = donchian(TS_D1)
+Kijun = donchian(KS_D1)
+KumoA = math.avg(Tenkan, Kijun)
+KumoB = donchian(displacement)
+
+KumoA_Offset_25 = KumoA[25]
+KumoB_Offset_25 = KumoB[25]
+KumoA_Offset_50 = KumoA[50]
+KumoB_Offset_50 = KumoB[50]
+TS_Offset_25 = Tenkan[25]
+KS_Offset_25 = Kijun[25]
+TS_Offset_1 = Tenkan[1]
+KS_Offset_1 = Kijun[1]
+KumoA_Offset_1 = KumoA[1]
+KumoB_Offset_1 = KumoB[1]
+
+All_Bullish(x) =>
+    cond1 = x > Tenkan and x > Kijun and x > KumoA_Offset_25 and x > KumoB_Offset_25
+    cond2 = x > KumoA_Offset_50 and x > KumoB_Offset_50 and x > KS_Offset_25 and x > TS_Offset_25
+    cond3 = KumoA > KumoB and KumoA > KumoA_Offset_1 and KumoB > KumoB_Offset_1
+    cond4 = Kijun > KS_Offset_1 and Tenkan > TS_Offset_1
+    cond1 and cond2 and cond3 and cond4
+
+All_Bearish(x) =>
+    x < KumoA_Offset_25 and x < KumoB_Offset_25 and close < KumoB
+
+var bool trade_op = false
+var int ichi_state = 0
+
+buy_signal_raw = All_Bullish(close) and not trade_op
+sell_signal_raw = All_Bearish(close) and trade_op
+
+buy_signal_close = barstate.isconfirmed and buy_signal_raw
+sell_signal_close = barstate.isconfirmed and sell_signal_raw
+
+if barstate.isconfirmed
+    if buy_signal_raw
+        trade_op := true
+        ichi_state := 1
+        ichi_state
+    else if sell_signal_raw
+        trade_op := false
+        ichi_state := -1
+        ichi_state
+
+ichi_long_active = ichi_state == 1
+ichi_short_active = ichi_state == -1
+
+plot(Tenkan, 'Tenkan', color = color.new(color.yellow, 0), display = display.none)
+plot(Kijun, 'Kijun', color = color.new(color.gray, 0), display = display.none)
+
+plotshape(buy_signal_close, title = 'ICHI BUY', style = shape.triangleup, location = location.belowbar, color = color.new(color.green, 50), text = 'BUY', textcolor = color.white, size = size.tiny)
+plotshape(sell_signal_close, title = 'ICHI SELL', style = shape.triangledown, location = location.abovebar, color = color.new(color.red, 50), text = 'SELL', textcolor = color.white, size = size.tiny)
+
+// 
+// 3) 5-in-1 COMPOSANTS
+// 
+
+// --- DISTANCE KAMAS ---
+kama5(src_, length) =>
+    xPrice = src_
+    xvnoise = math.abs(xPrice - xPrice[1])
+    nAMA = 0.0
+    nfastend = 0.666
+    nslowend = 0.0645
+    nsignal = math.abs(xPrice - xPrice[length])
+    nnoise = math.sum(xvnoise, length)
+    nefratio = nnoise != 0 ? nsignal / nnoise : 0
+    nsmooth = math.pow(nefratio * (nfastend - nslowend) + nslowend, 2)
+    nAMA := nz(nAMA[1]) + nsmooth * (xPrice - nz(nAMA[1]))
+    nAMA
+
+src2 = ohlc4
+ma05 = kama5(src2, 5)
+ma10 = kama5(src2, 10)
+ma15 = kama5(src2, 15)
+ma20 = kama5(src2, 20)
+ma25 = kama5(src2, 25)
+ma30 = kama5(src2, 30)
+ma35 = kama5(src2, 35)
+ma40 = kama5(src2, 40)
+ma45 = kama5(src2, 45)
+ma50 = kama5(src2, 50)
+ma55 = kama5(src2, 55)
+ma60 = kama5(src2, 60)
+ma65 = kama5(src2, 65)
+ma70 = kama5(src2, 70)
+ma75 = kama5(src2, 75)
+ma80 = kama5(src2, 80)
+ma85 = kama5(src2, 85)
+ma90 = kama5(src2, 90)
+ma100 = kama5(src2, 100)
+
+dist1 = (ma05 - ma10) / ma10 + (ma10 - ma15) / ma15 + (ma15 - ma20) / ma20 + (ma20 - ma25) / ma25 + (ma25 - ma30) / ma30 + (ma30 - ma35) / ma35
+dist2 = (ma35 - ma40) / ma40 + (ma40 - ma45) / ma45 + (ma45 - ma50) / ma50 + (ma50 - ma55) / ma55 + (ma55 - ma60) / ma60 + (ma60 - ma65) / ma65
+dist3 = (ma65 - ma70) / ma70 + (ma70 - ma75) / ma75 + (ma75 - ma80) / ma80 + (ma80 - ma85) / ma85 + (ma85 - ma90) / ma90 + (ma90 - ma100) / ma100
+totalDistance = (dist1 + dist2 + dist3) / 18
+
+// --- VOLUME FILTER: A/D LINE (Chaikin) ou OBV CLASSIC ---
+mfm = (close - low - (high - close)) / math.max(high - low, 1e-10)
+mfv = mfm * volume
+adLine = ta.cum(mfv)
+
+adLowest = ta.lowest(adLine, adNormPeriod)
+adHighest = ta.highest(adLine, adNormPeriod)
+adNorm = (adLine - adLowest) / math.max(adHighest - adLowest, 1e-10) - 0.5
+adSlope = adNorm - nz(adNorm[3])
+
+adBull = adNorm > 0.1 and adSlope > 0
+adBear = adNorm < -0.1 and adSlope < 0
+adSignal = adBull ? 1 : adBear ? -1 : 0
+
+obvVal = ta.cum(ta.change(close) > 0 ? volume : ta.change(close) < 0 ? -volume : 0)
+obvShort = ta.ema(obvVal, 3)
+obvMedium = ta.ema(obvVal, 9)
+obvLong = ta.ema(obvVal, 21)
+obvIsBull = obvShort > obvMedium and obvShort > obvLong
+obvIsBear = obvShort < obvMedium and obvShort < obvLong
+obvSignalClassic = obvIsBull ? 1 : obvIsBear ? -1 : 0
+
+volSignal = useADLine ? adSignal : obvSignalClassic
+
+// --- REGRESSION CLOUD ---
+calcSlope(source, length) =>
+    sumX = 0.0
+    sumY = 0.0
+    sumXSqr = 0.0
+    sumXY = 0.0
+    for i = 0 to length - 1 by 1
+        val = source[length - 1 - i]
+        per = i + 1.0
+        sumX := sumX + per
+        sumY := sumY + val
+        sumXSqr := sumXSqr + per * per
+        sumXY := sumXY + val * per
+        sumXY
+    (length * sumXY - sumX * sumY) / (length * sumXSqr - sumX * sumX)
+
+lengthsArray = array.from(10, 20, 50, 100, 200, 300, 400, 500)
+slopes = array.new_float()
+for ln in lengthsArray
+    array.push(slopes, calcSlope(close, ln))
+
+differences = array.new_float()
+for i = 0 to array.size(slopes) - 2 by 1
+    diff = (array.get(slopes, i) - array.get(slopes, i + 1)) * array.get(lengthsArray, i)
+    array.push(differences, diff)
+
+regTotalDistance = array.sum(differences)
+baseLine = ta.sma(close, 100)
+cloudLine = baseLine + regTotalDistance * 0.1
+
+regAbove = close > math.max(baseLine, cloudLine)
+regBelow = close < math.min(baseLine, cloudLine)
+regCloudSignal = regAbove ? 1 : regBelow ? -1 : 0
+
+// --- KAMA OSCILLATOR ---
+ch = math.abs(close - close[er_period])
+volatility = math.sum(math.abs(close - close[1]), er_period)
+erVal2 = volatility != 0 ? ch / volatility : 0
+sc2 = erVal2 * (2 / (fast_period + 1) - 2 / (slow_period + 1)) + 2 / (slow_period + 1)
+kamaVal = ta.ema(close, fast_period) + sc2 * (close - ta.ema(close, fast_period))
+
+lowest = ta.lowest(kamaVal, norm_period)
+highest = ta.highest(kamaVal, norm_period)
+normalizedKama = (kamaVal - lowest) / math.max(highest - lowest, 1e-10) - 0.5
+kamaOsc = useNorm ? normalizedKama : kamaVal
+kamaSignal = kamaOsc > 0 ? 1 : kamaOsc < 0 ? -1 : 0
+
+// --- ICHIMOKU 5in1  STRICT vs LIGHT ---
+Tenkan5 = donchian(TS_5)
+Kijun5 = donchian(KS_5)
+KumoA5 = math.avg(Tenkan5, Kijun5)
+KumoB5 = donchian(disp_5)
+
+All_Bullish_5(x) =>
+    c1 = x > Tenkan5 and x > Kijun5 and x > KumoA5[25] and x > KumoB5[25]
+    c2 = x > KumoA5[50] and x > KumoB5[50] and x > Kijun5[25] and x > Tenkan5[25]
+    c3 = KumoA5 > KumoB5 and KumoA5 > KumoA5[1] and KumoB5 > KumoB5[1]
+    c4 = Kijun5 > Kijun5[1] and Tenkan5 > Tenkan5[1]
+    c1 and c2 and c3 and c4
+
+All_Bearish_5_Strict(x) =>
+    c1 = x < Tenkan5 and x < Kijun5 and x < KumoA5[25] and x < KumoB5[25]
+    c2 = Kijun5 < KumoA5[25] and Kijun5 < KumoB5[25] and Tenkan5 < KumoA5[25] and Tenkan5 < KumoB5[25]
+    c3 = Kijun5 < Kijun5[1] and Tenkan5 < Tenkan5[1]
+    c4 = x < KumoA5[50] and x < KumoB5[50] and x < Kijun5[25] and x < Tenkan5[25]
+    c5 = KumoA5 < KumoB5 and KumoA5 < KumoA5[1] and KumoB5 < KumoB5[1]
+    c1 and c2 and c3 and c4 and c5
+
+All_Bearish_5_Light(x) =>
+    x < KumoA5[25] and x < KumoB5[25] and close < KumoB5
+
+ichiBearish5 = ichi5in1Strict ? All_Bearish_5_Strict(close) : All_Bearish_5_Light(close)
+ichimokuSignal5 = All_Bullish_5(close) ? 1 : ichiBearish5 ? -1 : 0
+
+// 
+// 5in1 SIGNAL  STATE vs TRANSITION MODE
+// 
+distanceBull = not useDistanceFilter or totalDistance > 0
+distanceBear = not useDistanceFilter or totalDistance < 0
+
+obvBull = not useObvFilter or volSignal > 0
+obvBear = not useObvFilter or volSignal < 0
+
+regCloudBull = not useRegCloudFilter or regCloudSignal > 0
+regCloudBear = not useRegCloudFilter or regCloudSignal < 0
+
+kamaBull = not useKamaFilter or kamaSignal > 0
+kamaBear = not useKamaFilter or kamaSignal < 0
+
+ichiBull = not ichimokuFilter or ichimokuSignal5 > 0
+ichiBear = not ichimokuFilter or ichimokuSignal5 < 0
+
+allBull = distanceBull and obvBull and regCloudBull and kamaBull and ichiBull
+allBear = distanceBear and obvBear and regCloudBear and kamaBear and ichiBear
+
+var bool prevAllBull = false
+var bool prevAllBear = false
+
+bullishSignal_close = barstate.isconfirmed and allBull and (not useTransitionMode or not prevAllBull)
+bearishSignal_close = barstate.isconfirmed and allBear and (not useTransitionMode or not prevAllBear)
+
+if barstate.isconfirmed
+    prevAllBull := allBull
+    prevAllBear := allBear
+    prevAllBear
+
+// 
+// DEBUG: 5in1 State Visualizer
+// 
+debugColor = allBull ? color.new(color.green, 85) : allBear ? color.new(color.red, 85) : color.new(color.gray, 85)
+bgcolor(showDebug5in1 ? debugColor : na, title = '5in1 State Debug')
+
+plotshape(showDebug5in1 and bullishSignal_close, title = '5in1  BULL', style = shape.circle, location = location.bottom, color = color.lime, size = size.tiny)
+plotshape(showDebug5in1 and bearishSignal_close, title = '5in1  BEAR', style = shape.circle, location = location.bottom, color = color.red, size = size.tiny)
+
+// 
+// 4) PUZZLE + Grace1 AVEC MAMA/KAMA BYPASS
+// 
+cross_long_ok = ta.crossover(mama, kama) and (not requireFamaBetween or cond_fama_between_long)
+cross_short_ok = ta.crossunder(mama, kama) and (not requireFamaBetween or cond_fama_between_short)
+
+var bool lock_long_cycle = false
+var bool lock_short_cycle = false
+var bool pending_long = false
+var bool pending_short = false
+
+var bool final_long_active = false
+var bool final_short_active = false
+
+var bool new_long_close = false
+var bool new_short_close = false
+new_long_close := false
+new_short_close := false
+
+canTrade = warmupBars <= 0 ? true : bar_index >= warmupBars
+
+if barstate.isconfirmed
+    armed_long_strict = ichi_long_active and (not useMamaKamaFilter or cond_mk_long)
+    armed_short_strict = ichi_short_active and (not useMamaKamaFilter or cond_mk_short)
+    armed_long_grace_ok = ichi_long_active and (not useMamaKamaFilter or cond_mk_long or cross_long_ok)
+    armed_short_grace_ok = ichi_short_active and (not useMamaKamaFilter or cond_mk_short or cross_short_ok)
+
+    if buy_signal_raw or sell_signal_raw
+        lock_long_cycle := false
+        lock_short_cycle := false
+        pending_long := false
+        pending_short := false
+        pending_short
+
+    if not ichi_long_active
+        final_long_active := false
+        final_long_active
+    if not ichi_short_active
+        final_short_active := false
+        final_short_active
+
+    if strictLock_5in1Last and canTrade and bullishSignal_close and ichi_long_active and not armed_long_strict
+        if graceBars == 1
+            pending_long := true
+            pending_long
+        else
+            lock_long_cycle := true
+            lock_long_cycle
+
+    if strictLock_5in1Last and canTrade and bearishSignal_close and ichi_short_active and not armed_short_strict
+        if graceBars == 1
+            pending_short := true
+            pending_short
+        else
+            lock_short_cycle := true
+            lock_short_cycle
+
+    if pending_long[1] and not armed_long_grace_ok
+        pending_long := false
+        if strictLock_5in1Last
+            lock_long_cycle := true
+            lock_long_cycle
+
+    if pending_short[1] and not armed_short_grace_ok
+        pending_short := false
+        if strictLock_5in1Last
+            lock_short_cycle := true
+            lock_short_cycle
+
+    allow_long = not strictLock_5in1Last or not lock_long_cycle
+    allow_short = not strictLock_5in1Last or not lock_short_cycle
+
+    pending_long_ok = graceBars == 1 and pending_long[1] and armed_long_grace_ok
+    pending_short_ok = graceBars == 1 and pending_short[1] and armed_short_grace_ok
+
+    trigger_long = bullishSignal_close and armed_long_strict or pending_long_ok
+    trigger_short = bearishSignal_close and armed_short_strict or pending_short_ok
+
+    new_long = canTrade and trigger_long and allow_long and not final_long_active
+    new_short = canTrade and trigger_short and allow_short and not final_short_active
+
+    if new_long
+        final_long_active := true
+        final_short_active := false
+        pending_long := false
+        new_long_close := true
+        new_long_close
+
+    if new_short
+        final_short_active := true
+        final_long_active := false
+        pending_short := false
+        new_short_close := true
+        new_short_close
+
+plotshape(new_long_close, title = 'FINAL LONG', style = shape.labelup, location = location.belowbar, color = color.green, text = 'LONG', textcolor = color.white, size = size.small)
+plotshape(new_short_close, title = 'FINAL SHORT', style = shape.labeldown, location = location.abovebar, color = color.red, text = 'SHORT', textcolor = color.white, size = size.small)
+
+plotshape(showGrace and graceBars == 1 and pending_long, title = 'GRACE LONG', style = shape.circle, location = location.belowbar, color = color.yellow, size = size.tiny, text = 'G')
+plotshape(showGrace and graceBars == 1 and pending_short, title = 'GRACE SHORT', style = shape.circle, location = location.abovebar, color = color.yellow, size = size.tiny, text = 'G')
+
+// 
+
+atr = ta.atr(atrLen)
+
+// 5a) Strategy execution (multi-TP)
+// -----------------------------------------------------------------------------
+riskUsd = capitalUsd * riskPct / 100.0
+
+var int strat_leg_state = 0
+var int strat_dir = 0
+var float strat_entry = na
+var float strat_sl = na
+var float strat_tp1 = na
+var float strat_tp2 = na
+var float strat_tp3 = na
+
+strat_pos_open = strategy.position_size != 0
+strat_pos_closed = strategy.position_size == 0 and strategy.position_size[1] != 0
+strat_pos_decreased = strat_pos_open and math.abs(strategy.position_size) < math.abs(strategy.position_size[1])
+
+if strat_pos_decreased
+    if strat_leg_state == 1
+        strat_leg_state := 2
+        strat_sl := strat_entry
+    else if strat_leg_state == 2
+        strat_leg_state := 3
+        strat_sl := strat_tp1
+
+if strat_pos_closed
+    strat_leg_state := 0
+    strat_dir := 0
+    strat_entry := na
+    strat_sl := na
+    strat_tp1 := na
+    strat_tp2 := na
+    strat_tp3 := na
+
+strat_exec_long = new_long_close and strategy.position_size == 0
+strat_exec_short = new_short_close and strategy.position_size == 0
+
+strat_stop_dist = slMult * atr
+strat_qty_raw = strat_stop_dist > 0 ? riskUsd / strat_stop_dist : na
+strat_qty_total = not na(strat_qty_raw) ? math.floor(strat_qty_raw / qtyStep) * qtyStep : na
+
+if strat_exec_long and not na(strat_qty_total) and strat_qty_total > 0
+    strat_dir := 1
+    strat_entry := close
+    strat_sl := close - slMult * atr
+    strat_tp1 := close + tp1Mult * atr
+    strat_tp2 := close + tp2Mult * atr
+    strat_tp3 := close + tp3Mult * atr
+    strat_leg_state := 1
+    strategy.entry("Long", strategy.long, qty = strat_qty_total)
+
+if strat_exec_short and not na(strat_qty_total) and strat_qty_total > 0
+    strat_dir := -1
+    strat_entry := close
+    strat_sl := close + slMult * atr
+    strat_tp1 := close - tp1Mult * atr
+    strat_tp2 := close - tp2Mult * atr
+    strat_tp3 := close - tp3Mult * atr
+    strat_leg_state := 1
+    strategy.entry("Short", strategy.short, qty = strat_qty_total)
+
+if strat_leg_state == 1 and strat_dir == 1
+    strategy.exit("LX1", "Long", qty_percent = 50, limit = strat_tp1, stop = strat_sl)
+if strat_leg_state == 2 and strat_dir == 1
+    strategy.exit("LX2", "Long", qty_percent = 60, limit = strat_tp2, stop = strat_sl)
+if strat_leg_state == 3 and strat_dir == 1
+    strategy.exit("LX3", "Long", qty_percent = 100, limit = strat_tp3, stop = strat_sl)
+
+if strat_leg_state == 1 and strat_dir == -1
+    strategy.exit("SX1", "Short", qty_percent = 50, limit = strat_tp1, stop = strat_sl)
+if strat_leg_state == 2 and strat_dir == -1
+    strategy.exit("SX2", "Short", qty_percent = 60, limit = strat_tp2, stop = strat_sl)
+if strat_leg_state == 3 and strat_dir == -1
+    strategy.exit("SX3", "Short", qty_percent = 100, limit = strat_tp3, stop = strat_sl)
+
+// Export plots for validation
+plot(new_long_close ? 1 : 0, "Signal_Long", display = display.data_window + display.status_line)
+plot(new_short_close ? 1 : 0, "Signal_Short", display = display.data_window + display.status_line)
+plot(new_long_close ? close : na, "Entry_Long", display = display.data_window)
+plot(new_short_close ? close : na, "Entry_Short", display = display.data_window)
+
