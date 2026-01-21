@@ -6,6 +6,13 @@
       "primary_cause": "OVERFITTING",
       "recoverable": true,
       "recommendation": "REOPTIMIZE_CONSERVATIVE"
+    },
+    {
+      "asset": "RENDER",
+      "timestamp": "2026-01-21T10:42:45.992115",
+      "primary_cause": "OVERFITTING",
+      "recoverable": true,
+      "recommendation": "REOPTIMIZE_CONSERVATIVE"
     }
   ]
 }

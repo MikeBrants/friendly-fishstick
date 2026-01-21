@@ -806,6 +806,35 @@ def get_scan_results():
     return sorted(outputs_dir.glob("multiasset_scan_*.csv"), reverse=True)
 
 
+def get_scan_history_files() -> list[Path]:
+    """Return all scan files (multiasset + debug) sorted by mtime desc."""
+    outputs_dir = Path("outputs")
+    if not outputs_dir.exists():
+        return []
+
+    patterns = ["multiasset_scan_*.csv", "multi_asset_scan_*.csv"]
+    files: dict[str, Path] = {}
+    for pattern in patterns:
+        for path in outputs_dir.glob(pattern):
+            if "partial" in path.name:
+                continue
+            files[path.name] = path
+
+    return sorted(files.values(), key=lambda p: p.stat().st_mtime, reverse=True)
+
+
+def _format_scan_timestamp(path: Path) -> str:
+    """Format timestamp extracted from scan filename or fallback to mtime."""
+    stem = path.stem
+    for prefix in ("multiasset_scan_", "multi_asset_scan_"):
+        if stem.startswith(prefix):
+            ts_raw = stem.replace(prefix, "")
+            try:
+                return datetime.strptime(ts_raw, "%Y%m%d_%H%M").strftime("%Y-%m-%d %H:%M")
+            except ValueError:
+                break
+    return datetime.fromtimestamp(path.stat().st_mtime).strftime("%Y-%m-%d %H:%M")
+
 def get_guards_summary_path() -> Path | None:
     """Return most recent guards summary path if available."""
     outputs_dir = Path("outputs")
@@ -1385,6 +1414,67 @@ if page == "📊 Dashboard":
 
         except Exception as e:
             st.error(f"Erreur lecture scan: {e}")
+
+    st.markdown("---")
+    st.subheader("📚 Historique des Scans")
+    scan_history = get_scan_history_files()
+    if not scan_history:
+        st.info("Aucun historique de scan trouvé.")
+    else:
+        history_rows = []
+        for scan_path in scan_history:
+            try:
+                scan_df = pd.read_csv(scan_path)
+            except Exception:
+                continue
+
+            if scan_df.empty:
+                continue
+
+            if "status" in scan_df.columns:
+                pass_mask = scan_df["status"].astype(str).str.startswith("SUCCESS")
+            else:
+                pass_mask = (
+                    (scan_df["oos_sharpe"] >= PASS_CRITERIA["oos_sharpe_min"]) &
+                    (scan_df["wfe"] >= PASS_CRITERIA["wfe_min"])
+                )
+
+            total_assets = len(scan_df)
+            pass_count = int(pass_mask.sum())
+            fail_count = int((~pass_mask).sum())
+            pass_rate = round(pass_count / total_assets * 100, 1) if total_assets else 0.0
+
+            history_rows.append(
+                {
+                    "scan": scan_path.name,
+                    "timestamp": _format_scan_timestamp(scan_path),
+                    "assets": total_assets,
+                    "pass": pass_count,
+                    "fail": fail_count,
+                    "pass_rate_pct": pass_rate,
+                    "avg_sharpe": round(scan_df["oos_sharpe"].mean(), 2)
+                    if "oos_sharpe" in scan_df.columns
+                    else None,
+                    "avg_wfe": round(scan_df["wfe"].mean(), 2)
+                    if "wfe" in scan_df.columns
+                    else None,
+                }
+            )
+
+        if history_rows:
+            history_df = pd.DataFrame(history_rows)
+            st.dataframe(
+                history_df.style.format(
+                    {
+                        "pass_rate_pct": "{:.1f}%",
+                        "avg_sharpe": "{:.2f}",
+                        "avg_wfe": "{:.2f}",
+                    }
+                ),
+                use_container_width=True,
+            )
+        else:
+            st.info("Impossible de lire l'historique des scans.")
 
 
 # -----------------------------------------------------------------------------
