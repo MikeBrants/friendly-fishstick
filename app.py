@@ -1819,7 +1819,7 @@ elif page == "⚡ Bayesian":
         trials_ichi = st.slider("Trials Ichimoku", 20, 200, 100)
 
         import os
-        max_workers = os.cpu_count() or 4
+        max_workers = max(os.cpu_count() or 4, get_default_workers("bayesian"))
         workers = st.slider(
             "Workers (parallélisme)",
             1,
@@ -1903,23 +1903,74 @@ elif page == "⚡ Bayesian":
 
                 if returncode == 0:
                     st.success("✅ Optimisation terminée!")
-                    st.balloons()
-
-                    # Update session progress
-                    advance_session_step(2, "optimized")
                     link_outputs_to_session(["multiasset_scan_*.csv", "pine_plan_*.csv"])
 
-                    st.markdown("---")
-                    if st.button("🛡️ Continuer vers les Guards →", type="primary"):
-                        st.session_state.current_page = "🛡️ Guards"
-                        st.rerun()
-
-                    # Show latest results
                     scan_results = get_scan_results()
+                    has_pass = False
+                    pass_mask = None
+                    df = None
                     if scan_results:
-                        st.subheader("Résultats")
                         df = pd.read_csv(scan_results[0])
-                        st.dataframe(df, use_container_width=True)
+                        pass_mask = (
+                            (df["oos_sharpe"] >= PASS_CRITERIA["oos_sharpe_min"]) &
+                            (df["wfe"] >= PASS_CRITERIA["wfe_min"])
+                        )
+                        has_pass = pass_mask.any()
+
+                        st.subheader("📊 Résultats")
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.metric("Assets PASS", int(pass_mask.sum()))
+                        with col2:
+                            st.metric("Assets FAIL", int((~pass_mask).sum()))
+
+                        st.dataframe(
+                            df[["asset", "oos_sharpe", "wfe", "oos_return"]].style.format({
+                                "oos_sharpe": "{:.2f}",
+                                "wfe": "{:.2f}",
+                                "oos_return": "{:.1f}%",
+                            }),
+                            use_container_width=True,
+                        )
+
+                    st.markdown("---")
+
+                    if has_pass:
+                        st.balloons()
+                        advance_session_step(2, "optimized")
+                        console_log(
+                            f"Optimisation OK: {int(pass_mask.sum())} assets PASS",
+                            "OK",
+                        )
+
+                        if st.button(
+                            "🛡️ Continuer vers les Guards →",
+                            type="primary",
+                            use_container_width=True,
+                        ):
+                            st.session_state.current_page = "🛡️ Guards"
+                            st.rerun()
+                    else:
+                        st.warning(
+                            "⚠️ Aucun asset n'a passé les critères (Sharpe ≥ 1.0 ET WFE ≥ 0.6)"
+                        )
+                        console_log("Optimisation: 0 assets PASS", "WARN")
+
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            if st.button(
+                                "🔄 Réessayer avec plus de trials",
+                                use_container_width=True,
+                            ):
+                                st.rerun()
+                        with col2:
+                            if st.button(
+                                "🛡️ Forcer Guards quand même",
+                                use_container_width=True,
+                            ):
+                                advance_session_step(2, "optimized")
+                                st.session_state.current_page = "🛡️ Guards"
+                                st.rerun()
                 else:
                     st.error(f"❌ Erreur (code {returncode})")
 
@@ -1967,7 +2018,7 @@ elif page == "🎚️ Displacement Grid":
         )
 
         import os
-        max_workers = os.cpu_count() or 4
+        max_workers = max(os.cpu_count() or 4, get_default_workers("displacement_grid"))
         workers = st.slider(
             "Workers",
             1,
@@ -2212,7 +2263,7 @@ elif page == "🛡️ Guards":
         )
 
         import os
-        max_workers = os.cpu_count() or 4
+        max_workers = max(os.cpu_count() or 4, get_default_workers("guards"))
         workers = st.slider("Workers", 1, max_workers, get_default_workers("guards"))
 
     with col2:

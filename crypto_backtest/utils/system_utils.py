@@ -15,7 +15,9 @@ def get_default_workers(task: str = "bayesian") -> int:
 
     if CONFIG_PATH.exists():
         profile = json.loads(CONFIG_PATH.read_text())
-        return min(profile.get("workers", {}).get(task, 4), cpu_count)
+        profile_value = profile.get("workers", {}).get(task)
+        if profile_value:
+            return int(profile_value)
 
     defaults = {
         "bayesian": min(6, cpu_count),

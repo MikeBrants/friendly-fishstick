@@ -27,6 +27,7 @@ Pipeline de backtest complet pour la stratégie TradingView "FINAL TRIGGER v2" c
 - **README**: installation corrigée (`crypto_backtest/requirements.txt`) + section Machine Profile.
 - **Fail diagnostics**: diagnostic FAIL + réoptimisation conservative dans Streamlit, persistance JSON (diagnostic/reopt/validated/dead).
 - **Session dialogs**: remplacement des modals `st.dialog` + fix Portfolio Builder (min 2 assets).
+- **Bayesian UX**: progression vers Guards seulement si ≥1 asset PASS (sinon warning + retry/force).
 - **Pine Strategies**: scripts `FT_BTC.pine`, `FT_ETH.pine`, `FT_AVAX.pine`, `FT_UNI.pine`, `FT_SEI.pine` générés (paramètres frozen + exécution multi-TP).
 - **Sessions + Stepper**: ajout d’un système de session (`crypto_backtest/config/session_manager.py`) et d’un stepper visuel dans Streamlit (Dashboard, Download, Bayesian, Guards, Comparateur).
 - **Modals Sessions**: création/chargement de session via modals (boutons désormais fonctionnels).
