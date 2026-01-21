@@ -1,25 +1,31 @@
 # FINAL TRIGGER v2 — Backtest System
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Status](https://img.shields.io/badge/status-Phase%202%20Complete-green.svg)](docs/HANDOFF.md)
-[![Sharpe](https://img.shields.io/badge/Sharpe-2.13-brightgreen.svg)](instructions.md)
+[![Status](https://img.shields.io/badge/status-Production%20Ready-green.svg)](docs/HANDOFF.md)
+[![Portfolio](https://img.shields.io/badge/Portfolio%20Sharpe-4.35-brightgreen.svg)](docs/HANDOFF.md)
+[![Assets](https://img.shields.io/badge/Validated%20Assets-5-blue.svg)](outputs/pine_plan_fullguards.csv)
 
 > Système de backtest professionnel pour **FINAL TRIGGER v2** — Implémentation Python de l'indicateur TradingView avec walk-forward analysis et optimisation bayésienne.
 
 ---
 
-## 📈 Résultats Actuels (Phase 2 Complétée)
+## 📈 Résultats Actuels (Production Ready)
 
-| Métrique | Baseline | Current | Δ |
-|----------|----------|---------|---|
-| **Return** | -6.44% | **+15.69%** | +22.13pp |
-| **Sharpe** | -0.80 | **2.13** | +2.93 |
-| **Max DD** | -9.2% | **-2.85%** | +6.35pp |
-| **Win Rate** | 33.6% | **43.51%** | +9.9pp |
-| **Profit Factor** | 0.86 | **1.54** | +0.68 |
-| **Trades** | - | 416 | - |
-| **Expectancy** | - | +$3.77/trade | - |
-| **Recovery Factor** | - | 5.50 | - |
+### Portfolio Validé (5 Assets)
+**BTC, ETH, AVAX, UNI, SEI** — Tous les assets ont passé les 7 guards de robustesse
+
+| Asset | OOS Sharpe | WFE | Max DD | Trades |
+|-------|------------|-----|--------|--------|
+| **BTC** | 2.63 | 1.23 | -2.85% | 416 |
+| **ETH** | 7.12 | 2.46 | -2.61% | 450 |
+| **AVAX** | 4.22 | 1.10 | -3.14% | 402 |
+| **UNI** | 3.83 | 1.78 | -2.89% | 389 |
+| **SEI** | 3.88 | 1.02 | -3.21% | 371 |
+
+**Portfolio Global** (equal-weight):
+- Sharpe: **~4.35**
+- Max DD: **-0.63%**
+- Corrélation moyenne: **0.086** (faible corrélation = bonne diversification)
 
 ---
 
@@ -120,18 +126,171 @@ crypto_backtest/
 
 ```bash
 pip install -r requirements.txt
+pip install streamlit plotly  # Pour l'interface visuelle
 ```
 
-### Lancer un backtest
+### Dashboard Streamlit (Recommandé)
+
+Interface visuelle complète pour piloter tous les backtests:
 
 ```bash
+streamlit run app.py
+# Accès: http://localhost:8501
+```
+
+**Pages disponibles:**
+- 📊 Dashboard — Vue d'ensemble
+- 📥 Download OHLCV — Téléchargement données (Top 50 cryptos)
+- 🔄 Comparateur Pine — Validation Python vs Pine Script
+- ⚡ Bayesian — Optimisation bayésienne (ATR + Ichimoku)
+- 🎚️ Displacement Grid — Grid search displacement [26-78]
+- 🛡️ Guards — Tests de robustesse (7 guards automatiques)
+- 🏆 Comparaison Assets — Tri/filtre des résultats
+- 💼 Portfolio Builder — Corrélations + auto-sélection
+- 📉 Visualisation — Graphiques interactifs
+
+### Ligne de Commande
+
+```bash
+# Pipeline complet (download → optimize → cluster)
+python scripts/run_full_pipeline.py --workers 8
+
+# Optimisation multi-asset avec guards
+python scripts/run_guards_multiasset.py --assets BTC ETH AVAX --workers 4
+
+# Analyse corrélations portfolio
+python scripts/portfolio_correlation.py
+
+# Backtest simple
 python backtest_optimized.py
 ```
 
-### Optimisation
+---
 
-```bash
-python optimize_ichimoku.py
+## 📁 Outputs et Interprétation (Pour Agents)
+
+Le dashboard Streamlit génère des fichiers dans `outputs/`. Voici comment les interpréter en ligne de commande:
+
+### 1. Scan Multi-Asset
+
+**Fichier**: `outputs/multiasset_scan_YYYYMMDD_HHMMSS.csv`
+
+Colonnes clés:
+- `asset` — Symbole de l'asset
+- `oos_sharpe` — Sharpe ratio OOS (critère principal)
+- `wfe` — Walk-Forward Efficiency (OOS/IS, doit être > 0.6)
+- `oos_trades` — Nombre de trades OOS
+- `max_dd` — Max drawdown (doit être < 15%)
+- `status` — PASS/FAIL
+
+```python
+import pandas as pd
+df = pd.read_csv("outputs/multiasset_scan_YYYYMMDD_HHMMSS.csv")
+passed = df[df['status'] == 'PASS']
+print(passed[['asset', 'oos_sharpe', 'wfe', 'max_dd']])
+```
+
+### 2. Paramètres Optimaux par Asset
+
+**Fichiers**: `outputs/optim_{ASSET}_best_params.json`
+
+```python
+import json
+with open("outputs/optim_BTC_best_params.json") as f:
+    params = json.load(f)
+print(f"SL: {params['sl_atr_mult']}, TP: {params['tp_atr_mult']}")
+print(f"Tenkan: {params['tenkan']}, Kijun: {params['kijun']}")
+```
+
+### 3. Guards Summary
+
+**Fichier**: `outputs/multiasset_guards_summary.csv`
+
+Les 7 guards testés:
+- `GUARD-001` — Monte Carlo (p-value < 0.05)
+- `GUARD-002` — Regime Analysis (acceptable loss < 30%)
+- `GUARD-003` — Bootstrap CI (Sharpe lower > 1.0)
+- `GUARD-005` — Trade Distribution (top 10 < 40%)
+- `GUARD-006` — Stress Test (edge buffer > 0)
+- `GUARD-007` — Sensitivity (variance < 15%)
+- `WFE` — Walk-Forward Efficiency (> 0.6)
+
+```python
+import pandas as pd
+df = pd.read_csv("outputs/multiasset_guards_summary.csv")
+# Assets passant tous les guards
+all_pass = df[df['all_guards_pass'] == True]
+print(all_pass[['asset', 'oos_sharpe', 'wfe']])
+```
+
+### 4. Portfolio Correlation
+
+**Fichier**: `outputs/portfolio_correlation.csv`
+
+Analyse des corrélations entre assets pour diversification:
+
+```python
+import pandas as pd
+df = pd.read_csv("outputs/portfolio_correlation.csv")
+# Corrélations > 0.5 (risque de sur-corrélation)
+high_corr = df[df['daily_return_corr'] > 0.5]
+print(high_corr[['asset_a', 'asset_b', 'daily_return_corr']])
+```
+
+### 5. Concurrent Drawdowns
+
+**Fichier**: `outputs/concurrent_dd.csv`
+
+Périodes où plusieurs assets sont en drawdown simultanément (risque portfolio):
+
+```python
+import pandas as pd
+df = pd.read_csv("outputs/concurrent_dd.csv")
+# Périodes critiques (≥3 assets en DD)
+critical = df[df['count'] >= 3]
+print(critical[['date', 'count', 'assets']])
+```
+
+### 6. Plan Pine (Production)
+
+**Fichier**: `outputs/pine_plan_fullguards.csv`
+
+Paramètres validés pour implémentation TradingView:
+
+```python
+import pandas as pd
+df = pd.read_csv("outputs/pine_plan_fullguards.csv")
+print(df[['asset', 'sl_atr_mult', 'tp_atr_mult', 'tenkan', 'kijun', 'displacement']])
+```
+
+### 7. Validation Walk-Forward
+
+**Fichier**: `outputs/oos_validation_results.csv`
+
+Split 60/20/20 (IS/VAL/OOS):
+
+```python
+import pandas as pd
+df = pd.read_csv("outputs/oos_validation_results.csv")
+print(df[['segment', 'sharpe', 'return_pct', 'max_dd', 'trades']])
+# WFE = OOS Sharpe / IS Sharpe
+wfe = df.loc[df['segment'] == 'OOS', 'sharpe'].values[0] / df.loc[df['segment'] == 'IS', 'sharpe'].values[0]
+print(f"WFE: {wfe:.2f}")
+```
+
+### 8. Détails des Trades
+
+**Fichiers**: `outputs/backtest_*.csv`
+
+Chaque trade avec détails:
+
+```python
+import pandas as pd
+df = pd.read_csv("outputs/backtest_BTC_final.csv")
+print(df[['entry_time', 'exit_time', 'direction', 'pnl', 'return_pct']].head())
+# Win rate
+win_rate = (df['pnl'] > 0).mean() * 100
+print(f"Win Rate: {win_rate:.1f}%")
 ```
 
 ---
@@ -142,10 +301,14 @@ python optimize_ichimoku.py
 |-------|--------|-------------|
 | Phase 1 | ✅ | ATR TP/SL Optimization (Sharpe: 1.43) |
 | Phase 2 | ✅ | Ichimoku Optimization (Sharpe: 2.13) |
-| Phase 3 | 🔴 P0 | Walk-Forward OOS Validation |
-| Phase 4 | 🔴 P0 | Sensitivity Analysis |
-| Phase 5 | 🟠 P1 | Multi-Timeframe Validation |
-| Phase 6 | 🟡 P2 | Displacement Optimization |
+| Phase 3 | ✅ | Walk-Forward OOS Validation (WFE: 1.23) |
+| Phase 4 | ✅ | Sensitivity Analysis (variance: 4.98%) |
+| Phase 5 | ✅ | Multi-Asset Scan + Clustering (10 alts) |
+| Phase 6 | ✅ | Full Guards Suite (7 guards) |
+| Phase 7 | ✅ | Dashboard Streamlit (Dark Trading Theme) |
+| Phase 8 | ✅ | Multi-Timeframe Validation (rester 1H) |
+| Phase 9 | 🔴 **P1** | **Displacement Grid Optimization** [26-78] |
+| Phase 10 | 🟡 P4 | Live Trading Connector |
 
 ---
 

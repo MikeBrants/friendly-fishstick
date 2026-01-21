@@ -22,12 +22,27 @@ Pipeline de backtest complet pour la stratégie TradingView "FINAL TRIGGER v2" c
 | Fichier | Description |
 |---------|-------------|
 | `app.py` | Dashboard Streamlit (Dark Trading Theme) |
+| `README.md` | **Guide d'utilisation + interprétation outputs pour agents** |
 | `crypto_backtest/config/asset_config.py` | Config production (params optimaux par asset) |
 | `crypto_backtest/config/scan_assets.py` | Top 50 cryptos (tiers) + critères |
 | `docs/HANDOFF.md` | Ce document - contexte complet |
 | `outputs/portfolio_construction.csv` | Résultats portfolio optimisé |
 | `outputs/optim_*_best_params.json` | Params optimaux par asset |
 | `outputs/pine_plan_fullguards.csv` | Plan Pine pour assets full guards |
+
+### Interprétation des Outputs (Pour Agents)
+
+Le dashboard Streamlit génère automatiquement des CSV/JSON dans `outputs/`. Pour interpréter ces données **sans l'UI**, consulter la section **"📁 Outputs et Interprétation (Pour Agents)"** dans [README.md](../README.md#-outputs-et-interprétation-pour-agents).
+
+**Fichiers clés à analyser**:
+- `multiasset_scan_*.csv` — Résultats scan avec status PASS/FAIL
+- `optim_{ASSET}_best_params.json` — Paramètres optimaux par asset
+- `multiasset_guards_summary.csv` — Résultats des 7 guards par asset
+- `portfolio_correlation.csv` — Corrélations entre assets (diversification)
+- `concurrent_dd.csv` — Périodes de drawdown simultanés (risque portfolio)
+- `pine_plan_fullguards.csv` — Plan de production pour TradingView
+
+**Exemples Python** pour lire ces fichiers disponibles dans le README.
 
 ### Prochaines Étapes Suggérées
 1. ✅ ~~**P1 - Multi-Timeframe**~~: DONE → rester en 1H (4H/1D insuffisant)
