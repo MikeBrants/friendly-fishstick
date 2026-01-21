@@ -1,0 +1,14 @@
+asset,guard001_pass,guard002_pass,guard003_pass,guard005_pass,guard006_pass,guard007_pass,all_pass,error,base_sharpe,guard001_p_value,guard002_variance_pct,guard003_sharpe_ci_lower,guard005_top10_pct,guard006_stress1_sharpe,guard007_mismatch_pct,guard_wfe,guard_wfe_pass
+YGG,False,False,False,False,False,False,False,"float() argument must be a string or a real number, not 'complex'",,,,,,,,,
+ARKM,False,False,False,False,False,False,False,"float() argument must be a string or a real number, not 'complex'",,,,,,,,,
+HBAR,True,False,False,True,False,True,False,,1.4188088810519068,0.008,13.011305473620313,0.5291866288639934,34.27331554857193,0.7206480625277524,0.0,1.1347176233747205,True
+IMX,True,False,False,True,False,True,False,,0.859840409972076,0.018,28.876459107029135,-0.2557989081014839,30.64422208587428,0.5035660902850461,1.3552809942597713e-14,0.6153190298452652,True
+EGLD,True,True,True,True,True,True,True,,2.1168472025535237,0.0,6.679389282669396,1.9262756626393138,16.86538625401192,1.629172785523903,0.0,0.822485190968405,True
+STRK,False,False,False,False,False,False,False,"float() argument must be a string or a real number, not 'complex'",,,,,,,,,
+METIS,False,False,False,False,False,False,False,"float() argument must be a string or a real number, not 'complex'",,,,,,,,,
+AR,True,True,True,True,True,True,True,,2.7368614675027527,0.0,6.680365538126844,2.812978991634062,17.48647594705667,2.3092218173196954,1.207550081725199e-14,1.0568516053682626,True
+AEVO,False,False,False,False,False,False,False,"float() argument must be a string or a real number, not 'complex'",,,,,,,,,
+CELO,True,True,True,True,True,True,True,,2.0513598406103086,0.0,6.5004265300030655,1.8926927667073639,25.42822163095796,1.6303403582581788,0.0,1.2575191815344269,True
+ICP,True,False,False,False,False,True,False,,0.9455634791972172,0.017,15.259929411915884,-0.3030785440036027,64.31162387502613,0.4680584804013883,0.0,1.2261038617870923,True
+W,True,True,False,True,False,True,False,,1.1516091457115865,0.003,9.917582555640019,0.12428192570556815,34.95574299263271,0.9040262314608107,1.1127110803272276e-14,0.9845656015796076,True
+ANKR,True,True,True,True,True,True,True,,2.890618902874875,0.0,2.108559123891933,3.5642034649546246,16.416562291843746,2.5316202244188744,0.0,1.0492315000871435,True

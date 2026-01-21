@@ -159,16 +159,17 @@ def _monte_carlo_permutation(
 def _sensitivity_grid(
     data: pd.DataFrame,
     base_params: dict[str, Any],
+    radius: int = 2,
 ) -> tuple[pd.DataFrame, float]:
     tenkan = int(base_params["tenkan"])
     kijun = int(base_params["kijun"])
     tenkan_5 = int(base_params["tenkan_5"])
     kijun_5 = int(base_params["kijun_5"])
 
-    tenkan_range = range(max(1, tenkan - 2), tenkan + 3)
-    kijun_range = range(max(1, kijun - 2), kijun + 3)
-    tenkan_5_range = range(max(1, tenkan_5 - 2), tenkan_5 + 3)
-    kijun_5_range = range(max(1, kijun_5 - 2), kijun_5 + 3)
+    tenkan_range = range(max(1, tenkan - radius), tenkan + radius + 1)
+    kijun_range = range(max(1, kijun - radius), kijun + radius + 1)
+    tenkan_5_range = range(max(1, tenkan_5 - radius), tenkan_5 + radius + 1)
+    kijun_5_range = range(max(1, kijun_5 - radius), kijun_5 + radius + 1)
 
     rows = []
     for t in tenkan_range:
@@ -378,25 +379,33 @@ def _write_report(
     asset: str,
     guard_results: dict[str, Any],
 ) -> None:
+    def _fmt(value: Any, precision: int = 4) -> str:
+        if value is None or (isinstance(value, float) and np.isnan(value)):
+            return "n/a"
+        return f"{value:.{precision}f}"
+
     lines = [
         f"GUARDS VALIDATION REPORT: {asset}",
         "=" * 70,
-        f"GUARD-001 Monte Carlo p-value: {guard_results['guard001_p_value']:.4f} -> "
+        f"GUARD-001 Monte Carlo p-value: {_fmt(guard_results.get('guard001_p_value'))} -> "
         f"{'PASS' if guard_results['guard001_pass'] else 'FAIL'}",
-        f"GUARD-002 Sensitivity variance: {guard_results['guard002_variance_pct']:.2f}% -> "
+        f"GUARD-002 Sensitivity variance: {_fmt(guard_results.get('guard002_variance_pct'), 2)}% -> "
         f"{'PASS' if guard_results['guard002_pass'] else 'FAIL'}",
         "GUARD-003 Bootstrap Sharpe CI lower: "
-        f"{guard_results['guard003_sharpe_ci_lower']:.2f} -> "
+        f"{_fmt(guard_results.get('guard003_sharpe_ci_lower'), 2)} -> "
         f"{'PASS' if guard_results['guard003_pass'] else 'FAIL'}",
         "GUARD-005 Trade distribution top10: "
-        f"{guard_results['guard005_top10_pct']:.2f}% -> "
+        f"{_fmt(guard_results.get('guard005_top10_pct'), 2)}% -> "
         f"{'PASS' if guard_results['guard005_pass'] else 'FAIL'}",
         "GUARD-006 Stress1 Sharpe: "
-        f"{guard_results['guard006_stress1_sharpe']:.2f} -> "
+        f"{_fmt(guard_results.get('guard006_stress1_sharpe'), 2)} -> "
         f"{'PASS' if guard_results['guard006_pass'] else 'FAIL'}",
         "GUARD-007 Regime reconciliation mismatch: "
-        f"{guard_results['guard007_mismatch_pct']:.2f}% -> "
+        f"{_fmt(guard_results.get('guard007_mismatch_pct'), 2)}% -> "
         f"{'PASS' if guard_results['guard007_pass'] else 'FAIL'}",
+        "GUARD-WFE: "
+        f"{_fmt(guard_results.get('guard_wfe'), 2)} -> "
+        f"{'PASS' if guard_results.get('guard_wfe_pass', True) else 'FAIL'}",
         "-" * 70,
         f"ALL PASS: {'YES' if guard_results['all_pass'] else 'NO'}",
     ]
@@ -419,6 +428,8 @@ def _load_params(params_file: str) -> dict[str, dict[str, Any]]:
         }
         if "displacement" in df.columns and pd.notna(row.displacement):
             params["displacement"] = int(row.displacement)
+        if "wfe" in df.columns and pd.notna(row.wfe):
+            params["wfe"] = float(row.wfe)
         params_map[str(row.asset)] = params
     return params_map
 
@@ -429,6 +440,11 @@ def _asset_guard_worker(
     data_dir: str,
     outputs_dir: str,
     run_id: str,
+    guards: set[str],
+    mc_iterations: int,
+    bootstrap_samples: int,
+    sensitivity_range: int,
+    stress_scenarios: list[tuple[float, float]],
 ) -> dict[str, Any]:
     data = load_data(asset, data_dir)
     if data.index.tz is None:
@@ -460,79 +476,108 @@ def _asset_guard_worker(
     outputs_path = Path(outputs_dir)
     outputs_path.mkdir(exist_ok=True)
 
-    # GUARD-001 Monte Carlo
-    mc_df, mc_p = _monte_carlo_permutation(data, base_result, iterations=1000, seed=SEED)
-    mc_path = outputs_path / f"{asset}_montecarlo_{run_id}.csv"
-    mc_df.to_csv(mc_path, index=False)
-    guard001_pass = mc_p < 0.05
+    wfe_value = params.get("wfe")
+    guard_wfe_pass = True
+    if "wfe" in guards:
+        guard_wfe_pass = wfe_value is not None and float(wfe_value) >= 0.6
 
-    # GUARD-002 Sensitivity
-    sens_df, variance_pct = _sensitivity_grid(data, params)
-    sens_path = outputs_path / f"{asset}_sensitivity_{run_id}.csv"
-    sens_df.to_csv(sens_path, index=False)
-    guard002_pass = variance_pct < 10.0
+    mc_p = None
+    guard001_pass = True
+    if "mc" in guards:
+        mc_df, mc_p = _monte_carlo_permutation(
+            data, base_result, iterations=mc_iterations, seed=SEED
+        )
+        mc_path = outputs_path / f"{asset}_montecarlo_{run_id}.csv"
+        mc_df.to_csv(mc_path, index=False)
+        guard001_pass = mc_p < 0.05
 
-    # GUARD-003 Bootstrap
+    variance_pct = None
+    guard002_pass = True
+    if "sensitivity" in guards:
+        sens_df, variance_pct = _sensitivity_grid(
+            data, params, radius=sensitivity_range
+        )
+        sens_path = outputs_path / f"{asset}_sensitivity_{run_id}.csv"
+        sens_df.to_csv(sens_path, index=False)
+        guard002_pass = variance_pct < 10.0
+
     pnls = _pnl_series(base_result.trades).to_numpy()
-    if len(pnls) == 0:
-        raise RuntimeError("No trades for bootstrap confidence intervals.")
-    bootstrap_df, bootstrap_summary = _bootstrap_confidence(
-        pnls,
-        initial_capital=BASE_CONFIG.initial_capital,
-        iterations=10000,
-        seed=SEED,
-    )
-    bootstrap_path = outputs_path / f"{asset}_bootstrap_{run_id}.csv"
-    bootstrap_df.to_csv(bootstrap_path, index=False)
-    sharpe_ci_lower = float(bootstrap_summary["sharpe"]["ci_lower_95"])
-    guard003_pass = sharpe_ci_lower > 1.0
+    needs_trades = any(g in guards for g in ["bootstrap", "trade_dist", "stress", "regime"])
+    if needs_trades and len(pnls) == 0:
+        raise RuntimeError("No trades for guard calculations.")
 
-    # GUARD-005 Trade distribution
-    trade_dist = _trade_distribution(pnls)
-    trade_dist["total_return_pct"] = pnls.sum() / BASE_CONFIG.initial_capital * 100.0
-    trade_dist_path = outputs_path / f"{asset}_tradedist_{run_id}.csv"
-    pd.DataFrame([trade_dist]).to_csv(trade_dist_path, index=False)
-    guard005_pass = trade_dist["pct_return_top_10"] < 40.0
+    sharpe_ci_lower = None
+    guard003_pass = True
+    if "bootstrap" in guards:
+        bootstrap_df, bootstrap_summary = _bootstrap_confidence(
+            pnls,
+            initial_capital=BASE_CONFIG.initial_capital,
+            iterations=bootstrap_samples,
+            seed=SEED,
+        )
+        bootstrap_path = outputs_path / f"{asset}_bootstrap_{run_id}.csv"
+        bootstrap_df.to_csv(bootstrap_path, index=False)
+        sharpe_ci_lower = float(bootstrap_summary["sharpe"]["ci_lower_95"])
+        guard003_pass = sharpe_ci_lower > 1.0
 
-    # GUARD-006 Stress test
-    scenarios = [
-        ("Base", 5, 2),
-        ("Stress1", 10, 5),
-        ("Stress2", 15, 10),
-        ("Stress3", 20, 15),
-    ]
-    stress_rows = []
-    for label, fees, slippage in scenarios:
-        metrics = _run_scenario(data, full_params, fees_bps=fees, slippage_bps=slippage)
-        metrics["scenario"] = label
-        stress_rows.append(metrics)
-    break_even_fees = _find_break_even_fees(data, full_params)
-    edge_buffer_bps = break_even_fees - 5
-    for row in stress_rows:
-        row["break_even_fees_bps"] = break_even_fees
-        row["edge_buffer_bps"] = edge_buffer_bps
-    stress_df = pd.DataFrame(stress_rows)
-    stress_path = outputs_path / f"{asset}_stresstest_{run_id}.csv"
-    stress_df.to_csv(stress_path, index=False)
-    stress1_row = stress_df[stress_df["scenario"] == "Stress1"].iloc[0]
-    guard006_pass = float(stress1_row["sharpe"]) > 1.0
+    trade_dist = {}
+    guard005_pass = True
+    if "trade_dist" in guards:
+        trade_dist = _trade_distribution(pnls)
+        trade_dist["total_return_pct"] = pnls.sum() / BASE_CONFIG.initial_capital * 100.0
+        trade_dist_path = outputs_path / f"{asset}_tradedist_{run_id}.csv"
+        pd.DataFrame([trade_dist]).to_csv(trade_dist_path, index=False)
+        guard005_pass = trade_dist["pct_return_top_10"] < 40.0
 
-    # GUARD-007 Regime reconciliation
-    regime_df, mismatch_pct = _regime_reconciliation(data, base_result)
-    regime_path = outputs_path / f"{asset}_regime_{run_id}.csv"
-    regime_df.to_csv(regime_path, index=False)
-    guard007_pass = mismatch_pct < 1.0
+    stress1_sharpe = None
+    guard006_pass = True
+    if "stress" in guards:
+        scenarios = [("Base", 5, 2)]
+        if not stress_scenarios:
+            stress_scenarios = [(10.0, 5.0)]
+        for idx, (fees, slippage) in enumerate(stress_scenarios, start=1):
+            scenarios.append((f"Stress{idx}", fees, slippage))
+        stress_rows = []
+        for label, fees, slippage in scenarios:
+            metrics = _run_scenario(data, full_params, fees_bps=fees, slippage_bps=slippage)
+            metrics["scenario"] = label
+            stress_rows.append(metrics)
+        break_even_fees = _find_break_even_fees(data, full_params)
+        edge_buffer_bps = break_even_fees - 5
+        for row in stress_rows:
+            row["break_even_fees_bps"] = break_even_fees
+            row["edge_buffer_bps"] = edge_buffer_bps
+        stress_df = pd.DataFrame(stress_rows)
+        stress_path = outputs_path / f"{asset}_stresstest_{run_id}.csv"
+        stress_df.to_csv(stress_path, index=False)
+        stress1_row = stress_df[stress_df["scenario"] == "Stress1"].iloc[0]
+        stress1_sharpe = float(stress1_row["sharpe"])
+        guard006_pass = stress1_sharpe > 1.0
 
-    all_pass = all(
-        [
-            guard001_pass,
-            guard002_pass,
-            guard003_pass,
-            guard005_pass,
-            guard006_pass,
-            guard007_pass,
-        ]
-    )
+    mismatch_pct = None
+    guard007_pass = True
+    if "regime" in guards:
+        regime_df, mismatch_pct = _regime_reconciliation(data, base_result)
+        regime_path = outputs_path / f"{asset}_regime_{run_id}.csv"
+        regime_df.to_csv(regime_path, index=False)
+        guard007_pass = mismatch_pct < 1.0
+
+    guard_checks = []
+    if "mc" in guards:
+        guard_checks.append(guard001_pass)
+    if "sensitivity" in guards:
+        guard_checks.append(guard002_pass)
+    if "bootstrap" in guards:
+        guard_checks.append(guard003_pass)
+    if "trade_dist" in guards:
+        guard_checks.append(guard005_pass)
+    if "stress" in guards:
+        guard_checks.append(guard006_pass)
+    if "regime" in guards:
+        guard_checks.append(guard007_pass)
+    if "wfe" in guards:
+        guard_checks.append(guard_wfe_pass)
+    all_pass = all(guard_checks) if guard_checks else True
 
     report_path = outputs_path / f"{asset}_validation_report_{run_id}.txt"
     _write_report(
@@ -545,12 +590,14 @@ def _asset_guard_worker(
             "guard002_pass": guard002_pass,
             "guard003_sharpe_ci_lower": sharpe_ci_lower,
             "guard003_pass": guard003_pass,
-            "guard005_top10_pct": trade_dist["pct_return_top_10"],
+            "guard005_top10_pct": trade_dist.get("pct_return_top_10"),
             "guard005_pass": guard005_pass,
-            "guard006_stress1_sharpe": float(stress1_row["sharpe"]),
+            "guard006_stress1_sharpe": stress1_sharpe,
             "guard006_pass": guard006_pass,
             "guard007_mismatch_pct": mismatch_pct,
             "guard007_pass": guard007_pass,
+            "guard_wfe": wfe_value,
+            "guard_wfe_pass": guard_wfe_pass,
             "all_pass": all_pass,
         },
     )
@@ -564,12 +611,14 @@ def _asset_guard_worker(
         "guard002_pass": guard002_pass,
         "guard003_sharpe_ci_lower": sharpe_ci_lower,
         "guard003_pass": guard003_pass,
-        "guard005_top10_pct": trade_dist["pct_return_top_10"],
+        "guard005_top10_pct": trade_dist.get("pct_return_top_10"),
         "guard005_pass": guard005_pass,
-        "guard006_stress1_sharpe": float(stress1_row["sharpe"]),
+        "guard006_stress1_sharpe": stress1_sharpe,
         "guard006_pass": guard006_pass,
         "guard007_mismatch_pct": mismatch_pct,
         "guard007_pass": guard007_pass,
+        "guard_wfe": wfe_value,
+        "guard_wfe_pass": guard_wfe_pass,
         "all_pass": all_pass,
         "error": "",
     }
@@ -581,13 +630,36 @@ def main() -> None:
     parser.add_argument("--params-file", required=True, help="CSV with per-asset params")
     parser.add_argument("--data-dir", default="data")
     parser.add_argument("--outputs-dir", default="outputs")
+    parser.add_argument("--summary-output", default=None)
     parser.add_argument("--workers", type=int, default=max(os.cpu_count() - 1, 1))
+    parser.add_argument(
+        "--guards",
+        default="mc,sensitivity,bootstrap,stress,regime,trade_dist,wfe",
+        help="Comma-separated list of guards to run",
+    )
+    parser.add_argument("--mc-iterations", type=int, default=1000)
+    parser.add_argument("--bootstrap-samples", type=int, default=10000)
+    parser.add_argument("--sensitivity-range", type=int, default=2)
+    parser.add_argument(
+        "--stress-fees",
+        nargs="*",
+        default=[],
+        help="Stress scenarios as 'fees,slip' pairs",
+    )
     args = parser.parse_args()
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     print(f"[GUARDS] Run ID: {run_id}")
 
     params_map = _load_params(args.params_file)
     assets = args.assets
+    guards = {g.strip() for g in args.guards.split(",") if g.strip()}
+
+    stress_scenarios = []
+    for item in args.stress_fees:
+        if "," not in item:
+            continue
+        fees_str, slip_str = item.split(",", 1)
+        stress_scenarios.append((float(fees_str), float(slip_str)))
 
     rows = []
     with ProcessPoolExecutor(max_workers=args.workers) as executor:
@@ -603,6 +675,7 @@ def main() -> None:
                         "guard005_pass": False,
                         "guard006_pass": False,
                         "guard007_pass": False,
+                        "guard_wfe_pass": False,
                         "all_pass": False,
                         "error": "missing_params",
                     }
@@ -615,6 +688,11 @@ def main() -> None:
                 args.data_dir,
                 args.outputs_dir,
                 run_id,
+                guards,
+                args.mc_iterations,
+                args.bootstrap_samples,
+                args.sensitivity_range,
+                stress_scenarios,
             )] = asset
 
         for future in as_completed(futures):
@@ -637,7 +715,10 @@ def main() -> None:
                 )
 
     summary_df = pd.DataFrame(rows)
-    output_path = Path(args.outputs_dir) / f"multiasset_guards_summary_{run_id}.csv"
+    if args.summary_output:
+        output_path = Path(args.summary_output)
+    else:
+        output_path = Path(args.outputs_dir) / f"multiasset_guards_summary_{run_id}.csv"
     summary_df.to_csv(output_path, index=False)
 
 

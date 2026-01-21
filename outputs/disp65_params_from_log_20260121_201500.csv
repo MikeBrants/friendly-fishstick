@@ -1,0 +1,6 @@
+asset,sl_mult,tp1_mult,tp2_mult,tp3_mult,tenkan,kijun,tenkan_5,kijun_5,displacement,wfe,status
+RUNE,2.25,2.25,8.0,9.0,5,23,10,22,65,0.57,FAIL
+MINA,3.25,3.0,8.0,9.0,8,28,13,21,65,1.78,SUCCESS
+CAKE,2.5,1.75,7.5,10.0,10,23,9,29,65,0.56,FAIL
+OSMO,3.5,2.75,6.5,10.0,10,31,12,26,65,0.77,SUCCESS
+KSM,4.25,1.75,4.0,7.5,10,21,14,27,65,0.29,FAIL

@@ -1,0 +1,119 @@
+[RUNE] START
+[RUNE] download
+[RUNE] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[RUNE] ATR opt
+[RUNE] ATR done: Sharpe=1.69, params={'sl_mult': 2.25, 'tp1_mult': 2.25, 'tp2_mult': 8.0, 'tp3_mult': 9.0}
+[RUNE] Ichi opt
+[RUNE] Ichi done: Sharpe=1.93, params={'tenkan': 5, 'kijun': 23, 'tenkan_5': 10, 'kijun_5': 22}
+[RUNE] WF
+[RUNE] MC
+[RUNE] DONE
+[RUNE] ✓ Complete: OOS Sharpe=1.11, WFE=0.57, Status=FAIL
+[MINA] START
+[MINA] download
+[MINA] Data: IS=10392, VAL=3464, OOS=3465 bars [2024-01-22 → 2026-01-21]
+[MINA] ATR opt
+[MINA] ATR done: Sharpe=1.31, params={'sl_mult': 3.25, 'tp1_mult': 3.0, 'tp2_mult': 8.0, 'tp3_mult': 9.0}
+[MINA] Ichi opt
+[MINA] Ichi done: Sharpe=2.09, params={'tenkan': 8, 'kijun': 28, 'tenkan_5': 13, 'kijun_5': 21}
+[MINA] WF
+[MINA] MC
+[MINA] DONE
+[MINA] ✓ Complete: OOS Sharpe=3.71, WFE=1.78, Status=SUCCESS
+[CAKE] START
+[CAKE] download
+[CAKE] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[CAKE] ATR opt
+[CAKE] ATR done: Sharpe=3.02, params={'sl_mult': 2.5, 'tp1_mult': 1.75, 'tp2_mult': 7.5, 'tp3_mult': 10.0}
+[CAKE] Ichi opt
+[CAKE] Ichi done: Sharpe=3.22, params={'tenkan': 10, 'kijun': 23, 'tenkan_5': 9, 'kijun_5': 29}
+[CAKE] WF
+[CAKE] MC
+[CAKE] DONE
+[CAKE] ✓ Complete: OOS Sharpe=1.79, WFE=0.56, Status=FAIL
+[OSMO] START
+[OSMO] download
+[OSMO] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[OSMO] ATR opt
+[OSMO] ATR done: Sharpe=4.15, params={'sl_mult': 3.5, 'tp1_mult': 2.75, 'tp2_mult': 6.5, 'tp3_mult': 10.0}
+[OSMO] Ichi opt
+[OSMO] Ichi done: Sharpe=4.15, params={'tenkan': 10, 'kijun': 31, 'tenkan_5': 12, 'kijun_5': 26}
+[OSMO] WF
+[OSMO] MC
+[OSMO] DONE
+[OSMO] ✓ Complete: OOS Sharpe=3.18, WFE=0.77, Status=SUCCESS
+[KSM] START
+[KSM] download
+[KSM] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[KSM] ATR opt
+[KSM] ATR done: Sharpe=2.70, params={'sl_mult': 4.25, 'tp1_mult': 1.75, 'tp2_mult': 4.0, 'tp3_mult': 7.5}
+[KSM] Ichi opt
+[KSM] Ichi done: Sharpe=3.41, params={'tenkan': 10, 'kijun': 21, 'tenkan_5': 14, 'kijun_5': 27}
+[KSM] WF
+[KSM] MC
+[KSM] DONE
+[KSM] ✓ Complete: OOS Sharpe=0.98, WFE=0.29, Status=FAIL
+[GUARDS] Run ID: 20260121_194904
+======================================================================
+MULTI-ASSET SCAN PIPELINE (CODEX-005)
+Started: 2026-01-21T19:45:38.228391
+======================================================================
+
+[STEP 1/3] Skipping download (--skip-download or --skip-optimize)
+
+======================================================================
+[STEP 2/3] RUNNING PARALLEL OPTIMIZATION
+======================================================================
+============================================================
+MULTI-ASSET PARALLEL SCAN
+Assets: ['CAKE', 'KSM', 'MINA', 'OSMO', 'RUNE']
+Workers: 6
+Conservative: False
+Enforce TP progression: True
+Fixed displacement: 65
+============================================================
+
+============================================================
+SCAN COMPLETE
+============================================================
+
+PASSED ASSETS:
+asset  oos_sharpe  oos_trades      wfe
+ MINA    3.711577          72 1.779339
+ OSMO    3.175655          57 0.765918
+
+FAILED ASSETS:
+asset status  oos_sharpe      wfe
+ CAKE   FAIL    1.787898 0.555892
+  KSM   FAIL    0.983137 0.288336
+ RUNE   FAIL    1.107156 0.572308
+
+Results saved to: outputs/multiasset_scan_20260121_1949.csv
+Debug copy saved to: outputs/multi_asset_scan_20260121_1949.csv
+
+======================================================================
+[STEP 3/3] RUNNING CLUSTER ANALYSIS
+======================================================================
+============================================================
+CLUSTER ANALYSIS
+============================================================
+
+Loaded 2 successful assets
+Not enough assets for clustering (minimum 3)
+
+======================================================================
+PIPELINE COMPLETE
+======================================================================
+
+Output Files:
+  - outputs\multiasset_scan_20260121_1949.csv (scan results)
+  - outputs\cluster_analysis_20260121_1751.json (cluster JSON)
+  - crypto_backtest/config\cluster_params_20260121_1751.py (cluster config)
+  - crypto_backtest/config/cluster_params.py (latest config)
+  - outputs\cluster_param_loss_20260121_1751.csv (param loss)
+
+Finished: 2026-01-21T19:49:03.613552
+
+======================================================================
+[POST] RUNNING GUARDS
+======================================================================

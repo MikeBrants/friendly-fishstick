@@ -264,17 +264,30 @@ def build_strategy_params(
     }
 
 
+def tp_progression_ok(
+    tp1: float,
+    tp2: float,
+    tp3: float,
+    min_gap: float = MIN_TP_GAP,
+) -> bool:
+    """Return True when TP1 < TP2 < TP3 with minimum gap."""
+    try:
+        if not (tp1 < tp2 < tp3):
+            return False
+        return (tp2 - tp1) >= min_gap and (tp3 - tp2) >= min_gap
+    except TypeError:
+        return False
+
+
 def validate_tp_progression(params: dict[str, Any], min_gap: float = MIN_TP_GAP) -> None:
     """Validate that TP1 < TP2 < TP3 with minimum gap."""
     tp1 = params["tp1_mult"]
     tp2 = params["tp2_mult"]
     tp3 = params["tp3_mult"]
 
-    if not (tp1 < tp2 < tp3):
-        raise ValueError(f"TP non-progressifs: {tp1} / {tp2} / {tp3}")
-    if tp2 - tp1 < min_gap or tp3 - tp2 < min_gap:
+    if not tp_progression_ok(tp1, tp2, tp3, min_gap):
         raise ValueError(
-            f"Gap TP insuffisant: {tp2 - tp1:.2f} / {tp3 - tp2:.2f} (min {min_gap})"
+            f"TP progression invalid: {tp1} / {tp2} / {tp3} (min_gap={min_gap})"
         )
 
 
@@ -303,7 +316,7 @@ def optimize_atr(
     data: pd.DataFrame,
     n_trials: int = 100,
     min_trades: int = 50,
-    enforce_tp_progression: bool = False,
+    enforce_tp_progression: bool = True,
     fixed_displacement: int | None = None,
 ) -> tuple[dict[str, float], float]:
     """Optimize ATR parameters."""
@@ -318,11 +331,7 @@ def optimize_atr(
         tp2 = trial.suggest_float("tp2_mult", *ATR_SEARCH_SPACE["tp2_mult"], step=0.5)
         tp3 = trial.suggest_float("tp3_mult", *ATR_SEARCH_SPACE["tp3_mult"], step=0.5)
 
-        if enforce_tp_progression and (
-            tp2 - tp1 < MIN_TP_GAP
-            or tp3 - tp2 < MIN_TP_GAP
-            or not (tp1 < tp2 < tp3)
-        ):
+        if enforce_tp_progression and not tp_progression_ok(tp1, tp2, tp3, MIN_TP_GAP):
             return -10.0
 
         disp = fixed_displacement if fixed_displacement is not None else 52
@@ -350,7 +359,7 @@ def optimize_atr_conservative(
     data: pd.DataFrame,
     n_trials: int = 200,
     min_trades: int = 50,
-    enforce_tp_progression: bool = False,
+    enforce_tp_progression: bool = True,
     fixed_displacement: int | None = None,
 ) -> tuple[dict[str, float], float]:
     """Optimize ATR parameters with a discrete grid."""
@@ -362,11 +371,7 @@ def optimize_atr_conservative(
         tp2 = trial.suggest_categorical("tp2_mult", CONSERVATIVE_ATR_SPACE["tp2_mult"])
         tp3 = trial.suggest_categorical("tp3_mult", CONSERVATIVE_ATR_SPACE["tp3_mult"])
 
-        if enforce_tp_progression and (
-            tp2 - tp1 < MIN_TP_GAP
-            or tp3 - tp2 < MIN_TP_GAP
-            or not (tp1 < tp2 < tp3)
-        ):
+        if enforce_tp_progression and not tp_progression_ok(tp1, tp2, tp3, MIN_TP_GAP):
             return -10.0
 
         disp = fixed_displacement if fixed_displacement is not None else 52
@@ -520,7 +525,7 @@ def optimize_single_asset(
     n_trials_ichi: int = None,
     mc_iterations: int = 500,
     conservative: bool = False,
-    enforce_tp_progression: bool = False,
+    enforce_tp_progression: bool = True,
     fixed_displacement: int | None = None,
 ) -> AssetScanResult:
     """Full optimization pipeline for one asset."""
@@ -592,6 +597,13 @@ def optimize_single_asset(
             final_params["ichimoku"]["displacement"] = fixed_displacement
             final_params["five_in_one"]["displacement_5"] = fixed_displacement
 
+        tp_ok = tp_progression_ok(
+            final_params["tp1_mult"],
+            final_params["tp2_mult"],
+            final_params["tp3_mult"],
+            MIN_TP_GAP,
+        )
+
         if enforce_tp_progression:
             validate_tp_progression(final_params)
 
@@ -612,6 +624,9 @@ def optimize_single_asset(
         status = "SUCCESS"
         fail_reasons = []
 
+        if not tp_ok:
+            fail_reasons.append("TP_NON_PROGRESSIVE")
+
         if oos_results["sharpe"] < PASS_CRITERIA["oos_sharpe_min"]:
             fail_reasons.append(f"OOS_SHARPE<{PASS_CRITERIA['oos_sharpe_min']}")
         if wfe < PASS_CRITERIA["wfe_min"]:
@@ -630,6 +645,10 @@ def optimize_single_asset(
 
         fail_reason = "; ".join(fail_reasons) if fail_reasons else ""
 
+        tp1_out = atr_params["tp1_mult"] if tp_ok else float("nan")
+        tp2_out = atr_params["tp2_mult"] if tp_ok else float("nan")
+        tp3_out = atr_params["tp3_mult"] if tp_ok else float("nan")
+
         result = AssetScanResult(
             asset=asset,
             status=status,
@@ -641,9 +660,9 @@ def optimize_single_asset(
             seed=SEED,
             fail_reason=fail_reason,
             sl_mult=atr_params["sl_mult"],
-            tp1_mult=atr_params["tp1_mult"],
-            tp2_mult=atr_params["tp2_mult"],
-            tp3_mult=atr_params["tp3_mult"],
+            tp1_mult=tp1_out,
+            tp2_mult=tp2_out,
+            tp3_mult=tp3_out,
             tenkan=ichi_params["tenkan"],
             kijun=ichi_params["kijun"],
             tenkan_5=ichi_params["tenkan_5"],
@@ -702,7 +721,7 @@ def run_parallel_scan(
     cluster: bool = False,
     cluster_count: int = None,
     conservative: bool = False,
-    enforce_tp_progression: bool = False,
+    enforce_tp_progression: bool = True,
     fixed_displacement: int | None = None,
 ) -> pd.DataFrame:
     """Run optimization for all assets in parallel."""
@@ -792,7 +811,14 @@ def main():
     parser.add_argument(
         "--enforce-tp-progression",
         action="store_true",
-        help="Enforce TP1 < TP2 < TP3 with minimum gap",
+        dest="enforce_tp_progression",
+        help="Enforce TP1 < TP2 < TP3 with minimum gap (default: on)",
+    )
+    parser.add_argument(
+        "--no-enforce-tp-progression",
+        action="store_false",
+        dest="enforce_tp_progression",
+        help="Allow non-progressive TP levels",
     )
     parser.add_argument(
         "--fixed-displacement",
@@ -800,6 +826,7 @@ def main():
         default=None,
         help="Fix Ichimoku displacement (and 5in1) to this value",
     )
+    parser.set_defaults(enforce_tp_progression=True)
     args = parser.parse_args()
 
     assets = args.assets or SCAN_ASSETS

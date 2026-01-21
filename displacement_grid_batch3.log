@@ -1,0 +1,552 @@
+Exported: outputs\displacement_grid_batch3_20260121_194004.csv
+Exported: outputs\displacement_grid_batch3_summary_20260121_194004.csv
+[JOE] START
+[JOE] download
+[JOE] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[JOE] ATR opt
+[JOE] ATR done: Sharpe=2.20, params={'sl_mult': 5.0, 'tp1_mult': 4.5, 'tp2_mult': 5.5, 'tp3_mult': 8.5}
+[JOE] Ichi opt
+[JOE] Ichi done: Sharpe=2.21, params={'tenkan': 16, 'kijun': 27, 'tenkan_5': 16, 'kijun_5': 26}
+[JOE] WF
+[JOE] MC
+[JOE] DONE
+[JOE] ✓ Complete: OOS Sharpe=2.36, WFE=1.07, Status=SUCCESS
+[TON] START
+[TON] download
+[TON] Data: IS=7528, VAL=2510, OOS=2510 bars [2024-08-08 → 2026-01-21]
+[TON] ATR opt
+[TON] ATR done: Sharpe=2.56, params={'sl_mult': 3.25, 'tp1_mult': 3.25, 'tp2_mult': 7.5, 'tp3_mult': 9.5}
+[TON] Ichi opt
+[TON] Ichi done: Sharpe=2.74, params={'tenkan': 10, 'kijun': 24, 'tenkan_5': 9, 'kijun_5': 24}
+[TON] WF
+[TON] MC
+[TON] DONE
+[TON] ✓ Complete: OOS Sharpe=1.31, WFE=0.48, Status=FAIL
+[RUNE] START
+[RUNE] download
+[RUNE] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[RUNE] ATR opt
+[RUNE] ATR done: Sharpe=3.11, params={'sl_mult': 1.5, 'tp1_mult': 4.5, 'tp2_mult': 8.0, 'tp3_mult': 9.5}
+[RUNE] Ichi opt
+[RUNE] Ichi done: Sharpe=3.71, params={'tenkan': 5, 'kijun': 36, 'tenkan_5': 16, 'kijun_5': 28}
+[RUNE] WF
+[RUNE] MC
+[RUNE] DONE
+[RUNE] ✓ Complete: OOS Sharpe=1.56, WFE=0.42, Status=FAIL
+[AXS] START
+[AXS] download
+[AXS] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[AXS] ATR opt
+[AXS] ATR done: Sharpe=1.61, params={'sl_mult': 4.75, 'tp1_mult': 2.0, 'tp2_mult': 8.0, 'tp3_mult': 9.5}
+[AXS] Ichi opt
+[AXS] Ichi done: Sharpe=2.76, params={'tenkan': 18, 'kijun': 36, 'tenkan_5': 13, 'kijun_5': 17}
+[AXS] WF
+[AXS] MC
+[AXS] DONE
+[AXS] ✓ Complete: OOS Sharpe=0.28, WFE=0.10, Status=FAIL
+[CAKE] START
+[CAKE] download
+[CAKE] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[CAKE] ATR opt
+[CAKE] ATR done: Sharpe=2.14, params={'sl_mult': 2.25, 'tp1_mult': 3.0, 'tp2_mult': 7.5, 'tp3_mult': 10.0}
+[CAKE] Ichi opt
+[CAKE] Ichi done: Sharpe=2.76, params={'tenkan': 19, 'kijun': 29, 'tenkan_5': 8, 'kijun_5': 23}
+[CAKE] WF
+[CAKE] MC
+[CAKE] DONE
+[CAKE] ✓ Complete: OOS Sharpe=2.37, WFE=0.86, Status=SUCCESS
+[KSM] START
+[KSM] download
+[KSM] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[KSM] ATR opt
+[KSM] ATR done: Sharpe=1.73, params={'sl_mult': 3.25, 'tp1_mult': 1.75, 'tp2_mult': 5.0, 'tp3_mult': 6.5}
+[KSM] Ichi opt
+[KSM] Ichi done: Sharpe=2.06, params={'tenkan': 6, 'kijun': 21, 'tenkan_5': 8, 'kijun_5': 25}
+[KSM] WF
+[KSM] MC
+[KSM] DONE
+[KSM] ✓ Complete: OOS Sharpe=2.55, WFE=1.23, Status=SUCCESS
+[MINA] START
+[MINA] download
+[MINA] Data: IS=10392, VAL=3464, OOS=3465 bars [2024-01-22 → 2026-01-21]
+[MINA] ATR opt
+[MINA] ATR done: Sharpe=1.57, params={'sl_mult': 3.25, 'tp1_mult': 3.0, 'tp2_mult': 8.5, 'tp3_mult': 9.5}
+[MINA] Ichi opt
+[MINA] Ichi done: Sharpe=2.68, params={'tenkan': 5, 'kijun': 36, 'tenkan_5': 14, 'kijun_5': 23}
+[MINA] WF
+[MINA] MC
+[MINA] DONE
+[MINA] ✓ Complete: OOS Sharpe=2.36, WFE=0.88, Status=SUCCESS
+[JOE] START
+[JOE] download
+[JOE] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[JOE] ATR opt
+[JOE] ATR done: Sharpe=2.99, params={'sl_mult': 3.75, 'tp1_mult': 5.0, 'tp2_mult': 8.0, 'tp3_mult': 10.0}
+[JOE] Ichi opt
+[JOE] Ichi done: Sharpe=2.79, params={'tenkan': 10, 'kijun': 32, 'tenkan_5': 9, 'kijun_5': 29}
+[JOE] WF
+[JOE] MC
+[JOE] DONE
+[JOE] ✓ Complete: OOS Sharpe=5.15, WFE=1.84, Status=SUCCESS
+[TON] START
+[TON] download
+[TON] Data: IS=7528, VAL=2510, OOS=2510 bars [2024-08-08 → 2026-01-21]
+[TON] ATR opt
+[TON] ATR done: Sharpe=1.99, params={'sl_mult': 2.75, 'tp1_mult': 1.5, 'tp2_mult': 9.0, 'tp3_mult': 9.5}
+[TON] Ichi opt
+[TON] Ichi done: Sharpe=2.21, params={'tenkan': 20, 'kijun': 35, 'tenkan_5': 9, 'kijun_5': 15}
+[TON] WF
+[TON] MC
+[TON] DONE
+[TON] ✓ Complete: OOS Sharpe=1.31, WFE=0.59, Status=FAIL
+[RUNE] START
+[RUNE] download
+[RUNE] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[RUNE] ATR opt
+[RUNE] ATR done: Sharpe=3.22, params={'sl_mult': 2.0, 'tp1_mult': 3.25, 'tp2_mult': 7.0, 'tp3_mult': 8.5}
+[RUNE] Ichi opt
+[RUNE] Ichi done: Sharpe=3.54, params={'tenkan': 14, 'kijun': 36, 'tenkan_5': 11, 'kijun_5': 30}
+[RUNE] WF
+[RUNE] MC
+[RUNE] DONE
+[RUNE] ✓ Complete: OOS Sharpe=-2.39, WFE=-0.68, Status=FAIL
+[AXS] START
+[AXS] download
+[AXS] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[AXS] ATR opt
+[AXS] ATR done: Sharpe=3.43, params={'sl_mult': 2.5, 'tp1_mult': 2.0, 'tp2_mult': 4.5, 'tp3_mult': 5.0}
+[AXS] Ichi opt
+[AXS] Ichi done: Sharpe=3.67, params={'tenkan': 7, 'kijun': 20, 'tenkan_5': 10, 'kijun_5': 25}
+[AXS] WF
+[AXS] MC
+[AXS] DONE
+[AXS] ✓ Complete: OOS Sharpe=2.22, WFE=0.60, Status=SUCCESS
+[CAKE] START
+[CAKE] download
+[CAKE] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[CAKE] ATR opt
+[CAKE] ATR done: Sharpe=3.43, params={'sl_mult': 3.0, 'tp1_mult': 4.0, 'tp2_mult': 9.0, 'tp3_mult': 10.0}
+[CAKE] Ichi opt
+[CAKE] Ichi done: Sharpe=3.55, params={'tenkan': 10, 'kijun': 24, 'tenkan_5': 8, 'kijun_5': 28}
+[CAKE] WF
+[CAKE] MC
+[CAKE] DONE
+[CAKE] ✓ Complete: OOS Sharpe=3.30, WFE=0.93, Status=SUCCESS
+[KSM] START
+[KSM] download
+[KSM] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[KSM] ATR opt
+[KSM] ATR done: Sharpe=1.23, params={'sl_mult': 2.75, 'tp1_mult': 1.75, 'tp2_mult': 4.0, 'tp3_mult': 7.5}
+[KSM] Ichi opt
+[KSM] Ichi done: Sharpe=1.55, params={'tenkan': 9, 'kijun': 33, 'tenkan_5': 11, 'kijun_5': 18}
+[KSM] WF
+[KSM] MC
+[KSM] DONE
+[KSM] ✓ Complete: OOS Sharpe=1.36, WFE=0.88, Status=SUCCESS
+[OSMO] START
+[OSMO] download
+[OSMO] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[OSMO] ATR opt
+[OSMO] ATR done: Sharpe=3.03, params={'sl_mult': 1.75, 'tp1_mult': 2.25, 'tp2_mult': 5.5, 'tp3_mult': 9.0}
+[OSMO] Ichi opt
+[OSMO] Ichi done: Sharpe=3.92, params={'tenkan': 6, 'kijun': 26, 'tenkan_5': 14, 'kijun_5': 19}
+[OSMO] WF
+[OSMO] MC
+[OSMO] DONE
+[OSMO] ✓ Complete: OOS Sharpe=-2.32, WFE=-0.59, Status=FAIL
+[JOE] START
+[JOE] download
+[JOE] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[JOE] ATR opt
+[JOE] ATR done: Sharpe=2.75, params={'sl_mult': 2.75, 'tp1_mult': 3.5, 'tp2_mult': 7.0, 'tp3_mult': 9.0}
+[JOE] Ichi opt
+[JOE] Ichi done: Sharpe=3.26, params={'tenkan': 14, 'kijun': 33, 'tenkan_5': 15, 'kijun_5': 18}
+[JOE] WF
+[JOE] MC
+[JOE] DONE
+[JOE] ✓ Complete: OOS Sharpe=-0.33, WFE=-0.10, Status=FAIL
+[DOGS] START
+[DOGS] download
+[DOGS] Data: IS=7268, VAL=2423, OOS=2423 bars [2024-08-26 → 2026-01-21]
+[DOGS] ATR opt
+[DOGS] ATR done: Sharpe=2.86, params={'sl_mult': 4.75, 'tp1_mult': 3.0, 'tp2_mult': 4.5, 'tp3_mult': 5.5}
+[DOGS] Ichi opt
+[DOGS] Ichi done: Sharpe=3.73, params={'tenkan': 13, 'kijun': 26, 'tenkan_5': 8, 'kijun_5': 25}
+[DOGS] WF
+[DOGS] MC
+[DOGS] DONE
+[DOGS] ✓ Complete: OOS Sharpe=4.12, WFE=1.11, Status=FAIL
+[RUNE] START
+[RUNE] download
+[RUNE] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[RUNE] ATR opt
+[RUNE] ATR done: Sharpe=3.41, params={'sl_mult': 1.75, 'tp1_mult': 3.75, 'tp2_mult': 8.0, 'tp3_mult': 9.0}
+[RUNE] Ichi opt
+[RUNE] Ichi done: Sharpe=3.57, params={'tenkan': 5, 'kijun': 26, 'tenkan_5': 9, 'kijun_5': 25}
+[RUNE] WF
+[RUNE] MC
+[RUNE] DONE
+[RUNE] ✓ Complete: OOS Sharpe=-0.93, WFE=-0.26, Status=FAIL
+[AXS] START
+[AXS] download
+[AXS] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[AXS] ATR opt
+[AXS] ATR done: Sharpe=3.11, params={'sl_mult': 3.25, 'tp1_mult': 1.75, 'tp2_mult': 4.5, 'tp3_mult': 9.5}
+[AXS] Ichi opt
+[AXS] Ichi done: Sharpe=3.33, params={'tenkan': 8, 'kijun': 22, 'tenkan_5': 9, 'kijun_5': 19}
+[AXS] WF
+[AXS] MC
+[AXS] DONE
+[AXS] ✓ Complete: OOS Sharpe=-0.72, WFE=-0.22, Status=FAIL
+[CAKE] START
+[CAKE] download
+[CAKE] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[CAKE] ATR opt
+[CAKE] ATR done: Sharpe=2.55, params={'sl_mult': 3.0, 'tp1_mult': 2.25, 'tp2_mult': 7.5, 'tp3_mult': 10.0}
+[CAKE] Ichi opt
+[CAKE] Ichi done: Sharpe=2.87, params={'tenkan': 6, 'kijun': 26, 'tenkan_5': 11, 'kijun_5': 16}
+[CAKE] WF
+[CAKE] MC
+[CAKE] DONE
+[CAKE] ✓ Complete: OOS Sharpe=3.86, WFE=1.34, Status=SUCCESS
+[LOOM] START
+[LOOM] download
+[LOOM] Data: IS=2998, VAL=999, OOS=1000 bars [2024-01-22 → 2024-08-26]
+[LOOM] ATR opt
+[LOOM] ATR done: Sharpe=3.02, params={'sl_mult': 3.25, 'tp1_mult': 4.0, 'tp2_mult': 5.5, 'tp3_mult': 6.5}
+[LOOM] Ichi opt
+[LOOM] Ichi done: Sharpe=3.91, params={'tenkan': 5, 'kijun': 28, 'tenkan_5': 12, 'kijun_5': 19}
+[LOOM] WF
+[LOOM] MC
+[LOOM] DONE
+[LOOM] ✓ Complete: OOS Sharpe=3.37, WFE=0.86, Status=FAIL
+[LOOM] START
+[LOOM] download
+[LOOM] Data: IS=2998, VAL=999, OOS=1000 bars [2024-01-22 → 2024-08-26]
+[LOOM] ATR opt
+[LOOM] ATR done: Sharpe=4.96, params={'sl_mult': 3.5, 'tp1_mult': 3.5, 'tp2_mult': 4.5, 'tp3_mult': 5.5}
+[LOOM] Ichi opt
+[LOOM] Ichi done: Sharpe=5.19, params={'tenkan': 9, 'kijun': 25, 'tenkan_5': 11, 'kijun_5': 21}
+[LOOM] WF
+[LOOM] MC
+[LOOM] DONE
+[LOOM] ✓ Complete: OOS Sharpe=0.27, WFE=0.05, Status=FAIL
+[MINA] START
+[MINA] download
+[MINA] Data: IS=10392, VAL=3464, OOS=3465 bars [2024-01-22 → 2026-01-21]
+[MINA] ATR opt
+[MINA] ATR done: Sharpe=1.37, params={'sl_mult': 4.75, 'tp1_mult': 3.0, 'tp2_mult': 5.0, 'tp3_mult': 8.0}
+[MINA] Ichi opt
+[MINA] Ichi done: Sharpe=1.36, params={'tenkan': 14, 'kijun': 20, 'tenkan_5': 13, 'kijun_5': 17}
+[MINA] WF
+[MINA] MC
+[MINA] DONE
+[MINA] ✓ Complete: OOS Sharpe=-1.06, WFE=-0.77, Status=FAIL
+[OSMO] START
+[OSMO] download
+[OSMO] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[OSMO] ATR opt
+[OSMO] ATR done: Sharpe=2.73, params={'sl_mult': 2.5, 'tp1_mult': 3.0, 'tp2_mult': 8.5, 'tp3_mult': 9.0}
+[OSMO] Ichi opt
+[OSMO] Ichi done: Sharpe=2.78, params={'tenkan': 7, 'kijun': 23, 'tenkan_5': 8, 'kijun_5': 28}
+[OSMO] WF
+[OSMO] MC
+[OSMO] DONE
+[OSMO] ✓ Complete: OOS Sharpe=-1.22, WFE=-0.44, Status=FAIL
+[TON] START
+[TON] download
+[TON] Data: IS=7528, VAL=2510, OOS=2510 bars [2024-08-08 → 2026-01-21]
+[TON] ATR opt
+[TON] ATR done: Sharpe=1.20, params={'sl_mult': 4.0, 'tp1_mult': 1.75, 'tp2_mult': 8.0, 'tp3_mult': 9.0}
+[TON] Ichi opt
+[TON] Ichi done: Sharpe=1.52, params={'tenkan': 7, 'kijun': 23, 'tenkan_5': 8, 'kijun_5': 28}
+[TON] WF
+[TON] MC
+[TON] DONE
+[TON] ✓ Complete: OOS Sharpe=-1.09, WFE=-0.72, Status=FAIL
+[TON] START
+[TON] download
+[TON] Data: IS=7528, VAL=2510, OOS=2510 bars [2024-08-08 → 2026-01-21]
+[TON] ATR opt
+[TON] ATR done: Sharpe=0.45, params={'sl_mult': 4.0, 'tp1_mult': 4.0, 'tp2_mult': 5.0, 'tp3_mult': 7.5}
+[TON] Ichi opt
+[TON] Ichi done: Sharpe=1.50, params={'tenkan': 20, 'kijun': 28, 'tenkan_5': 16, 'kijun_5': 18}
+[TON] WF
+[TON] MC
+[TON] DONE
+[TON] ✓ Complete: OOS Sharpe=-2.38, WFE=-1.58, Status=FAIL
+[DOGS] START
+[DOGS] download
+[DOGS] Data: IS=7268, VAL=2423, OOS=2423 bars [2024-08-26 → 2026-01-21]
+[DOGS] ATR opt
+[DOGS] ATR done: Sharpe=2.00, params={'sl_mult': 2.0, 'tp1_mult': 1.75, 'tp2_mult': 3.0, 'tp3_mult': 8.5}
+[DOGS] Ichi opt
+[DOGS] Ichi done: Sharpe=3.23, params={'tenkan': 16, 'kijun': 25, 'tenkan_5': 15, 'kijun_5': 15}
+[DOGS] WF
+[DOGS] MC
+[DOGS] DONE
+[DOGS] ✓ Complete: OOS Sharpe=2.20, WFE=0.68, Status=SUCCESS
+[RUNE] START
+[RUNE] download
+[RUNE] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[RUNE] ATR opt
+[RUNE] ATR done: Sharpe=1.40, params={'sl_mult': 2.75, 'tp1_mult': 2.75, 'tp2_mult': 8.5, 'tp3_mult': 9.0}
+[RUNE] Ichi opt
+[RUNE] Ichi done: Sharpe=1.61, params={'tenkan': 5, 'kijun': 32, 'tenkan_5': 12, 'kijun_5': 19}
+[RUNE] WF
+[RUNE] MC
+[RUNE] DONE
+[RUNE] ✓ Complete: OOS Sharpe=1.62, WFE=1.00, Status=SUCCESS
+[AXS] START
+[AXS] download
+[AXS] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[AXS] ATR opt
+[AXS] ATR done: Sharpe=2.52, params={'sl_mult': 2.5, 'tp1_mult': 1.5, 'tp2_mult': 3.5, 'tp3_mult': 8.5}
+[AXS] Ichi opt
+[AXS] Ichi done: Sharpe=2.59, params={'tenkan': 7, 'kijun': 20, 'tenkan_5': 8, 'kijun_5': 17}
+[AXS] WF
+[AXS] MC
+[AXS] DONE
+[AXS] ✓ Complete: OOS Sharpe=1.14, WFE=0.44, Status=FAIL
+[KSM] START
+[KSM] download
+[KSM] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[KSM] ATR opt
+[KSM] ATR done: Sharpe=0.91, params={'sl_mult': 4.75, 'tp1_mult': 1.5, 'tp2_mult': 3.0, 'tp3_mult': 5.0}
+[KSM] Ichi opt
+[KSM] Ichi done: Sharpe=2.61, params={'tenkan': 14, 'kijun': 34, 'tenkan_5': 8, 'kijun_5': 30}
+[KSM] WF
+[KSM] MC
+[KSM] DONE
+[KSM] ✓ Complete: OOS Sharpe=0.55, WFE=0.21, Status=FAIL
+[LOOM] START
+[LOOM] download
+[LOOM] Data: IS=2998, VAL=999, OOS=1000 bars [2024-01-22 → 2024-08-26]
+[LOOM] ATR opt
+[LOOM] ATR done: Sharpe=4.29, params={'sl_mult': 2.25, 'tp1_mult': 3.5, 'tp2_mult': 7.0, 'tp3_mult': 7.5}
+[LOOM] Ichi opt
+[LOOM] Ichi done: Sharpe=4.45, params={'tenkan': 18, 'kijun': 24, 'tenkan_5': 9, 'kijun_5': 17}
+[LOOM] WF
+[LOOM] MC
+[LOOM] DONE
+[LOOM] ✓ Complete: OOS Sharpe=4.86, WFE=1.09, Status=FAIL
+[MINA] START
+[MINA] download
+[MINA] Data: IS=10392, VAL=3464, OOS=3465 bars [2024-01-22 → 2026-01-21]
+[MINA] ATR opt
+[MINA] ATR done: Sharpe=1.89, params={'sl_mult': 4.25, 'tp1_mult': 1.5, 'tp2_mult': 6.0, 'tp3_mult': 7.5}
+[MINA] Ichi opt
+[MINA] Ichi done: Sharpe=2.76, params={'tenkan': 17, 'kijun': 29, 'tenkan_5': 10, 'kijun_5': 24}
+[MINA] WF
+[MINA] MC
+[MINA] DONE
+[MINA] ✓ Complete: OOS Sharpe=1.40, WFE=0.51, Status=FAIL
+[OSMO] START
+[OSMO] download
+[OSMO] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[OSMO] ATR opt
+[OSMO] ATR done: Sharpe=3.15, params={'sl_mult': 2.75, 'tp1_mult': 3.0, 'tp2_mult': 7.5, 'tp3_mult': 9.5}
+[OSMO] Ichi opt
+[OSMO] Ichi done: Sharpe=3.42, params={'tenkan': 7, 'kijun': 28, 'tenkan_5': 8, 'kijun_5': 15}
+[OSMO] WF
+[OSMO] MC
+[OSMO] DONE
+[OSMO] ✓ Complete: OOS Sharpe=1.57, WFE=0.46, Status=FAIL
+[JOE] START
+[JOE] download
+[JOE] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[JOE] ATR opt
+[JOE] ATR done: Sharpe=2.93, params={'sl_mult': 1.5, 'tp1_mult': 3.75, 'tp2_mult': 6.5, 'tp3_mult': 8.5}
+[JOE] Ichi opt
+[JOE] Ichi done: Sharpe=3.18, params={'tenkan': 6, 'kijun': 20, 'tenkan_5': 10, 'kijun_5': 27}
+[JOE] WF
+[JOE] MC
+[JOE] DONE
+[JOE] ✓ Complete: OOS Sharpe=0.65, WFE=0.20, Status=FAIL
+[DOGS] START
+[DOGS] download
+[DOGS] Data: IS=7268, VAL=2423, OOS=2423 bars [2024-08-26 → 2026-01-21]
+[DOGS] ATR opt
+[DOGS] ATR done: Sharpe=2.09, params={'sl_mult': 4.5, 'tp1_mult': 4.5, 'tp2_mult': 5.5, 'tp3_mult': 9.5}
+[DOGS] Ichi opt
+[DOGS] Ichi done: Sharpe=2.71, params={'tenkan': 20, 'kijun': 31, 'tenkan_5': 12, 'kijun_5': 30}
+[DOGS] WF
+[DOGS] MC
+[DOGS] DONE
+[DOGS] ✓ Complete: OOS Sharpe=0.72, WFE=0.27, Status=FAIL
+[DOGS] START
+[DOGS] download
+[DOGS] Data: IS=7268, VAL=2423, OOS=2423 bars [2024-08-26 → 2026-01-21]
+[DOGS] ATR opt
+[DOGS] ATR done: Sharpe=2.44, params={'sl_mult': 4.75, 'tp1_mult': 3.0, 'tp2_mult': 6.0, 'tp3_mult': 7.0}
+[DOGS] Ichi opt
+[DOGS] Ichi done: Sharpe=2.44, params={'tenkan': 7, 'kijun': 23, 'tenkan_5': 8, 'kijun_5': 28}
+[DOGS] WF
+[DOGS] MC
+[DOGS] DONE
+[DOGS] ✓ Complete: OOS Sharpe=3.06, WFE=1.26, Status=FAIL
+[RUNE] START
+[RUNE] download
+[RUNE] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[RUNE] ATR opt
+[RUNE] ATR done: Sharpe=2.21, params={'sl_mult': 4.0, 'tp1_mult': 4.75, 'tp2_mult': 6.5, 'tp3_mult': 9.0}
+[RUNE] Ichi opt
+[RUNE] Ichi done: Sharpe=3.04, params={'tenkan': 20, 'kijun': 27, 'tenkan_5': 12, 'kijun_5': 18}
+[RUNE] WF
+[RUNE] MC
+[RUNE] DONE
+[RUNE] ✓ Complete: OOS Sharpe=-1.41, WFE=-0.46, Status=FAIL
+[CAKE] START
+[CAKE] download
+[CAKE] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[CAKE] ATR opt
+[CAKE] ATR done: Sharpe=2.81, params={'sl_mult': 2.5, 'tp1_mult': 4.5, 'tp2_mult': 8.0, 'tp3_mult': 10.0}
+[CAKE] Ichi opt
+[CAKE] Ichi done: Sharpe=3.29, params={'tenkan': 6, 'kijun': 39, 'tenkan_5': 16, 'kijun_5': 27}
+[CAKE] WF
+[CAKE] MC
+[CAKE] DONE
+[CAKE] ✓ Complete: OOS Sharpe=1.92, WFE=0.58, Status=FAIL
+[KSM] START
+[KSM] download
+[KSM] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[KSM] ATR opt
+[KSM] ATR done: Sharpe=2.62, params={'sl_mult': 4.75, 'tp1_mult': 1.75, 'tp2_mult': 3.0, 'tp3_mult': 4.5}
+[KSM] Ichi opt
+[KSM] Ichi done: Sharpe=3.41, params={'tenkan': 6, 'kijun': 25, 'tenkan_5': 14, 'kijun_5': 24}
+[KSM] WF
+[KSM] MC
+[KSM] DONE
+[KSM] ✓ Complete: OOS Sharpe=0.75, WFE=0.22, Status=FAIL
+[LOOM] START
+[LOOM] download
+[LOOM] Data: IS=2998, VAL=999, OOS=1000 bars [2024-01-22 → 2024-08-26]
+[LOOM] ATR opt
+[LOOM] ATR done: Sharpe=2.94, params={'sl_mult': 4.0, 'tp1_mult': 3.75, 'tp2_mult': 7.5, 'tp3_mult': 10.0}
+[LOOM] Ichi opt
+[LOOM] Ichi done: Sharpe=2.94, params={'tenkan': 7, 'kijun': 23, 'tenkan_5': 8, 'kijun_5': 28}
+[LOOM] WF
+[LOOM] MC
+[LOOM] DONE
+[LOOM] ✓ Complete: OOS Sharpe=6.24, WFE=2.12, Status=FAIL
+[MINA] START
+[MINA] download
+[MINA] Data: IS=10392, VAL=3464, OOS=3465 bars [2024-01-22 → 2026-01-21]
+[MINA] ATR opt
+[MINA] ATR done: Sharpe=1.83, params={'sl_mult': 4.0, 'tp1_mult': 3.0, 'tp2_mult': 6.5, 'tp3_mult': 7.5}
+[MINA] Ichi opt
+[MINA] Ichi done: Sharpe=1.80, params={'tenkan': 9, 'kijun': 31, 'tenkan_5': 11, 'kijun_5': 19}
+[MINA] WF
+[MINA] MC
+[MINA] DONE
+[MINA] ✓ Complete: OOS Sharpe=1.02, WFE=0.57, Status=FAIL
+[OSMO] START
+[OSMO] download
+[OSMO] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[OSMO] ATR opt
+[OSMO] ATR done: Sharpe=4.05, params={'sl_mult': 3.25, 'tp1_mult': 2.75, 'tp2_mult': 6.5, 'tp3_mult': 8.5}
+[OSMO] Ichi opt
+[OSMO] Ichi done: Sharpe=4.05, params={'tenkan': 12, 'kijun': 34, 'tenkan_5': 11, 'kijun_5': 28}
+[OSMO] WF
+[OSMO] MC
+[OSMO] DONE
+[OSMO] ✓ Complete: OOS Sharpe=3.40, WFE=0.84, Status=SUCCESS
+[JOE] START
+[JOE] download
+[JOE] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[JOE] ATR opt
+[JOE] ATR done: Sharpe=2.23, params={'sl_mult': 2.25, 'tp1_mult': 5.0, 'tp2_mult': 7.0, 'tp3_mult': 7.5}
+[JOE] Ichi opt
+[JOE] Ichi done: Sharpe=3.54, params={'tenkan': 11, 'kijun': 22, 'tenkan_5': 11, 'kijun_5': 16}
+[JOE] WF
+[JOE] MC
+[JOE] DONE
+[JOE] ✓ Complete: OOS Sharpe=-0.30, WFE=-0.09, Status=FAIL
+[TON] START
+[TON] download
+[TON] Data: IS=7528, VAL=2510, OOS=2510 bars [2024-08-08 → 2026-01-21]
+[TON] ATR opt
+[TON] ATR done: Sharpe=-0.04, params={'sl_mult': 4.75, 'tp1_mult': 3.75, 'tp2_mult': 6.0, 'tp3_mult': 7.0}
+[TON] Ichi opt
+[TON] Ichi done: Sharpe=0.32, params={'tenkan': 18, 'kijun': 40, 'tenkan_5': 16, 'kijun_5': 26}
+[TON] WF
+[TON] MC
+[TON] DONE
+[TON] ✓ Complete: OOS Sharpe=-0.16, WFE=-0.51, Status=FAIL
+[DOGS] START
+[DOGS] download
+[DOGS] Data: IS=7268, VAL=2423, OOS=2423 bars [2024-08-26 → 2026-01-21]
+[DOGS] ATR opt
+[DOGS] ATR done: Sharpe=2.55, params={'sl_mult': 2.0, 'tp1_mult': 3.25, 'tp2_mult': 5.5, 'tp3_mult': 6.5}
+[DOGS] Ichi opt
+[DOGS] Ichi done: Sharpe=2.62, params={'tenkan': 12, 'kijun': 35, 'tenkan_5': 8, 'kijun_5': 15}
+[DOGS] WF
+[DOGS] MC
+[DOGS] DONE
+[DOGS] ✓ Complete: OOS Sharpe=0.03, WFE=0.01, Status=FAIL
+[AXS] START
+[AXS] download
+[AXS] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[AXS] ATR opt
+[AXS] ATR done: Sharpe=2.09, params={'sl_mult': 4.75, 'tp1_mult': 2.75, 'tp2_mult': 4.5, 'tp3_mult': 5.0}
+[AXS] Ichi opt
+[AXS] Ichi done: Sharpe=2.36, params={'tenkan': 9, 'kijun': 23, 'tenkan_5': 8, 'kijun_5': 21}
+[AXS] WF
+[AXS] MC
+[AXS] DONE
+[AXS] ✓ Complete: OOS Sharpe=1.53, WFE=0.65, Status=SUCCESS
+[CAKE] START
+[CAKE] download
+[CAKE] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[CAKE] ATR opt
+[CAKE] ATR done: Sharpe=3.18, params={'sl_mult': 3.25, 'tp1_mult': 3.75, 'tp2_mult': 6.5, 'tp3_mult': 7.5}
+[CAKE] Ichi opt
+[CAKE] Ichi done: Sharpe=3.08, params={'tenkan': 11, 'kijun': 26, 'tenkan_5': 14, 'kijun_5': 21}
+[CAKE] WF
+[CAKE] MC
+[CAKE] DONE
+[CAKE] ✓ Complete: OOS Sharpe=2.74, WFE=0.89, Status=SUCCESS
+[KSM] START
+[KSM] download
+[KSM] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[KSM] ATR opt
+[KSM] ATR done: Sharpe=1.11, params={'sl_mult': 3.25, 'tp1_mult': 1.5, 'tp2_mult': 6.0, 'tp3_mult': 8.5}
+[KSM] Ichi opt
+[KSM] Ichi done: Sharpe=1.32, params={'tenkan': 6, 'kijun': 29, 'tenkan_5': 8, 'kijun_5': 20}
+[KSM] WF
+[KSM] MC
+[KSM] DONE
+[KSM] ✓ Complete: OOS Sharpe=0.09, WFE=0.07, Status=FAIL
+[LOOM] START
+[LOOM] download
+[LOOM] Data: IS=2998, VAL=999, OOS=1000 bars [2024-01-22 → 2024-08-26]
+[LOOM] ATR opt
+[LOOM] ATR done: Sharpe=3.05, params={'sl_mult': 3.75, 'tp1_mult': 4.0, 'tp2_mult': 6.5, 'tp3_mult': 8.5}
+[LOOM] Ichi opt
+[LOOM] Ichi done: Sharpe=3.75, params={'tenkan': 6, 'kijun': 40, 'tenkan_5': 9, 'kijun_5': 21}
+[LOOM] WF
+[LOOM] MC
+[LOOM] DONE
+[LOOM] ✓ Complete: OOS Sharpe=3.35, WFE=0.89, Status=FAIL
+[MINA] START
+[MINA] download
+[MINA] Data: IS=10392, VAL=3464, OOS=3465 bars [2024-01-22 → 2026-01-21]
+[MINA] ATR opt
+[MINA] ATR done: Sharpe=1.23, params={'sl_mult': 4.0, 'tp1_mult': 4.5, 'tp2_mult': 5.0, 'tp3_mult': 6.0}
+[MINA] Ichi opt
+[MINA] Ichi done: Sharpe=1.36, params={'tenkan': 10, 'kijun': 33, 'tenkan_5': 8, 'kijun_5': 16}
+[MINA] WF
+[MINA] MC
+[MINA] DONE
+[MINA] ✓ Complete: OOS Sharpe=3.15, WFE=2.31, Status=SUCCESS
+[OSMO] START
+[OSMO] download
+[OSMO] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-22 → 2026-01-21]
+[OSMO] ATR opt
+[OSMO] ATR done: Sharpe=3.90, params={'sl_mult': 3.5, 'tp1_mult': 3.5, 'tp2_mult': 5.0, 'tp3_mult': 7.5}
+[OSMO] Ichi opt
+[OSMO] Ichi done: Sharpe=4.07, params={'tenkan': 6, 'kijun': 39, 'tenkan_5': 16, 'kijun_5': 27}
+[OSMO] WF
+[OSMO] MC
+[OSMO] DONE
+[OSMO] ✓ Complete: OOS Sharpe=1.57, WFE=0.39, Status=FAIL

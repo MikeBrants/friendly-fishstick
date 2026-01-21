@@ -13,6 +13,7 @@ Usage:
     python scripts/run_full_pipeline.py --assets HYPE AVAX SUI --workers 4
 """
 import sys
+import subprocess
 from pathlib import Path
 
 # Add project root to path
@@ -66,7 +67,14 @@ def main():
     parser.add_argument(
         "--enforce-tp-progression",
         action="store_true",
-        help="Enforce TP1 < TP2 < TP3 with minimum gap"
+        dest="enforce_tp_progression",
+        help="Enforce TP1 < TP2 < TP3 with minimum gap (default: on)"
+    )
+    parser.add_argument(
+        "--no-enforce-tp-progression",
+        action="store_false",
+        dest="enforce_tp_progression",
+        help="Allow non-progressive TP levels"
     )
     parser.add_argument(
         "--fixed-displacement",
@@ -86,7 +94,22 @@ def main():
         default=None,
         help="Force number of clusters (default: auto-detect)"
     )
+    parser.add_argument(
+        "--run-guards",
+        action="store_true",
+        help="Run guards after optimization using scan results",
+    )
+    parser.add_argument(
+        "--guards-workers",
+        type=int,
+        default=None,
+        help="Workers for guard runs (default: min(CPU-1, assets))",
+    )
+    parser.set_defaults(enforce_tp_progression=True)
     args = parser.parse_args()
+
+    from crypto_backtest.config.scan_assets import SCAN_ASSETS
+    optimize_assets = args.assets or SCAN_ASSETS
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M")
 
@@ -131,9 +154,6 @@ def main():
         print("=" * 70)
 
         from crypto_backtest.optimization.parallel_optimizer import run_parallel_scan
-        from crypto_backtest.config.scan_assets import SCAN_ASSETS
-
-        optimize_assets = args.assets or SCAN_ASSETS
 
         scan_df = run_parallel_scan(
             assets=optimize_assets,
@@ -219,6 +239,23 @@ def main():
         print(f"  - Silhouette score: {silhouette:.3f}")
 
     print(f"\nFinished: {datetime.now().isoformat()}")
+
+    if args.run_guards and scan_path:
+        print("\n" + "=" * 70)
+        print("[POST] RUNNING GUARDS")
+        print("=" * 70)
+        guard_workers = args.guards_workers or min(6, len(optimize_assets))
+        guard_cmd = [
+            sys.executable,
+            str(Path(__file__).parent / "run_guards_multiasset.py"),
+            "--assets",
+            *optimize_assets,
+            "--params-file",
+            scan_path,
+            "--workers",
+            str(guard_workers),
+        ]
+        subprocess.run(guard_cmd, check=False)
 
 
 if __name__ == "__main__":

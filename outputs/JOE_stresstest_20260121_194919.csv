@@ -1,0 +1,2 @@
+fees_bps,slippage_bps,total_return_pct,sharpe,max_drawdown_pct,profit_factor,trades,scenario,break_even_fees_bps,edge_buffer_bps
+5,2,20.22979948370982,2.520017074932062,-6.0913807678882215,1.6437112692734352,402,Base,50.0,45.0

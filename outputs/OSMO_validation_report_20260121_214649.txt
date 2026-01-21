@@ -1,0 +1,11 @@
+GUARDS VALIDATION REPORT: OSMO
+======================================================================
+GUARD-001 Monte Carlo p-value: 0.0000 -> PASS
+GUARD-002 Sensitivity variance: 7.62% -> PASS
+GUARD-003 Bootstrap Sharpe CI lower: 2.45 -> PASS
+GUARD-005 Trade distribution top10: 15.98% -> PASS
+GUARD-006 Stress1 Sharpe: 2.04 -> PASS
+GUARD-007 Regime reconciliation mismatch: 0.00% -> PASS
+GUARD-WFE: 0.75 -> PASS
+----------------------------------------------------------------------
+ALL PASS: YES
