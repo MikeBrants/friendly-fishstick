@@ -1,0 +1,2 @@
+asset,status,exchange,timeframe,start_date,end_date,total_bars,seed,fail_reason,sl_mult,tp1_mult,tp2_mult,tp3_mult,tenkan,kijun,tenkan_5,kijun_5,is_sharpe,is_return,is_trades,val_sharpe,val_return,val_trades,oos_sharpe,oos_return,oos_trades,oos_max_dd,oos_pf,wfe,mc_p,error
+BNB,FAIL,binance,1H,2023-01-22,2026-01-21,26279,42,OOS_SHARPE<1.0; WFE<0.6; OVERFIT,4.5,5.0,3.0,7.5,20,31,16,30,2.7561396431499685,17.73058452284517,369,1.1467496068928622,2.648306362837194,138,-0.15457874645793415,-0.4209123846851237,144,-3.3676351646580893,0.9648730955543775,-0.05608523749590112,0.864,

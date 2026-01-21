@@ -125,8 +125,7 @@ crypto_backtest/
 ### Installation
 
 ```bash
-pip install -r requirements.txt
-pip install streamlit plotly  # Pour l'interface visuelle
+pip install -r crypto_backtest/requirements.txt
 ```
 
 ### Dashboard Streamlit (Recommandé)
@@ -164,6 +163,28 @@ python scripts/portfolio_correlation.py
 # Backtest simple
 python backtest_optimized.py
 ```
+
+---
+
+## 🖥️ Machine Profile & Workers
+
+La configuration des workers dépend du profil machine (`config/machine_profile.json`).
+Les sliders Streamlit utilisent désormais ces valeurs par défaut via
+`crypto_backtest/utils/system_utils.py`.
+
+Exemple (profil actuel):
+```json
+{
+  "workers": {
+    "bayesian": 6,
+    "guards": 4,
+    "download": 8,
+    "displacement_grid": 6
+  }
+}
+```
+
+Le Dashboard affiche aussi un warning stockage si l’espace disque dépasse 90%.
 
 ---
 

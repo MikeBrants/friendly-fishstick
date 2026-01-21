@@ -1,0 +1,16 @@
+{
+  "workers": {
+    "bayesian": 6,
+    "guards": 4,
+    "download": 8,
+    "displacement_grid": 6
+  },
+  "memory": {
+    "max_ram_pct": 75,
+    "warn_threshold_gb": 28
+  },
+  "storage": {
+    "warn_threshold_pct": 90,
+    "auto_cleanup_days": 30
+  }
+}

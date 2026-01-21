@@ -22,8 +22,12 @@ Pipeline de backtest complet pour la stratégie TradingView "FINAL TRIGGER v2" c
 - **Guards timestampés**: `scripts/run_guards_multiasset.py` suffixe chaque fichier guard avec `run_id` et génère un résumé `multiasset_guards_summary_{run_id}.csv`.
 - **Streamlit**: page Guards affiche les valeurs (p_value, variance, CI, etc.) en plus des flags pass, et charge automatiquement le résumé guard le plus récent (fallback legacy).
 - **Console persistante**: panel “Console” dans la sidebar Streamlit avec logs horodatés et niveaux (RUN/OK/ERR/etc.).
+- **Console UI**: version compacte et déplacée en bas de sidebar (corbeille réduite).
+- **Machine profile**: config `config/machine_profile.json` + utilitaires `system_utils.py` (workers dynamiques + warning stockage) et sliders Streamlit ajustés.
+- **README**: installation corrigée (`crypto_backtest/requirements.txt`) + section Machine Profile.
 - **Pine Strategies**: scripts `FT_BTC.pine`, `FT_ETH.pine`, `FT_AVAX.pine`, `FT_UNI.pine`, `FT_SEI.pine` générés (paramètres frozen + exécution multi-TP).
 - **Sessions + Stepper**: ajout d’un système de session (`crypto_backtest/config/session_manager.py`) et d’un stepper visuel dans Streamlit (Dashboard, Download, Bayesian, Guards, Comparateur).
+- **Modals Sessions**: création/chargement de session via modals (boutons désormais fonctionnels).
 - **Auto-progression**: auto-update des étapes (Download/Optimize/Guards/Validate) + recommandations contextuelles sur le Dashboard.
 - **Historique**: page Streamlit “📋 Historique” avec filtres, comparaison, notes et gestion des sessions.
 - **Final polish**: pages pipeline “session-aware”, liaison outputs→session, footer progression, raccourcis sidebar, empty state Dashboard.

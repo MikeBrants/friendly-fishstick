@@ -5,6 +5,7 @@ Interface visuelle pour piloter les backtests crypto
 Usage:
     streamlit run app.py
 """
+import html
 import subprocess
 import sys
 from datetime import datetime
@@ -24,6 +25,18 @@ def init_console():
         st.session_state.console_placeholder = None
 
 
+def _render_console_text(text: str) -> str:
+    """Render console text with compact styling."""
+    safe_text = html.escape(text)
+    return (
+        "<pre style=\"margin:0;"
+        "font-size:11px;line-height:1.2;"
+        "white-space:pre-wrap;\">"
+        f"{safe_text}"
+        "</pre>"
+    )
+
+
 def console_log(msg: str, level: str = "INFO"):
     """Add message to console with timestamp."""
     emoji = {"INFO": "ℹ️", "OK": "✅", "WARN": "⚠️", "ERR": "❌", "RUN": "🔄"}
@@ -34,15 +47,38 @@ def console_log(msg: str, level: str = "INFO"):
     st.session_state.console_logs = st.session_state.console_logs[-20:]
 
     if st.session_state.console_placeholder is not None:
-        st.session_state.console_placeholder.code(
-            "\n".join(st.session_state.console_logs),
-            language=None,
+        st.session_state.console_placeholder.markdown(
+            _render_console_text("\n".join(st.session_state.console_logs)),
+            unsafe_allow_html=True,
         )
 
 
 def clear_console():
     """Clear console logs."""
     st.session_state.console_logs = []
+    if st.session_state.console_placeholder is not None:
+        st.session_state.console_placeholder.markdown(
+            _render_console_text("Ready..."),
+            unsafe_allow_html=True,
+        )
+
+
+def render_console_panel():
+    """Render compact console panel in the sidebar."""
+    st.sidebar.caption("🖥️ Console")
+    col1, col2 = st.sidebar.columns([0.15, 0.85])
+    with col1:
+        if st.button("🗑", key="clear_console", help="Clear console"):
+            clear_console()
+    with col2:
+        st.markdown("")
+
+    st.session_state.console_placeholder = st.sidebar.empty()
+    console_text = "\n".join(st.session_state.console_logs) if st.session_state.console_logs else "Ready..."
+    st.session_state.console_placeholder.markdown(
+        _render_console_text(console_text),
+        unsafe_allow_html=True,
+    )
 
 
 def render_progress_stepper(current_step: int, completed_steps: list[int]):
@@ -274,6 +310,77 @@ def render_empty_state(
             if st.button(action_label, type="primary", use_container_width=True):
                 st.session_state.current_page = action_page
                 st.rerun()
+
+
+def render_new_session_modal():
+    """Render modal to create a new session."""
+    if not st.session_state.get("show_new_session_modal"):
+        return
+
+    with st.dialog("➕ Nouvelle session"):
+        st.markdown("Crée une session pour suivre le pipeline.")
+        default_name = f"Session {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+        name = st.text_input("Nom de session", value=default_name)
+        assets = st.multiselect(
+            "Assets",
+            SCAN_ASSETS,
+            default=VALIDATED_ASSETS,
+        )
+
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Créer", type="primary", use_container_width=True):
+                if not name.strip():
+                    st.warning("Le nom de session est requis.")
+                    return
+                if not assets:
+                    st.warning("Sélectionne au moins un asset.")
+                    return
+                session = create_session(name.strip(), assets)
+                st.session_state.active_session = session
+                st.session_state.show_new_session_modal = False
+                console_log(f"Session créée: {session['name']}", "OK")
+                st.rerun()
+        with col2:
+            if st.button("Annuler", use_container_width=True):
+                st.session_state.show_new_session_modal = False
+                st.rerun()
+
+
+def render_load_session_modal():
+    """Render modal to load an existing session."""
+    if not st.session_state.get("show_load_session_modal"):
+        return
+
+    sessions = list_sessions()
+    with st.dialog("📂 Charger session"):
+        if not sessions:
+            st.info("Aucune session disponible.")
+            if st.button("Fermer", use_container_width=True):
+                st.session_state.show_load_session_modal = False
+                st.rerun()
+            return
+
+        session_labels = {}
+        for session in sessions:
+            created = datetime.fromisoformat(session["created"]).strftime("%d/%m/%Y %H:%M")
+            label = f"{session['name']} · {created}"
+            session_labels[label] = session
+
+        selected_label = st.selectbox("Sélectionner une session", list(session_labels.keys()))
+        selected_session = session_labels[selected_label]
+
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Charger", type="primary", use_container_width=True):
+                st.session_state.active_session = selected_session
+                st.session_state.show_load_session_modal = False
+                console_log(f"Session chargée: {selected_session['name']}", "OK")
+                st.rerun()
+        with col2:
+            if st.button("Annuler", use_container_width=True):
+                st.session_state.show_load_session_modal = False
+                st.rerun()
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -300,6 +407,11 @@ from crypto_backtest.config.session_manager import (
     delete_session,
     get_session_dir,
     PIPELINE_STEPS,
+)
+from crypto_backtest.utils.system_utils import (
+    get_default_workers,
+    check_storage_warning,
+    get_system_info,
 )
 
 # =============================================================================
@@ -537,18 +649,7 @@ code {
 # =============================================================================
 st.sidebar.title("🎯 FINAL TRIGGER v2")
 
-# Console Monitor
 init_console()
-st.sidebar.markdown("### 🖥️ Console")
-col1, col2 = st.sidebar.columns(2)
-with col2:
-    if st.button("🗑️", key="clear_console", help="Clear console"):
-        clear_console()
-st.session_state.console_placeholder = st.sidebar.empty()
-st.session_state.console_placeholder.code(
-    "\n".join(st.session_state.console_logs) if st.session_state.console_logs else "Ready...",
-    language=None,
-)
 
 # Session Management
 if "active_session" not in st.session_state:
@@ -570,6 +671,9 @@ if st.sidebar.button("➕ Nouvelle session", use_container_width=True):
 
 if sessions and st.sidebar.button("📂 Charger session", use_container_width=True):
     st.session_state.show_load_session_modal = True
+
+render_new_session_modal()
+render_load_session_modal()
 st.sidebar.markdown("---")
 
 # Initialize session state for navigation
@@ -866,6 +970,20 @@ if page == "📊 Dashboard":
                 st.warning(f"{passed}/{total} assets validés")
         else:
             st.info("Guards non exécutés")
+
+    is_warning, storage_msg = check_storage_warning()
+    if is_warning:
+        st.warning(storage_msg)
+        with st.expander("💡 Libérer de l'espace"):
+            st.markdown("""
+            ```bash
+            # Supprimer les anciens runs (> 30 jours)
+            find outputs -name "run_*" -mtime +30 -exec rm -rf {} \\;
+
+            # Ou compresser
+            tar -czvf old_runs.tar.gz outputs/run_2026011* && rm -rf outputs/run_2026011*
+            ```
+            """)
 
     st.markdown("---")
 
@@ -1352,7 +1470,12 @@ elif page == "⚡ Bayesian":
 
         import os
         max_workers = os.cpu_count() or 4
-        workers = st.slider("Workers (parallélisme)", 1, max_workers, min(4, max_workers))
+        workers = st.slider(
+            "Workers (parallélisme)",
+            1,
+            max_workers,
+            get_default_workers("bayesian"),
+        )
 
         skip_download = st.checkbox("Skip download (données déjà présentes)", value=True)
 
@@ -1495,7 +1618,12 @@ elif page == "🎚️ Displacement Grid":
 
         import os
         max_workers = os.cpu_count() or 4
-        workers = st.slider("Workers", 1, max_workers, min(4, max_workers))
+        workers = st.slider(
+            "Workers",
+            1,
+            max_workers,
+            get_default_workers("displacement_grid"),
+        )
 
     with col2:
         st.subheader("Explication")
@@ -1735,7 +1863,7 @@ elif page == "🛡️ Guards":
 
         import os
         max_workers = os.cpu_count() or 4
-        workers = st.slider("Workers", 1, max_workers, min(4, max_workers))
+        workers = st.slider("Workers", 1, max_workers, get_default_workers("guards"))
 
     with col2:
         st.subheader("Résultats précédents")
@@ -3329,5 +3457,7 @@ if st.session_state.get("active_session"):
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+render_console_panel()
 
 st.sidebar.caption(f"v2.0 | {datetime.now().strftime('%Y-%m-%d')}")
