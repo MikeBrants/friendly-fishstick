@@ -538,6 +538,9 @@ Objectif: Interface visuelle pour piloter les backtests
 streamlit run app.py
 ```
 
+**Changelog**:
+- 2026-01-21: Fix navigation sidebar (radio buttons → session_state buttons)
+
 ### ✅ P2 — Multi-Asset Scan 10 Alts + Clustering (CODEX-005) — IMPLEMENTED
 
 ```

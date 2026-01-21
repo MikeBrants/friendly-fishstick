@@ -266,52 +266,44 @@ code {
 st.sidebar.title("🎯 FINAL TRIGGER v2")
 st.sidebar.markdown("---")
 
+# Initialize session state for navigation
+if "current_page" not in st.session_state:
+    st.session_state.current_page = "📊 Dashboard"
+
 # Section: Accueil
 st.sidebar.markdown("### 🏠 Accueil")
-nav_home = st.sidebar.radio(
-    "Home",
-    ["📊 Dashboard"],
-    label_visibility="collapsed",
-    key="nav_home",
-)
+if st.sidebar.button("📊 Dashboard", use_container_width=True, key="btn_dashboard"):
+    st.session_state.current_page = "📊 Dashboard"
 
 # Section: Données
 st.sidebar.markdown("### 📁 Données")
-nav_data = st.sidebar.radio(
-    "Data",
-    ["📥 Download OHLCV", "🔄 Comparateur Pine"],
-    label_visibility="collapsed",
-    key="nav_data",
-)
+if st.sidebar.button("📥 Download OHLCV", use_container_width=True, key="btn_download"):
+    st.session_state.current_page = "📥 Download OHLCV"
+if st.sidebar.button("🔄 Comparateur Pine", use_container_width=True, key="btn_pine"):
+    st.session_state.current_page = "🔄 Comparateur Pine"
 
 # Section: Optimisation
 st.sidebar.markdown("### ⚙️ Optimisation")
-nav_optim = st.sidebar.radio(
-    "Optim",
-    ["⚡ Bayesian", "🎚️ Displacement Grid", "🛡️ Guards"],
-    label_visibility="collapsed",
-    key="nav_optim",
-)
+if st.sidebar.button("⚡ Bayesian", use_container_width=True, key="btn_bayesian"):
+    st.session_state.current_page = "⚡ Bayesian"
+if st.sidebar.button("🎚️ Displacement Grid", use_container_width=True, key="btn_displacement"):
+    st.session_state.current_page = "🎚️ Displacement Grid"
+if st.sidebar.button("🛡️ Guards", use_container_width=True, key="btn_guards"):
+    st.session_state.current_page = "🛡️ Guards"
 
 # Section: Analyse
 st.sidebar.markdown("### 🔍 Analyse")
-nav_analysis = st.sidebar.radio(
-    "Analysis",
-    ["🏆 Comparaison Assets", "💼 Portfolio Builder", "📉 Visualisation", "📈 Fichiers"],
-    label_visibility="collapsed",
-    key="nav_analysis",
-)
+if st.sidebar.button("🏆 Comparaison Assets", use_container_width=True, key="btn_compare"):
+    st.session_state.current_page = "🏆 Comparaison Assets"
+if st.sidebar.button("💼 Portfolio Builder", use_container_width=True, key="btn_portfolio"):
+    st.session_state.current_page = "💼 Portfolio Builder"
+if st.sidebar.button("📉 Visualisation", use_container_width=True, key="btn_viz"):
+    st.session_state.current_page = "📉 Visualisation"
+if st.sidebar.button("📈 Fichiers", use_container_width=True, key="btn_files"):
+    st.session_state.current_page = "📈 Fichiers"
 
-# Determine active page
-page = None
-if nav_home == "📊 Dashboard":
-    page = "📊 Dashboard"
-elif nav_data in ["📥 Download OHLCV", "🔄 Comparateur Pine"]:
-    page = nav_data
-elif nav_optim in ["⚡ Bayesian", "🎚️ Displacement Grid", "🛡️ Guards"]:
-    page = nav_optim
-elif nav_analysis in ["🏆 Comparaison Assets", "💼 Portfolio Builder", "📉 Visualisation", "📈 Fichiers"]:
-    page = nav_analysis
+# Set active page
+page = st.session_state.current_page
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### ✅ Assets Validés")
