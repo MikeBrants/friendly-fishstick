@@ -14,6 +14,7 @@ from pathlib import Path
 
 import pandas as pd
 import streamlit as st
+import streamlit.components.v1 as components
 
 # =============================================================================
 # CONSOLE LOGGING SYSTEM
@@ -185,7 +186,7 @@ def render_progress_stepper(current_step: int, completed_steps: list[int]):
 
     stepper_html += "</div>"
 
-    st.markdown(stepper_html, unsafe_allow_html=True)
+    components.html(stepper_html, height=120)
 
 
 def advance_session_step(step_id: int, status: str):
