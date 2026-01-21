@@ -44,6 +44,236 @@ def clear_console():
     """Clear console logs."""
     st.session_state.console_logs = []
 
+
+def render_progress_stepper(current_step: int, completed_steps: list[int]):
+    """Render horizontal progress stepper."""
+    steps = [
+        {"id": 1, "name": "Data", "icon": "📥"},
+        {"id": 2, "name": "Optimize", "icon": "⚡"},
+        {"id": 3, "name": "Guards", "icon": "🛡️"},
+        {"id": 4, "name": "Validate", "icon": "✅"},
+        {"id": 5, "name": "Deploy", "icon": "🚀"},
+    ]
+
+    stepper_html = """
+    <style>
+    .stepper-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 10px;
+        background: linear-gradient(135deg, #1A1F2E 0%, #252B3B 100%);
+        border-radius: 12px;
+        margin-bottom: 20px;
+        border: 1px solid #2D3748;
+    }
+    .step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        position: relative;
+    }
+    .step-circle {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        margin-bottom: 8px;
+        transition: all 0.3s ease;
+    }
+    .step-completed {
+        background: linear-gradient(135deg, #48BB78 0%, #38A169 100%);
+        box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+    }
+    .step-active {
+        background: linear-gradient(135deg, #00D4FF 0%, #0099CC 100%);
+        box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
+        animation: pulse 2s infinite;
+    }
+    .step-pending {
+        background: #2D3748;
+        border: 2px dashed #4A5568;
+    }
+    .step-label {
+        font-size: 12px;
+        color: #A0AEC0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .step-completed .step-label { color: #48BB78; }
+    .step-active .step-label { color: #00D4FF; font-weight: 600; }
+    .step-connector {
+        flex: 1;
+        height: 3px;
+        background: #2D3748;
+        margin: 0 5px;
+        margin-bottom: 25px;
+    }
+    .step-connector.completed {
+        background: linear-gradient(90deg, #48BB78 0%, #38A169 100%);
+    }
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    </style>
+    <div class="stepper-container">
+    """
+
+    for i, step in enumerate(steps):
+        if step["id"] in completed_steps:
+            status_class = "step-completed"
+            icon = "✓"
+        elif step["id"] == current_step:
+            status_class = "step-active"
+            icon = step["icon"]
+        else:
+            status_class = "step-pending"
+            icon = step["icon"]
+
+        stepper_html += f"""
+        <div class="step">
+            <div class="step-circle {status_class}">{icon}</div>
+            <span class="step-label">{step["name"]}</span>
+        </div>
+        """
+
+        if i < len(steps) - 1:
+            connector_class = "completed" if step["id"] in completed_steps else ""
+            stepper_html += f'<div class="step-connector {connector_class}"></div>'
+
+    stepper_html += "</div>"
+
+    st.markdown(stepper_html, unsafe_allow_html=True)
+
+
+def advance_session_step(step_id: int, status: str):
+    """Advance session to a new step if session is active."""
+    if st.session_state.get("active_session"):
+        session = st.session_state.active_session
+        session = update_session_step(session["id"], step_id, status)
+        st.session_state.active_session = session
+        console_log(f"Session → Étape {step_id} ({status})", "OK")
+        return True
+    return False
+
+
+def link_outputs_to_session(file_patterns: list[str]):
+    """Copy matching output files to active session directory."""
+    if not st.session_state.get("active_session"):
+        return
+
+    import shutil
+
+    session_dir = get_session_dir(st.session_state.active_session["id"])
+    outputs_dir = Path("outputs")
+
+    if not outputs_dir.exists():
+        return
+
+    for pattern in file_patterns:
+        for file_path in outputs_dir.glob(pattern):
+            dest = session_dir / file_path.name
+            try:
+                shutil.copy2(file_path, dest)
+                console_log(f"Linked: {file_path.name}", "INFO")
+            except Exception as exc:
+                console_log(f"Failed to link {file_path.name}: {exc}", "WARN")
+
+
+def get_next_action_recommendation() -> dict:
+    """Get recommended next action based on session state."""
+    if not st.session_state.get("active_session"):
+        return {
+            "message": "Créez une session pour commencer",
+            "action": "create_session",
+            "button_label": "➕ Créer une session",
+            "icon": "ℹ️",
+        }
+
+    session = st.session_state.active_session
+    completed = session.get("steps_completed", [])
+    assets = session.get("assets", [])
+
+    if 1 not in completed:
+        return {
+            "message": f"Télécharger les données pour {', '.join(assets[:3])}{'...' if len(assets) > 3 else ''}",
+            "action": "download",
+            "button_label": "📥 Télécharger",
+            "page": "📥 Download OHLCV",
+            "icon": "📥",
+        }
+    if 2 not in completed:
+        return {
+            "message": f"Lancer l'optimisation Bayésienne sur {len(assets)} assets",
+            "action": "optimize",
+            "button_label": "⚡ Optimiser",
+            "page": "⚡ Bayesian",
+            "icon": "⚡",
+        }
+    if 3 not in completed:
+        return {
+            "message": "Exécuter les 7 guards de validation",
+            "action": "guards",
+            "button_label": "🛡️ Valider",
+            "page": "🛡️ Guards",
+            "icon": "🛡️",
+        }
+    if 4 not in completed:
+        return {
+            "message": "Comparer les signaux Pine Script vs Python",
+            "action": "validate",
+            "button_label": "🔄 Comparer",
+            "page": "🔄 Comparateur Pine",
+            "icon": "✅",
+        }
+    if 5 not in completed:
+        return {
+            "message": "Prêt pour le déploiement paper trading",
+            "action": "deploy",
+            "button_label": "🚀 Déployer",
+            "page": "📊 Dashboard",
+            "icon": "🚀",
+        }
+    return {
+        "message": "Pipeline complet ! Session validée ✅",
+        "action": "complete",
+        "button_label": "📋 Voir résultats",
+        "page": "🏆 Comparaison Assets",
+        "icon": "🎉",
+    }
+
+
+def render_empty_state(
+    icon: str,
+    title: str,
+    message: str,
+    action_label: str | None = None,
+    action_page: str | None = None,
+):
+    """Render empty state with optional action button."""
+    st.markdown(f"""
+    <div style="
+        text-align: center;
+        padding: 60px 20px;
+        color: #A0AEC0;
+    ">
+        <div style="font-size: 4rem; margin-bottom: 20px;">{icon}</div>
+        <div style="font-size: 1.3rem; color: #E2E8F0; margin-bottom: 10px;">{title}</div>
+        <div style="font-size: 0.95rem; max-width: 400px; margin: 0 auto;">{message}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if action_label and action_page:
+        col1, col2, col3 = st.columns(3)
+        with col2:
+            if st.button(action_label, type="primary", use_container_width=True):
+                st.session_state.current_page = action_page
+                st.rerun()
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -59,6 +289,17 @@ from crypto_backtest.config.scan_assets import (
     TIER4_ASSETS,
     BONUS_ASSETS,
     PASS_CRITERIA,
+)
+from crypto_backtest.config.session_manager import (
+    create_session,
+    load_session,
+    save_session,
+    list_sessions,
+    get_last_session_id,
+    update_session_step,
+    delete_session,
+    get_session_dir,
+    PIPELINE_STEPS,
 )
 
 # =============================================================================
@@ -308,6 +549,27 @@ st.session_state.console_placeholder.code(
     "\n".join(st.session_state.console_logs) if st.session_state.console_logs else "Ready...",
     language=None,
 )
+
+# Session Management
+if "active_session" not in st.session_state:
+    last_id = get_last_session_id()
+    if last_id:
+        st.session_state.active_session = load_session(last_id)
+    else:
+        st.session_state.active_session = None
+
+st.sidebar.markdown("### 📂 Session")
+sessions = list_sessions()
+
+if st.session_state.active_session:
+    st.sidebar.success(f"**{st.session_state.active_session['name']}**")
+    st.sidebar.caption(f"Étape {st.session_state.active_session['current_step']}/5")
+
+if st.sidebar.button("➕ Nouvelle session", use_container_width=True):
+    st.session_state.show_new_session_modal = True
+
+if sessions and st.sidebar.button("📂 Charger session", use_container_width=True):
+    st.session_state.show_load_session_modal = True
 st.sidebar.markdown("---")
 
 # Initialize session state for navigation
@@ -345,6 +607,18 @@ if st.sidebar.button("📉 Visualisation", use_container_width=True, key="btn_vi
     st.session_state.current_page = "📉 Visualisation"
 if st.sidebar.button("📈 Fichiers", use_container_width=True, key="btn_files"):
     st.session_state.current_page = "📈 Fichiers"
+if st.sidebar.button("📋 Historique", use_container_width=True, key="btn_history"):
+    st.session_state.current_page = "📋 Historique"
+
+# Keyboard shortcuts
+st.sidebar.markdown("---")
+with st.sidebar.expander("⌨️ Raccourcis"):
+    st.markdown("""
+    - `R` — Refresh data
+    - `N` — Nouvelle session
+    - `D` — Dashboard
+    - `H` — Historique
+    """)
 
 # Set active page
 page = st.session_state.current_page
@@ -498,6 +772,62 @@ def run_command(cmd: list, placeholder, show_in_console: bool = True):
 if page == "📊 Dashboard":
     st.title("📊 Dashboard Principal")
 
+    # Show progress stepper if session active
+    if st.session_state.get("active_session"):
+        session = st.session_state.active_session
+        render_progress_stepper(
+            current_step=session.get("current_step", 1),
+            completed_steps=session.get("steps_completed", []),
+        )
+    else:
+        render_empty_state(
+            icon="🎯",
+            title="Bienvenue dans FINAL TRIGGER v2",
+            message="Créez votre première session pour commencer le pipeline de backtesting et validation.",
+        )
+        if st.button("➕ Créer une session", type="primary", key="empty_create"):
+            st.session_state.show_new_session_modal = True
+            st.rerun()
+        st.stop()
+
+    # Next action recommendation
+    rec = get_next_action_recommendation()
+
+    st.markdown(f"""
+    <div style="
+        background: linear-gradient(135deg, #1A2F23 0%, #0E1117 100%);
+        border: 1px solid #48BB78;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 20px 0;
+    ">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <span style="font-size: 2rem;">{rec['icon']}</span>
+            <div>
+                <div style="color: #48BB78; font-weight: 600; font-size: 1.1rem;">
+                    Prochaine action recommandée
+                </div>
+                <div style="color: #E2E8F0; margin-top: 4px;">
+                    {rec['message']}
+                </div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if rec.get("page"):
+            if st.button(rec["button_label"], type="primary", use_container_width=True):
+                st.session_state.current_page = rec["page"]
+                st.rerun()
+    with col2:
+        if st.button("📋 Détails session", use_container_width=True):
+            st.session_state.show_session_details = True
+    with col3:
+        if st.button("⏸️ Plus tard", use_container_width=True):
+            pass
+
     col1, col2, col3 = st.columns(3)
 
     # Data status
@@ -595,6 +925,14 @@ if page == "📊 Dashboard":
 elif page == "📥 Download OHLCV":
     st.title("📥 Télécharger les Données OHLCV")
 
+    if st.session_state.get("active_session"):
+        session = st.session_state.active_session
+        render_progress_stepper(
+            session.get("current_step", 1),
+            session.get("steps_completed", []),
+        )
+        st.info(f"📂 Session active: **{session['name']}** — Assets: {', '.join(session['assets'])}")
+
     st.markdown("""
     Télécharge les données historiques depuis les exchanges (Binance, Bybit).
     Les données sont sauvegardées en format Parquet dans le dossier `data/`.
@@ -605,45 +943,42 @@ elif page == "📥 Download OHLCV":
     with col1:
         st.subheader("Configuration")
 
+        available_data = get_available_data()
+        if st.session_state.get("active_session"):
+            session_assets = st.session_state.active_session.get("assets", [])
+        else:
+            session_assets = []
+
+        options = []
+        if session_assets:
+            options.append("Assets de la session")
+        options.extend([
+            "Top 50 complet",
+            "Assets validés (production)",
+            "Sélection manuelle",
+        ])
+
+        default_index = 0 if session_assets else 1
         asset_option = st.radio(
             "Assets à télécharger",
-            [
-                "Top 50 complet",
-                "Tier 1 - Blue chips (Top 10)",
-                "Tier 2 - Large caps (11-25)",
-                "Tier 3 - Mid caps (26-40)",
-                "Tier 4 - Small caps (41-50)",
-                "Bonus - Trending",
-                "Assets validés (production)",
-                "Nouveaux à scanner",
-                "Sélection manuelle",
-            ],
+            options,
+            index=default_index,
         )
 
-        if asset_option == "Sélection manuelle":
+        if asset_option == "Assets de la session":
+            selected_assets = session_assets
+        elif asset_option == "Sélection manuelle":
             selected_assets = st.multiselect(
                 "Choisir les assets",
                 sorted(ALL_ASSETS),
-                default=["BTC", "ETH"],
+                default=session_assets or ["BTC", "ETH"],
             )
         elif asset_option == "Top 50 complet":
             selected_assets = TOP50_ASSETS
-        elif asset_option == "Tier 1 - Blue chips (Top 10)":
-            selected_assets = TIER1_ASSETS
-        elif asset_option == "Tier 2 - Large caps (11-25)":
-            selected_assets = TIER2_ASSETS
-        elif asset_option == "Tier 3 - Mid caps (26-40)":
-            selected_assets = TIER3_ASSETS
-        elif asset_option == "Tier 4 - Small caps (41-50)":
-            selected_assets = TIER4_ASSETS
-        elif asset_option == "Bonus - Trending":
-            selected_assets = BONUS_ASSETS
         elif asset_option == "Assets validés (production)":
             selected_assets = VALIDATED_ASSETS
-        elif asset_option == "Nouveaux à scanner":
-            selected_assets = SCAN_ASSETS
         else:
-            selected_assets = ALL_ASSETS
+            selected_assets = available_data
 
         days_back = st.slider("Jours d'historique", 90, 1095, 730)
 
@@ -683,6 +1018,14 @@ elif page == "📥 Download OHLCV":
             if returncode == 0:
                 st.success("✅ Téléchargement terminé!")
                 st.balloons()
+
+                # Update session progress
+                advance_session_step(1, "data_loaded")
+
+                st.markdown("---")
+                if st.button("⚡ Continuer vers l'optimisation →", type="primary"):
+                    st.session_state.current_page = "⚡ Bayesian"
+                    st.rerun()
             else:
                 st.error(f"❌ Erreur (code {returncode})")
 
@@ -692,6 +1035,13 @@ elif page == "📥 Download OHLCV":
 # -----------------------------------------------------------------------------
 elif page == "🔄 Comparateur Pine":
     st.title("🔄 Comparateur Pine Script vs Python")
+
+    if st.session_state.get("active_session"):
+        session = st.session_state.active_session
+        render_progress_stepper(
+            session.get("current_step", 1),
+            session.get("steps_completed", []),
+        )
 
     st.markdown("""
     Compare les signaux FINAL LONG/SHORT générés par Pine Script (TradingView)
@@ -870,6 +1220,15 @@ elif page == "🔄 Comparateur Pine":
                         st.metric("Signaux Matchés", total_match)
                         if global_rate >= 95:
                             st.success(f"Match Global: {global_rate:.1f}%")
+
+                            # Update session progress
+                            advance_session_step(4, "validated")
+
+                            st.markdown("---")
+                            st.success("🎉 Validation Pine Script réussie !")
+                            if st.button("🚀 Voir le résumé final →", type="primary"):
+                                st.session_state.current_page = "📊 Dashboard"
+                                st.rerun()
                         elif global_rate >= 80:
                             st.warning(f"Match Global: {global_rate:.1f}%")
                         else:
@@ -951,6 +1310,14 @@ elif page == "🔄 Comparateur Pine":
 elif page == "⚡ Bayesian":
     st.title("⚡ Optimisation Bayésienne")
 
+    if st.session_state.get("active_session"):
+        session = st.session_state.active_session
+        render_progress_stepper(
+            session.get("current_step", 1),
+            session.get("steps_completed", []),
+        )
+        st.info(f"📂 Session active: **{session['name']}**")
+
     st.markdown("""
     Lance l'optimisation des paramètres ATR et Ichimoku sur les assets sélectionnés.
     Utilise Optuna (TPE) pour trouver les meilleurs paramètres.
@@ -968,10 +1335,16 @@ elif page == "⚡ Bayesian":
             st.error("⚠️ Aucune donnée disponible. Téléchargez d'abord les données.")
             st.stop()
 
+        if st.session_state.get("active_session"):
+            session_assets = st.session_state.active_session.get("assets", [])
+            default_assets = [a for a in session_assets if a in available_data]
+        else:
+            default_assets = [a for a in SCAN_ASSETS if a in available_data][:3]
+
         selected_assets = st.multiselect(
             "Assets à optimiser",
             available_data,
-            default=[a for a in SCAN_ASSETS if a in available_data][:3],
+            default=default_assets,
         )
 
         trials_atr = st.slider("Trials ATR", 20, 200, 100)
@@ -1058,6 +1431,15 @@ elif page == "⚡ Bayesian":
                 if returncode == 0:
                     st.success("✅ Optimisation terminée!")
                     st.balloons()
+
+                    # Update session progress
+                    advance_session_step(2, "optimized")
+                    link_outputs_to_session(["multiasset_scan_*.csv", "pine_plan_*.csv"])
+
+                    st.markdown("---")
+                    if st.button("🛡️ Continuer vers les Guards →", type="primary"):
+                        st.session_state.current_page = "🛡️ Guards"
+                        st.rerun()
 
                     # Show latest results
                     scan_results = get_scan_results()
@@ -1292,6 +1674,14 @@ elif page == "🎚️ Displacement Grid":
 elif page == "🛡️ Guards":
     st.title("🛡️ Tests de Robustesse (Guards)")
 
+    if st.session_state.get("active_session"):
+        session = st.session_state.active_session
+        render_progress_stepper(
+            session.get("current_step", 1),
+            session.get("steps_completed", []),
+        )
+        st.info(f"📂 Session active: **{session['name']}**")
+
     st.markdown("""
     Exécute les 7 tests de validation sur les assets optimisés:
     - **GUARD-001**: Monte Carlo (p-value < 0.05)
@@ -1331,10 +1721,16 @@ elif page == "🛡️ Guards":
             st.error("Impossible de lire les assets depuis le fichier")
             st.stop()
 
+        if st.session_state.get("active_session"):
+            session_assets = st.session_state.active_session.get("assets", [])
+            default_assets = [a for a in session_assets if a in available_assets]
+        else:
+            default_assets = available_assets
+
         selected_assets = st.multiselect(
             "Assets à valider",
             available_assets,
-            default=available_assets,
+            default=default_assets,
         )
 
         import os
@@ -1375,6 +1771,30 @@ elif page == "🛡️ Guards":
                 if returncode == 0:
                     st.success("✅ Guards terminés!")
                     st.balloons()
+
+                    # Update session progress
+                    advance_session_step(3, "guards_complete")
+                    link_outputs_to_session([
+                        "*_montecarlo.csv",
+                        "*_montecarlo_*.csv",
+                        "*_sensitivity.csv",
+                        "*_sensitivity_*.csv",
+                        "*_bootstrap.csv",
+                        "*_bootstrap_*.csv",
+                        "*_tradedist.csv",
+                        "*_tradedist_*.csv",
+                        "*_stresstest.csv",
+                        "*_stresstest_*.csv",
+                        "*_regime.csv",
+                        "*_regime_*.csv",
+                        "multiasset_guards_summary.csv",
+                        "multiasset_guards_summary_*.csv",
+                    ])
+
+                    st.markdown("---")
+                    if st.button("✅ Continuer vers la validation Pine →", type="primary"):
+                        st.session_state.current_page = "🔄 Comparateur Pine"
+                        st.rerun()
 
                     # Show results
                     guards_df = get_guards_results()
@@ -2587,8 +3007,327 @@ elif page == "📉 Visualisation":
         st.plotly_chart(fig_radar, use_container_width=True)
 
 
+# -----------------------------------------------------------------------------
+# HISTORIQUE DES SESSIONS
+# -----------------------------------------------------------------------------
+elif page == "📋 Historique":
+    st.title("📋 Historique des Sessions")
+
+    if st.session_state.get("active_session"):
+        render_progress_stepper(
+            st.session_state.active_session.get("current_step", 1),
+            st.session_state.active_session.get("steps_completed", []),
+        )
+
+    st.markdown("""
+    Parcourez l'historique de toutes vos sessions de backtesting et validation.
+    """)
+
+    sessions = list_sessions()
+
+    if not sessions:
+        st.info("🔍 Aucune session trouvée. Créez votre première session depuis le Dashboard.")
+        if st.button("➕ Créer une session", type="primary"):
+            st.session_state.show_new_session_modal = True
+            st.rerun()
+        st.stop()
+
+    st.markdown("---")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        status_filter = st.selectbox(
+            "Filtrer par statut",
+            ["Tous", "En cours", "Guards OK", "Validé", "Déployé"],
+        )
+
+    with col2:
+        all_assets = set()
+        for session in sessions:
+            all_assets.update(session.get("assets", []))
+
+        asset_filter = st.multiselect(
+            "Filtrer par asset",
+            sorted(all_assets),
+            default=[],
+        )
+
+    with col3:
+        sort_by = st.selectbox(
+            "Trier par",
+            ["Date (récent)", "Date (ancien)", "Nom", "Progression"],
+        )
+
+    filtered_sessions = sessions.copy()
+
+    if status_filter != "Tous":
+        status_map = {
+            "En cours": ["created", "data_loaded", "optimized"],
+            "Guards OK": ["guards_complete"],
+            "Validé": ["validated"],
+            "Déployé": ["deployed"],
+        }
+        allowed_statuses = status_map.get(status_filter, [])
+        filtered_sessions = [
+            session for session in filtered_sessions
+            if session.get("status") in allowed_statuses
+        ]
+
+    if asset_filter:
+        filtered_sessions = [
+            session for session in filtered_sessions
+            if any(asset in session.get("assets", []) for asset in asset_filter)
+        ]
+
+    if sort_by == "Date (récent)":
+        filtered_sessions.sort(key=lambda x: x.get("created", ""), reverse=True)
+    elif sort_by == "Date (ancien)":
+        filtered_sessions.sort(key=lambda x: x.get("created", ""))
+    elif sort_by == "Nom":
+        filtered_sessions.sort(key=lambda x: x.get("name", "").lower())
+    elif sort_by == "Progression":
+        filtered_sessions.sort(key=lambda x: x.get("current_step", 0), reverse=True)
+
+    st.markdown("---")
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        st.metric("Total Sessions", len(sessions))
+    with col2:
+        completed = len([s for s in sessions if s.get("current_step", 0) >= 4])
+        st.metric("Validées", completed)
+    with col3:
+        in_progress = len([s for s in sessions if 1 <= s.get("current_step", 0) < 4])
+        st.metric("En cours", in_progress)
+    with col4:
+        st.metric("Assets testés", len(all_assets))
+
+    st.markdown("---")
+
+    if "compare_sessions" not in st.session_state:
+        st.session_state.compare_sessions = []
+
+    if "confirm_delete_session" not in st.session_state:
+        st.session_state.confirm_delete_session = None
+
+    compare_mode = st.checkbox("🔀 Mode comparaison", value=False)
+
+    if compare_mode and len(st.session_state.compare_sessions) >= 2:
+        if st.button("📊 Comparer les sessions sélectionnées", type="primary"):
+            st.session_state.show_comparison = True
+
+    st.markdown("---")
+
+    st.subheader(f"📂 Sessions ({len(filtered_sessions)})")
+
+    for session in filtered_sessions:
+        session_id = session["id"]
+        is_active = (
+            st.session_state.get("active_session")
+            and st.session_state.active_session.get("id") == session_id
+        )
+
+        status_config = {
+            "created": {"color": "#4299E1", "icon": "🔵", "label": "Créée"},
+            "data_loaded": {"color": "#ECC94B", "icon": "🟡", "label": "Données OK"},
+            "optimized": {"color": "#ED8936", "icon": "🟠", "label": "Optimisée"},
+            "guards_complete": {"color": "#48BB78", "icon": "🟢", "label": "Guards OK"},
+            "validated": {"color": "#38A169", "icon": "✅", "label": "Validée"},
+            "deployed": {"color": "#9F7AEA", "icon": "🚀", "label": "Déployée"},
+        }
+        status = session.get("status", "created")
+        status_info = status_config.get(status, status_config["created"])
+
+        border_color = "#00D4FF" if is_active else "#2D3748"
+        border_width = "2px" if is_active else "1px"
+
+        st.markdown(f"""
+        <div style="
+            background: linear-gradient(135deg, #1A1F2E 0%, #252B3B 100%);
+            border: {border_width} solid {border_color};
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+        ">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <span style="color: #FFFFFF; font-weight: 600; font-size: 1.1rem;">
+                        {session['name']}
+                    </span>
+                    {' <span style="color: #00D4FF; font-size: 0.75rem; padding: 2px 8px; background: rgba(0,212,255,0.2); border-radius: 4px;">ACTIVE</span>' if is_active else ''}
+                </div>
+                <span style="
+                    color: {status_info['color']};
+                    font-size: 0.85rem;
+                    padding: 4px 10px;
+                    background: rgba(255,255,255,0.05);
+                    border-radius: 6px;
+                ">
+                    {status_info['icon']} {status_info['label']}
+                </span>
+            </div>
+            <div style="color: #A0AEC0; font-size: 0.85rem; margin-top: 8px;">
+                📊 {', '.join(session.get('assets', [])[:5])}{'...' if len(session.get('assets', [])) > 5 else ''}
+            </div>
+            <div style="color: #718096; font-size: 0.75rem; margin-top: 4px;">
+                📅 {datetime.fromisoformat(session['created']).strftime('%d/%m/%Y %H:%M')} - Étape {session.get('current_step', 1)}/5
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        col1, col2, col3, col4, col5 = st.columns(5)
+
+        with col1:
+            if is_active:
+                st.button("✓ Active", key=f"active_{session_id}", disabled=True)
+            else:
+                if st.button("📂 Charger", key=f"load_{session_id}", use_container_width=True):
+                    st.session_state.active_session = session
+                    console_log(f"Session chargée: {session['name']}", "OK")
+                    st.rerun()
+
+        with col2:
+            if st.button("▶️ Continuer", key=f"continue_{session_id}", use_container_width=True):
+                st.session_state.active_session = session
+                step_pages = {
+                    1: "📥 Download OHLCV",
+                    2: "⚡ Bayesian",
+                    3: "🛡️ Guards",
+                    4: "🔄 Comparateur Pine",
+                    5: "📊 Dashboard",
+                }
+                st.session_state.current_page = step_pages.get(
+                    session.get("current_step", 1),
+                    "📊 Dashboard",
+                )
+                st.rerun()
+
+        with col3:
+            if st.button("📋 Détails", key=f"details_{session_id}", use_container_width=True):
+                st.session_state.selected_session_details = session_id
+
+        with col4:
+            if compare_mode:
+                is_selected = session_id in st.session_state.compare_sessions
+                if st.checkbox("", value=is_selected, key=f"cmp_{session_id}"):
+                    if session_id not in st.session_state.compare_sessions:
+                        st.session_state.compare_sessions.append(session_id)
+                else:
+                    if session_id in st.session_state.compare_sessions:
+                        st.session_state.compare_sessions.remove(session_id)
+
+        with col5:
+            if st.session_state.confirm_delete_session == session_id:
+                if st.button("Confirmer", key=f"confirm_{session_id}", use_container_width=True):
+                    delete_session(session_id)
+                    if is_active:
+                        st.session_state.active_session = None
+                    st.session_state.confirm_delete_session = None
+                    console_log(f"Session supprimée: {session['name']}", "WARN")
+                    st.rerun()
+            else:
+                if st.button("🗑️", key=f"del_{session_id}", help="Supprimer", use_container_width=True):
+                    st.session_state.confirm_delete_session = session_id
+
+        if st.session_state.get("selected_session_details") == session_id:
+            with st.expander("📋 Détails de la session", expanded=True):
+                det_col1, det_col2 = st.columns(2)
+
+                with det_col1:
+                    st.markdown("**Informations**")
+                    st.write(f"- **ID:** `{session['id']}`")
+                    st.write(f"- **Créée:** {datetime.fromisoformat(session['created']).strftime('%d/%m/%Y %H:%M')}")
+                    st.write(f"- **Assets:** {', '.join(session.get('assets', []))}")
+                    st.write(f"- **Étapes complétées:** {session.get('steps_completed', [])}")
+
+                with det_col2:
+                    st.markdown("**Notes**")
+                    notes = session.get("notes", "")
+                    new_notes = st.text_area("", value=notes, key=f"notes_{session_id}", height=100)
+                    if new_notes != notes:
+                        session["notes"] = new_notes
+                        save_session(session)
+                        st.success("Notes sauvegardées")
+
+                session_dir = get_session_dir(session_id)
+                if session_dir.exists():
+                    files = list(session_dir.glob("*.csv"))
+                    if files:
+                        st.markdown("**Fichiers associés**")
+                        for file_path in files[:10]:
+                            st.caption(f"📄 {file_path.name}")
+
+                if st.button("Fermer", key=f"close_details_{session_id}"):
+                    st.session_state.selected_session_details = None
+                    st.rerun()
+
+        st.markdown("")
+
+    if st.session_state.get("show_comparison") and len(st.session_state.compare_sessions) >= 2:
+        st.markdown("---")
+        st.subheader("🔀 Comparaison de Sessions")
+
+        sessions_to_compare = [
+            load_session(session_id)
+            for session_id in st.session_state.compare_sessions[:2]
+        ]
+
+        if all(sessions_to_compare):
+            col1, col2 = st.columns(2)
+
+            for col, sess in zip([col1, col2], sessions_to_compare):
+                with col:
+                    st.markdown(f"### {sess['name']}")
+                    st.write(f"**Status:** {sess.get('status', 'N/A')}")
+                    st.write(f"**Assets:** {', '.join(sess.get('assets', []))}")
+                    st.write(f"**Étape:** {sess.get('current_step', 1)}/5")
+                    st.write(f"**Créée:** {datetime.fromisoformat(sess['created']).strftime('%d/%m/%Y')}")
+
+        if st.button("Fermer la comparaison"):
+            st.session_state.show_comparison = False
+            st.session_state.compare_sessions = []
+            st.rerun()
+
+
 # =============================================================================
-# FOOTER
+# SIDEBAR FOOTER - Session Stats
 # =============================================================================
 st.sidebar.markdown("---")
-st.sidebar.caption(f"v1.2 | {datetime.now().strftime('%Y-%m-%d')}")
+
+if st.session_state.get("active_session"):
+    session = st.session_state.active_session
+    completed = len(session.get("steps_completed", []))
+
+    st.sidebar.markdown(f"""
+    <div style="
+        background: linear-gradient(135deg, #1A1F2E 0%, #0E1117 100%);
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 10px;
+    ">
+        <div style="color: #A0AEC0; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">
+            Progression
+        </div>
+        <div style="
+            background: #2D3748;
+            border-radius: 4px;
+            height: 8px;
+            margin: 8px 0;
+            overflow: hidden;
+        ">
+            <div style="
+                background: linear-gradient(90deg, #00D4FF 0%, #00FF88 100%);
+                height: 100%;
+                width: {completed * 20}%;
+                transition: width 0.3s ease;
+            "></div>
+        </div>
+        <div style="color: #718096; font-size: 12px; text-align: center;">
+            {completed}/5 étapes complétées
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+st.sidebar.caption(f"v2.0 | {datetime.now().strftime('%Y-%m-%d')}")
