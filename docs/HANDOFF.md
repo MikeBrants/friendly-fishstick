@@ -37,6 +37,23 @@ Pipeline de backtest complet pour la stratégie TradingView "FINAL TRIGGER v2" c
 - **Auto-progression**: auto-update des étapes (Download/Optimize/Guards/Validate) + recommandations contextuelles sur le Dashboard.
 - **Historique**: page Streamlit “📋 Historique” avec filtres, comparaison, notes et gestion des sessions.
 - **Final polish**: pages pipeline “session-aware”, liaison outputs→session, footer progression, raccourcis sidebar, empty state Dashboard.
+- **Top 50 (sans BTC/ETH/AVAX/UNI/SEI) - 2 batches**:
+  - **PASS**: DOT (OOS Sharpe 3.54, WFE 1.24), SHIB (4.71, 1.85), NEAR (3.25, 2.02), SUI (1.39, 0.75), APT (3.77, 8.11)
+  - **FAIL**: SOL, XRP, BNB, ADA, DOGE, LINK, MATIC, LTC, ATOM, XLM, FIL, ARB, OP, INJ, RENDER, FET, TAO, PEPE, WIF, BONK, AAVE, MKR, CRV, SNX, SAND
+  - **Clustering**: batch 1 only (k=2, silhouette 0.096); batch 2 skipped (<3 assets PASS)
+  - **Outputs**: `outputs/multiasset_scan_20260121_1619.csv`, `outputs/multiasset_scan_20260121_1626.csv`, `outputs/cluster_analysis_20260121_1619.json`, `outputs/cluster_param_loss_20260121_1619.csv`
+- **OP displacement=78 full run**: SUCCESS, OOS Sharpe 2.48, WFE 1.66, OOS trades 90 (baseline disp=52 was 1.07). Outputs: `outputs/displacement_grid_OP_20260121_173045.csv`, `outputs/op_fullrun_disp78_20260121_174550.csv`
+- **Modes de filtrage KAMA**: 3 configs (BASELINE/MODERATE/CONSERVATIVE) ajoutées à `crypto_backtest/validation/conservative_reopt.py`
+  - **BASELINE**: 0 filtres (only Ichimoku external), pour optimisation initiale
+  - **MODERATE** (défaut reopt): 4 filtres (Distance, Volume, RegCloud, KAMA Osc), mama_kama=False, ichi_strict=False
+  - **CONSERVATIVE**: 5 filtres (all KAMA + strict Ichi), pour overfit sévère uniquement
+- **Diagnostics granulaires**: `crypto_backtest/analysis/diagnostics.py` avec 6+ checks (Sharpe OOS, WFE, Max DD, Trade Count, IS/OOS Consistency, Guards)
+  - Recommandations auto de filter mode (MODERATE par défaut, CONSERVATIVE si WFE < 0.3)
+  - Intégration Streamlit: page "Comparaison Assets" avec diagnostics détaillés + bouton reopt
+- **Tests DOGE KAMA**: comparaison BASELINE vs CONSERVATIVE montre que plus de filtres ≠ meilleure performance
+  - BASELINE (0 filtres): Sharpe 1.75, 459 trades
+  - CONSERVATIVE (5 filtres): Sharpe 1.41, 348 trades (-19% Sharpe)
+  - Conclusion: filtres KAMA utiles pour réduire overfit, mais peuvent dégrader performance sur certains assets
 
 ### Fichiers Critiques
 | Fichier | Description |
@@ -51,6 +68,8 @@ Pipeline de backtest complet pour la stratégie TradingView "FINAL TRIGGER v2" c
 | `outputs/pine_plan_fullguards.csv` | Plan Pine pour assets full guards |
 | `scripts/run_guards_multiasset.py` | Guards multi-asset (outputs timestampés) |
 | `crypto_backtest/config/session_manager.py` | Gestion des sessions Streamlit |
+| `crypto_backtest/analysis/diagnostics.py` | Diagnostics granulaires + recommandations reopt |
+| `crypto_backtest/validation/conservative_reopt.py` | Configs filtres KAMA + reopt conservative |
 
 ### Interprétation des Outputs (Pour Agents)
 
@@ -121,7 +140,10 @@ scan_df = latest.load_scan_results()
 2. 🔴 **P1 - Displacement Grid**: Optimiser displacement [26, 39, 52, 65, 78] — **PRIORITAIRE**
 3. ✅ **P2 - CODEX-005**: Multi-Asset Scan 10 Alts + Clustering — **IMPLEMENTED**
 4. ✅ **P3 - Dashboard Streamlit**: Interface visuelle — **IMPLEMENTED** (Dark Trading Theme)
-5. **P4 - Live Trading**: Implémenter connecteur exchange live
+5. ✅ **P4 - Filter Modes**: BASELINE/MODERATE/CONSERVATIVE configs — **IMPLEMENTED**
+6. ✅ **P5 - Diagnostics**: Système de diagnostics granulaires avec recommandations — **IMPLEMENTED**
+7. 🟡 **P6 - MODERATE Testing**: Valider config MODERATE sur assets FAIL (DOGE, OP, etc.)
+8. **P7 - Live Trading**: Implémenter connecteur exchange live
 
 ### Données (Local Only)
 Les fichiers `data/Binance_*_1h.csv` sont ignorés par git. Pour régénérer:
@@ -462,7 +484,7 @@ crypto_backtest/
 
 ## ⚙️ Configuration Active
 
-> **IMPORTANT**: Seuls 2 filtres sont actifs dans la configuration par défaut.
+> **IMPORTANT**: Seuls 2 filtres sont actifs dans la configuration par défaut (BASELINE).
 
 | Paramètre | Valeur | Description |
 |-----------|--------|-------------|
@@ -471,6 +493,74 @@ crypto_backtest/
 | `use_mama_kama_filter` | FALSE | MAMA/FAMA/KAMA désactivé |
 | `use_transition_mode` | FALSE | Mode transition désactivé |
 | Autres filtres 5in1 | FALSE | Distance, Volume, AD, Regression, KAMA Osc |
+
+---
+
+## 🔧 Modes de Filtrage KAMA (2026-01-21)
+
+Le système propose 3 configurations de filtres pour gérer le trade-off performance vs overfit:
+
+### BASELINE (Initial Optimization)
+**Configuration minimale** pour l'optimisation initiale:
+- ❌ MAMA/KAMA Filter
+- ❌ Distance Filter
+- ❌ Volume Filter (A/D Line ou OBV)
+- ❌ Regression Cloud
+- ❌ KAMA Oscillator
+- ✅ Ichimoku External (seul actif)
+- ❌ Ichi Strict Mode (Light - 3 conditions bearish)
+
+**Usage**: Première optimisation pour identifier le potentiel brut de l'asset.
+
+### MODERATE (Default Reopt) ⭐
+**Configuration par défaut** pour la ré-optimisation (équilibre performance/robustesse):
+- ❌ MAMA/KAMA Filter (OFF - per user preference)
+- ✅ Distance Filter
+- ✅ Volume Filter (A/D Line)
+- ✅ Regression Cloud (ON - per user preference)
+- ✅ KAMA Oscillator
+- ✅ Ichimoku External
+- ❌ Ichi Strict Mode (Light - per user preference)
+
+**Bénéfices**: Réduit l'overfit sans dégrader excessivement la performance.
+
+### CONSERVATIVE (Severe Overfit Only)
+**Configuration maximale** pour assets avec overfit sévère (WFE < 0.3):
+- ✅ MAMA/KAMA Filter
+- ✅ Distance Filter
+- ✅ Volume Filter
+- ✅ Regression Cloud
+- ✅ KAMA Oscillator
+- ✅ Ichimoku External
+- ✅ Ichi Strict Mode (17 bull + 17 bear conditions)
+
+**Usage**: Uniquement pour assets montrant forte dégradation IS→OOS.
+
+### 📊 Tests Comparatifs (DOGE 1H)
+
+| Metric | BASELINE (0 filtres) | CONSERVATIVE (5 filtres) | Delta |
+|--------|----------------------|--------------------------|-------|
+| Sharpe | **1.75** | 1.41 | **-19%** ❌ |
+| Trades | 459 | 348 | -24% |
+| Return | 87.2% | 60.8% | -26.4pp |
+
+**Conclusion**: Plus de filtres ≠ meilleure performance systématique. Les filtres KAMA sont utiles pour réduire l'overfit, mais peuvent dégrader la performance sur certains assets. **MODERATE** offre un équilibre raisonnable.
+
+### 🔍 Système de Diagnostics
+
+`crypto_backtest/analysis/diagnostics.py` analyse automatiquement:
+- **6+ Checks**: Sharpe OOS, WFE, Max DD, Trade Count, IS/OOS Consistency, Guards
+- **Recommandations auto**:
+  - **MODERATE** (défaut) si WFE ≥ 0.3 et pas d'overfit sévère
+  - **CONSERVATIVE** si WFE < 0.3 ou multiple failures
+  - Suggestions: trials à augmenter, displacement grid à tester, exclusion asset
+
+**Interface Streamlit**: Page "Comparaison Assets" affiche diagnostics détaillés + bouton reopt avec pre-fill settings.
+
+**Fichiers**:
+- `crypto_backtest/validation/conservative_reopt.py` — Configs filtres
+- `crypto_backtest/analysis/diagnostics.py` — Diagnostic checks
+- `test_doge_kama_*.py` — Scripts de test comparatif
 
 ---
 

@@ -316,6 +316,36 @@ def diagnose_asset(
     else:
         overall_status = "PASS"
 
+    # =========================================================================
+    # FILTER CONFIGURATION RECOMMENDATION
+    # =========================================================================
+    # Default to MODERATE filters (balance performance vs overfit prevention)
+    # - Use CONSERVATIVE (all 5 filters) only if severe overfitting detected
+    # - Use BASELINE (no filters) for initial optimization only
+
+    if wfe < 0.3 or (fail_count >= 2 and "simplify" in recommendations):
+        # Severe overfit: recommend CONSERVATIVE (all 5 KAMA filters)
+        filter_mode = "CONSERVATIVE"
+        filter_config = {
+            "use_mama_kama_filter": True,
+            "use_distance_filter": True,
+            "use_volume_filter": True,
+            "use_regression_cloud": True,
+            "use_kama_oscillator": True,
+            "ichi5in1_strict": True,  # 17 bull + 17 bear conditions
+        }
+    else:
+        # Default: MODERATE (4 filters, balanced)
+        filter_mode = "MODERATE"
+        filter_config = {
+            "use_mama_kama_filter": False,      # OFF per user preference
+            "use_distance_filter": True,
+            "use_volume_filter": True,
+            "use_regression_cloud": True,       # ON per user preference
+            "use_kama_oscillator": True,
+            "ichi5in1_strict": False,           # Light mode per user preference
+        }
+
     # Build recommended settings
     recommended_settings = {
         "asset": asset,
@@ -325,6 +355,8 @@ def diagnose_asset(
         "test_displacement": recommendations.get("test_displacement", False),
         "fix_displacement": recommendations.get("fix_displacement", None),
         "exclude_asset": recommendations.get("exclude_asset", False),
+        "filter_mode": filter_mode,
+        "filter_config": filter_config,
     }
 
     return AssetDiagnostics(

@@ -28,6 +28,45 @@ CONSERVATIVE_ICHI_SPACE = {
 
 CONSERVATIVE_SPLIT_RATIO = (0.70, 0.15, 0.15)
 
+# MODERATE filter config - Balance between performance and overfit prevention
+# Used as default when not using BASELINE (no filters)
+MODERATE_FILTERS_CONFIG = {
+    "use_mama_kama_filter": False,      # OFF: MAMA/KAMA trend filter
+    "use_distance_filter": True,         # ON: Distance from moving averages
+    "use_volume_filter": True,           # ON: A/D Line or OBV filter
+    "use_regression_cloud": True,        # ON: Regression cloud slopes
+    "use_kama_oscillator": True,         # ON: KAMA oscillator [-0.5, 0.5]
+    "ichi5in1_strict": False,            # OFF: Light mode (3 bearish conditions only)
+    "use_ichimoku_filter": True,         # ON: External Ichimoku bias
+    "use_transition_mode": False,        # OFF: State mode (not transition)
+}
+
+# CONSERVATIVE filter config - Maximum overfit prevention
+# All 5 KAMA filters + strict Ichimoku mode
+CONSERVATIVE_FILTERS_CONFIG = {
+    "use_mama_kama_filter": True,        # ON: MAMA/KAMA trend filter
+    "use_distance_filter": True,         # ON: Distance from moving averages
+    "use_volume_filter": True,           # ON: A/D Line or OBV filter
+    "use_regression_cloud": True,        # ON: Regression cloud slopes
+    "use_kama_oscillator": True,         # ON: KAMA oscillator [-0.5, 0.5]
+    "ichi5in1_strict": True,             # ON: Strict mode (17 bull + 17 bear conditions)
+    "use_ichimoku_filter": True,         # ON: External Ichimoku bias
+    "use_transition_mode": False,        # OFF: State mode (not transition)
+}
+
+# BASELINE filter config - Minimal filtering (Pine default)
+# Only external Ichimoku filter active
+BASELINE_FILTERS_CONFIG = {
+    "use_mama_kama_filter": False,       # OFF
+    "use_distance_filter": False,        # OFF
+    "use_volume_filter": False,          # OFF
+    "use_regression_cloud": False,       # OFF
+    "use_kama_oscillator": False,        # OFF
+    "ichi5in1_strict": False,            # OFF: Light mode
+    "use_ichimoku_filter": True,         # ON: Only active filter
+    "use_transition_mode": False,        # OFF: State mode
+}
+
 
 class ConservativeReoptimizer:
     """Reoptimization with anti-overfitting constraints."""
