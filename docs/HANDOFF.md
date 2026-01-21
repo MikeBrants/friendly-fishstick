@@ -1,6 +1,6 @@
 # Handoff — FINAL TRIGGER v2 Backtest System
 
-> **Date de transmission**: 2026-01-20
+> **Date de transmission**: 2026-01-21
 > **État**: PRODUCTION READY — Portfolio 1H validé (guards)
 
 ---
@@ -18,6 +18,12 @@ Pipeline de backtest complet pour la stratégie TradingView "FINAL TRIGGER v2" c
 - **Tous les tests de robustesse passés**: WFE, Monte Carlo, Bootstrap, Sensitivity
 - **Clustering**: invalidé (CLUSTERFAIL) → fallback params individuels (voir `outputs/pine_plan.csv`)
 
+### Dernières mises à jour (2026-01-21)
+- **Guards timestampés**: `scripts/run_guards_multiasset.py` suffixe chaque fichier guard avec `run_id` et génère un résumé `multiasset_guards_summary_{run_id}.csv`.
+- **Streamlit**: page Guards affiche les valeurs (p_value, variance, CI, etc.) en plus des flags pass, et charge automatiquement le résumé guard le plus récent (fallback legacy).
+- **Console persistante**: panel “Console” dans la sidebar Streamlit avec logs horodatés et niveaux (RUN/OK/ERR/etc.).
+- **Pine Strategies**: scripts `FT_BTC.pine`, `FT_ETH.pine`, `FT_AVAX.pine`, `FT_UNI.pine`, `FT_SEI.pine` générés (paramètres frozen + exécution multi-TP).
+
 ### Fichiers Critiques
 | Fichier | Description |
 |---------|-------------|
@@ -29,6 +35,7 @@ Pipeline de backtest complet pour la stratégie TradingView "FINAL TRIGGER v2" c
 | `outputs/portfolio_construction.csv` | Résultats portfolio optimisé |
 | `outputs/optim_*_best_params.json` | Params optimaux par asset |
 | `outputs/pine_plan_fullguards.csv` | Plan Pine pour assets full guards |
+| `scripts/run_guards_multiasset.py` | Guards multi-asset (outputs timestampés) |
 
 ### Interprétation des Outputs (Pour Agents)
 
@@ -37,7 +44,7 @@ Le dashboard Streamlit génère automatiquement des CSV/JSON dans `outputs/`. Po
 **Fichiers clés à analyser**:
 - `multiasset_scan_*.csv` — Résultats scan avec status PASS/FAIL
 - `optim_{ASSET}_best_params.json` — Paramètres optimaux par asset
-- `multiasset_guards_summary.csv` — Résultats des 7 guards par asset
+- `multiasset_guards_summary_{run_id}.csv` — Résultats des 7 guards par asset (le plus récent est auto-chargé)
 - `portfolio_correlation.csv` — Corrélations entre assets (diversification)
 - `concurrent_dd.csv` — Périodes de drawdown simultanés (risque portfolio)
 - `pine_plan_fullguards.csv` — Plan de production pour TradingView
@@ -90,6 +97,9 @@ scan_df = latest.load_scan_results()
 - `examples/run_manager_usage.py` — Exemples détaillés
 
 **Migration**: Les anciens fichiers legacy (`outputs/optim_*.json`, `multiasset_guards_summary.csv`) restent accessibles en lecture seule. Les nouveaux scans utilisent automatiquement la structure de runs.
+
+### Notes de Test (2026-01-21)
+- `python scripts/run_guards_multiasset.py --assets BTC --params-file outputs/pine_plan.csv` lancé deux fois, **timeouts** après 120s puis 300s (création partielle de fichiers Monte Carlo). Les fichiers partiels ont été supprimés.
 
 ### Prochaines Étapes Suggérées
 1. ✅ ~~**P1 - Multi-Timeframe**~~: DONE → rester en 1H (4H/1D insuffisant)

@@ -7,6 +7,7 @@ import argparse
 import os
 import sys
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -424,6 +425,7 @@ def _asset_guard_worker(
     params: dict[str, Any],
     data_dir: str,
     outputs_dir: str,
+    run_id: str,
 ) -> dict[str, Any]:
     data = load_data(asset, data_dir)
     if data.index.tz is None:
@@ -453,13 +455,13 @@ def _asset_guard_worker(
 
     # GUARD-001 Monte Carlo
     mc_df, mc_p = _monte_carlo_permutation(data, base_result, iterations=1000, seed=SEED)
-    mc_path = outputs_path / f"{asset}_montecarlo.csv"
+    mc_path = outputs_path / f"{asset}_montecarlo_{run_id}.csv"
     mc_df.to_csv(mc_path, index=False)
     guard001_pass = mc_p < 0.05
 
     # GUARD-002 Sensitivity
     sens_df, variance_pct = _sensitivity_grid(data, params)
-    sens_path = outputs_path / f"{asset}_sensitivity.csv"
+    sens_path = outputs_path / f"{asset}_sensitivity_{run_id}.csv"
     sens_df.to_csv(sens_path, index=False)
     guard002_pass = variance_pct < 10.0
 
@@ -473,7 +475,7 @@ def _asset_guard_worker(
         iterations=10000,
         seed=SEED,
     )
-    bootstrap_path = outputs_path / f"{asset}_bootstrap.csv"
+    bootstrap_path = outputs_path / f"{asset}_bootstrap_{run_id}.csv"
     bootstrap_df.to_csv(bootstrap_path, index=False)
     sharpe_ci_lower = float(bootstrap_summary["sharpe"]["ci_lower_95"])
     guard003_pass = sharpe_ci_lower > 1.0
@@ -481,7 +483,7 @@ def _asset_guard_worker(
     # GUARD-005 Trade distribution
     trade_dist = _trade_distribution(pnls)
     trade_dist["total_return_pct"] = pnls.sum() / BASE_CONFIG.initial_capital * 100.0
-    trade_dist_path = outputs_path / f"{asset}_tradedist.csv"
+    trade_dist_path = outputs_path / f"{asset}_tradedist_{run_id}.csv"
     pd.DataFrame([trade_dist]).to_csv(trade_dist_path, index=False)
     guard005_pass = trade_dist["pct_return_top_10"] < 40.0
 
@@ -503,14 +505,14 @@ def _asset_guard_worker(
         row["break_even_fees_bps"] = break_even_fees
         row["edge_buffer_bps"] = edge_buffer_bps
     stress_df = pd.DataFrame(stress_rows)
-    stress_path = outputs_path / f"{asset}_stresstest.csv"
+    stress_path = outputs_path / f"{asset}_stresstest_{run_id}.csv"
     stress_df.to_csv(stress_path, index=False)
     stress1_row = stress_df[stress_df["scenario"] == "Stress1"].iloc[0]
     guard006_pass = float(stress1_row["sharpe"]) > 1.0
 
     # GUARD-007 Regime reconciliation
     regime_df, mismatch_pct = _regime_reconciliation(data, base_result)
-    regime_path = outputs_path / f"{asset}_regime.csv"
+    regime_path = outputs_path / f"{asset}_regime_{run_id}.csv"
     regime_df.to_csv(regime_path, index=False)
     guard007_pass = mismatch_pct < 1.0
 
@@ -525,7 +527,7 @@ def _asset_guard_worker(
         ]
     )
 
-    report_path = outputs_path / f"{asset}_validation_report.txt"
+    report_path = outputs_path / f"{asset}_validation_report_{run_id}.txt"
     _write_report(
         str(report_path),
         asset,
@@ -574,6 +576,8 @@ def main() -> None:
     parser.add_argument("--outputs-dir", default="outputs")
     parser.add_argument("--workers", type=int, default=max(os.cpu_count() - 1, 1))
     args = parser.parse_args()
+    run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+    print(f"[GUARDS] Run ID: {run_id}")
 
     params_map = _load_params(args.params_file)
     assets = args.assets
@@ -603,6 +607,7 @@ def main() -> None:
                 params_map[asset],
                 args.data_dir,
                 args.outputs_dir,
+                run_id,
             )] = asset
 
         for future in as_completed(futures):
@@ -625,7 +630,7 @@ def main() -> None:
                 )
 
     summary_df = pd.DataFrame(rows)
-    output_path = Path(args.outputs_dir) / "multiasset_guards_summary.csv"
+    output_path = Path(args.outputs_dir) / f"multiasset_guards_summary_{run_id}.csv"
     summary_df.to_csv(output_path, index=False)
 
 

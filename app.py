@@ -13,6 +13,37 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+# =============================================================================
+# CONSOLE LOGGING SYSTEM
+# =============================================================================
+def init_console():
+    """Initialize console in session state."""
+    if "console_logs" not in st.session_state:
+        st.session_state.console_logs = []
+    if "console_placeholder" not in st.session_state:
+        st.session_state.console_placeholder = None
+
+
+def console_log(msg: str, level: str = "INFO"):
+    """Add message to console with timestamp."""
+    emoji = {"INFO": "ℹ️", "OK": "✅", "WARN": "⚠️", "ERR": "❌", "RUN": "🔄"}
+    prefix = emoji.get(level, "- ")
+    timestamp = datetime.now().strftime("%H:%M:%S")
+
+    st.session_state.console_logs.append(f"{prefix} {timestamp} │ {msg}")
+    st.session_state.console_logs = st.session_state.console_logs[-20:]
+
+    if st.session_state.console_placeholder is not None:
+        st.session_state.console_placeholder.code(
+            "\n".join(st.session_state.console_logs),
+            language=None,
+        )
+
+
+def clear_console():
+    """Clear console logs."""
+    st.session_state.console_logs = []
+
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -264,6 +295,19 @@ code {
 # SIDEBAR - Navigation Groupée
 # =============================================================================
 st.sidebar.title("🎯 FINAL TRIGGER v2")
+
+# Console Monitor
+init_console()
+st.sidebar.markdown("### 🖥️ Console")
+col1, col2 = st.sidebar.columns(2)
+with col2:
+    if st.button("🗑️", key="clear_console", help="Clear console"):
+        clear_console()
+st.session_state.console_placeholder = st.sidebar.empty()
+st.session_state.console_placeholder.code(
+    "\n".join(st.session_state.console_logs) if st.session_state.console_logs else "Ready...",
+    language=None,
+)
 st.sidebar.markdown("---")
 
 # Initialize session state for navigation
@@ -337,16 +381,84 @@ def get_scan_results():
     return sorted(outputs_dir.glob("multiasset_scan_*.csv"), reverse=True)
 
 
-def get_guards_results():
-    """Get guards summary if exists."""
-    path = Path("outputs/multiasset_guards_summary.csv")
-    if path.exists():
-        return pd.read_csv(path)
+def get_guards_summary_path() -> Path | None:
+    """Return most recent guards summary path if available."""
+    outputs_dir = Path("outputs")
+    if not outputs_dir.exists():
+        return None
+    candidates = list(outputs_dir.glob("multiasset_guards_summary_*.csv"))
+    if candidates:
+        return max(candidates, key=lambda p: p.stat().st_mtime)
+    legacy = outputs_dir / "multiasset_guards_summary.csv"
+    if legacy.exists():
+        return legacy
     return None
 
 
-def run_command(cmd: list, placeholder):
+def get_guards_results():
+    """Get guards summary if exists."""
+    path = get_guards_summary_path()
+    if path is not None and path.exists():
+        df = pd.read_csv(path)
+        if path.name.startswith("multiasset_guards_summary_"):
+            run_id = path.stem.replace("multiasset_guards_summary_", "")
+            df["run_id"] = run_id
+        return df
+    return None
+
+
+def get_guard_display_columns(guards_df: pd.DataFrame) -> list[str]:
+    """Return ordered guard columns including value metrics when available."""
+    desired = [
+        "asset",
+        "all_pass",
+        "base_sharpe",
+        "guard001_p_value",
+        "guard001_pass",
+        "guard002_variance_pct",
+        "guard002_pass",
+        "guard003_sharpe_ci_lower",
+        "guard003_pass",
+        "guard005_top10_pct",
+        "guard005_pass",
+        "guard006_stress1_sharpe",
+        "guard006_pass",
+        "guard007_mismatch_pct",
+        "guard007_pass",
+        "error",
+        "run_id",
+    ]
+    return [col for col in desired if col in guards_df.columns]
+
+
+def resolve_guard_file(
+    outputs_dir: Path,
+    asset: str,
+    guard_key: str,
+    run_id: str | None,
+) -> Path | None:
+    """Resolve guard file path using run_id, then newest timestamp, then legacy."""
+    if run_id:
+        candidate = outputs_dir / f"{asset}_{guard_key}_{run_id}.csv"
+        if candidate.exists():
+            return candidate
+    candidates = sorted(
+        outputs_dir.glob(f"{asset}_{guard_key}_*.csv"),
+        key=lambda p: p.stat().st_mtime,
+    )
+    if candidates:
+        return candidates[-1]
+    legacy = outputs_dir / f"{asset}_{guard_key}.csv"
+    if legacy.exists():
+        return legacy
+    return None
+
+
+def run_command(cmd: list, placeholder, show_in_console: bool = True):
     """Run a command and stream output to Streamlit."""
+    if show_in_console:
+        console_log(f"Exec: {' '.join(cmd[:3])}...", "RUN")
+
     process = subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,
@@ -360,7 +472,19 @@ def run_command(cmd: list, placeholder):
         output_lines.append(line)
         placeholder.code("".join(output_lines[-50:]))  # Show last 50 lines
 
+        line_lower = line.lower()
+        if "error" in line_lower or "failed" in line_lower:
+            console_log(line.strip()[:60], "ERR")
+        elif "complete" in line_lower or "finished" in line_lower or "pass" in line_lower:
+            console_log(line.strip()[:60], "OK")
+
     process.wait()
+
+    if process.returncode == 0:
+        console_log("Process completed successfully", "OK")
+    else:
+        console_log(f"Process failed (code {process.returncode})", "ERR")
+
     return process.returncode, "".join(output_lines)
 
 
@@ -543,6 +667,7 @@ elif page == "📥 Download OHLCV":
     st.markdown("---")
 
     if st.button("🚀 Lancer le téléchargement", type="primary", use_container_width=True):
+        console_log(f"Download {len(selected_assets)} assets", "RUN")
         with st.spinner("Téléchargement en cours..."):
             output_placeholder = st.empty()
 
@@ -909,6 +1034,7 @@ elif page == "⚡ Bayesian":
         st.warning("Sélectionnez au moins un asset")
     else:
         if st.button("🚀 Lancer l'optimisation", type="primary", use_container_width=True):
+            console_log(f"Bayesian optim: {', '.join(selected_assets[:3])}...", "RUN")
             with st.spinner(f"Optimisation de {len(selected_assets)} assets..."):
                 output_placeholder = st.empty()
 
@@ -1219,9 +1345,9 @@ elif page == "🛡️ Guards":
         st.subheader("Résultats précédents")
         guards_df = get_guards_results()
         if guards_df is not None:
+            guard_cols = get_guard_display_columns(guards_df)
             st.dataframe(
-                guards_df[["asset", "all_pass", "guard001_pass", "guard002_pass",
-                          "guard003_pass", "guard005_pass", "guard006_pass", "guard007_pass"]],
+                guards_df[guard_cols],
                 use_container_width=True,
             )
         else:
@@ -1233,6 +1359,7 @@ elif page == "🛡️ Guards":
         st.warning("Sélectionnez au moins un asset")
     else:
         if st.button("🚀 Lancer les Guards", type="primary", use_container_width=True):
+            console_log(f"Guards validation: {len(selected_assets)} assets", "RUN")
             with st.spinner(f"Validation de {len(selected_assets)} assets..."):
                 output_placeholder = st.empty()
 
@@ -1333,6 +1460,11 @@ elif page == "📈 Fichiers":
         guards_df = get_guards_results()
 
         if guards_df is not None:
+            run_id = None
+            if "run_id" in guards_df.columns:
+                run_id_series = guards_df["run_id"].dropna()
+                if not run_id_series.empty:
+                    run_id = str(run_id_series.iloc[0])
             # Summary
             col1, col2 = st.columns(2)
             with col1:
@@ -1355,18 +1487,19 @@ elif page == "📈 Fichiers":
 
             # Load individual guard files
             guard_files = {
-                "Monte Carlo": f"{selected_asset}_montecarlo.csv",
-                "Sensitivity": f"{selected_asset}_sensitivity.csv",
-                "Bootstrap": f"{selected_asset}_bootstrap.csv",
-                "Trade Dist": f"{selected_asset}_tradedist.csv",
-                "Stress Test": f"{selected_asset}_stresstest.csv",
-                "Regime": f"{selected_asset}_regime.csv",
+                "Monte Carlo": "montecarlo",
+                "Sensitivity": "sensitivity",
+                "Bootstrap": "bootstrap",
+                "Trade Dist": "tradedist",
+                "Stress Test": "stresstest",
+                "Regime": "regime",
             }
 
-            for name, filename in guard_files.items():
-                filepath = outputs_dir / filename
-                if filepath.exists():
+            for name, guard_key in guard_files.items():
+                filepath = resolve_guard_file(outputs_dir, selected_asset, guard_key, run_id)
+                if filepath is not None and filepath.exists():
                     with st.expander(f"📋 {name}"):
+                        st.caption(filepath.name)
                         st.dataframe(pd.read_csv(filepath), use_container_width=True)
         else:
             st.info("Aucun résultat de guards disponible")
@@ -1441,9 +1574,10 @@ elif page == "🏆 Comparaison Assets":
 
     # Merge with guards if available
     if guards_df is not None:
+        guard_cols = get_guard_display_columns(guards_df)
+        merge_cols = [col for col in guard_cols if col != "asset"]
         merged_df = scan_df.merge(
-            guards_df[["asset", "all_pass", "guard001_pass", "guard002_pass",
-                      "guard003_pass", "guard005_pass", "guard006_pass", "guard007_pass"]],
+            guards_df[["asset"] + merge_cols],
             on="asset",
             how="left"
         )
