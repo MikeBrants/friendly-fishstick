@@ -148,6 +148,16 @@ streamlit run app.py
 - 💼 Portfolio Builder — Corrélations + auto-sélection
 - 📉 Visualisation — Graphiques interactifs
 
+### FAIL Diagnostics & Reoptimization
+
+Le dashboard propose un diagnostic automatique pour les assets en FAIL, avec
+réoptimisation conservative (grille discrète) et historique persistant:
+
+- Diagnostics: `outputs/diagnostic_history.json`
+- Reoptimisations: `outputs/reoptimization_history.json`
+- Assets validés: `outputs/validated_assets.json`
+- Assets morts: `outputs/dead_assets.json`
+
 ### Ligne de Commande
 
 ```bash

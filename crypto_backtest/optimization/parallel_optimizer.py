@@ -34,6 +34,11 @@ from crypto_backtest.config.scan_assets import (
 from crypto_backtest.engine.backtest import BacktestConfig, VectorizedBacktester
 from crypto_backtest.strategies.final_trigger import FinalTriggerStrategy
 from crypto_backtest.optimization.bayesian import _instantiate_strategy, _apply_overrides
+from crypto_backtest.validation.conservative_reopt import (
+    CONSERVATIVE_ATR_SPACE,
+    CONSERVATIVE_ICHI_SPACE,
+    CONSERVATIVE_SPLIT_RATIO,
+)
 
 
 # Suppress Optuna logging
@@ -309,6 +314,39 @@ def optimize_atr(
     return study.best_params, float(study.best_value)
 
 
+def optimize_atr_conservative(
+    data: pd.DataFrame,
+    n_trials: int = 200,
+    min_trades: int = 50,
+) -> tuple[dict[str, float], float]:
+    """Optimize ATR parameters with a discrete grid."""
+    import optuna
+
+    def objective(trial: optuna.Trial) -> float:
+        sl = trial.suggest_categorical("sl_mult", CONSERVATIVE_ATR_SPACE["sl_mult"])
+        tp1 = trial.suggest_categorical("tp1_mult", CONSERVATIVE_ATR_SPACE["tp1_mult"])
+        tp2 = trial.suggest_categorical("tp2_mult", CONSERVATIVE_ATR_SPACE["tp2_mult"])
+        tp3 = trial.suggest_categorical("tp3_mult", CONSERVATIVE_ATR_SPACE["tp3_mult"])
+
+        params = build_strategy_params(
+            sl_mult=sl, tp1_mult=tp1, tp2_mult=tp2, tp3_mult=tp3,
+            tenkan=9, kijun=26, tenkan_5=9, kijun_5=26
+        )
+
+        result = run_backtest(data, params)
+
+        if result["trades"] < min_trades:
+            return -10.0
+
+        return result["sharpe"]
+
+    sampler = optuna.samplers.TPESampler(seed=42)
+    study = optuna.create_study(direction="maximize", sampler=sampler)
+    study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
+
+    return study.best_params, float(study.best_value)
+
+
 def optimize_ichimoku(
     data: pd.DataFrame,
     atr_params: dict[str, float],
@@ -323,6 +361,47 @@ def optimize_ichimoku(
         kijun = trial.suggest_int("kijun", *ICHI_SEARCH_SPACE["kijun"])
         tenkan_5 = trial.suggest_int("tenkan_5", *ICHI_SEARCH_SPACE["tenkan_5"])
         kijun_5 = trial.suggest_int("kijun_5", *ICHI_SEARCH_SPACE["kijun_5"])
+
+        params = build_strategy_params(
+            sl_mult=atr_params["sl_mult"],
+            tp1_mult=atr_params["tp1_mult"],
+            tp2_mult=atr_params["tp2_mult"],
+            tp3_mult=atr_params["tp3_mult"],
+            tenkan=tenkan, kijun=kijun,
+            tenkan_5=tenkan_5, kijun_5=kijun_5,
+        )
+
+        result = run_backtest(data, params)
+
+        if result["trades"] < min_trades:
+            return -10.0
+
+        return result["sharpe"]
+
+    sampler = optuna.samplers.TPESampler(seed=42)
+    study = optuna.create_study(direction="maximize", sampler=sampler)
+    study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
+
+    return study.best_params, float(study.best_value)
+
+
+def optimize_ichimoku_conservative(
+    data: pd.DataFrame,
+    atr_params: dict[str, float],
+    n_trials: int = 200,
+    min_trades: int = 50,
+) -> tuple[dict[str, int], float]:
+    """Optimize Ichimoku parameters with a discrete grid."""
+    import optuna
+
+    def objective(trial: optuna.Trial) -> float:
+        tenkan = trial.suggest_categorical("tenkan", CONSERVATIVE_ICHI_SPACE["tenkan"])
+        kijun = trial.suggest_categorical("kijun", CONSERVATIVE_ICHI_SPACE["kijun"])
+        tenkan_5 = trial.suggest_categorical("tenkan_5", CONSERVATIVE_ICHI_SPACE["tenkan_5"])
+        kijun_5 = trial.suggest_categorical("kijun_5", CONSERVATIVE_ICHI_SPACE["kijun_5"])
+
+        if tenkan >= kijun or tenkan_5 >= kijun_5:
+            return -10.0
 
         params = build_strategy_params(
             sl_mult=atr_params["sl_mult"],
@@ -391,10 +470,16 @@ def optimize_single_asset(
     n_trials_atr: int = None,
     n_trials_ichi: int = None,
     mc_iterations: int = 500,
+    conservative: bool = False,
 ) -> AssetScanResult:
     """Full optimization pipeline for one asset."""
-    n_trials_atr = n_trials_atr or OPTIM_CONFIG["n_trials_atr"]
-    n_trials_ichi = n_trials_ichi or OPTIM_CONFIG["n_trials_ichi"]
+    default_atr = OPTIM_CONFIG["n_trials_atr"]
+    default_ichi = OPTIM_CONFIG["n_trials_ichi"]
+    n_trials_atr = n_trials_atr or default_atr
+    n_trials_ichi = n_trials_ichi or default_ichi
+    if conservative:
+        n_trials_atr = max(n_trials_atr, 200)
+        n_trials_ichi = max(n_trials_ichi, 200)
     min_trades = OPTIM_CONFIG["min_trades"]
     exchange = EXCHANGE_MAP.get(asset, "binance")
     start_date = ""
@@ -412,18 +497,31 @@ def optimize_single_asset(
         end_date = str(df.index[-1])[:10] if len(df) > 0 else ""
 
         df = df.iloc[OPTIM_CONFIG["warmup_bars"]:]
-        df_is, df_val, df_oos = split_data(df)
+        splits = CONSERVATIVE_SPLIT_RATIO if conservative else (0.6, 0.2, 0.2)
+        df_is, df_val, df_oos = split_data(df, splits=splits)
 
         print(f"[{asset}] Data: IS={len(df_is)}, VAL={len(df_val)}, OOS={len(df_oos)} bars [{start_date} → {end_date}]")
 
         # 2. ATR Optimization on IS
         _log_progress(asset, "ATR opt")
-        atr_params, atr_sharpe = optimize_atr(df_is, n_trials_atr, min_trades)
+        if conservative:
+            atr_params, atr_sharpe = optimize_atr_conservative(
+                df_is, n_trials_atr, min_trades
+            )
+        else:
+            atr_params, atr_sharpe = optimize_atr(df_is, n_trials_atr, min_trades)
         print(f"[{asset}] ATR done: Sharpe={atr_sharpe:.2f}, params={atr_params}")
 
         # 3. Ichimoku Optimization on IS
         _log_progress(asset, "Ichi opt")
-        ichi_params, ichi_sharpe = optimize_ichimoku(df_is, atr_params, n_trials_ichi, min_trades)
+        if conservative:
+            ichi_params, ichi_sharpe = optimize_ichimoku_conservative(
+                df_is, atr_params, n_trials_ichi, min_trades
+            )
+        else:
+            ichi_params, ichi_sharpe = optimize_ichimoku(
+                df_is, atr_params, n_trials_ichi, min_trades
+            )
         print(f"[{asset}] Ichi done: Sharpe={ichi_sharpe:.2f}, params={ichi_params}")
 
         # 4. Build final params
@@ -543,6 +641,7 @@ def run_parallel_scan(
     n_trials_ichi: int = None,
     cluster: bool = False,
     cluster_count: int = None,
+    conservative: bool = False,
 ) -> pd.DataFrame:
     """Run optimization for all assets in parallel."""
     from joblib import Parallel, delayed
@@ -554,12 +653,13 @@ def run_parallel_scan(
     print("MULTI-ASSET PARALLEL SCAN")
     print(f"Assets: {assets}")
     print(f"Workers: {n_workers}")
+    print(f"Conservative: {conservative}")
     print("=" * 60)
 
     # Run in parallel
     results = Parallel(n_jobs=n_workers)(
         delayed(optimize_single_asset)(
-            asset, data_dir, n_trials_atr, n_trials_ichi
+            asset, data_dir, n_trials_atr, n_trials_ichi, 500, conservative
         )
         for asset in assets
     )
@@ -616,6 +716,7 @@ def main():
     parser.add_argument("--data-dir", type=str, default="data", help="Data directory")
     parser.add_argument("--cluster", action="store_true", help="Run clustering on successful assets")
     parser.add_argument("--clusters", type=int, default=None, help="Force number of clusters")
+    parser.add_argument("--conservative", action="store_true", help="Use conservative search space")
     args = parser.parse_args()
 
     assets = args.assets or SCAN_ASSETS
@@ -628,6 +729,7 @@ def main():
         n_trials_ichi=args.trials_ichi,
         cluster=args.cluster,
         cluster_count=args.clusters,
+        conservative=args.conservative,
     )
 
 

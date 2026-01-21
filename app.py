@@ -6,6 +6,7 @@ Usage:
     streamlit run app.py
 """
 import html
+import json
 import subprocess
 import sys
 from datetime import datetime
@@ -313,74 +314,105 @@ def render_empty_state(
 
 
 def render_new_session_modal():
-    """Render modal to create a new session."""
+    """Render new session creation in sidebar or main area."""
     if not st.session_state.get("show_new_session_modal"):
         return
 
-    with st.dialog("➕ Nouvelle session"):
-        st.markdown("Crée une session pour suivre le pipeline.")
-        default_name = f"Session {datetime.now().strftime('%Y-%m-%d %H:%M')}"
-        name = st.text_input("Nom de session", value=default_name)
-        assets = st.multiselect(
-            "Assets",
-            SCAN_ASSETS,
-            default=VALIDATED_ASSETS,
+    st.markdown("---")
+    st.subheader("➕ Nouvelle session")
+
+    session_name = st.text_input(
+        "Nom de la session",
+        value=f"Session {datetime.now().strftime('%d/%m %H:%M')}",
+        key="new_session_name",
+    )
+
+    asset_preset = st.selectbox(
+        "Preset d'assets",
+        ["Validés (BTC, ETH, AVAX, UNI, SEI)", "Top 10", "Personnalisé"],
+        key="new_session_preset",
+    )
+
+    if asset_preset == "Validés (BTC, ETH, AVAX, UNI, SEI)":
+        selected_assets = VALIDATED_ASSETS
+    elif asset_preset == "Top 10":
+        selected_assets = TOP50_ASSETS[:10]
+    else:
+        selected_assets = st.multiselect(
+            "Sélectionner les assets",
+            ALL_ASSETS,
+            default=["BTC", "ETH"],
+            key="new_session_assets_custom",
         )
 
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("Créer", type="primary", use_container_width=True):
-                if not name.strip():
-                    st.warning("Le nom de session est requis.")
-                    return
-                if not assets:
-                    st.warning("Sélectionne au moins un asset.")
-                    return
-                session = create_session(name.strip(), assets)
-                st.session_state.active_session = session
-                st.session_state.show_new_session_modal = False
-                console_log(f"Session créée: {session['name']}", "OK")
-                st.rerun()
-        with col2:
-            if st.button("Annuler", use_container_width=True):
-                st.session_state.show_new_session_modal = False
-                st.rerun()
+    st.info(f"Assets: {', '.join(selected_assets)}")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button(
+            "✅ Créer",
+            type="primary",
+            use_container_width=True,
+            key="create_session_btn",
+        ):
+            session = create_session(session_name, list(selected_assets))
+            st.session_state.active_session = session
+            st.session_state.show_new_session_modal = False
+            console_log(f"Session créée: {session_name}", "OK")
+            st.rerun()
+    with col2:
+        if st.button(
+            "❌ Annuler",
+            use_container_width=True,
+            key="cancel_new_session_btn",
+        ):
+            st.session_state.show_new_session_modal = False
+            st.rerun()
 
 
 def render_load_session_modal():
-    """Render modal to load an existing session."""
+    """Render session loading UI."""
     if not st.session_state.get("show_load_session_modal"):
         return
 
+    st.markdown("---")
+    st.subheader("📂 Charger une session")
+
     sessions = list_sessions()
-    with st.dialog("📂 Charger session"):
-        if not sessions:
-            st.info("Aucune session disponible.")
-            if st.button("Fermer", use_container_width=True):
-                st.session_state.show_load_session_modal = False
-                st.rerun()
-            return
+    if not sessions:
+        st.warning("Aucune session disponible")
+        if st.button("Fermer", key="close_load_modal_btn"):
+            st.session_state.show_load_session_modal = False
+            st.rerun()
+        return
 
-        session_labels = {}
-        for session in sessions:
-            created = datetime.fromisoformat(session["created"]).strftime("%d/%m/%Y %H:%M")
-            label = f"{session['name']} · {created}"
-            session_labels[label] = session
+    session_options = {f"{s['name']} ({s['id']})": s for s in sessions}
+    selected = st.selectbox(
+        "Session",
+        list(session_options.keys()),
+        key="load_session_select",
+    )
 
-        selected_label = st.selectbox("Sélectionner une session", list(session_labels.keys()))
-        selected_session = session_labels[selected_label]
-
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("Charger", type="primary", use_container_width=True):
-                st.session_state.active_session = selected_session
-                st.session_state.show_load_session_modal = False
-                console_log(f"Session chargée: {selected_session['name']}", "OK")
-                st.rerun()
-        with col2:
-            if st.button("Annuler", use_container_width=True):
-                st.session_state.show_load_session_modal = False
-                st.rerun()
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button(
+            "✅ Charger",
+            type="primary",
+            use_container_width=True,
+            key="load_session_btn",
+        ):
+            st.session_state.active_session = session_options[selected]
+            st.session_state.show_load_session_modal = False
+            console_log(f"Session chargée: {selected}", "OK")
+            st.rerun()
+    with col2:
+        if st.button(
+            "❌ Annuler",
+            use_container_width=True,
+            key="cancel_load_session_btn",
+        ):
+            st.session_state.show_load_session_modal = False
+            st.rerun()
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent))
 
@@ -413,6 +445,18 @@ from crypto_backtest.utils.system_utils import (
     check_storage_warning,
     get_system_info,
 )
+from crypto_backtest.validation.fail_diagnostic import FailDiagnostic
+from crypto_backtest.validation.conservative_reopt import ConservativeReoptimizer
+from crypto_backtest.optimization.parallel_optimizer import (
+    BASE_CONFIG,
+    build_strategy_params,
+    load_data as load_asset_data,
+    run_backtest as run_scan_backtest,
+    split_data as split_data_segments,
+)
+from crypto_backtest.optimization.bayesian import _instantiate_strategy
+from crypto_backtest.engine.backtest import VectorizedBacktester
+from crypto_backtest.strategies.final_trigger import FinalTriggerStrategy
 
 # =============================================================================
 # PAGE CONFIG
@@ -672,8 +716,6 @@ if st.sidebar.button("➕ Nouvelle session", use_container_width=True):
 if sessions and st.sidebar.button("📂 Charger session", use_container_width=True):
     st.session_state.show_load_session_modal = True
 
-render_new_session_modal()
-render_load_session_modal()
 st.sidebar.markdown("---")
 
 # Initialize session state for navigation
@@ -726,6 +768,10 @@ with st.sidebar.expander("⌨️ Raccourcis"):
 
 # Set active page
 page = st.session_state.current_page
+
+# Render modals if triggered
+render_new_session_modal()
+render_load_session_modal()
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### ✅ Assets Validés")
@@ -830,6 +876,273 @@ def resolve_guard_file(
     if legacy.exists():
         return legacy
     return None
+
+
+def load_diagnostic_history() -> dict:
+    """Load diagnostic history from disk."""
+    history_file = Path("outputs/diagnostic_history.json")
+    if history_file.exists():
+        try:
+            return json.loads(history_file.read_text())
+        except json.JSONDecodeError:
+            return {"diagnostics": []}
+    return {"diagnostics": []}
+
+
+def load_reopt_history() -> dict:
+    """Load reoptimization history from disk."""
+    history_file = Path("outputs/reoptimization_history.json")
+    if history_file.exists():
+        try:
+            return json.loads(history_file.read_text())
+        except json.JSONDecodeError:
+            return {"reoptimizations": []}
+    return {"reoptimizations": []}
+
+
+def _run_trades_for_params(data: pd.DataFrame, params: dict[str, float]) -> pd.DataFrame:
+    """Run backtest and return trades with pnl_pct."""
+    if data.empty:
+        return pd.DataFrame()
+
+    strategy = _instantiate_strategy(FinalTriggerStrategy, params)
+    backtester = VectorizedBacktester(BASE_CONFIG)
+    result = backtester.run(data, strategy)
+    trades = result.trades.copy()
+
+    if not trades.empty and "pnl_pct" not in trades.columns:
+        if "net_pnl" in trades.columns and "notional" in trades.columns:
+            trades["pnl_pct"] = (trades["net_pnl"] / trades["notional"]) * 100.0
+        elif "gross_pnl" in trades.columns and "notional" in trades.columns:
+            trades["pnl_pct"] = (trades["gross_pnl"] / trades["notional"]) * 100.0
+
+    return trades
+
+
+def _build_params_from_scan_row(row: dict) -> dict[str, float]:
+    """Build strategy params from a scan row."""
+    return build_strategy_params(
+        sl_mult=float(row.get("sl_mult", 0)),
+        tp1_mult=float(row.get("tp1_mult", 0)),
+        tp2_mult=float(row.get("tp2_mult", 0)),
+        tp3_mult=float(row.get("tp3_mult", 0)),
+        tenkan=int(row.get("tenkan", 0)),
+        kijun=int(row.get("kijun", 0)),
+        tenkan_5=int(row.get("tenkan_5", 0)),
+        kijun_5=int(row.get("kijun_5", 0)),
+    )
+
+
+def display_fail_diagnostic(
+    asset: str,
+    scan_result: dict,
+    data: pd.DataFrame,
+    trades_is: pd.DataFrame | None = None,
+    trades_oos: pd.DataFrame | None = None,
+):
+    """Display the diagnostic report for a failed asset."""
+    st.error(f"❌ {asset} FAIL — Analyse en cours...")
+
+    diag = FailDiagnostic(asset, scan_result, data, trades_is, trades_oos)
+    report = diag.run_full_diagnostic()
+
+    primary = report["primary_cause"]
+    if primary:
+        severity_colors = {
+            "CRITICAL": "🔴",
+            "SEVERE": "🟠",
+            "MODERATE": "🟡",
+            "LOW": "🟢",
+        }
+        color = severity_colors.get(primary["severity"], "⚪")
+
+        st.markdown(f"### 🔍 Cause principale: **{primary['cause']}**")
+        st.markdown(
+            f"**Sévérité:** {color} {primary['severity']} | "
+            f"**Probabilité:** {primary['probability']}%"
+        )
+        st.info(primary["explanation"])
+
+        with st.expander("📊 Métriques détaillées"):
+            st.json(primary["metrics"])
+
+        st.markdown(f"**💡 Fix suggéré:** {primary['fix']}")
+
+    with st.expander("🔬 Analyse complète (toutes les causes)"):
+        for cause in report["all_causes"]:
+            severity_colors = {
+                "CRITICAL": "🔴",
+                "SEVERE": "🟠",
+                "MODERATE": "🟡",
+                "LOW": "🟢",
+                "UNKNOWN": "⚪",
+            }
+            color = severity_colors.get(cause.get("severity", "UNKNOWN"), "⚪")
+            st.markdown(
+                f"{color} **{cause['cause']}** ({cause.get('probability', 0)}%): "
+                f"{cause.get('explanation', 'N/A')}"
+            )
+
+    st.markdown("### 💡 Recommandation")
+    rec = report["recommendation"]
+
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        if report["recoverable"]:
+            st.success(f"**{rec['action']}**: {rec['details']}")
+        else:
+            st.error(f"**{rec['action']}**: {rec['details']}")
+            st.warning("⚠️ Cet asset est probablement non viable")
+
+    with col2:
+        if rec.get("auto_actionable", False) and "REOPT" in rec.get("command", ""):
+            if st.button(f"🔄 Reopt {asset}", key=f"reopt_{asset}"):
+                st.session_state[f"trigger_reopt_{asset}"] = True
+
+    if st.session_state.get(f"trigger_reopt_{asset}", False):
+        st.session_state[f"trigger_reopt_{asset}"] = False
+        run_conservative_reoptimization(asset, data)
+
+    return report
+
+
+def run_conservative_reoptimization(asset: str, data: pd.DataFrame):
+    """Run conservative reoptimization with UI feedback."""
+    st.markdown(f"### 🔄 Réoptimisation conservative: {asset}")
+
+    progress_bar = st.progress(0)
+    status_text = st.empty()
+
+    def backtest_wrapper(data_slice: pd.DataFrame, params: dict) -> dict:
+        full_params = build_strategy_params(
+            sl_mult=params["sl_mult"],
+            tp1_mult=params["tp1_mult"],
+            tp2_mult=params["tp2_mult"],
+            tp3_mult=params["tp3_mult"],
+            tenkan=params["tenkan"],
+            kijun=params["kijun"],
+            tenkan_5=params["tenkan_5"],
+            kijun_5=params["kijun_5"],
+        )
+        return run_scan_backtest(data_slice, full_params)
+
+    status_text.text("Phase 1/3: Optimisation ATR (grid discret)...")
+    progress_bar.progress(10)
+
+    reoptimizer = ConservativeReoptimizer(asset, data, backtest_wrapper)
+    result = reoptimizer.run_conservative_optimization()
+
+    progress_bar.progress(100)
+
+    if result["status"] == "SUCCESS":
+        st.success(
+            f"✅ {asset} récupéré! OOS Sharpe={result['oos_sharpe']:.2f}, "
+            f"WFE={result['wfe']:.2f}"
+        )
+        st.markdown("**Nouveaux paramètres:**")
+        st.json(result["params"])
+
+        if st.button(f"➕ Ajouter {asset} aux assets validés"):
+            add_to_validated_assets(asset, result)
+            st.success(f"{asset} ajouté aux assets validés!")
+    else:
+        st.error(
+            f"❌ {asset} FAIL AGAIN — OOS Sharpe={result['oos_sharpe']:.2f}, "
+            f"WFE={result['wfe']:.2f}"
+        )
+        st.warning("Cet asset n'est pas compatible avec la stratégie Final Trigger")
+
+        if st.button(f"☠️ Marquer {asset} comme non viable"):
+            mark_as_dead(asset)
+            st.info(f"{asset} marqué comme non viable")
+
+    return result
+
+
+def add_to_validated_assets(asset: str, result: dict) -> None:
+    """Add asset to validated assets list."""
+    validated_file = Path("outputs/validated_assets.json")
+    if validated_file.exists():
+        validated = json.loads(validated_file.read_text())
+    else:
+        validated = {"assets": []}
+
+    existing = {entry["asset"] for entry in validated.get("assets", [])}
+    if asset in existing:
+        return
+
+    validated["assets"].append(
+        {
+            "asset": asset,
+            "params": result["params"],
+            "oos_sharpe": result["oos_sharpe"],
+            "wfe": result["wfe"],
+            "added_at": result["timestamp"],
+            "mode": result["mode"],
+        }
+    )
+
+    validated_file.write_text(json.dumps(validated, indent=2))
+
+
+def mark_as_dead(asset: str) -> None:
+    """Mark asset as non-viable."""
+    dead_file = Path("outputs/dead_assets.json")
+    if dead_file.exists():
+        dead = json.loads(dead_file.read_text())
+    else:
+        dead = {"assets": []}
+
+    existing = {entry["asset"] for entry in dead.get("assets", [])}
+    if asset in existing:
+        return
+
+    dead["assets"].append(
+        {
+            "asset": asset,
+            "marked_at": datetime.now().isoformat(),
+            "reason": "Failed conservative reoptimization",
+        }
+    )
+    dead_file.write_text(json.dumps(dead, indent=2))
+
+
+def display_history_sidebar() -> None:
+    """Render diagnostic and reoptimization history in the sidebar."""
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("### 📜 Historique")
+
+    diag_history = load_diagnostic_history()
+    if diag_history.get("diagnostics"):
+        with st.sidebar.expander(f"🔍 Diagnostics ({len(diag_history['diagnostics'])})"):
+            for item in reversed(diag_history["diagnostics"][-10:]):
+                status = "🟢" if item.get("recoverable") else "🔴"
+                st.markdown(f"{status} **{item['asset']}**: {item.get('primary_cause', 'N/A')}")
+
+    reopt_history = load_reopt_history()
+    if reopt_history.get("reoptimizations"):
+        with st.sidebar.expander(
+            f"🔄 Réoptimisations ({len(reopt_history['reoptimizations'])})"
+        ):
+            for item in reversed(reopt_history["reoptimizations"][-10:]):
+                status = "✅" if item["status"] == "SUCCESS" else "❌"
+                st.markdown(
+                    f"{status} **{item['asset']}**: Sharpe={item['oos_sharpe']:.2f}"
+                )
+
+    validated_file = Path("outputs/validated_assets.json")
+    if validated_file.exists():
+        validated = json.loads(validated_file.read_text())
+        with st.sidebar.expander(f"✅ Assets validés ({len(validated['assets'])})"):
+            for item in validated["assets"]:
+                st.markdown(f"**{item['asset']}**: Sharpe={item['oos_sharpe']:.2f}")
+
+    dead_file = Path("outputs/dead_assets.json")
+    if dead_file.exists():
+        dead = json.loads(dead_file.read_text())
+        with st.sidebar.expander(f"☠️ Assets morts ({len(dead['assets'])})"):
+            for item in dead["assets"]:
+                st.markdown(f"**{item['asset']}**")
 
 
 def run_command(cmd: list, placeholder, show_in_console: bool = True):
@@ -1032,6 +1345,42 @@ if page == "📊 Dashboard":
                     )
                 else:
                     st.success("Tous les assets sont PASS!")
+
+            if not fail_df.empty:
+                st.markdown("---")
+                st.subheader("🔍 Diagnostic FAIL")
+                selected_fail = st.selectbox(
+                    "Asset FAIL",
+                    fail_df["asset"].tolist(),
+                    key="fail_diagnostic_asset",
+                )
+                if st.button("Lancer diagnostic", key="run_fail_diagnostic"):
+                    scan_row = df[df["asset"] == selected_fail].iloc[0].to_dict()
+                    scan_row["params"] = {
+                        "sl_mult": scan_row.get("sl_mult"),
+                        "tp1_mult": scan_row.get("tp1_mult"),
+                        "tp2_mult": scan_row.get("tp2_mult"),
+                        "tp3_mult": scan_row.get("tp3_mult"),
+                        "tenkan": scan_row.get("tenkan"),
+                        "kijun": scan_row.get("kijun"),
+                        "tenkan_5": scan_row.get("tenkan_5"),
+                        "kijun_5": scan_row.get("kijun_5"),
+                    }
+                    try:
+                        data = load_asset_data(selected_fail)
+                        params = _build_params_from_scan_row(scan_row)
+                        df_is, _, df_oos = split_data_segments(data)
+                        trades_is = _run_trades_for_params(df_is, params)
+                        trades_oos = _run_trades_for_params(df_oos, params)
+                        display_fail_diagnostic(
+                            asset=selected_fail,
+                            scan_result=scan_row,
+                            data=data,
+                            trades_is=trades_is,
+                            trades_oos=trades_oos,
+                        )
+                    except Exception as diag_error:
+                        st.error(f"Erreur diagnostic: {diag_error}")
 
         except Exception as e:
             st.error(f"Erreur lecture scan: {e}")
@@ -2471,13 +2820,20 @@ elif page == "💼 Portfolio Builder":
         tout en minimisant la corrélation entre eux.
         """)
 
+        if len(scan_df) < 2:
+            st.warning(
+                "⚠️ Minimum 2 assets requis pour construire un portfolio. "
+                "Lancez d'abord un scan multi-assets."
+            )
+            st.stop()
+
         col1, col2 = st.columns(2)
 
         with col1:
             max_assets = st.slider(
                 "Nombre maximum d'assets",
                 min_value=2,
-                max_value=min(15, len(scan_df)),
+                max_value=max(2, min(15, len(scan_df))),
                 value=min(5, len(scan_df)),
             )
 
@@ -3422,6 +3778,7 @@ elif page == "📋 Historique":
 # =============================================================================
 # SIDEBAR FOOTER - Session Stats
 # =============================================================================
+display_history_sidebar()
 st.sidebar.markdown("---")
 
 if st.session_state.get("active_session"):
