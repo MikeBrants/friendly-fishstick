@@ -1911,10 +1911,13 @@ elif page == "⚡ Bayesian":
                     df = None
                     if scan_results:
                         df = pd.read_csv(scan_results[0])
-                        pass_mask = (
-                            (df["oos_sharpe"] >= PASS_CRITERIA["oos_sharpe_min"]) &
-                            (df["wfe"] >= PASS_CRITERIA["wfe_min"])
-                        )
+                        if "status" in df.columns:
+                            pass_mask = df["status"].astype(str).str.startswith("SUCCESS")
+                        else:
+                            pass_mask = (
+                                (df["oos_sharpe"] >= PASS_CRITERIA["oos_sharpe_min"]) &
+                                (df["wfe"] >= PASS_CRITERIA["wfe_min"])
+                            )
                         has_pass = pass_mask.any()
 
                         st.subheader("📊 Résultats")
@@ -1971,6 +1974,47 @@ elif page == "⚡ Bayesian":
                                 advance_session_step(2, "optimized")
                                 st.session_state.current_page = "🛡️ Guards"
                                 st.rerun()
+
+                        if df is not None and pass_mask is not None:
+                            fail_assets = df.loc[~pass_mask, "asset"].tolist()
+                            if fail_assets:
+                                st.markdown("---")
+                                st.subheader("🔍 Diagnostic FAIL")
+                                selected_fail = st.selectbox(
+                                    "Asset FAIL",
+                                    fail_assets,
+                                    key="bayes_fail_diagnostic_asset",
+                                )
+                                if st.button(
+                                    "Lancer diagnostic",
+                                    key="bayes_run_fail_diagnostic",
+                                ):
+                                    scan_row = df[df["asset"] == selected_fail].iloc[0].to_dict()
+                                    scan_row["params"] = {
+                                        "sl_mult": scan_row.get("sl_mult"),
+                                        "tp1_mult": scan_row.get("tp1_mult"),
+                                        "tp2_mult": scan_row.get("tp2_mult"),
+                                        "tp3_mult": scan_row.get("tp3_mult"),
+                                        "tenkan": scan_row.get("tenkan"),
+                                        "kijun": scan_row.get("kijun"),
+                                        "tenkan_5": scan_row.get("tenkan_5"),
+                                        "kijun_5": scan_row.get("kijun_5"),
+                                    }
+                                    try:
+                                        data = load_asset_data(selected_fail)
+                                        params = _build_params_from_scan_row(scan_row)
+                                        df_is, _, df_oos = split_data_segments(data)
+                                        trades_is = _run_trades_for_params(df_is, params)
+                                        trades_oos = _run_trades_for_params(df_oos, params)
+                                        display_fail_diagnostic(
+                                            asset=selected_fail,
+                                            scan_result=scan_row,
+                                            data=data,
+                                            trades_is=trades_is,
+                                            trades_oos=trades_oos,
+                                        )
+                                    except Exception as diag_error:
+                                        st.error(f"Erreur diagnostic: {diag_error}")
                 else:
                     st.error(f"❌ Erreur (code {returncode})")
 
