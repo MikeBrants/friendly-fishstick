@@ -21,7 +21,9 @@ Pipeline de backtest complet pour la stratégie TradingView "FINAL TRIGGER v2" c
 ### Fichiers Critiques
 | Fichier | Description |
 |---------|-------------|
+| `app.py` | Dashboard Streamlit (Dark Trading Theme) |
 | `crypto_backtest/config/asset_config.py` | Config production (params optimaux par asset) |
+| `crypto_backtest/config/scan_assets.py` | Top 50 cryptos (tiers) + critères |
 | `docs/HANDOFF.md` | Ce document - contexte complet |
 | `outputs/portfolio_construction.csv` | Résultats portfolio optimisé |
 | `outputs/optim_*_best_params.json` | Params optimaux par asset |
@@ -31,7 +33,7 @@ Pipeline de backtest complet pour la stratégie TradingView "FINAL TRIGGER v2" c
 1. ✅ ~~**P1 - Multi-Timeframe**~~: DONE → rester en 1H (4H/1D insuffisant)
 2. 🔴 **P1 - Displacement Grid**: Optimiser displacement [26, 39, 52, 65, 78] — **PRIORITAIRE**
 3. ✅ **P2 - CODEX-005**: Multi-Asset Scan 10 Alts + Clustering — **IMPLEMENTED**
-4. 🟡 **P3 - Dashboard Streamlit**: Interface visuelle pour lancer les scripts
+4. ✅ **P3 - Dashboard Streamlit**: Interface visuelle — **IMPLEMENTED** (Dark Trading Theme)
 5. **P4 - Live Trading**: Implémenter connecteur exchange live
 
 ### Données (Local Only)
@@ -501,12 +503,39 @@ Assets: BTC, ETH, AVAX, UNI, SEI
 3. Comparer Sharpe OOS pour chaque valeur
 4. Sélectionner le meilleur displacement par asset
 
-### 🟡 P3 — Dashboard Streamlit
+### ✅ P3 — Dashboard Streamlit (IMPLEMENTED)
 
 ```
 [INSTRUCTION-UI-001]
+Status: IMPLEMENTED (2026-01-21)
 Objectif: Interface visuelle pour piloter les backtests
-Fonctionnalités: Download data, Run optimization, View results, Run guards
+```
+
+**Fichiers**:
+| Fichier | Description |
+|---------|-------------|
+| `app.py` | Dashboard Streamlit principal (~2300 lignes) |
+| `.streamlit/config.toml` | Configuration thème Dark Trading |
+
+**Pages Disponibles**:
+- **Dashboard** — Vue d'ensemble (données, optimisations, guards)
+- **Download OHLCV** — Téléchargement données (Top 50 cryptos par tiers)
+- **Comparateur Pine** — Compare signaux Python vs Pine Script
+- **Bayesian** — Optimisation bayésienne (+ option displacement)
+- **Displacement Grid** — Grid search displacement isolé
+- **Guards** — Tests de robustesse (7 guards)
+- **Comparaison Assets** — Tri/filtre des résultats
+- **Portfolio Builder** — Corrélations + auto-sélection assets
+- **Visualisation** — Graphiques Plotly interactifs
+
+**Design**: Dark Trading Theme
+- Fond noir (#0E1117)
+- Accent cyan (#00D4FF)
+- Gradient cards, glow buttons, styled tabs
+
+**Usage**:
+```bash
+streamlit run app.py
 ```
 
 ### ✅ P2 — Multi-Asset Scan 10 Alts + Clustering (CODEX-005) — IMPLEMENTED
