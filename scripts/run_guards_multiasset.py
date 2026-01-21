@@ -407,7 +407,7 @@ def _load_params(params_file: str) -> dict[str, dict[str, Any]]:
     df = pd.read_csv(params_file)
     params_map = {}
     for row in df.itertuples(index=False):
-        params_map[str(row.asset)] = {
+        params = {
             "sl_mult": float(row.sl_mult),
             "tp1_mult": float(row.tp1_mult),
             "tp2_mult": float(row.tp2_mult),
@@ -417,6 +417,9 @@ def _load_params(params_file: str) -> dict[str, dict[str, Any]]:
             "tenkan_5": int(row.tenkan_5),
             "kijun_5": int(row.kijun_5),
         }
+        if "displacement" in df.columns and pd.notna(row.displacement):
+            params["displacement"] = int(row.displacement)
+        params_map[str(row.asset)] = params
     return params_map
 
 
@@ -445,6 +448,10 @@ def _asset_guard_worker(
         tenkan_5=params["tenkan_5"],
         kijun_5=params["kijun_5"],
     )
+    if "displacement" in params:
+        disp = int(params["displacement"])
+        full_params["ichimoku"]["displacement"] = disp
+        full_params["five_in_one"]["displacement_5"] = disp
 
     base_result = _run_backtest(data, full_params, BASE_CONFIG)
     base_metrics = compute_metrics(base_result.equity_curve, base_result.trades)

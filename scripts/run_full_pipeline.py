@@ -69,6 +69,12 @@ def main():
         help="Enforce TP1 < TP2 < TP3 with minimum gap"
     )
     parser.add_argument(
+        "--fixed-displacement",
+        type=int,
+        default=None,
+        help="Fix Ichimoku displacement (and 5in1) to this value",
+    )
+    parser.add_argument(
         "--scan-results",
         type=str,
         default=None,
@@ -136,6 +142,7 @@ def main():
             n_trials_atr=args.trials_atr,
             n_trials_ichi=args.trials_ichi,
             enforce_tp_progression=args.enforce_tp_progression,
+            fixed_displacement=args.fixed_displacement,
         )
 
         # Find the most recent scan file

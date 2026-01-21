@@ -43,6 +43,12 @@ Pipeline de backtest complet pour la stratégie TradingView "FINAL TRIGGER v2" c
   - **Clustering**: batch 1 only (k=2, silhouette 0.096); batch 2 skipped (<3 assets PASS)
   - **Outputs**: `outputs/multiasset_scan_20260121_1619.csv`, `outputs/multiasset_scan_20260121_1626.csv`, `outputs/cluster_analysis_20260121_1619.json`, `outputs/cluster_param_loss_20260121_1619.csv`
 - **OP displacement=78 full run**: SUCCESS, OOS Sharpe 2.48, WFE 1.66, OOS trades 90 (baseline disp=52 was 1.07). Outputs: `outputs/displacement_grid_OP_20260121_173045.csv`, `outputs/op_fullrun_disp78_20260121_174550.csv`
+- **OP guards (disp=78)**: ALL PASS. p=0.0000, sens var=5.34%, bootstrap CI lower=2.01, stress1 sharpe=1.73, regime mismatch=0.00. Outputs: `outputs/multiasset_guards_summary_20260121_175759.csv`, `outputs/OP_validation_report_20260121_175759.txt`
+- **Displacement grid (near-threshold FAIL)**: SOL best=52 (no gain), DOGE best=26 (+2.18 Sharpe vs 52), LINK best=39 (+1.36). Outputs: `outputs/displacement_grid_summary_20260121_175713.csv`
+- **Full runs with fixed displacement**:
+  - DOGE disp=26: SUCCESS, OOS Sharpe 3.12, WFE 1.18, OOS trades 78. Output overwritten in `outputs/multiasset_scan_20260121_1759.csv` by LINK; see `optim_DOGE_disp26.log` for details.
+  - LINK disp=39: FAIL (WFE<0.6), OOS Sharpe 1.79, WFE 0.46, OOS trades 62. Output: `outputs/multiasset_scan_20260121_1759.csv`
+- **Fixed displacement mode**: `scripts/run_full_pipeline.py` and `crypto_backtest/optimization/parallel_optimizer.py` accept `--fixed-displacement` (applies to Ichimoku + 5in1). Guards accept optional `displacement` column in params CSV.
 - **Modes de filtrage KAMA**: 3 configs (BASELINE/MODERATE/CONSERVATIVE) ajoutées à `crypto_backtest/validation/conservative_reopt.py`
   - **BASELINE**: 0 filtres (only Ichimoku external), pour optimisation initiale
   - **MODERATE** (défaut reopt): 4 filtres (Distance, Volume, RegCloud, KAMA Osc), mama_kama=False, ichi_strict=False

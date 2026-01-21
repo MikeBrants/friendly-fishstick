@@ -762,6 +762,12 @@ st.sidebar.markdown("---")
 if "current_page" not in st.session_state:
     st.session_state.current_page = "📊 Dashboard"
 
+# Reopt settings
+if "reopt_asset" not in st.session_state:
+    st.session_state.reopt_asset = None
+if "reopt_settings" not in st.session_state:
+    st.session_state.reopt_settings = {}
+
 # Section: Accueil
 st.sidebar.markdown("### 🏠 Accueil")
 if st.sidebar.button("📊 Dashboard", use_container_width=True, key="btn_dashboard"):
@@ -2986,6 +2992,106 @@ elif page == "🏆 Comparaison Assets":
             file_name="comparison_filtered.csv",
             mime="text/csv",
         )
+
+    # =========================================================================
+    # DETAILED DIAGNOSTICS
+    # =========================================================================
+    st.markdown("---")
+    st.subheader("🔬 Diagnostic détaillé")
+
+    # Asset selector
+    all_assets = scan_df["asset"].tolist()
+    selected_diag_asset = st.selectbox(
+        "Sélectionner un asset pour diagnostic",
+        all_assets,
+        key="diag_asset_select",
+    )
+
+    if selected_diag_asset:
+        scan_row = scan_df[scan_df["asset"] == selected_diag_asset].iloc[0]
+
+        # Get guards row if available
+        guards_row = None
+        if guards_df is not None and selected_diag_asset in guards_df["asset"].values:
+            guards_row = guards_df[guards_df["asset"] == selected_diag_asset].iloc[0]
+
+        # Run diagnostics
+        diag = diagnose_asset(selected_diag_asset, scan_row, guards_row)
+
+        # Display overall status
+        status_colors = {"PASS": "green", "WARN": "orange", "FAIL": "red"}
+        status_emoji = {"PASS": "✅", "WARN": "⚠️", "FAIL": "❌"}
+
+        st.markdown(f"""
+        <div style="
+            background: linear-gradient(135deg, #1A1F2E 0%, #252B3B 100%);
+            border-left: 4px solid {status_colors[diag.overall_status]};
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+        ">
+            <span style="font-size: 1.5rem;">{status_emoji[diag.overall_status]}</span>
+            <span style="font-size: 1.2rem; font-weight: 600; margin-left: 10px;">
+                {diag.asset}: {diag.overall_status}
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Display checks table
+        checks_data = []
+        for check in diag.checks:
+            checks_data.append({
+                "Check": check.name,
+                "Status": f"{status_emoji[check.status]} {check.status}",
+                "Valeur": check.value,
+                "Seuil": check.threshold,
+            })
+
+        st.dataframe(pd.DataFrame(checks_data), use_container_width=True, hide_index=True)
+
+        # Detailed explanations in expanders
+        st.markdown("### 📋 Détails et Recommandations")
+
+        for check in diag.checks:
+            with st.expander(f"{status_emoji[check.status]} {check.name}: {check.value}"):
+                st.markdown(f"**Explication:** {check.explanation}")
+                st.markdown(f"**Recommandation:** {check.recommendation}")
+
+        # Reopt button with pre-filled settings
+        if diag.overall_status in ["FAIL", "WARN"]:
+            st.markdown("---")
+            st.subheader("🔄 Ré-optimiser avec les paramètres recommandés")
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.markdown("**Paramètres recommandés:**")
+                settings = diag.recommended_settings
+                st.write(f"- Trials ATR: **{settings['trials_atr']}**")
+                st.write(f"- Trials Ichi: **{settings['trials_ichi']}**")
+                st.write(f"- Days back: **{settings['days_back']}**")
+                if settings.get("fix_displacement"):
+                    st.write(f"- Displacement fixé: **{settings['fix_displacement']}**")
+                if settings.get("test_displacement"):
+                    st.write(f"- Tester displacement grid: **Oui**")
+                if settings.get("exclude_asset"):
+                    st.warning("⚠️ Asset recommandé à exclure du portfolio")
+
+            with col2:
+                if not settings.get("exclude_asset"):
+                    if st.button(
+                        f"🚀 Ré-optimiser {selected_diag_asset}",
+                        type="primary",
+                        use_container_width=True,
+                        key=f"reopt_{selected_diag_asset}",
+                    ):
+                        # Store settings in session state
+                        st.session_state.reopt_asset = selected_diag_asset
+                        st.session_state.reopt_settings = settings
+                        # Navigate to Bayesian page
+                        st.session_state.current_page = "⚡ Bayesian"
+                        console_log(f"Reopt {selected_diag_asset} avec settings recommandés", "RUN")
+                        st.rerun()
 
     st.markdown("---")
 

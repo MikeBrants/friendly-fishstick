@@ -499,6 +499,63 @@ useTransitionMode = OFF      # Mode State (pas Transition)
 
 ---
 
+## Modes de Filtrage KAMA
+
+Le système propose 3 configurations de filtres pour gérer le trade-off performance vs overfit:
+
+### BASELINE (Initial Optimization)
+Configuration minimale utilisée pour l'optimisation initiale:
+- ❌ MAMA/KAMA Filter (OFF)
+- ❌ Distance Filter (OFF)
+- ❌ Volume Filter (OFF)
+- ❌ Regression Cloud (OFF)
+- ❌ KAMA Oscillator (OFF)
+- ✅ Ichimoku Filter (ON - seul actif)
+- ❌ Ichi Strict Mode (Light - 3 conditions bearish)
+
+**Usage**: Première optimisation pour identifier le potentiel de l'asset sans restrictions.
+
+### MODERATE (Default Reopt) ⭐
+**Configuration par défaut pour la ré-optimisation**, équilibre entre performance et robustesse:
+- ❌ MAMA/KAMA Filter (OFF - per user preference)
+- ✅ Distance Filter (ON)
+- ✅ Volume Filter (ON - A/D Line)
+- ✅ Regression Cloud (ON - per user preference)
+- ✅ KAMA Oscillator (ON)
+- ✅ Ichimoku Filter (ON)
+- ❌ Ichi Strict Mode (Light - per user preference)
+
+**Usage**: Recommandé pour tous les assets en phase de ré-optimisation. Réduit l'overfit sans dégrader excessivement la performance.
+
+**Résultats DOGE**: Tests comparatifs montrent que l'application de filtres n'améliore pas toujours la performance:
+- BASELINE (0 filtres): Sharpe 1.75, 459 trades
+- CONSERVATIVE (5 filtres): Sharpe 1.41, 348 trades (-19% Sharpe)
+
+### CONSERVATIVE (Severe Overfit Only)
+Configuration maximale pour assets avec overfit sévère (WFE < 0.3):
+- ✅ MAMA/KAMA Filter (ON)
+- ✅ Distance Filter (ON)
+- ✅ Volume Filter (ON)
+- ✅ Regression Cloud (ON)
+- ✅ KAMA Oscillator (ON)
+- ✅ Ichimoku Filter (ON)
+- ✅ Ichi Strict Mode (17 bull + 17 bear conditions)
+
+**Usage**: Uniquement pour assets montrant des signes sévères d'overfit (WFE très faible, forte dégradation IS→OOS).
+
+### Système de Recommandation
+
+Le module `crypto_backtest/analysis/diagnostics.py` analyse automatiquement:
+- Sharpe OOS, WFE, Max DD, Trade Count
+- Dégradation IS→OOS
+- Résultats guards (Monte Carlo, Sensitivity, Bootstrap)
+
+**Recommandation automatique**:
+- **MODERATE** (défaut) si WFE ≥ 0.3 et pas de multi-failures
+- **CONSERVATIVE** si WFE < 0.3 ou overfit sévère détecté
+
+---
+
 ## Checklist de Progression
 
 ### ✅ Complété
@@ -519,9 +576,16 @@ useTransitionMode = OFF      # Mode State (pas Transition)
 - [x] Aligner defaults Python sur config Pine utilisateur
 - [x] Sizing basé sur le risque (`risk_per_trade`) + export backtest CSV
 - [x] Autoriser réentrée sur la bougie de sortie (backtest)
+- [x] Système de diagnostics granulaires avec 6+ checks (Sharpe, WFE, DD, etc.)
+- [x] Interface Reopt dans Streamlit avec navigation automatique + pre-fill settings
+- [x] Tests comparatifs KAMA filters sur DOGE (BASELINE vs CONSERVATIVE)
+- [x] Configurations de filtres MODERATE/CONSERVATIVE/BASELINE documentées
+- [x] Recommandations automatiques de config filter dans diagnostics.py
+- [x] MODERATE filter config comme défaut pour ré-optimisations
 
 ### 🔄 À Faire (Priorité)
 
+- [ ] Tester MODERATE config sur assets FAIL pour valider amélioration WFE
 - [ ] Valider cohérence signaux vs Pine sur CSV 2000+ bougies
 - [ ] Inspecter `compare_report.csv` pour isoler divergences résiduelles
 - [ ] Ajouter tests unitaires pour `optimize_final_trigger.py`
@@ -559,6 +623,9 @@ Pine vérifie `barstate.isconfirmed` avant de générer des signaux. Python n'a 
 | Defaults alignés sur la config Pine | Light + State, filtre MAMA/KAMA désactivé |
 | Sizing risk-based (`risk_per_trade`) | Risque fixe par trade, notional ajusté au stop |
 | Réentrée sur bougie de sortie | Permet d'enchaîner les signaux sans attente |
+| 3 modes de filtrage (BASELINE/MODERATE/CONSERVATIVE) | Trade-off performance vs overfit adapté au contexte |
+| MODERATE comme défaut reopt | Tests DOGE montrent que plus de filtres ≠ meilleure performance |
+| Diagnostics granulaires avec recommandations auto | Guide reopt avec contexte (trials, displacement, filter mode) |
 
 ---
 
@@ -617,6 +684,8 @@ python crypto_backtest/examples/run_backtest.py
 | [crypto_backtest/engine/position_manager.py](crypto_backtest/engine/position_manager.py) | Multi-TP (50/30/20) + trailing SL |
 | [crypto_backtest/optimization/parallel_optimizer.py](crypto_backtest/optimization/parallel_optimizer.py) | Optimisation parallèle multi-asset (joblib) |
 | [crypto_backtest/analysis/cluster_params.py](crypto_backtest/analysis/cluster_params.py) | K-means clustering des paramètres optimaux |
+| [crypto_backtest/analysis/diagnostics.py](crypto_backtest/analysis/diagnostics.py) | Diagnostics granulaires + recommandations reopt (6+ checks) |
+| [crypto_backtest/validation/conservative_reopt.py](crypto_backtest/validation/conservative_reopt.py) | Configs filtres (BASELINE/MODERATE/CONSERVATIVE) + reopt |
 | [scripts/run_full_pipeline.py](scripts/run_full_pipeline.py) | Pipeline complet (download → optimize → cluster) |
 | [scripts/portfolio_correlation.py](scripts/portfolio_correlation.py) | Analyse corrélations et drawdowns concurrents |
 | [tests/compare_signals.py](tests/compare_signals.py) | Pine vs Python signal validation |

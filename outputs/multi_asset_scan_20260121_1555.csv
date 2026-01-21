@@ -1,0 +1,16 @@
+asset,status,exchange,timeframe,start_date,end_date,total_bars,seed,fail_reason,sl_mult,tp1_mult,tp2_mult,tp3_mult,tenkan,kijun,tenkan_5,kijun_5,is_sharpe,is_return,is_trades,val_sharpe,val_return,val_trades,oos_sharpe,oos_return,oos_trades,oos_max_dd,oos_pf,wfe,mc_p,error
+SOL,FAIL,binance,1H,,,0,42,ERROR: No data found for SOL in data,0.0,0.0,0.0,0.0,0,0,0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0.0,1.0,No data found for SOL in data
+XRP,FAIL,binance,1H,,,0,42,ERROR: No data found for XRP in data,0.0,0.0,0.0,0.0,0,0,0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0.0,1.0,No data found for XRP in data
+BNB,FAIL,binance,1H,,,0,42,ERROR: No data found for BNB in data,0.0,0.0,0.0,0.0,0,0,0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0.0,1.0,No data found for BNB in data
+ADA,FAIL,binance,1H,,,0,42,ERROR: No data found for ADA in data,0.0,0.0,0.0,0.0,0,0,0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0.0,1.0,No data found for ADA in data
+DOGE,FAIL,binance,1H,,,0,42,ERROR: No data found for DOGE in data,0.0,0.0,0.0,0.0,0,0,0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0.0,1.0,No data found for DOGE in data
+DOT,FAIL,binance,1H,,,0,42,ERROR: No data found for DOT in data,0.0,0.0,0.0,0.0,0,0,0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0.0,1.0,No data found for DOT in data
+LINK,FAIL,binance,1H,,,0,42,ERROR: No data found for LINK in data,0.0,0.0,0.0,0.0,0,0,0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0.0,1.0,No data found for LINK in data
+MATIC,FAIL,binance,1H,,,0,42,ERROR: No data found for MATIC in data,0.0,0.0,0.0,0.0,0,0,0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0.0,1.0,No data found for MATIC in data
+SHIB,FAIL,binance,1H,,,0,42,ERROR: No data found for SHIB in data,0.0,0.0,0.0,0.0,0,0,0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0.0,1.0,No data found for SHIB in data
+LTC,FAIL,binance,1H,,,0,42,ERROR: No data found for LTC in data,0.0,0.0,0.0,0.0,0,0,0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0.0,1.0,No data found for LTC in data
+ATOM,FAIL,binance,1H,,,0,42,ERROR: No data found for ATOM in data,0.0,0.0,0.0,0.0,0,0,0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0.0,1.0,No data found for ATOM in data
+XLM,FAIL,binance,1H,,,0,42,ERROR: No data found for XLM in data,0.0,0.0,0.0,0.0,0,0,0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0.0,1.0,No data found for XLM in data
+NEAR,FAIL,binance,1H,,,0,42,ERROR: No data found for NEAR in data,0.0,0.0,0.0,0.0,0,0,0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0.0,1.0,No data found for NEAR in data
+FIL,FAIL,binance,1H,,,0,42,ERROR: No data found for FIL in data,0.0,0.0,0.0,0.0,0,0,0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0.0,1.0,No data found for FIL in data
+ARB,FAIL,binance,1H,,,0,42,ERROR: No data found for ARB in data,0.0,0.0,0.0,0.0,0,0,0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0,0.0,0.0,0.0,1.0,No data found for ARB in data
