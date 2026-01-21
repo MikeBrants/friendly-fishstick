@@ -1474,56 +1474,55 @@ if page == "📊 Dashboard":
                 use_container_width=True,
             )
 
-            scan_labels = {
-                f"{row['timestamp']} · {row['scan']}": row["scan"]
-                for row in history_rows
-            }
-            selected_label = st.selectbox(
-                "Voir le détail d'un scan",
-                list(scan_labels.keys()),
-                key="dashboard_scan_history_select",
-            )
-            selected_name = scan_labels[selected_label]
-            selected_path = next(
-                (p for p in scan_history if p.name == selected_name), None
-            )
-            if selected_path and selected_path.exists():
-                detail_df = pd.read_csv(selected_path)
-                assets = detail_df["asset"].tolist() if "asset" in detail_df.columns else []
-                st.markdown(
-                    f"**Assets ({len(assets)}):** "
-                    f"{', '.join(assets) if assets else '—'}"
-                )
+            st.markdown("#### Actions rapides")
+            for row in history_rows:
+                scan_name = row["scan"]
+                scan_path = next((p for p in scan_history if p.name == scan_name), None)
+                if scan_path is None or not scan_path.exists():
+                    continue
 
-                col1, col2 = st.columns(2)
-                with col1:
-                    if st.button(
-                        "📂 Charger ces assets dans la session",
-                        use_container_width=True,
-                    ):
-                        if st.session_state.get("active_session"):
-                            session = st.session_state.active_session
-                            session["assets"] = assets
-                            save_session(session)
-                            st.session_state.active_session = session
-                            st.success("Assets chargés dans la session active.")
-                        else:
-                            st.warning("Créez une session avant de charger des assets.")
-                with col2:
+                detail_df = pd.read_csv(scan_path)
+                assets = detail_df["asset"].tolist() if "asset" in detail_df.columns else []
+
+                cols = st.columns([2.2, 1, 1, 1, 1, 1.2])
+                with cols[0]:
+                    st.markdown(f"**{row['timestamp']}**")
+                    st.caption(scan_name)
+                with cols[1]:
+                    st.markdown(f"PASS: **{row['pass']}**")
+                with cols[2]:
+                    st.markdown(f"FAIL: **{row['fail']}**")
+                with cols[3]:
+                    st.markdown(f"Rate: **{row['pass_rate_pct']}%**")
+                with cols[4]:
+                    st.markdown(
+                        f"Sharpe: **{row['avg_sharpe'] if row['avg_sharpe'] is not None else '—'}**"
+                    )
+                with cols[5]:
                     st.download_button(
-                        "⬇️ Télécharger ce scan",
+                        "📄 Ouvrir CSV",
                         detail_df.to_csv(index=False),
-                        file_name=selected_path.name,
+                        file_name=scan_path.name,
                         mime="text/csv",
                         use_container_width=True,
+                        key=f"download_scan_{scan_name}",
                     )
 
-                st.dataframe(
-                    detail_df[["asset", "oos_sharpe", "wfe", "oos_return", "status"]]
-                    if "status" in detail_df.columns
-                    else detail_df[["asset", "oos_sharpe", "wfe", "oos_return"]],
+                if st.button(
+                    "📂 Charger ces assets dans la session",
                     use_container_width=True,
-                )
+                    key=f"load_scan_assets_{scan_name}",
+                ):
+                    if st.session_state.get("active_session"):
+                        session = st.session_state.active_session
+                        session["assets"] = assets
+                        save_session(session)
+                        st.session_state.active_session = session
+                        st.success("Assets chargés dans la session active.")
+                    else:
+                        st.warning("Créez une session avant de charger des assets.")
+
+                st.markdown("---")
         else:
             st.info("Impossible de lire l'historique des scans.")
 
