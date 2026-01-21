@@ -41,6 +41,226 @@ st.set_page_config(
 )
 
 # =============================================================================
+# CUSTOM CSS - Dark Trading Theme
+# =============================================================================
+st.markdown("""
+<style>
+/* Main container styling */
+.main .block-container {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+/* Sidebar styling */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #1A1F2E 0%, #0E1117 100%);
+    border-right: 1px solid #2D3748;
+}
+
+[data-testid="stSidebar"] .stMarkdown h3 {
+    color: #00D4FF;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Cards / Metric boxes */
+[data-testid="stMetric"] {
+    background: linear-gradient(135deg, #1A1F2E 0%, #252B3B 100%);
+    border: 1px solid #2D3748;
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+[data-testid="stMetric"] label {
+    color: #A0AEC0;
+    font-size: 0.85rem;
+}
+
+[data-testid="stMetric"] [data-testid="stMetricValue"] {
+    color: #00D4FF;
+    font-weight: 700;
+}
+
+/* Success/Warning/Error boxes */
+.stSuccess {
+    background: linear-gradient(135deg, #1A2F23 0%, #0E1117 100%);
+    border-left: 4px solid #48BB78;
+}
+
+.stWarning {
+    background: linear-gradient(135deg, #2F2A1A 0%, #0E1117 100%);
+    border-left: 4px solid #ECC94B;
+}
+
+.stError {
+    background: linear-gradient(135deg, #2F1A1A 0%, #0E1117 100%);
+    border-left: 4px solid #F56565;
+}
+
+.stInfo {
+    background: linear-gradient(135deg, #1A1F2E 0%, #0E1117 100%);
+    border-left: 4px solid #00D4FF;
+}
+
+/* Buttons */
+.stButton > button {
+    background: linear-gradient(135deg, #00D4FF 0%, #0099CC 100%);
+    color: #0E1117;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 0.6rem 1.2rem;
+    transition: all 0.3s ease;
+}
+
+.stButton > button:hover {
+    background: linear-gradient(135deg, #00E5FF 0%, #00AADD 100%);
+    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
+    transform: translateY(-1px);
+}
+
+/* Primary button (type="primary") */
+.stButton > button[kind="primary"] {
+    background: linear-gradient(135deg, #00D4FF 0%, #0099CC 100%);
+}
+
+/* DataFrames */
+[data-testid="stDataFrame"] {
+    border: 1px solid #2D3748;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Tabs */
+.stTabs [data-baseweb="tab-list"] {
+    background: #1A1F2E;
+    border-radius: 10px;
+    padding: 0.3rem;
+    gap: 0.5rem;
+}
+
+.stTabs [data-baseweb="tab"] {
+    background: transparent;
+    border-radius: 8px;
+    color: #A0AEC0;
+    padding: 0.5rem 1rem;
+}
+
+.stTabs [aria-selected="true"] {
+    background: linear-gradient(135deg, #00D4FF 0%, #0099CC 100%);
+    color: #0E1117;
+}
+
+/* Sliders */
+.stSlider [data-baseweb="slider"] {
+    margin-top: 0.5rem;
+}
+
+/* Expanders */
+.streamlit-expanderHeader {
+    background: #1A1F2E;
+    border: 1px solid #2D3748;
+    border-radius: 8px;
+}
+
+/* Progress bar */
+.stProgress > div > div {
+    background: linear-gradient(90deg, #00D4FF 0%, #00FF88 100%);
+}
+
+/* Selectbox / Multiselect */
+[data-baseweb="select"] {
+    background: #1A1F2E;
+}
+
+/* Radio buttons */
+.stRadio > div {
+    background: transparent;
+}
+
+/* File uploader */
+[data-testid="stFileUploader"] {
+    border: 2px dashed #2D3748;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+[data-testid="stFileUploader"]:hover {
+    border-color: #00D4FF;
+}
+
+/* Headers */
+h1 {
+    color: #FFFFFF;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+h2, h3 {
+    color: #E2E8F0;
+}
+
+/* Divider */
+hr {
+    border-color: #2D3748;
+    margin: 1.5rem 0;
+}
+
+/* Code blocks */
+code {
+    background: #1A1F2E;
+    border: 1px solid #2D3748;
+    border-radius: 4px;
+    padding: 0.2rem 0.4rem;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0E1117;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #2D3748;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #4A5568;
+}
+
+/* Plotly charts dark background */
+.js-plotly-plot .plotly .modebar {
+    background: transparent !important;
+}
+
+/* Sidebar logo area */
+.sidebar-logo {
+    text-align: center;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #2D3748;
+}
+
+.sidebar-logo h1 {
+    font-size: 1.5rem;
+    background: linear-gradient(135deg, #00D4FF 0%, #00FF88 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# =============================================================================
 # SIDEBAR - Navigation Groupée
 # =============================================================================
 st.sidebar.title("🎯 FINAL TRIGGER v2")
@@ -646,6 +866,26 @@ elif page == "⚡ Bayesian":
 
         skip_download = st.checkbox("Skip download (données déjà présentes)", value=True)
 
+        st.markdown("---")
+        st.markdown("##### Options avancées")
+
+        include_displacement = st.checkbox(
+            "Inclure Displacement dans l'optimisation",
+            value=False,
+            help="Ajoute le paramètre displacement (26, 39, 52, 65, 78) à l'espace de recherche Bayésien. "
+                 "Attention: augmente significativement le temps d'optimisation."
+        )
+
+        if include_displacement:
+            displacement_values = st.multiselect(
+                "Valeurs de displacement",
+                [26, 39, 52, 65, 78],
+                default=[26, 39, 52, 65, 78],
+                help="Sélectionnez les valeurs à inclure dans l'optimisation"
+            )
+        else:
+            displacement_values = [52]  # Default
+
     with col2:
         st.subheader("Espace de recherche")
 
@@ -662,6 +902,14 @@ elif page == "⚡ Bayesian":
         - Tenkan 5in1: 8 - 16
         - Kijun 5in1: 15 - 30
         """)
+
+        if include_displacement:
+            st.markdown(f"""
+            **Displacement (activé):**
+            - Valeurs: {', '.join(map(str, displacement_values))}
+            """)
+            st.warning("⚠️ L'ajout du displacement multiplie l'espace de recherche. "
+                      f"Avec {len(displacement_values)} valeurs, le temps d'optimisation augmente d'environ {len(displacement_values)}x.")
 
     st.markdown("---")
 
@@ -682,6 +930,10 @@ elif page == "⚡ Bayesian":
 
                 if skip_download:
                     cmd.append("--skip-download")
+
+                if include_displacement and len(displacement_values) > 1:
+                    cmd.extend(["--displacement-values", ",".join(map(str, displacement_values))])
+                    st.info(f"Displacement inclus dans l'optimisation: {displacement_values}")
 
                 returncode, output = run_command(cmd, output_placeholder)
 

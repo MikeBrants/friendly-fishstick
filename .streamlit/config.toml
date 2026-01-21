@@ -1,0 +1,26 @@
+# FINAL TRIGGER v2 - Streamlit Theme Configuration
+# Dark Trading Theme with Cyan accents
+
+[theme]
+# Primary accent color (buttons, links, highlights)
+primaryColor = "#00D4FF"
+
+# Background color of the main content area
+backgroundColor = "#0E1117"
+
+# Background color of sidebar and secondary areas
+secondaryBackgroundColor = "#1A1F2E"
+
+# Text color
+textColor = "#FAFAFA"
+
+# Font family
+font = "sans serif"
+
+[server]
+# Enable wide mode by default
+maxUploadSize = 200
+
+[browser]
+# Gather usage statistics
+gatherUsageStats = false
