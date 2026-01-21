@@ -7,6 +7,8 @@ from typing import Any
 
 import numpy as np
 
+MIN_TP_GAP = 0.5
+
 from crypto_backtest.analysis.metrics import compute_metrics
 from crypto_backtest.engine.backtest import BacktestConfig, VectorizedBacktester
 
@@ -93,7 +95,51 @@ def _dict_to_params(strategy_class, params_dict: dict) -> Any:
 
 def _suggest_params(trial, search_space: dict[str, Any]) -> dict[str, Any]:
     overrides: dict[str, Any] = {}
+
+    tp_keys = {"tp1_mult", "tp2_mult", "tp3_mult"}
+    if tp_keys.issubset(search_space.keys()):
+        import optuna
+
+        tp1_spec = search_space["tp1_mult"]
+        tp2_spec = search_space["tp2_mult"]
+        tp3_spec = search_space["tp3_mult"]
+
+        if isinstance(tp1_spec, dict) and isinstance(tp2_spec, dict) and isinstance(tp3_spec, dict):
+            if tp1_spec.get("type", "float") == "float":
+                tp1_low = tp1_spec["low"]
+                tp1_high = tp1_spec["high"]
+                tp1_step = tp1_spec.get("step")
+                tp2_low = tp2_spec["low"]
+                tp2_high = tp2_spec["high"]
+                tp2_step = tp2_spec.get("step")
+                tp3_low = tp3_spec["low"]
+                tp3_high = tp3_spec["high"]
+                tp3_step = tp3_spec.get("step")
+
+                max_tp1 = min(tp1_high, tp2_high - MIN_TP_GAP, tp3_high - 2 * MIN_TP_GAP)
+                if max_tp1 < tp1_low:
+                    raise optuna.TrialPruned()
+
+                tp1 = trial.suggest_float("tp1_mult", tp1_low, max_tp1, step=tp1_step)
+
+                tp2_low_eff = max(tp2_low, tp1 + MIN_TP_GAP)
+                tp2_high_eff = min(tp2_high, tp3_high - MIN_TP_GAP)
+                if tp2_high_eff < tp2_low_eff:
+                    raise optuna.TrialPruned()
+                tp2 = trial.suggest_float("tp2_mult", tp2_low_eff, tp2_high_eff, step=tp2_step)
+
+                tp3_low_eff = max(tp3_low, tp2 + MIN_TP_GAP)
+                tp3_high_eff = tp3_high
+                if tp3_high_eff < tp3_low_eff:
+                    raise optuna.TrialPruned()
+                tp3 = trial.suggest_float("tp3_mult", tp3_low_eff, tp3_high_eff, step=tp3_step)
+
+                overrides["tp1_mult"] = tp1
+                overrides["tp2_mult"] = tp2
+                overrides["tp3_mult"] = tp3
     for name, spec in search_space.items():
+        if name in overrides:
+            continue
         if isinstance(spec, dict):
             param_type = spec.get("type", "float")
             if param_type == "int":

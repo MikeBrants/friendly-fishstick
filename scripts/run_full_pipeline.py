@@ -64,6 +64,11 @@ def main():
         help="Number of Ichimoku optimization trials"
     )
     parser.add_argument(
+        "--enforce-tp-progression",
+        action="store_true",
+        help="Enforce TP1 < TP2 < TP3 with minimum gap"
+    )
+    parser.add_argument(
         "--scan-results",
         type=str,
         default=None,
@@ -130,6 +135,7 @@ def main():
             n_workers=args.workers,
             n_trials_atr=args.trials_atr,
             n_trials_ichi=args.trials_ichi,
+            enforce_tp_progression=args.enforce_tp_progression,
         )
 
         # Find the most recent scan file

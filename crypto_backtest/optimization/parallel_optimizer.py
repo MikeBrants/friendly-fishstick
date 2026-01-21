@@ -59,6 +59,7 @@ BASE_CONFIG = BacktestConfig(
 
 
 SEED = 42  # Global seed for reproducibility
+MIN_TP_GAP = 0.5
 
 
 @dataclass
@@ -257,6 +258,20 @@ def build_strategy_params(
     }
 
 
+def validate_tp_progression(params: dict[str, Any], min_gap: float = MIN_TP_GAP) -> None:
+    """Validate that TP1 < TP2 < TP3 with minimum gap."""
+    tp1 = params["tp1_mult"]
+    tp2 = params["tp2_mult"]
+    tp3 = params["tp3_mult"]
+
+    if not (tp1 < tp2 < tp3):
+        raise ValueError(f"TP non-progressifs: {tp1} / {tp2} / {tp3}")
+    if tp2 - tp1 < min_gap or tp3 - tp2 < min_gap:
+        raise ValueError(
+            f"Gap TP insuffisant: {tp2 - tp1:.2f} / {tp3 - tp2:.2f} (min {min_gap})"
+        )
+
+
 def run_backtest(
     data: pd.DataFrame,
     params: dict[str, Any],
@@ -282,6 +297,7 @@ def optimize_atr(
     data: pd.DataFrame,
     n_trials: int = 100,
     min_trades: int = 50,
+    enforce_tp_progression: bool = False,
 ) -> tuple[dict[str, float], float]:
     """Optimize ATR parameters."""
     import optuna
@@ -294,6 +310,13 @@ def optimize_atr(
         tp1 = trial.suggest_float("tp1_mult", *ATR_SEARCH_SPACE["tp1_mult"], step=0.25)
         tp2 = trial.suggest_float("tp2_mult", *ATR_SEARCH_SPACE["tp2_mult"], step=0.5)
         tp3 = trial.suggest_float("tp3_mult", *ATR_SEARCH_SPACE["tp3_mult"], step=0.5)
+
+        if enforce_tp_progression and (
+            tp2 - tp1 < MIN_TP_GAP
+            or tp3 - tp2 < MIN_TP_GAP
+            or not (tp1 < tp2 < tp3)
+        ):
+            return -10.0
 
         params = build_strategy_params(
             sl_mult=sl, tp1_mult=tp1, tp2_mult=tp2, tp3_mult=tp3,
@@ -318,6 +341,7 @@ def optimize_atr_conservative(
     data: pd.DataFrame,
     n_trials: int = 200,
     min_trades: int = 50,
+    enforce_tp_progression: bool = False,
 ) -> tuple[dict[str, float], float]:
     """Optimize ATR parameters with a discrete grid."""
     import optuna
@@ -327,6 +351,13 @@ def optimize_atr_conservative(
         tp1 = trial.suggest_categorical("tp1_mult", CONSERVATIVE_ATR_SPACE["tp1_mult"])
         tp2 = trial.suggest_categorical("tp2_mult", CONSERVATIVE_ATR_SPACE["tp2_mult"])
         tp3 = trial.suggest_categorical("tp3_mult", CONSERVATIVE_ATR_SPACE["tp3_mult"])
+
+        if enforce_tp_progression and (
+            tp2 - tp1 < MIN_TP_GAP
+            or tp3 - tp2 < MIN_TP_GAP
+            or not (tp1 < tp2 < tp3)
+        ):
+            return -10.0
 
         params = build_strategy_params(
             sl_mult=sl, tp1_mult=tp1, tp2_mult=tp2, tp3_mult=tp3,
@@ -471,6 +502,7 @@ def optimize_single_asset(
     n_trials_ichi: int = None,
     mc_iterations: int = 500,
     conservative: bool = False,
+    enforce_tp_progression: bool = False,
 ) -> AssetScanResult:
     """Full optimization pipeline for one asset."""
     default_atr = OPTIM_CONFIG["n_trials_atr"]
@@ -506,10 +538,12 @@ def optimize_single_asset(
         _log_progress(asset, "ATR opt")
         if conservative:
             atr_params, atr_sharpe = optimize_atr_conservative(
-                df_is, n_trials_atr, min_trades
+                df_is, n_trials_atr, min_trades, enforce_tp_progression
             )
         else:
-            atr_params, atr_sharpe = optimize_atr(df_is, n_trials_atr, min_trades)
+            atr_params, atr_sharpe = optimize_atr(
+                df_is, n_trials_atr, min_trades, enforce_tp_progression
+            )
         print(f"[{asset}] ATR done: Sharpe={atr_sharpe:.2f}, params={atr_params}")
 
         # 3. Ichimoku Optimization on IS
@@ -535,6 +569,9 @@ def optimize_single_asset(
             tenkan_5=ichi_params["tenkan_5"],
             kijun_5=ichi_params["kijun_5"],
         )
+
+        if enforce_tp_progression:
+            validate_tp_progression(final_params)
 
         # 5. Evaluate on all segments
         _log_progress(asset, "WF")
@@ -642,6 +679,7 @@ def run_parallel_scan(
     cluster: bool = False,
     cluster_count: int = None,
     conservative: bool = False,
+    enforce_tp_progression: bool = False,
 ) -> pd.DataFrame:
     """Run optimization for all assets in parallel."""
     from joblib import Parallel, delayed
@@ -654,12 +692,19 @@ def run_parallel_scan(
     print(f"Assets: {assets}")
     print(f"Workers: {n_workers}")
     print(f"Conservative: {conservative}")
+    print(f"Enforce TP progression: {enforce_tp_progression}")
     print("=" * 60)
 
     # Run in parallel
     results = Parallel(n_jobs=n_workers)(
         delayed(optimize_single_asset)(
-            asset, data_dir, n_trials_atr, n_trials_ichi, 500, conservative
+            asset,
+            data_dir,
+            n_trials_atr,
+            n_trials_ichi,
+            500,
+            conservative,
+            enforce_tp_progression,
         )
         for asset in assets
     )
@@ -717,6 +762,11 @@ def main():
     parser.add_argument("--cluster", action="store_true", help="Run clustering on successful assets")
     parser.add_argument("--clusters", type=int, default=None, help="Force number of clusters")
     parser.add_argument("--conservative", action="store_true", help="Use conservative search space")
+    parser.add_argument(
+        "--enforce-tp-progression",
+        action="store_true",
+        help="Enforce TP1 < TP2 < TP3 with minimum gap",
+    )
     args = parser.parse_args()
 
     assets = args.assets or SCAN_ASSETS
@@ -730,6 +780,7 @@ def main():
         cluster=args.cluster,
         cluster_count=args.clusters,
         conservative=args.conservative,
+        enforce_tp_progression=args.enforce_tp_progression,
     )
 
 

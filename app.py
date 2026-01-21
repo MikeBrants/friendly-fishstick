@@ -223,6 +223,41 @@ def link_outputs_to_session(file_patterns: list[str]):
                 console_log(f"Failed to link {file_path.name}: {exc}", "WARN")
 
 
+def register_run_to_session(run_id: str, run_type: str = "scan"):
+    """Register a run to the active session."""
+    if not st.session_state.get("active_session"):
+        return None
+
+    session_id = st.session_state.active_session["id"]
+    updated_session = add_run_to_session(session_id, run_id, run_type)
+
+    if updated_session:
+        st.session_state.active_session = updated_session
+        console_log(f"Run {run_id} enregistré ({run_type})", "INFO")
+
+    return updated_session
+
+
+def create_and_register_run(
+    description: str,
+    assets: list[str],
+    run_type: str = "scan",
+) -> "Run | None":
+    """Create a new run via RunManager and register it to active session."""
+    from crypto_backtest.utils.run_manager import RunManager
+
+    run = RunManager.create_run(
+        description=description,
+        assets=assets,
+        metadata={"type": run_type},
+    )
+
+    if st.session_state.get("active_session"):
+        register_run_to_session(run.run_id, run_type)
+
+    return run
+
+
 def get_next_action_recommendation() -> dict:
     """Get recommended next action based on session state."""
     if not st.session_state.get("active_session"):
@@ -439,6 +474,9 @@ from crypto_backtest.config.session_manager import (
     update_session_step,
     delete_session,
     get_session_dir,
+    add_run_to_session,
+    get_session_runs,
+    migrate_session_runs,
     PIPELINE_STEPS,
 )
 from crypto_backtest.utils.system_utils import (
@@ -448,6 +486,7 @@ from crypto_backtest.utils.system_utils import (
 )
 from crypto_backtest.validation.fail_diagnostic import FailDiagnostic
 from crypto_backtest.validation.conservative_reopt import ConservativeReoptimizer
+from crypto_backtest.analysis.diagnostics import diagnose_asset, AssetDiagnostics
 from crypto_backtest.optimization.parallel_optimizer import (
     BASE_CONFIG,
     build_strategy_params,
@@ -1926,6 +1965,34 @@ elif page == "⚡ Bayesian":
         )
         st.info(f"📂 Session active: **{session['name']}**")
 
+    # Check if coming from reopt
+    reopt_mode = st.session_state.get("reopt_asset") is not None
+    reopt_settings = st.session_state.get("reopt_settings", {})
+
+    if reopt_mode:
+        st.markdown(f"""
+        <div style="
+            background: linear-gradient(135deg, #2D3748 0%, #1A202C 100%);
+            border-left: 4px solid #ECC94B;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        ">
+            <span style="font-size: 1.2rem; color: #ECC94B;">🔄 Mode Ré-optimisation</span>
+            <br/>
+            <span style="color: #E2E8F0;">Asset: <b>{st.session_state.reopt_asset}</b></span>
+            <br/>
+            <span style="color: #A0AEC0; font-size: 0.9rem;">
+                Les paramètres sont pré-remplis selon les recommandations du diagnostic.
+            </span>
+        </div>
+        """, unsafe_allow_html=True)
+
+        if st.button("❌ Annuler le mode reopt", key="cancel_reopt"):
+            st.session_state.reopt_asset = None
+            st.session_state.reopt_settings = {}
+            st.rerun()
+
     st.markdown("""
     Lance l'optimisation des paramètres ATR et Ichimoku sur les assets sélectionnés.
     Utilise Optuna (TPE) pour trouver les meilleurs paramètres.
@@ -1943,7 +2010,11 @@ elif page == "⚡ Bayesian":
             st.error("⚠️ Aucune donnée disponible. Téléchargez d'abord les données.")
             st.stop()
 
-        if st.session_state.get("active_session"):
+        # Determine default assets based on reopt mode
+        if reopt_mode:
+            reopt_asset = st.session_state.reopt_asset
+            default_assets = [reopt_asset] if reopt_asset in available_data else []
+        elif st.session_state.get("active_session"):
             session_assets = st.session_state.active_session.get("assets", [])
             default_assets = [a for a in session_assets if a in available_data]
         else:
@@ -1953,10 +2024,15 @@ elif page == "⚡ Bayesian":
             "Assets à optimiser",
             available_data,
             default=default_assets,
+            key="bayesian_assets",
         )
 
-        trials_atr = st.slider("Trials ATR", 20, 200, 100)
-        trials_ichi = st.slider("Trials Ichimoku", 20, 200, 100)
+        # Determine default trials based on reopt settings
+        default_trials_atr = reopt_settings.get("trials_atr", 100) if reopt_mode else 100
+        default_trials_ichi = reopt_settings.get("trials_ichi", 100) if reopt_mode else 100
+
+        trials_atr = st.slider("Trials ATR", 20, 200, default_trials_atr, key="trials_atr_slider")
+        trials_ichi = st.slider("Trials Ichimoku", 20, 200, default_trials_ichi, key="trials_ichi_slider")
 
         import os
         max_workers = max(os.cpu_count() or 4, get_default_workers("bayesian"))
@@ -1972,21 +2048,37 @@ elif page == "⚡ Bayesian":
         st.markdown("---")
         st.markdown("##### Options avancées")
 
-        include_displacement = st.checkbox(
-            "Inclure Displacement dans l'optimisation",
-            value=False,
-            help="Ajoute le paramètre displacement (26, 39, 52, 65, 78) à l'espace de recherche Bayésien. "
-                 "Attention: augmente significativement le temps d'optimisation."
-        )
+        # Pre-fill displacement based on reopt settings
+        should_test_displacement = reopt_settings.get("test_displacement", False) if reopt_mode else False
+        fix_displacement = reopt_settings.get("fix_displacement") if reopt_mode else None
 
-        if include_displacement:
+        if fix_displacement:
+            st.info(f"💡 Recommandation: fixer displacement à **{fix_displacement}**")
+            include_displacement = False
+            displacement_values = [fix_displacement]
+        elif should_test_displacement:
+            st.info("💡 Recommandation: tester le displacement grid")
+            include_displacement = st.checkbox(
+                "Inclure Displacement dans l'optimisation",
+                value=True,  # Pre-checked when recommended
+                help="Recommandé par le diagnostic. Ajoute le paramètre displacement à l'espace de recherche.",
+            )
+        else:
+            include_displacement = st.checkbox(
+                "Inclure Displacement dans l'optimisation",
+                value=False,
+                help="Ajoute le paramètre displacement (26, 39, 52, 65, 78) à l'espace de recherche Bayésien. "
+                     "Attention: augmente significativement le temps d'optimisation."
+            )
+
+        if include_displacement and not fix_displacement:
             displacement_values = st.multiselect(
                 "Valeurs de displacement",
                 [26, 39, 52, 65, 78],
                 default=[26, 39, 52, 65, 78],
                 help="Sélectionnez les valeurs à inclure dans l'optimisation"
             )
-        else:
+        elif not fix_displacement:
             displacement_values = [52]  # Default
 
     with col2:
@@ -2031,6 +2123,7 @@ elif page == "⚡ Bayesian":
                     "--trials-ichi", str(trials_ichi),
                     "--workers", str(workers),
                 ]
+                cmd.append("--enforce-tp-progression")
 
                 if skip_download:
                     cmd.append("--skip-download")
@@ -2044,6 +2137,11 @@ elif page == "⚡ Bayesian":
                 if returncode == 0:
                     st.success("✅ Optimisation terminée!")
                     link_outputs_to_session(["multiasset_scan_*.csv", "pine_plan_*.csv"])
+
+                    # Clear reopt mode after successful optimization
+                    if st.session_state.get("reopt_asset"):
+                        st.session_state.reopt_asset = None
+                        st.session_state.reopt_settings = {}
 
                     scan_results = get_scan_results()
                     has_pass = False
@@ -2947,6 +3045,107 @@ elif page == "🏆 Comparaison Assets":
                     st.plotly_chart(fig, use_container_width=True)
     else:
         st.info("Aucun fichier de paramètres disponible")
+
+    # =========================================================================
+    # DETAILED DIAGNOSTICS
+    # =========================================================================
+    st.markdown("---")
+    st.subheader("🔬 Diagnostic Détaillé")
+
+    all_assets = scan_df["asset"].tolist()
+
+    if all_assets:
+        selected_diag_asset = st.selectbox(
+            "Sélectionner un asset pour diagnostic",
+            all_assets,
+            key="diag_asset_select",
+        )
+
+        if selected_diag_asset:
+            scan_row = scan_df[scan_df["asset"] == selected_diag_asset].iloc[0]
+
+            # Get guards row if available
+            guards_row = None
+            if guards_df is not None and selected_diag_asset in guards_df["asset"].values:
+                guards_row = guards_df[guards_df["asset"] == selected_diag_asset].iloc[0]
+
+            # Run diagnostics
+            diag = diagnose_asset(selected_diag_asset, scan_row, guards_row)
+
+            # Display overall status
+            status_colors = {"PASS": "#48BB78", "WARN": "#ECC94B", "FAIL": "#E53E3E"}
+            status_emoji = {"PASS": "✅", "WARN": "⚠️", "FAIL": "❌"}
+
+            st.markdown(f"""
+            <div style="
+                background: linear-gradient(135deg, #1A1F2E 0%, #252B3B 100%);
+                border-left: 4px solid {status_colors[diag.overall_status]};
+                border-radius: 8px;
+                padding: 15px;
+                margin: 10px 0;
+            ">
+                <span style="font-size: 1.5rem;">{status_emoji[diag.overall_status]}</span>
+                <span style="font-size: 1.2rem; font-weight: 600; margin-left: 10px; color: #E2E8F0;">
+                    {diag.asset}: {diag.overall_status}
+                </span>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # Display checks table
+            checks_data = []
+            for check in diag.checks:
+                checks_data.append({
+                    "Check": check.name,
+                    "Status": f"{status_emoji[check.status]} {check.status}",
+                    "Valeur": check.value,
+                    "Seuil": check.threshold,
+                })
+
+            st.dataframe(pd.DataFrame(checks_data), use_container_width=True, hide_index=True)
+
+            # Detailed explanations in expanders
+            st.markdown("### 📋 Détails et Recommandations")
+
+            for check in diag.checks:
+                with st.expander(f"{status_emoji[check.status]} {check.name}: {check.value}"):
+                    st.markdown(f"**Explication:** {check.explanation}")
+                    st.markdown(f"**Recommandation:** {check.recommendation}")
+
+            # Reopt button with pre-filled settings
+            if diag.overall_status in ["FAIL", "WARN"]:
+                st.markdown("---")
+                st.subheader("🔄 Ré-optimiser avec les paramètres recommandés")
+
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    st.markdown("**Paramètres recommandés:**")
+                    settings = diag.recommended_settings
+                    st.write(f"- Trials ATR: **{settings['trials_atr']}**")
+                    st.write(f"- Trials Ichi: **{settings['trials_ichi']}**")
+                    st.write(f"- Days back: **{settings['days_back']}**")
+                    if settings.get("fix_displacement"):
+                        st.write(f"- Displacement fixé: **{settings['fix_displacement']}**")
+                    if settings.get("test_displacement"):
+                        st.write(f"- Tester displacement grid: **Oui**")
+                    if settings.get("exclude_asset"):
+                        st.warning("⚠️ Asset recommandé à exclure du portfolio")
+
+                with col2:
+                    if not settings.get("exclude_asset"):
+                        if st.button(
+                            f"🚀 Ré-optimiser {selected_diag_asset}",
+                            type="primary",
+                            use_container_width=True,
+                            key=f"reopt_{selected_diag_asset}",
+                        ):
+                            # Store settings in session state
+                            st.session_state.reopt_asset = selected_diag_asset
+                            st.session_state.reopt_settings = settings
+                            # Navigate to Bayesian page
+                            st.session_state.current_page = "⚡ Bayesian"
+                            console_log(f"Reopt {selected_diag_asset} avec settings recommandés", "RUN")
+                            st.rerun()
 
 
 # -----------------------------------------------------------------------------
@@ -3971,11 +4170,77 @@ elif page == "📋 Historique":
                         save_session(session)
                         st.success("Notes sauvegardées")
 
+                # ===== Runs associés =====
+                st.markdown("---")
+                st.markdown("**📦 Runs associés**")
+
+                session_runs = get_session_runs(session_id)
+
+                if not session_runs:
+                    st.caption("Aucun run enregistré pour cette session.")
+                    if st.button("🔍 Auto-détecter les runs", key=f"migrate_{session_id}"):
+                        migrate_session_runs(session_id)
+                        st.rerun()
+                else:
+                    for run_info in session_runs:
+                        run_exists = run_info.get("exists", False)
+                        run_type_emoji = {
+                            "scan": "⚡",
+                            "guards": "🛡️",
+                            "displacement": "📊",
+                            "auto-detected": "🔍",
+                        }.get(run_info.get("type", ""), "📁")
+
+                        status_color = "#48BB78" if run_exists else "#E53E3E"
+
+                        st.markdown(f"""
+                        <div style="
+                            background: #1A1F2E;
+                            border-left: 3px solid {status_color};
+                            border-radius: 6px;
+                            padding: 10px;
+                            margin: 5px 0;
+                        ">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="color: #E2E8F0; font-weight: 500;">
+                                    {run_type_emoji} {run_info['run_id']}
+                                </span>
+                                <span style="color: #718096; font-size: 0.8rem;">
+                                    {run_info.get('type', 'N/A').upper()}
+                                </span>
+                            </div>
+                            <div style="color: #A0AEC0; font-size: 0.8rem; margin-top: 4px;">
+                                {run_info.get('description', '') or 'Sans description'}
+                            </div>
+                            <div style="color: #718096; font-size: 0.75rem; margin-top: 2px;">
+                                {'✅ scan.csv' if run_info.get('has_scan') else ''}
+                                {'✅ guards.csv' if run_info.get('has_guards') else ''}
+                                {'📄 ' + str(run_info.get('params_count', 0)) + ' params' if run_info.get('params_count') else ''}
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                        if run_exists:
+                            rcol1, rcol2 = st.columns(2)
+                            with rcol1:
+                                if run_info.get("has_scan"):
+                                    if st.button("📊 Voir scan", key=f"view_scan_{session_id}_{run_info['run_id']}", use_container_width=True):
+                                        st.session_state.selected_run_view = run_info['run_id']
+                                        st.session_state.current_page = "🏆 Comparaison Assets"
+                                        st.rerun()
+                            with rcol2:
+                                if run_info.get("has_guards"):
+                                    if st.button("🛡️ Voir guards", key=f"view_guards_{session_id}_{run_info['run_id']}", use_container_width=True):
+                                        st.session_state.selected_run_view = run_info['run_id']
+                                        st.session_state.current_page = "🛡️ Guards"
+                                        st.rerun()
+
+                # Legacy files fallback
                 session_dir = get_session_dir(session_id)
                 if session_dir.exists():
                     files = list(session_dir.glob("*.csv"))
                     if files:
-                        st.markdown("**Fichiers associés**")
+                        st.markdown("**📄 Fichiers locaux**")
                         for file_path in files[:10]:
                             st.caption(f"📄 {file_path.name}")
 
