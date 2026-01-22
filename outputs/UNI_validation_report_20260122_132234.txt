@@ -1,0 +1,11 @@
+GUARDS VALIDATION REPORT: UNI
+======================================================================
+GUARD-001 Monte Carlo p-value: 0.0000 -> PASS
+GUARD-002 Sensitivity variance: 10.27% -> FAIL
+GUARD-003 Bootstrap Sharpe CI lower: 1.22 -> PASS
+GUARD-005 Trade distribution top10: 26.67% -> PASS
+GUARD-006 Stress1 Sharpe: 1.35 -> PASS
+GUARD-007 Regime reconciliation mismatch: 0.00% -> PASS
+GUARD-WFE: 0.56 -> FAIL
+----------------------------------------------------------------------
+ALL PASS: NO

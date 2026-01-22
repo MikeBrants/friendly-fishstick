@@ -22,6 +22,19 @@ Key outputs (2026-01-22):
 - `outputs/multiasset_scan_20260122_1322.csv` (ETH/AVAX/UNI/SEI)
 - `outputs/multiasset_guards_summary_20260122_132234.csv` (ETH/AVAX/UNI/SEI guards)
 
+## Pipeline status (2026-01-22)
+
+| Batch | Assets | Status |
+|:------|:-------|:-------|
+| Displacement d26 | JOE, CAKE | JOE PASS (pre-fix); CAKE SUCCESS but guards fail (variance 20.70%) |
+| Displacement d65 | OSMO | PASS (57 trades accepted) |
+| Displacement d78 | MINA, RUNE, TON | MINA PASS; RUNE/TON FAIL |
+| Displacement d39 | AXS | FAIL (excluded) |
+| Core P0 | ETH, AVAX, UNI, SEI | RUN DONE: ETH SUCCESS but guards fail (variance 12.96%); AVAX/UNI WFE<0.6; SEI OOS Sharpe<1.0 |
+| Winners P1.1 | DOT, SHIB, NEAR | Pending after core re-opt |
+| Disp P1.2 | OP, DOGE | Pending after core re-opt |
+| Guard-passed P1.3 | AR, EGLD, CELO, ANKR | Pending after P1.1/P1.2 |
+
 Key outputs (2026-01-21):
 - `outputs/multiasset_guards_summary_20260121_201821.csv`
 - `outputs/anomaly_investigation_20260121_205300.csv`

@@ -1,0 +1,11 @@
+GUARDS VALIDATION REPORT: CAKE
+======================================================================
+GUARD-001 Monte Carlo p-value: 0.0000 -> PASS
+GUARD-002 Sensitivity variance: 9.87% -> PASS
+GUARD-003 Bootstrap Sharpe CI lower: 0.80 -> FAIL
+GUARD-005 Trade distribution top10: 25.83% -> PASS
+GUARD-006 Stress1 Sharpe: 1.25 -> PASS
+GUARD-007 Regime reconciliation mismatch: 0.00% -> PASS
+GUARD-WFE: -0.67 -> FAIL
+----------------------------------------------------------------------
+ALL PASS: NO

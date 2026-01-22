@@ -39,10 +39,9 @@ from crypto_backtest.validation.conservative_reopt import (
     CONSERVATIVE_ATR_SPACE,
     CONSERVATIVE_ICHI_SPACE,
     CONSERVATIVE_SPLIT_RATIO,
-    BASELINE_FILTERS_CONFIG,
-    MODERATE_FILTERS_CONFIG,
     CONSERVATIVE_FILTERS_CONFIG,
 )
+from config.filter_modes import get_filter_config, FILTER_MODES
 
 
 # Suppress Optuna logging
@@ -793,16 +792,18 @@ def run_parallel_scan(
     if mode == "conservative":
         conservative = True
         filter_config = CONSERVATIVE_FILTERS_CONFIG
-    elif mode == "moderate":
-        conservative = False
-        atr_search_space = ATR_SEARCH_SPACE_MODERATE
-        filter_config = MODERATE_FILTERS_CONFIG
-    elif mode == "baseline":
-        conservative = False
-        atr_search_space = ATR_SEARCH_SPACE
-        filter_config = BASELINE_FILTERS_CONFIG
     else:
-        raise ValueError(f"Unsupported optimization_mode: {optimization_mode}")
+        conservative = False
+        if mode == "moderate":
+            atr_search_space = ATR_SEARCH_SPACE_MODERATE
+        else:
+            atr_search_space = ATR_SEARCH_SPACE
+        if mode not in FILTER_MODES:
+            raise ValueError(
+                f"Unsupported optimization_mode: {optimization_mode}. "
+                f"Supported: {list(FILTER_MODES.keys()) + ['conservative']}"
+            )
+        filter_config = get_filter_config(mode)
 
     print("=" * 60)
     print("MULTI-ASSET PARALLEL SCAN")

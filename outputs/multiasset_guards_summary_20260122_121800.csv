@@ -1,0 +1,2 @@
+asset,base_sharpe,guard001_p_value,guard001_pass,guard002_variance_pct,guard002_pass,guard003_sharpe_ci_lower,guard003_pass,guard005_top10_pct,guard005_pass,guard006_stress1_sharpe,guard006_pass,guard007_mismatch_pct,guard007_pass,guard_wfe,guard_wfe_pass,all_pass,error
+CAKE,1.6123091654466801,0.0,True,9.869586324483153,True,0.7952380464312844,False,25.833269580752066,True,1.2493342005957184,True,1.849982600586571e-14,True,-0.665832889836303,False,False,

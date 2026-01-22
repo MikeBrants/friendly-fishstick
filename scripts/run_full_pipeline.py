@@ -25,6 +25,10 @@ from datetime import datetime
 
 def main():
     parser = argparse.ArgumentParser(description="Multi-Asset Scan Pipeline (CODEX-005)")
+    from config.filter_modes import FILTER_MODES
+    optimization_choices = list(FILTER_MODES.keys())
+    if "conservative" not in optimization_choices:
+        optimization_choices.append("conservative")
     parser.add_argument(
         "--skip-download",
         action="store_true",
@@ -84,9 +88,9 @@ def main():
     )
     parser.add_argument(
         "--optimization-mode",
-        choices=["baseline", "moderate", "conservative"],
+        choices=optimization_choices,
         default="baseline",
-        help="Optimization mode (baseline/moderate/conservative)",
+        help="Optimization mode (baseline/moderate/conservative/custom)",
     )
     parser.add_argument(
         "--scan-results",

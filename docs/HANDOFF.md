@@ -38,6 +38,19 @@ No asset besides BTC is cleared for production.
 
 **Seul BTC est actuellement en production.**
 
+## Etat actuel du pipeline (2026-01-22)
+
+| Batch | Assets | Status |
+|:------|:-------|:-------|
+| Displacement d26 | JOE, CAKE | JOE PASS (pre-fix); CAKE SUCCESS but guards fail (variance 20.70%) |
+| Displacement d65 | OSMO | PASS (57 trades accepted) |
+| Displacement d78 | MINA, RUNE, TON | MINA PASS; RUNE/TON FAIL |
+| Displacement d39 | AXS | FAIL (excluded) |
+| Core P0 | ETH, AVAX, UNI, SEI | RUN DONE: ETH SUCCESS but guards fail (variance 12.96%); AVAX/UNI WFE<0.6; SEI OOS Sharpe<1.0 |
+| Winners P1.1 | DOT, SHIB, NEAR | Pending after core re-opt |
+| Disp P1.2 | OP, DOGE | Pending after core re-opt |
+| Guard-passed P1.3 | AR, EGLD, CELO, ANKR | Pending after P1.1/P1.2 |
+
 ### Assets Exclus (définitif)
 - SOL, AAVE, HYPE, ATOM, ARB, LINK, INJ, TIA (WFE < 0.6 ou overfit)
 - HOOK, ALICE, HMSTR, LOOM (données insuffisantes: <60 trades OOS ou <10K bars)
