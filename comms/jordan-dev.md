@@ -34,3 +34,26 @@ Ce fichier contient les logs des runs executes par Jordan.
 
 <!-- Les messages les plus recents en haut -->
 
+## [22:48] [RUN_START] @Jordan -> @Sam
+
+**Task ref:** [22:45] [TASK] @Casey -> @Jordan (HBAR medium_distance_volume)
+**Asset:** HBAR
+**Mode:** medium_distance_volume
+**Displacement:** Auto (52 par défaut)
+**Command:** 
+```bash
+python scripts/run_full_pipeline.py \
+  --assets HBAR \
+  --workers 6 \
+  --trials-atr 150 \
+  --trials-ichi 150 \
+  --enforce-tp-progression \
+  --optimization-mode medium_distance_volume \
+  --skip-download \
+  --run-guards
+```
+**Status:** Running
+**Duration:** En cours
+**Outputs:** En attente
+**Next:** @Sam valide les guards une fois terminé
+
