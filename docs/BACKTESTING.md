@@ -88,6 +88,465 @@ Output:
 4. Build `outputs/all_validated_assets.csv`, then run portfolio construction + stress test + final report.
 5. Investigate guard errors for YGG/ARKM/STRK/METIS/AEVO (data quality or metric bug).
 
+## Codex prompt - full re-validation pipeline (TP progression)
+ASCII-only copy/paste prompt for rerunning the full pipeline with TP progression enforcement.
+
+````text
+# CODEX PROMPT - FINAL TRIGGER v2 Full Re-Validation Pipeline
+
+```markdown
+# CODEX: FINAL TRIGGER v2 - Complete Re-Validation Pipeline
+
+## CRITICAL CONTEXT
+Previous scans are INVALID - TP progression constraint (TP1 < TP2 < TP3, gap >= 0.5 ATR) was NOT enforced.
+ALL optimization results must be regenerated with `--enforce-tp-progression` flag.
+
+## Environment
+- Repo: MikeBrants/friendly-fishstick (local clone)
+- Machine: i7-11800H 8c/32GB
+- Python: 3.11+ with crypto_backtest package
+- Data: data/Binance_*_1h.csv (local, 2 years)
+
+## Pre-Flight Checks
+```bash
+# 1. Verify TP progression constraint is in code
+grep -r "tp1.*tp2.*tp3" crypto_backtest/optimization/bayesian.py
+
+# 2. Check disk space (need ~20GB free)
+df -h | grep -E "/$|Avail"
+
+# 3. Verify data files exist for target assets
+ls data/Binance_{ICP,HBAR,EGLD,IMX,YGG,CELO,ARKM,AR,ANKR,W,STRK,METIS,AEVO}USDT_1h.* 2>/dev/null | wc -l
+```
+
+---
+
+## PHASE 0: Re-Optimize 13 New Assets WITH TP Progression
+Duration: ~45min | Workers: 6
+
+Assets: ICP, HBAR, EGLD, IMX, YGG, CELO, ARKM, AR, ANKR, W, STRK, METIS, AEVO
+
+```bash
+python scripts/run_full_pipeline.py \
+  --assets ICP HBAR EGLD IMX YGG CELO ARKM AR ANKR W STRK METIS AEVO \
+  --workers 6 \
+  --trials-atr 100 \
+  --trials-ichi 100 \
+  --enforce-tp-progression \
+  --skip-download
+```
+
+Validation after Phase 0:
+```python
+import pandas as pd
+from glob import glob
+
+# Load latest scan
+scan = pd.read_csv(sorted(glob("outputs/multiasset_scan_*.csv"))[-1])
+
+# CHECK TP PROGRESSION
+for _, row in scan.iterrows():
+    tp1, tp2, tp3 = row['tp1_mult'], row['tp2_mult'], row['tp3_mult']
+    valid = (tp1 < tp2 < tp3) and (tp2 - tp1 >= 0.5) and (tp3 - tp2 >= 0.5)
+    status = "OK" if valid else "INVALID"
+    print(f"{row['asset']}: TP1={tp1:.2f} < TP2={tp2:.2f} < TP3={tp3:.2f} {status}")
+
+# Summary
+print(f"\nPASS: {len(scan[scan['status']=='PASS'])} | FAIL: {len(scan[scan['status']=='FAIL'])}")
+```
+
+Export: `outputs/multiasset_scan_YYYYMMDD_HHMM.csv`
+
+---
+
+## PHASE 1: Guards on Re-Optimized Assets
+Duration: ~30min | Workers: 6
+
+Run 7 guards on ALL assets that passed Phase 0:
+
+```bash
+# Get latest scan file
+SCAN_FILE=$(ls -t outputs/multiasset_scan_*.csv | head -1)
+
+# Extract PASS assets
+PASS_ASSETS=$(python -c "import pandas as pd; df=pd.read_csv('$SCAN_FILE'); print(' '.join(df[df['status']=='PASS']['asset'].tolist()))")
+
+# Run guards
+python scripts/run_guards_multiasset.py \
+  --assets $PASS_ASSETS \
+  --params-file $SCAN_FILE \
+  --workers 6
+```
+
+Guard Thresholds:
+| Guard | Check | Threshold |
+|-------|-------|-----------|
+| GUARD-001 | Monte Carlo p-value | < 0.05 |
+| GUARD-002 | Sensitivity variance | < 10% |
+| GUARD-003 | Bootstrap Sharpe CI lower | > 1.0 |
+| GUARD-005 | Top 10 trades concentration | < 40% |
+| GUARD-006 | Stress1 (10/5 bps) Sharpe | > 1.0 |
+| GUARD-007 | Regime mismatch | < 1% |
+
+Export: `outputs/multiasset_guards_summary_YYYYMMDD_HHMMSS.csv`
+
+---
+
+## PHASE 2: Anomaly Investigation
+Duration: ~15min
+
+Investigate assets with suspicious metrics (high Sharpe but marked FAIL):
+- HOOK: OOS Sharpe=5.39, WFE=1.52
+- ALICE: OOS Sharpe=3.67, WFE=2.01
+- HMSTR: OOS Sharpe=2.65, WFE=1.13
+
+```python
+import pandas as pd
+from glob import glob
+
+scan = pd.read_csv(sorted(glob("outputs/multiasset_scan_*.csv"))[-1])
+anomalies = ['HOOK', 'ALICE', 'HMSTR']
+
+print("=" * 70)
+print("ANOMALY INVESTIGATION")
+print("=" * 70)
+
+for asset in anomalies:
+    row = scan[scan['asset'] == asset]
+    if row.empty:
+        print(f"{asset}: NOT IN SCAN - need to run optimization first")
+        continue
+
+    row = row.iloc[0]
+    oos_trades = row.get('oos_trades', 0)
+    is_sharpe = row.get('is_sharpe', 0)
+    oos_sharpe = row.get('oos_sharpe', 0)
+    wfe = row.get('wfe', 0)
+
+    # Check data quality
+    data_file = f"data/Binance_{asset}USDT_1h.csv"
+    try:
+        df = pd.read_csv(data_file)
+        bars = len(df)
+    except:
+        bars = 0
+
+    # Diagnose
+    issues = []
+    if oos_trades < 60:
+        issues.append(f"LOW_TRADES ({oos_trades})")
+    if bars < 8000:
+        issues.append(f"LOW_BARS ({bars})")
+    if is_sharpe > 4.0 and wfe > 1.5:
+        issues.append("OUTLIER_DEPENDENT (IS Sharpe too high)")
+    if oos_sharpe > 4.0:
+        issues.append("OOS_OUTLIER (suspiciously high)")
+
+    verdict = "RESCUE" if len(issues) == 0 else "EXCLUDE"
+    print(f"{asset}: OOS_Sharpe={oos_sharpe:.2f}, WFE={wfe:.2f}, Trades={oos_trades}, Bars={bars}")
+    print(f"  Issues: {issues if issues else 'None'}")
+    print(f"  Verdict: {verdict}")
+    print()
+```
+
+If RESCUE verdict - re-run with guards:
+```bash
+python scripts/run_guards_multiasset.py \
+  --assets HOOK ALICE \
+  --params-file outputs/multiasset_scan_YYYYMMDD_HHMM.csv \
+  --workers 2
+```
+
+---
+
+## PHASE 3: Displacement Grid on Borderline Assets
+Duration: ~60min | Workers: 6
+
+Test displacements [26, 39, 52, 65, 78] on WFE borderline assets (0.3 < WFE < 0.6):
+
+```bash
+# Identify borderline assets from scan
+BORDERLINE=$(python -c "
+import pandas as pd
+from glob import glob
+df = pd.read_csv(sorted(glob('outputs/multiasset_scan_*.csv'))[-1])
+borderline = df[(df['wfe'] > 0.3) & (df['wfe'] < 0.6)]['asset'].tolist()
+print(' '.join(borderline))
+")
+
+echo "Borderline assets: $BORDERLINE"
+
+# Run displacement grid for each
+for DISP in 26 39 52 65 78; do
+  echo "Testing displacement=$DISP..."
+  python scripts/run_full_pipeline.py \
+    --assets $BORDERLINE \
+    --workers 6 \
+    --trials-atr 50 \
+    --trials-ichi 50 \
+    --enforce-tp-progression \
+    --fixed-displacement $DISP \
+    --skip-download
+done
+```
+
+Analyze results:
+```python
+import pandas as pd
+from glob import glob
+
+# Collect all displacement results
+results = []
+for f in sorted(glob("outputs/multiasset_scan_*.csv"))[-5:]:  # Last 5 scans
+    df = pd.read_csv(f)
+    results.append(df)
+
+combined = pd.concat(results)
+pivot = combined.pivot_table(
+    index='asset',
+    columns='displacement',
+    values=['oos_sharpe', 'wfe'],
+    aggfunc='first'
+)
+print(pivot)
+
+# Find best displacement per asset
+for asset in combined['asset'].unique():
+    asset_data = combined[combined['asset'] == asset]
+    best = asset_data.loc[asset_data['wfe'].idxmax()]
+    if best['wfe'] >= 0.6 and best['oos_sharpe'] >= 1.0:
+        print(f"OK {asset}: best_disp={best['displacement']}, WFE={best['wfe']:.2f}, Sharpe={best['oos_sharpe']:.2f}")
+    else:
+        print(f"FAIL {asset}: no valid displacement found")
+```
+
+---
+
+## PHASE 4: Full Runs on Displacement Winners
+Duration: ~30min | Workers: 6
+
+For assets with optimal displacement != 52:
+
+```bash
+# Example: if DOGE best at disp=26, OP best at disp=78
+python scripts/run_full_pipeline.py \
+  --assets DOGE \
+  --workers 6 \
+  --trials-atr 100 \
+  --trials-ichi 100 \
+  --enforce-tp-progression \
+  --fixed-displacement 26 \
+  --skip-download
+
+python scripts/run_full_pipeline.py \
+  --assets OP \
+  --workers 6 \
+  --trials-atr 100 \
+  --trials-ichi 100 \
+  --enforce-tp-progression \
+  --fixed-displacement 78 \
+  --skip-download
+
+# Run guards on winners
+python scripts/run_guards_multiasset.py \
+  --assets DOGE OP \
+  --params-file outputs/multiasset_scan_LATEST.csv \
+  --workers 2
+```
+
+---
+
+## PHASE 5: Portfolio Construction
+Duration: ~10min
+
+```bash
+python scripts/portfolio_correlation.py \
+  --params-file outputs/pine_plan.csv \
+  --min-weight 0.03 \
+  --max-weight 0.15
+```
+
+Or manually:
+```python
+import pandas as pd
+import numpy as np
+from glob import glob
+
+# Load all validated assets
+guards = pd.read_csv(sorted(glob("outputs/multiasset_guards_summary_*.csv"))[-1])
+validated = guards[guards['all_pass'] == True]['asset'].tolist()
+
+print(f"Validated assets: {validated}")
+
+# Load daily returns
+returns = {}
+for asset in validated:
+    try:
+        df = pd.read_csv(f"data/Binance_{asset}USDT_1h.csv", parse_dates=['timestamp'])
+        df = df.set_index('timestamp').resample('1D').last()
+        returns[asset] = df['close'].pct_change().dropna()
+    except Exception as e:
+        print(f"Skip {asset}: {e}")
+
+returns_df = pd.DataFrame(returns).dropna()
+
+# Correlation matrix
+corr = returns_df.corr()
+print("\nCorrelation Matrix:")
+print(corr.round(2))
+
+# Flag high correlations
+for i in range(len(corr.columns)):
+    for j in range(i+1, len(corr.columns)):
+        if corr.iloc[i,j] > 0.75:
+            print(f"WARNING: High correlation: {corr.columns[i]} - {corr.columns[j]} = {corr.iloc[i,j]:.2f}")
+
+# Save
+corr.to_csv("outputs/portfolio_correlation_matrix.csv")
+
+# Equal-weight portfolio metrics
+eq_returns = returns_df.mean(axis=1)
+sharpe = eq_returns.mean() / eq_returns.std() * np.sqrt(365)
+max_dd = (eq_returns.cumsum() - eq_returns.cumsum().cummax()).min()
+print(f"\nEqual-Weight Portfolio: Sharpe={sharpe:.2f}, MaxDD={max_dd*100:.2f}%")
+```
+
+---
+
+## PHASE 6: Stress Test Portfolio
+Duration: ~15min
+
+```python
+scenarios = [
+    ("Base", 5, 2),
+    ("Stress1", 10, 5),
+    ("Stress2", 15, 10),
+    ("Stress3", 20, 15),
+]
+
+# Run backtest for each scenario on portfolio
+# (Use existing stress test functions from run_guards_multiasset.py)
+
+results = []
+for name, fees, slip in scenarios:
+    # Adjust costs and recalculate
+    cost_drag = (fees + slip) / 10000 * 2 * 365  # Annual cost drag estimate
+    adjusted_sharpe = base_sharpe - cost_drag * 0.5  # Rough approximation
+    results.append({
+        "scenario": name,
+        "fees_bps": fees,
+        "slip_bps": slip,
+        "portfolio_sharpe": adjusted_sharpe,
+        "edge_bps": fees - 5  # Buffer above base
+    })
+
+stress_df = pd.DataFrame(results)
+stress_df.to_csv("outputs/portfolio_stress_test.csv", index=False)
+print(stress_df)
+```
+
+---
+
+## PHASE 7: Final Report Generation
+
+```python
+from datetime import datetime
+
+# Collect all results
+guards = pd.read_csv(sorted(glob("outputs/multiasset_guards_summary_*.csv"))[-1])
+scan = pd.read_csv(sorted(glob("outputs/multiasset_scan_*.csv"))[-1])
+
+validated = guards[guards['all_pass'] == True]
+failed = guards[guards['all_pass'] == False]
+
+# Generate report
+report = f\"\"\"# FINAL TRIGGER v2 - Validation Report
+Generated: {datetime.now().isoformat()}
+
+## Executive Summary
+- **Total Assets Scanned**: {len(scan)}
+- **Assets Validated (7/7 Guards)**: {len(validated)}
+- **Assets Failed**: {len(failed)}
+
+## Validated Assets
+| Asset | OOS Sharpe | WFE | Displacement | Status |
+|-------|------------|-----|--------------|--------|
+\"\"\"
+
+for _, row in validated.iterrows():
+    asset = row['asset']
+    scan_row = scan[scan['asset'] == asset].iloc[0] if asset in scan['asset'].values else {}
+    oos_sharpe = scan_row.get('oos_sharpe', 'N/A')
+    wfe = scan_row.get('wfe', 'N/A')
+    disp = scan_row.get('displacement', 52)
+    report += f\"| {asset} | {oos_sharpe:.2f} | {wfe:.2f} | {disp} | PASS |\\n\"
+
+report += f\"\"\"
+## Guards Results Summary
+| Asset | MC p | Sens % | Boot CI | Top10% | Stress1 | Regime | ALL |
+|-------|------|--------|---------|---------|---------|--------|-----|
+\"\"\"
+
+for _, row in guards.iterrows():
+    report += f\"| {row['asset']} | {row.get('guard001_p_value', 'N/A'):.3f} | {row.get('guard002_variance_pct', 'N/A'):.1f}% | {row.get('guard003_sharpe_ci_lower', 'N/A'):.2f} | {row.get('guard005_top10_pct', 'N/A'):.1f}% | {row.get('guard006_stress1_sharpe', 'N/A'):.2f} | {row.get('guard007_mismatch_pct', 'N/A'):.2f}% | {'PASS' if row['all_pass'] else 'FAIL'} |\\n\"
+
+report += f\"\"\"
+## Production Verdict
+- Portfolio Sharpe: X.XX {'PASS' if True else 'FAIL'} (>2.0)
+- Portfolio MaxDD: X.XX% {'PASS' if True else 'FAIL'} (<8%)
+- Stress1 Sharpe: X.XX {'PASS' if True else 'FAIL'} (>1.5)
+- Diversification Ratio: X.XX {'PASS' if True else 'FAIL'} (>1.3)
+
+STATUS: PRODUCTION_READY / NOT_READY
+\"\"\"
+
+with open("outputs/FINAL_VALIDATION_REPORT.md", "w") as f:
+    f.write(report)
+
+print("Report saved to outputs/FINAL_VALIDATION_REPORT.md")
+```
+
+---
+
+## Quick Start Command
+One-liner to run Phase 0 + Phase 1:
+
+```bash
+# Re-optimize with TP progression + run guards
+python scripts/run_full_pipeline.py \
+  --assets ICP HBAR EGLD IMX YGG CELO ARKM AR ANKR W STRK METIS AEVO \
+  --workers 6 --trials-atr 100 --trials-ichi 100 \
+  --enforce-tp-progression --skip-download && \
+python scripts/run_guards_multiasset.py \
+  --assets $(python -c "import pandas as pd; from glob import glob; df=pd.read_csv(sorted(glob('outputs/multiasset_scan_*.csv'))[-1]); print(' '.join(df[df['status']=='PASS']['asset'].tolist()))") \
+  --params-file $(ls -t outputs/multiasset_scan_*.csv | head -1) \
+  --workers 6
+```
+
+## Expected Timeline
+| Phase | Duration | Output |
+|-------|----------|--------|
+| Phase 0 | ~45min | multiasset_scan_*.csv |
+| Phase 1 | ~30min | multiasset_guards_summary_*.csv |
+| Phase 2 | ~15min | anomaly_investigation.csv |
+| Phase 3 | ~60min | displacement_grid_*.csv |
+| Phase 4 | ~30min | fullrun_disp_winners.csv |
+| Phase 5 | ~10min | portfolio_*.csv |
+| Phase 6 | ~15min | portfolio_stress_test.csv |
+| Phase 7 | ~5min | FINAL_VALIDATION_REPORT.md |
+| TOTAL | ~3.5h | - |
+```
+````
+
+### Points Critiques a Verifier
+
+| Check | Commande | Attendu |
+|-------|----------|---------|
+| TP Progression | `grep "tp1_mult < tp2_mult" crypto_backtest/optimization/bayesian.py` | Contrainte presente |
+| Gap minimum | `grep "0.5" crypto_backtest/optimization/bayesian.py` | Gap >= 0.5 ATR |
+| Fichier scan | `ls -la outputs/multiasset_scan_*.csv` | Fichier recent |
+| Data 13 assets | `ls data/Binance_{ICP,HBAR}* | wc -l` | >=13 fichiers |
+
 ## Reference outputs
 - Guard summaries: `outputs/multiasset_guards_summary_*.csv`
 - Scan outputs: `outputs/multiasset_scan_*.csv`, `outputs/multi_asset_scan_*.csv`
