@@ -9,3 +9,7 @@ data/*.parquet
 # Sessions data
 sessions/
 config/app_state.json
+.cursor/
+.trees/
+comms/
+status/

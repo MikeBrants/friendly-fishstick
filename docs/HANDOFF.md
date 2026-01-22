@@ -51,7 +51,7 @@ No asset besides BTC is cleared for production.
 | Disp P1.2 | OP, DOGE | Pending after core re-opt |
 | Guard-passed P1.3 | AR, EGLD, CELO, ANKR | Pending after P1.1/P1.2 |
 
-Filter grid (ETH): IN PROGRESS. Partial summary: `outputs/filter_grid_partial_ETH_20260122_185501.csv`.
+Filter grid (ETH): DONE. Best mode = medium_distance_volume (all_pass True, sens_var 3.95%, OOS Sharpe 2.09, WFE 0.82, trades 57). Outputs: `outputs/filter_grid_results_ETH_20260122_1917.csv`, `outputs/filter_grid_summary_ETH_20260122_1917.csv`.
 
 ### Assets Exclus (définitif)
 - SOL, AAVE, HYPE, ATOM, ARB, LINK, INJ, TIA (WFE < 0.6 ou overfit)
@@ -125,6 +125,7 @@ for _, row in scan.iterrows():
 - **CRITICAL - TP progression**: Enforcement is default; pre-fix results are invalid.
 - **Revalidation (2026-01-22)**: ETH SUCCESS but guard002 variance 12.96%; AVAX/UNI/SEI fail WFE; CAKE SUCCESS but guard002 variance 20.70%.
 - **Optimization modes**: baseline/moderate/conservative available; moderate is default for re-optimization.
+- **ETH filter grid**: Completed. Winner = medium_distance_volume (all_pass True, sens_var 3.95%, trades 57) in `outputs/filter_grid_results_ETH_20260122_1917.csv`.
 - **Workflow multi-asset**: Nouveau document `docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md` decrivant le processus scalable en 3 phases.
 - **Guards timestampes**: `scripts/run_guards_multiasset.py` suffixe chaque fichier avec `run_id`.
 - **Fixed displacement mode**: `--fixed-displacement` disponible pour optimiser avec displacement fige.
@@ -173,7 +174,7 @@ for _, row in scan.iterrows():
 
 ## Prochaines Étapes
 
-1. 🔴 **P0 - Revalidation (TP enforced)**: ETH/CAKE (guard002 variance), AVAX/UNI/SEI (WFE < 0.6), OP/DOGE (pre-fix)
+1. 🔴 **P0 - Revalidation (TP enforced)**: Apply ETH winner mode `medium_distance_volume` to AVAX/UNI, then guards. ETH/CAKE (guard002 variance), AVAX/UNI/SEI (WFE < 0.6), OP/DOGE (pre-fix)
 2. 🔴 **P1 - Guards post-rerun**: Lancer 7 guards sur tous les assets PASS
 3. 🟡 **P2 - Displacement grid**: Finaliser MINA, OSMO, RUNE, TON
 4. 🟡 **P3 - Debug guard errors**: Investiguer YGG, ARKM, STRK, METIS, AEVO

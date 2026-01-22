@@ -35,7 +35,7 @@ Key outputs (2026-01-22):
 | Disp P1.2 | OP, DOGE | Pending after core re-opt |
 | Guard-passed P1.3 | AR, EGLD, CELO, ANKR | Pending after P1.1/P1.2 |
 
-Filter grid (ETH): IN PROGRESS. Partial summary: `outputs/filter_grid_partial_ETH_20260122_185501.csv`.
+Filter grid (ETH): DONE. Best mode = medium_distance_volume (all_pass True, sens_var 3.95%, OOS Sharpe 2.09, WFE 0.82, trades 57). Outputs: `outputs/filter_grid_results_ETH_20260122_1917.csv`, `outputs/filter_grid_summary_ETH_20260122_1917.csv`.
 
 Key outputs (2026-01-21):
 - `outputs/multiasset_guards_summary_20260121_201821.csv`
@@ -129,9 +129,10 @@ Baseline is used unless you explicitly select moderate or conservative:
   - HOOK/ALICE/HMSTR often fail due to trades < 60
 
 ## Next steps (recommended)
-1. Re-run ETH/CAKE with `--optimization-mode moderate` (TP enforced) to target guard002 variance < 10%.
-2. Re-opt AVAX/UNI/SEI (moderate or conservative) to improve WFE > 0.6.
-3. Rerun assets with non-progressive TP outputs using default enforcement:
+1. Apply ETH winner mode `medium_distance_volume` to AVAX/UNI, then re-run guards.
+2. Re-run ETH/CAKE with `--optimization-mode moderate` (TP enforced) to target guard002 variance < 10%.
+3. Re-opt AVAX/UNI/SEI (moderate or conservative) to improve WFE > 0.6.
+4. Rerun assets with non-progressive TP outputs using default enforcement:
    - AXS (disp=39), CAKE/KSM (disp=26), any other winners you plan to keep
 4. Run full pipelines for displacement winners not yet validated:
    - MINA disp=78, OSMO disp=65, RUNE disp=78, TON disp=78

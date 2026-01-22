@@ -12,7 +12,7 @@ Convertir l'indicateur TradingView "FINAL TRIGGER v2 - State/Transition + A/D Li
 **Portfolio Production**: BTC seulement (revalidation TP + guards en cours)
 **ETH**: SUCCESS en scan mais guards FAIL (variance 12.96%)
 **CAKE**: SUCCESS en scan mais guards FAIL (variance 20.70%)
-**Filter grid ETH**: en cours (voir `outputs/filter_grid_partial_ETH_20260122_185501.csv`)
+**Filter grid ETH**: termine. Winner = medium_distance_volume (all_pass True, sens_var 3.95%, trades 57). Voir `outputs/filter_grid_results_ETH_20260122_1917.csv`
 
 ## Résumé du Code Pine Script (1223 lignes)
 
