@@ -588,7 +588,7 @@ def optimize_single_asset(
         splits = CONSERVATIVE_SPLIT_RATIO if conservative else (0.6, 0.2, 0.2)
         df_is, df_val, df_oos = split_data(df, splits=splits)
 
-        print(f"[{asset}] Data: IS={len(df_is)}, VAL={len(df_val)}, OOS={len(df_oos)} bars [{start_date} → {end_date}]")
+        print(f"[{asset}] Data: IS={len(df_is)}, VAL={len(df_val)}, OOS={len(df_oos)} bars [{start_date} -> {end_date}]")
 
         # 2. ATR Optimization on IS
         _log_progress(asset, "ATR opt")
@@ -738,7 +738,7 @@ def optimize_single_asset(
         )
 
         _log_progress(asset, "DONE")
-        print(f"[{asset}] ✓ Complete: OOS Sharpe={oos_results['sharpe']:.2f}, WFE={wfe:.2f}, Status={status}")
+        print(f"[{asset}] OK Complete: OOS Sharpe={oos_results['sharpe']:.2f}, WFE={wfe:.2f}, Status={status}")
         try:
             append_partial_result(result)
         except Exception as append_error:
@@ -746,7 +746,7 @@ def optimize_single_asset(
         return result
 
     except Exception as e:
-        print(f"[{asset}] ✗ Error: {e}")
+        print(f"[{asset}] ERROR: {e}")
         result = AssetScanResult(
             asset=asset,
             status="FAIL",
@@ -778,7 +778,8 @@ def run_parallel_scan(
     enforce_tp_progression: bool = True,
     fixed_displacement: int | None = None,
     optimization_mode: str | None = None,
-) -> pd.DataFrame:
+    output_prefix: str | None = None,
+) -> tuple[pd.DataFrame, str]:
     """Run optimization for all assets in parallel."""
     from joblib import Parallel, delayed
     import multiprocessing
@@ -839,10 +840,14 @@ def run_parallel_scan(
     df = pd.DataFrame(rows)
 
     # Save results
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     Path("outputs").mkdir(exist_ok=True)
-    output_path = f"outputs/multiasset_scan_{timestamp}.csv"
-    debug_output_path = f"outputs/multi_asset_scan_{timestamp}.csv"
+    if output_prefix:
+        output_path = f"outputs/{output_prefix}_multiasset_scan_{timestamp}.csv"
+        debug_output_path = f"outputs/{output_prefix}_multi_asset_scan_{timestamp}.csv"
+    else:
+        output_path = f"outputs/multiasset_scan_{timestamp}.csv"
+        debug_output_path = f"outputs/multi_asset_scan_{timestamp}.csv"
     df.to_csv(output_path, index=False)
     df.to_csv(debug_output_path, index=False)
 
@@ -869,6 +874,8 @@ def run_parallel_scan(
 
         print("\nRunning clustering analysis...")
         run_full_analysis(output_path, cluster_count)
+
+    return df, output_path
 
     return df
 

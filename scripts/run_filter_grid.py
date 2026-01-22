@@ -12,18 +12,14 @@ import sys
 from datetime import datetime
 from glob import glob
 from pathlib import Path
+import os
 
 import pandas as pd
 
+# Add project root to path for local imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from config.filter_modes import FILTER_MODES
-
-
-def _latest_new_file(pattern: str, before: list[str]) -> str | None:
-    after = sorted(glob(pattern))
-    new_files = [path for path in after if path not in before]
-    if new_files:
-        return new_files[-1]
-    return after[-1] if after else None
 
 
 def _read_asset_row(df: pd.DataFrame, asset: str) -> pd.Series:
@@ -34,8 +30,8 @@ def _read_asset_row(df: pd.DataFrame, asset: str) -> pd.Series:
 
 
 def run_mode(asset: str, mode: str, workers: int, trials_atr: int, trials_ichi: int) -> dict:
-    before_scan = sorted(glob("outputs/multiasset_scan_*.csv"))
-    before_guards = sorted(glob("outputs/multiasset_guards_summary_*.csv"))
+    run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_prefix = f"fgrid_{asset}_{mode}_{run_id}"
 
     cmd = [
         sys.executable,
@@ -53,19 +49,32 @@ def run_mode(asset: str, mode: str, workers: int, trials_atr: int, trials_ichi: 
         mode,
         "--skip-download",
         "--run-guards",
+        "--output-prefix",
+        output_prefix,
     ]
 
-    subprocess.run(cmd, check=False)
+    env = os.environ.copy()
+    env.update({"PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"})
+    result = subprocess.run(cmd, check=False, env=env)
 
-    scan_file = _latest_new_file("outputs/multiasset_scan_*.csv", before_scan)
-    guards_file = _latest_new_file("outputs/multiasset_guards_summary_*.csv", before_guards)
+    scan_files = sorted(glob(f"outputs/{output_prefix}_multiasset_scan_*.csv"))
+    guards_files = sorted(glob(f"outputs/{output_prefix}_guards_summary_*.csv"))
 
-    if not scan_file or not guards_file:
+    if result.returncode != 0:
         return {
             "mode": mode,
             "status": "ERROR",
-            "error": "Missing scan or guards output",
+            "error": f"Pipeline failed with return code {result.returncode}",
         }
+    if not scan_files or not guards_files:
+        return {
+            "mode": mode,
+            "status": "ERROR",
+            "error": "Missing scan or guards output for this mode",
+        }
+
+    scan_file = scan_files[-1]
+    guards_file = guards_files[-1]
 
     try:
         scan = pd.read_csv(scan_file)

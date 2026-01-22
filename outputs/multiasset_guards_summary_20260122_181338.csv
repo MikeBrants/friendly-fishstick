@@ -1,0 +1,2 @@
+asset,base_sharpe,guard001_p_value,guard001_pass,guard002_variance_pct,guard002_pass,guard003_sharpe_ci_lower,guard003_pass,guard005_top10_pct,guard005_pass,guard006_stress1_sharpe,guard006_pass,guard007_mismatch_pct,guard007_pass,guard_wfe,guard_wfe_pass,all_pass,error
+ETH,0.28639508321658386,0.235,False,41.054774876451674,False,-1.466902494218395,False,125.57378585676943,False,-0.14707409462243873,False,0.0,True,0.2218748482562716,False,False,

@@ -93,6 +93,11 @@ def main():
         help="Optimization mode (baseline/moderate/conservative/custom)",
     )
     parser.add_argument(
+        "--output-prefix",
+        default=None,
+        help="Prefix for scan/guards output files",
+    )
+    parser.add_argument(
         "--scan-results",
         type=str,
         default=None,
@@ -165,7 +170,7 @@ def main():
 
         from crypto_backtest.optimization.parallel_optimizer import run_parallel_scan
 
-        scan_df = run_parallel_scan(
+        scan_df, scan_path = run_parallel_scan(
             assets=optimize_assets,
             data_dir="data",
             n_workers=args.workers,
@@ -174,13 +179,15 @@ def main():
             enforce_tp_progression=args.enforce_tp_progression,
             fixed_displacement=args.fixed_displacement,
             optimization_mode=args.optimization_mode,
+            output_prefix=args.output_prefix,
         )
 
         # Find the most recent scan file
-        from glob import glob
-        scan_files = sorted(glob("outputs/multiasset_scan_*.csv"))
-        if scan_files:
-            scan_path = scan_files[-1]
+        if not scan_path:
+            from glob import glob
+            scan_files = sorted(glob("outputs/multiasset_scan_*.csv"))
+            if scan_files:
+                scan_path = scan_files[-1]
     else:
         print("\n[STEP 2/3] Skipping optimization (--skip-optimize)")
         if not scan_path:
@@ -256,6 +263,13 @@ def main():
         print("[POST] RUNNING GUARDS")
         print("=" * 70)
         guard_workers = args.guards_workers or min(6, len(optimize_assets))
+        summary_output = None
+        if args.output_prefix:
+            stem = Path(scan_path).stem
+            run_suffix = stem.split("multiasset_scan_")[-1]
+            summary_output = str(
+                Path("outputs") / f"{args.output_prefix}_guards_summary_{run_suffix}.csv"
+            )
         guard_cmd = [
             sys.executable,
             str(Path(__file__).parent / "run_guards_multiasset.py"),
@@ -266,6 +280,8 @@ def main():
             "--workers",
             str(guard_workers),
         ]
+        if summary_output:
+            guard_cmd.extend(["--summary-output", summary_output])
         subprocess.run(guard_cmd, check=False)
 
 

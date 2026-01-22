@@ -1,0 +1,11 @@
+mode,status,oos_sharpe,wfe,oos_trades,sens_var,guard002_pass,all_pass,base_sharpe,scan_file,guards_file,error
+baseline,SUCCESS,3.87,2.36,87,12.96,False,False,1.6,outputs\multiasset_scan_20260122_1322.csv,outputs\multiasset_guards_summary_20260122_132234.csv,
+light_kama,SUCCESS,3.87,2.36,87,12.96,False,False,1.6,outputs\multiasset_scan_20260122_1322.csv,outputs\multiasset_guards_summary_20260122_132234.csv,
+light_distance,SUCCESS,3.87,2.36,87,12.96,False,False,1.6,outputs\multiasset_scan_20260122_1322.csv,outputs\multiasset_guards_summary_20260122_132234.csv,
+light_volume,SUCCESS,3.87,2.36,87,12.96,False,False,1.6,outputs\multiasset_scan_20260122_1322.csv,outputs\multiasset_guards_summary_20260122_132234.csv,
+light_regression,SUCCESS,3.87,2.36,87,12.96,False,False,1.6,outputs\multiasset_scan_20260122_1322.csv,outputs\multiasset_guards_summary_20260122_132234.csv,
+medium_kama_distance,SUCCESS,3.87,2.36,87,12.96,False,False,1.6,outputs\multiasset_scan_20260122_1322.csv,outputs\multiasset_guards_summary_20260122_132234.csv,
+medium_kama_volume,SUCCESS,3.87,2.36,87,12.96,False,False,1.6,outputs\multiasset_scan_20260122_1322.csv,outputs\multiasset_guards_summary_20260122_132234.csv,
+medium_kama_regression,SUCCESS,3.87,2.36,87,12.96,False,False,1.6,outputs\multiasset_scan_20260122_1322.csv,outputs\multiasset_guards_summary_20260122_132234.csv,
+medium_distance_volume,SUCCESS,3.87,2.36,87,12.96,False,False,1.6,outputs\multiasset_scan_20260122_1322.csv,outputs\multiasset_guards_summary_20260122_132234.csv,
+moderate,SUCCESS,3.87,2.36,87,12.96,False,False,1.6,outputs\multiasset_scan_20260122_1322.csv,outputs\multiasset_guards_summary_20260122_132234.csv,

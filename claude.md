@@ -1,17 +1,18 @@
 # Plan: Système de Backtest Pro pour "FINAL TRIGGER v2"
 
-**Dernière MAJ**: 21 janvier 2026
+**Derniere MAJ**: 22 janvier 2026
 
 ## Objectif
 Convertir l'indicateur TradingView "FINAL TRIGGER v2 - State/Transition + A/D Line + Ichi Light" en Python et créer un système de backtest professionnel avec walk-forward analysis et optimisation bayésienne.
 
-## État Actuel: 90% Complété ✅
+## Etat Actuel: Revalidation en cours
 
 **Tests**: 17 tests passent (`pytest -v`)
-**Validation**: 100% match FINAL LONG/SHORT vs Pine Script (après warmup)
-**Portfolio Production**: 5 assets validés (BTC, ETH, AVAX, UNI, SEI)
-**Dashboard Streamlit**: Interface visuelle opérationnelle (Dark Trading Theme)
-**Commit récent**: Fix navigation Streamlit + portfolio correlation analysis
+**Validation**: 100% match FINAL LONG/SHORT vs Pine Script (apres warmup)
+**Portfolio Production**: BTC seulement (revalidation TP + guards en cours)
+**ETH**: SUCCESS en scan mais guards FAIL (variance 12.96%)
+**CAKE**: SUCCESS en scan mais guards FAIL (variance 20.70%)
+**Filter grid ETH**: en cours (voir `outputs/filter_grid_partial_ETH_20260122_185501.csv`)
 
 ## Résumé du Code Pine Script (1223 lignes)
 

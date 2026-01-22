@@ -1,0 +1,11 @@
+GUARDS VALIDATION REPORT: ETH
+======================================================================
+GUARD-001 Monte Carlo p-value: 0.0370 -> PASS
+GUARD-002 Sensitivity variance: 11.88% -> FAIL
+GUARD-003 Bootstrap Sharpe CI lower: -0.10 -> FAIL
+GUARD-005 Trade distribution top10: 44.07% -> FAIL
+GUARD-006 Stress1 Sharpe: 0.59 -> FAIL
+GUARD-007 Regime reconciliation mismatch: 0.00% -> PASS
+GUARD-WFE: 0.53 -> FAIL
+----------------------------------------------------------------------
+ALL PASS: NO

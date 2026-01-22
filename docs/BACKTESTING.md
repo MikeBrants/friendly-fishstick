@@ -35,6 +35,8 @@ Key outputs (2026-01-22):
 | Disp P1.2 | OP, DOGE | Pending after core re-opt |
 | Guard-passed P1.3 | AR, EGLD, CELO, ANKR | Pending after P1.1/P1.2 |
 
+Filter grid (ETH): IN PROGRESS. Partial summary: `outputs/filter_grid_partial_ETH_20260122_185501.csv`.
+
 Key outputs (2026-01-21):
 - `outputs/multiasset_guards_summary_20260121_201821.csv`
 - `outputs/anomaly_investigation_20260121_205300.csv`

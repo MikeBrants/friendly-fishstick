@@ -83,6 +83,14 @@ FILTER_MODES = {
         "use_ichimoku_filter": True,
         "ichi5in1_strict": False,
     },
+    "strict_ichi": {
+        "use_distance_filter": False,
+        "use_volume_filter": False,
+        "use_regression_cloud": False,
+        "use_kama_oscillator": False,
+        "use_ichimoku_filter": True,
+        "ichi5in1_strict": True,
+    },
 }
 
 
