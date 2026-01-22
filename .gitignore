@@ -9,7 +9,12 @@ data/*.parquet
 # Sessions data
 sessions/
 config/app_state.json
-.cursor/
 .trees/
-comms/
-status/
+comms/*.json
+comms/*.md
+!comms/README.md
+status/*.json
+!status/README.md
+.cursor/*
+!.cursor/rules/
+.cursor/rules/.DS_Store
