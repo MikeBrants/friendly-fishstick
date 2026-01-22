@@ -1,7 +1,7 @@
 # Handoff — FINAL TRIGGER v2 Backtest System
 
 > **Date de transmission**: 2026-01-22
-> **État**: ⚠️ REVALIDATION REQUISE — Bug TP progression détecté
+> **Etat**: REVALIDATION EN COURS - TP progression enforcee, guard variance bloque ETH/CAKE
 
 ---
 
@@ -10,22 +10,27 @@
 ### Qu'est-ce que c'est ?
 Pipeline de backtest complet pour la stratégie TradingView "FINAL TRIGGER v2" convertie en Python. Inclut optimisation bayésienne (ATR + Ichimoku), validation walk-forward, tests Monte Carlo, analyse de régimes, et construction de portfolio multi-asset.
 
-### ⚠️ ÉTAT CRITIQUE (2026-01-22)
+### ETAT CRITIQUE (2026-01-22)
 
-**Bug TP Progression découvert**: Les optimisations précédentes n'appliquaient PAS la contrainte `TP1 < TP2 < TP3` avec gap minimum 0.5 ATR.
-- **519 erreurs TP détectées** dans l'audit (`outputs/tp_progression_errors_*.csv`)
-- **Conséquence**: La plupart des résultats d'optimisation sont INVALIDES
-- **Action**: Reruns requis avec `--enforce-tp-progression` (maintenant ON par défaut)
+TP progression is now enforced by default. Previous pre-fix scans are invalid.
+
+Revalidation results (2026-01-22):
+- ETH SUCCESS (OOS Sharpe 3.87, WFE 2.36) but guard002 variance 12.96% -> guards fail
+- AVAX/UNI FAIL (WFE < 0.6); SEI FAIL (OOS Sharpe < 1.0, WFE < 0.6)
+- CAKE disp=26 SUCCESS (OOS Sharpe 2.73, WFE 0.73) but guard002 variance 20.70% -> guards fail
+
+No asset besides BTC is cleared for production.
 
 ### État Production Réel
 
 | Asset | Status | Raison |
 |-------|--------|--------|
 | **BTC** | ✅ PRODUCTION | Baseline validé (params manuels historiques) |
-| ETH | ⚠️ À REVALIDER | Résultats pré-fix TP invalides |
-| AVAX | ⚠️ À REVALIDER | Résultats pré-fix TP invalides |
-| UNI | ⚠️ À REVALIDER | Résultats pré-fix TP invalides |
-| SEI | ⚠️ À REVALIDER | Résultats pré-fix TP invalides |
+| ETH | ⚠️ A REVALIDER | TP enforced: SUCCESS (OOS Sharpe 3.87, WFE 2.36) but guard002 variance 12.96% |
+| AVAX | ⚠️ A REVALIDER | TP enforced: WFE 0.52 (<0.6) |
+| UNI | ⚠️ A REVALIDER | TP enforced: WFE 0.56 (<0.6), variance 10.27% |
+| SEI | ⚠️ A REVALIDER | TP enforced: OOS Sharpe < 1.0, WFE < 0.6 |
+| CAKE (disp=26) | ⚠️ A REVALIDER | SUCCESS (OOS Sharpe 2.73, WFE 0.73) but guard002 variance 20.70% |
 | OP (disp=78) | ⚠️ À REVALIDER | Guards OK mais params pré-fix |
 | DOGE (disp=26) | ⚠️ À REVALIDER | Guards OK mais params pré-fix |
 | DOT, SHIB, NEAR | ⚠️ À REVALIDER | Scan PASS mais pré-fix |
@@ -51,6 +56,8 @@ Pipeline de backtest complet pour la stratégie TradingView "FINAL TRIGGER v2" c
 ## RERUNS PRIORITAIRES
 
 ### Commande Batch (avec TP enforcement)
+
+Note: for re-optimization, prefer `--optimization-mode moderate` (baseline remains default).
 
 ```bash
 # Batch 1: Core assets (disp=52)
@@ -100,11 +107,12 @@ for _, row in scan.iterrows():
 
 ## Dernières mises à jour (2026-01-22)
 
-- **🔴 CRITIQUE - TP Progression Bug**: 519 erreurs détectées, tous les résultats pré-fix sont invalides. Seul BTC baseline reste en production.
-- **Workflow multi-asset**: Nouveau document `docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md` décrivant le processus scalable en 3 phases.
-- **TP progression enforcement**: Maintenant ON par défaut. Utiliser `--no-enforce-tp-progression` pour désactiver (non recommandé).
-- **Guards timestampés**: `scripts/run_guards_multiasset.py` suffixe chaque fichier avec `run_id`.
-- **Fixed displacement mode**: `--fixed-displacement` disponible pour optimiser avec displacement figé.
+- **CRITICAL - TP progression**: Enforcement is default; pre-fix results are invalid.
+- **Revalidation (2026-01-22)**: ETH SUCCESS but guard002 variance 12.96%; AVAX/UNI/SEI fail WFE; CAKE SUCCESS but guard002 variance 20.70%.
+- **Optimization modes**: baseline/moderate/conservative available; moderate is default for re-optimization.
+- **Workflow multi-asset**: Nouveau document `docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md` decrivant le processus scalable en 3 phases.
+- **Guards timestampes**: `scripts/run_guards_multiasset.py` suffixe chaque fichier avec `run_id`.
+- **Fixed displacement mode**: `--fixed-displacement` disponible pour optimiser avec displacement fige.
 
 ### Historique (2026-01-21)
 - Top 50 scan (2 batches): DOT, SHIB, NEAR, SUI, APT PASS (mais pré-fix TP)
@@ -150,13 +158,13 @@ for _, row in scan.iterrows():
 
 ## Prochaines Étapes
 
-1. 🔴 **P0 - Reruns TP Progression**: Revalider ETH, AVAX, UNI, SEI, OP, DOGE avec enforcement ON
+1. 🔴 **P0 - Revalidation (TP enforced)**: ETH/CAKE (guard002 variance), AVAX/UNI/SEI (WFE < 0.6), OP/DOGE (pre-fix)
 2. 🔴 **P1 - Guards post-rerun**: Lancer 7 guards sur tous les assets PASS
 3. 🟡 **P2 - Displacement grid**: Finaliser MINA, OSMO, RUNE, TON
 4. 🟡 **P3 - Debug guard errors**: Investiguer YGG, ARKM, STRK, METIS, AEVO
-5. ⬜ **P4 - Portfolio construction**: Après validation, construire portfolio final
-6. ⬜ **P5 - Pine generation**: Générer scripts TradingView pour assets validés
-7. ⬜ **P6 - Live trading**: Implémenter connecteur exchange
+5. ⬜ **P4 - Portfolio construction**: Apres validation, construire portfolio final
+6. ⬜ **P5 - Pine generation**: Generer scripts TradingView pour assets valides
+7. ⬜ **P6 - Live trading**: Implementer connecteur exchange
 
 ---
 

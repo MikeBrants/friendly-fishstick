@@ -9,17 +9,30 @@ This file is the single source of truth for all backtesting results, issues, and
 - Issues, challenges, and analysis notes
 - Next steps and recommended reruns
 
-## Current status snapshot (2026-01-21)
-- Production validated (scan): BTC, ETH, XRP, AVAX, UNI, SUI, SEI
-- Production validated (full guards): BTC, ETH, AVAX, UNI, SEI (SUI excluded by guards)
-- New 13 assets guards (run_id `20260121_201821`): PASS = AR, EGLD, CELO, ANKR
-- Anomaly check for HOOK/ALICE/HMSTR: trades < 60 and/or data < 10000 bars, no guards rerun
+## Current status snapshot (2026-01-22)
+- ETH revalidation (disp=52, TP enforced): SUCCESS (OOS Sharpe 3.87, WFE 2.36) but guard002 variance 12.96% -> guards fail
+- AVAX/UNI revalidation (disp=52): FAIL (WFE < 0.6)
+- SEI revalidation (disp=52): FAIL (OOS Sharpe < 1.0, WFE < 0.6)
+- CAKE revalidation (disp=26): SUCCESS (OOS Sharpe 2.73, WFE 0.73) but guard002 variance 20.70% -> guards fail
+- Legacy snapshot (2026-01-21): production validated (scan) BTC/ETH/XRP/AVAX/UNI/SUI/SEI; production validated (full guards) BTC/ETH/AVAX/UNI/SEI (SUI excluded); 13 assets guards PASS=AR/EGLD/CELO/ANKR; anomaly check for HOOK/ALICE/HMSTR (trades < 60 and/or data < 10000 bars)
 
-Key outputs:
+Key outputs (2026-01-22):
+- `outputs/multiasset_scan_20260122_1319.csv` (CAKE disp=26)
+- `outputs/multiasset_guards_summary_20260122_131934.csv` (CAKE guards)
+- `outputs/multiasset_scan_20260122_1322.csv` (ETH/AVAX/UNI/SEI)
+- `outputs/multiasset_guards_summary_20260122_132234.csv` (ETH/AVAX/UNI/SEI guards)
+
+Key outputs (2026-01-21):
 - `outputs/multiasset_guards_summary_20260121_201821.csv`
 - `outputs/anomaly_investigation_20260121_205300.csv`
 
 ## Recent runs and outputs
+
+### Revalidation reruns (TP enforcement, 2026-01-22)
+- CAKE disp=26: SUCCESS (OOS Sharpe 2.73, WFE 0.73) but guards fail on variance (20.70%).
+  Outputs: `outputs/multiasset_scan_20260122_1319.csv`, `outputs/multiasset_guards_summary_20260122_131934.csv`
+- ETH/AVAX/UNI/SEI disp=52: ETH SUCCESS (OOS Sharpe 3.87, WFE 2.36) but guard002 variance 12.96%; AVAX/UNI WFE < 0.6; SEI OOS Sharpe < 1.0 and WFE < 0.6.
+  Outputs: `outputs/multiasset_scan_20260122_1322.csv`, `outputs/multiasset_guards_summary_20260122_132234.csv`
 
 ### Top 50 (two batches, excluding BTC/ETH/AVAX/UNI/SEI)
 - PASS: DOT, SHIB, NEAR, SUI, APT
@@ -68,9 +81,30 @@ Output:
 - Override: `--no-enforce-tp-progression`
 - Note: Older outputs (ex: `outputs/multiasset_scan_20260121_2111.csv`, `outputs/multiasset_scan_20260121_2130.csv`) include non-progressive TP ladders and should be rerun.
 
+## Optimization mode defaults (baseline vs moderate)
+Policy:
+- Baseline is the default for initial runs.
+- Moderate is the default choice when you decide to re-optimize (non-baseline).
+- Conservative is a last-resort option for severe overfit.
+
+MODERATE filter config (default for re-optimization choice):
+- use_mama_kama_filter: OFF
+- use_distance_filter: ON
+- use_volume_filter: ON (A/D Line or OBV)
+- use_regression_cloud: ON
+- use_kama_oscillator: ON
+- use_ichimoku_filter: ON (external Ichimoku bias)
+- ichi5in1_strict: OFF (Light mode, 3 bearish conditions)
+- use_transition_mode: OFF (State mode)
+
+Baseline is used unless you explicitly select moderate or conservative:
+- `--optimization-mode moderate`
+- `--optimization-mode conservative`
+
 ## Issues and challenges
 - Guard errors (complex numbers): YGG, ARKM, STRK, METIS, AEVO in `outputs/multiasset_guards_summary_20260121_201821.csv`.
   Likely from metrics or data anomalies; needs targeted debug.
+- Guard002 variance > 10% still blocks CAKE (20.70%) and ETH (12.96%) after TP enforcement reruns.
 - Console encoding: `parallel_optimizer.py` prints unicode arrows/checks; when console is cp1252, it can crash.
   Workaround: run with `chcp 65001` and `PYTHONIOENCODING=utf-8`.
 - Output overwrites: Some scans share the same timestamp (ex: `multiasset_scan_20260121_1759.csv` overwritten).
@@ -80,13 +114,15 @@ Output:
   - HOOK/ALICE/HMSTR often fail due to trades < 60
 
 ## Next steps (recommended)
-1. Rerun assets with non-progressive TP outputs using default enforcement:
+1. Re-run ETH/CAKE with `--optimization-mode moderate` (TP enforced) to target guard002 variance < 10%.
+2. Re-opt AVAX/UNI/SEI (moderate or conservative) to improve WFE > 0.6.
+3. Rerun assets with non-progressive TP outputs using default enforcement:
    - AXS (disp=39), CAKE/KSM (disp=26), any other winners you plan to keep
-2. Run full pipelines for displacement winners not yet validated:
+4. Run full pipelines for displacement winners not yet validated:
    - MINA disp=78, OSMO disp=65, RUNE disp=78, TON disp=78
-3. Re-run guards for new winners after updated full runs.
-4. Build `outputs/all_validated_assets.csv`, then run portfolio construction + stress test + final report.
-5. Investigate guard errors for YGG/ARKM/STRK/METIS/AEVO (data quality or metric bug).
+5. Re-run guards for new winners after updated full runs.
+6. Build `outputs/all_validated_assets.csv`, then run portfolio construction + stress test + final report.
+7. Investigate guard errors for YGG/ARKM/STRK/METIS/AEVO (data quality or metric bug).
 
 ## Codex prompt - full re-validation pipeline (TP progression)
 ASCII-only copy/paste prompt for rerunning the full pipeline with TP progression enforcement.

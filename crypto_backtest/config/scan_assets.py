@@ -174,6 +174,14 @@ ATR_SEARCH_SPACE = {
     "tp3_mult": (2.0, 10.0),
 }
 
+# ATR search space for moderate optimization
+ATR_SEARCH_SPACE_MODERATE = {
+    "sl_mult": (2.0, 4.75),
+    "tp1_mult": (2.0, 4.75),
+    "tp2_mult": (3.5, 10.0),
+    "tp3_mult": (5.0, 11.0),
+}
+
 # Ichimoku search space
 ICHI_SEARCH_SPACE = {
     "tenkan": (5, 20),

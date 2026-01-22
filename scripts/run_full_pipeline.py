@@ -83,6 +83,12 @@ def main():
         help="Fix Ichimoku displacement (and 5in1) to this value",
     )
     parser.add_argument(
+        "--optimization-mode",
+        choices=["baseline", "moderate", "conservative"],
+        default="baseline",
+        help="Optimization mode (baseline/moderate/conservative)",
+    )
+    parser.add_argument(
         "--scan-results",
         type=str,
         default=None,
@@ -163,6 +169,7 @@ def main():
             n_trials_ichi=args.trials_ichi,
             enforce_tp_progression=args.enforce_tp_progression,
             fixed_displacement=args.fixed_displacement,
+            optimization_mode=args.optimization_mode,
         )
 
         # Find the most recent scan file

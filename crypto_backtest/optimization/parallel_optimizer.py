@@ -27,6 +27,7 @@ from crypto_backtest.analysis.metrics import compute_metrics
 from crypto_backtest.config.scan_assets import (
     OPTIM_CONFIG,
     ATR_SEARCH_SPACE,
+    ATR_SEARCH_SPACE_MODERATE,
     ICHI_SEARCH_SPACE,
     PASS_CRITERIA,
     EXCHANGE_MAP,
@@ -38,6 +39,9 @@ from crypto_backtest.validation.conservative_reopt import (
     CONSERVATIVE_ATR_SPACE,
     CONSERVATIVE_ICHI_SPACE,
     CONSERVATIVE_SPLIT_RATIO,
+    BASELINE_FILTERS_CONFIG,
+    MODERATE_FILTERS_CONFIG,
+    CONSERVATIVE_FILTERS_CONFIG,
 )
 
 
@@ -220,11 +224,12 @@ def build_strategy_params(
     kijun_5: int,
     displacement: int = 52,
     displacement_5: int | None = None,
+    filter_config: dict[str, bool] | None = None,
 ) -> dict[str, Any]:
     """Build strategy parameters dict."""
     if displacement_5 is None:
         displacement_5 = displacement
-    return {
+    params = {
         "grace_bars": 1,
         "use_mama_kama_filter": False,
         "require_fama_between": False,
@@ -242,7 +247,8 @@ def build_strategy_params(
             "kijun": kijun,
             "displacement": displacement,
         },
-        "five_in_one": {
+    }
+    five_in_one = {
             "fast_period": 7,
             "slow_period": 19,
             "er_period": 8,
@@ -260,8 +266,23 @@ def build_strategy_params(
             "tenkan_5": tenkan_5,
             "kijun_5": kijun_5,
             "displacement_5": displacement_5,
-        },
     }
+    if filter_config:
+        if "use_mama_kama_filter" in filter_config:
+            params["use_mama_kama_filter"] = filter_config["use_mama_kama_filter"]
+        for key in (
+            "use_distance_filter",
+            "use_volume_filter",
+            "use_regression_cloud",
+            "use_kama_oscillator",
+            "use_ichimoku_filter",
+            "ichi5in1_strict",
+            "use_transition_mode",
+        ):
+            if key in filter_config:
+                five_in_one[key] = filter_config[key]
+    params["five_in_one"] = five_in_one
+    return params
 
 
 def tp_progression_ok(
@@ -318,18 +339,21 @@ def optimize_atr(
     min_trades: int = 50,
     enforce_tp_progression: bool = True,
     fixed_displacement: int | None = None,
+    search_space: dict[str, tuple[float, float]] | None = None,
+    filter_config: dict[str, bool] | None = None,
 ) -> tuple[dict[str, float], float]:
     """Optimize ATR parameters."""
     import optuna
 
     best_params = {}
     best_sharpe = -np.inf
+    space = search_space or ATR_SEARCH_SPACE
 
     def objective(trial: optuna.Trial) -> float:
-        sl = trial.suggest_float("sl_mult", *ATR_SEARCH_SPACE["sl_mult"], step=0.25)
-        tp1 = trial.suggest_float("tp1_mult", *ATR_SEARCH_SPACE["tp1_mult"], step=0.25)
-        tp2 = trial.suggest_float("tp2_mult", *ATR_SEARCH_SPACE["tp2_mult"], step=0.5)
-        tp3 = trial.suggest_float("tp3_mult", *ATR_SEARCH_SPACE["tp3_mult"], step=0.5)
+        sl = trial.suggest_float("sl_mult", *space["sl_mult"], step=0.25)
+        tp1 = trial.suggest_float("tp1_mult", *space["tp1_mult"], step=0.25)
+        tp2 = trial.suggest_float("tp2_mult", *space["tp2_mult"], step=0.5)
+        tp3 = trial.suggest_float("tp3_mult", *space["tp3_mult"], step=0.5)
 
         if enforce_tp_progression and not tp_progression_ok(tp1, tp2, tp3, MIN_TP_GAP):
             return -10.0
@@ -338,7 +362,8 @@ def optimize_atr(
         params = build_strategy_params(
             sl_mult=sl, tp1_mult=tp1, tp2_mult=tp2, tp3_mult=tp3,
             tenkan=9, kijun=26, tenkan_5=9, kijun_5=26,
-            displacement=disp, displacement_5=disp
+            displacement=disp, displacement_5=disp,
+            filter_config=filter_config,
         )
 
         result = run_backtest(data, params)
@@ -361,6 +386,7 @@ def optimize_atr_conservative(
     min_trades: int = 50,
     enforce_tp_progression: bool = True,
     fixed_displacement: int | None = None,
+    filter_config: dict[str, bool] | None = None,
 ) -> tuple[dict[str, float], float]:
     """Optimize ATR parameters with a discrete grid."""
     import optuna
@@ -378,7 +404,8 @@ def optimize_atr_conservative(
         params = build_strategy_params(
             sl_mult=sl, tp1_mult=tp1, tp2_mult=tp2, tp3_mult=tp3,
             tenkan=9, kijun=26, tenkan_5=9, kijun_5=26,
-            displacement=disp, displacement_5=disp
+            displacement=disp, displacement_5=disp,
+            filter_config=filter_config,
         )
 
         result = run_backtest(data, params)
@@ -401,6 +428,7 @@ def optimize_ichimoku(
     n_trials: int = 100,
     min_trades: int = 50,
     fixed_displacement: int | None = None,
+    filter_config: dict[str, bool] | None = None,
 ) -> tuple[dict[str, int], float]:
     """Optimize Ichimoku parameters."""
     import optuna
@@ -420,6 +448,7 @@ def optimize_ichimoku(
             tenkan=tenkan, kijun=kijun,
             tenkan_5=tenkan_5, kijun_5=kijun_5,
             displacement=disp, displacement_5=disp,
+            filter_config=filter_config,
         )
 
         result = run_backtest(data, params)
@@ -442,6 +471,7 @@ def optimize_ichimoku_conservative(
     n_trials: int = 200,
     min_trades: int = 50,
     fixed_displacement: int | None = None,
+    filter_config: dict[str, bool] | None = None,
 ) -> tuple[dict[str, int], float]:
     """Optimize Ichimoku parameters with a discrete grid."""
     import optuna
@@ -464,6 +494,7 @@ def optimize_ichimoku_conservative(
             tenkan=tenkan, kijun=kijun,
             tenkan_5=tenkan_5, kijun_5=kijun_5,
             displacement=disp, displacement_5=disp,
+            filter_config=filter_config,
         )
 
         result = run_backtest(data, params)
@@ -527,6 +558,8 @@ def optimize_single_asset(
     conservative: bool = False,
     enforce_tp_progression: bool = True,
     fixed_displacement: int | None = None,
+    atr_search_space: dict[str, tuple[float, float]] | None = None,
+    filter_config: dict[str, bool] | None = None,
 ) -> AssetScanResult:
     """Full optimization pipeline for one asset."""
     default_atr = OPTIM_CONFIG["n_trials_atr"]
@@ -562,11 +595,22 @@ def optimize_single_asset(
         _log_progress(asset, "ATR opt")
         if conservative:
             atr_params, atr_sharpe = optimize_atr_conservative(
-                df_is, n_trials_atr, min_trades, enforce_tp_progression, fixed_displacement
+                df_is,
+                n_trials_atr,
+                min_trades,
+                enforce_tp_progression,
+                fixed_displacement,
+                filter_config,
             )
         else:
             atr_params, atr_sharpe = optimize_atr(
-                df_is, n_trials_atr, min_trades, enforce_tp_progression, fixed_displacement
+                df_is,
+                n_trials_atr,
+                min_trades,
+                enforce_tp_progression,
+                fixed_displacement,
+                atr_search_space,
+                filter_config,
             )
         print(f"[{asset}] ATR done: Sharpe={atr_sharpe:.2f}, params={atr_params}")
 
@@ -574,11 +618,21 @@ def optimize_single_asset(
         _log_progress(asset, "Ichi opt")
         if conservative:
             ichi_params, ichi_sharpe = optimize_ichimoku_conservative(
-                df_is, atr_params, n_trials_ichi, min_trades, fixed_displacement
+                df_is,
+                atr_params,
+                n_trials_ichi,
+                min_trades,
+                fixed_displacement,
+                filter_config,
             )
         else:
             ichi_params, ichi_sharpe = optimize_ichimoku(
-                df_is, atr_params, n_trials_ichi, min_trades, fixed_displacement
+                df_is,
+                atr_params,
+                n_trials_ichi,
+                min_trades,
+                fixed_displacement,
+                filter_config,
             )
         print(f"[{asset}] Ichi done: Sharpe={ichi_sharpe:.2f}, params={ichi_params}")
 
@@ -592,6 +646,7 @@ def optimize_single_asset(
             kijun=ichi_params["kijun"],
             tenkan_5=ichi_params["tenkan_5"],
             kijun_5=ichi_params["kijun_5"],
+            filter_config=filter_config,
         )
         if fixed_displacement is not None:
             final_params["ichimoku"]["displacement"] = fixed_displacement
@@ -723,18 +778,38 @@ def run_parallel_scan(
     conservative: bool = False,
     enforce_tp_progression: bool = True,
     fixed_displacement: int | None = None,
+    optimization_mode: str | None = None,
 ) -> pd.DataFrame:
     """Run optimization for all assets in parallel."""
     from joblib import Parallel, delayed
     import multiprocessing
 
     n_workers = n_workers or min(multiprocessing.cpu_count(), len(assets))
+    if optimization_mode is None:
+        optimization_mode = "conservative" if conservative else "baseline"
+    mode = optimization_mode.lower()
+    atr_search_space = None
+    filter_config = None
+    if mode == "conservative":
+        conservative = True
+        filter_config = CONSERVATIVE_FILTERS_CONFIG
+    elif mode == "moderate":
+        conservative = False
+        atr_search_space = ATR_SEARCH_SPACE_MODERATE
+        filter_config = MODERATE_FILTERS_CONFIG
+    elif mode == "baseline":
+        conservative = False
+        atr_search_space = ATR_SEARCH_SPACE
+        filter_config = BASELINE_FILTERS_CONFIG
+    else:
+        raise ValueError(f"Unsupported optimization_mode: {optimization_mode}")
 
     print("=" * 60)
     print("MULTI-ASSET PARALLEL SCAN")
     print(f"Assets: {assets}")
     print(f"Workers: {n_workers}")
     print(f"Conservative: {conservative}")
+    print(f"Optimization mode: {mode}")
     print(f"Enforce TP progression: {enforce_tp_progression}")
     if fixed_displacement is not None:
         print(f"Fixed displacement: {fixed_displacement}")
@@ -751,6 +826,8 @@ def run_parallel_scan(
             conservative,
             enforce_tp_progression,
             fixed_displacement,
+            atr_search_space,
+            filter_config,
         )
         for asset in assets
     )
@@ -809,6 +886,12 @@ def main():
     parser.add_argument("--clusters", type=int, default=None, help="Force number of clusters")
     parser.add_argument("--conservative", action="store_true", help="Use conservative search space")
     parser.add_argument(
+        "--optimization-mode",
+        choices=["baseline", "moderate", "conservative"],
+        default=None,
+        help="Optimization mode override (baseline/moderate/conservative)",
+    )
+    parser.add_argument(
         "--enforce-tp-progression",
         action="store_true",
         dest="enforce_tp_progression",
@@ -842,6 +925,7 @@ def main():
         conservative=args.conservative,
         enforce_tp_progression=args.enforce_tp_progression,
         fixed_displacement=args.fixed_displacement,
+        optimization_mode=args.optimization_mode,
     )
 
 
