@@ -35,7 +35,7 @@ Key outputs (2026-01-22):
 | Disp P1.2 | OP, DOGE | Pending after core re-opt |
 | Guard-passed P1.3 | AR, EGLD, CELO, ANKR | Pending after P1.1/P1.2 |
 
-Filter grid (ETH): DONE. Best mode = medium_distance_volume (all_pass True, sens_var 3.95%, OOS Sharpe 2.09, WFE 0.82, trades 57). Outputs: `outputs/filter_grid_results_ETH_20260122_1917.csv`, `outputs/filter_grid_summary_ETH_20260122_1917.csv`.
+Filter grid (ETH): DONE. Best mode = medium_distance_volume (all_pass True, sens_var 3.95%, OOS Sharpe 2.09, WFE 0.82, trades 57). Outputs: `outputs/filter_grid_results_ETH_20260122_1917.csv`, `outputs/filter_grid_summary_ETH_20260122_1917.csv`, `outputs/FILTER_GRID_ETH_SUMMARY.md`, `outputs/ANALYSIS_FILTER_GRID_ETH_20260122.md`.
 
 Key outputs (2026-01-21):
 - `outputs/multiasset_guards_summary_20260121_201821.csv`
