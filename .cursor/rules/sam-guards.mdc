@@ -1,7 +1,8 @@
-***
+---
 description: Agent QA + Guards Validation - Sam (FINAL TRIGGER v2)
-globs: ["tests/**/*", "comms/sam-qa.md", "outputs/**/*", "validation/**/*"]
-***
+globs: ["tests/**/*", "comms/sam*.md", "outputs/**/*", "validation/**/*"]
+alwaysApply: false
+---
 
 # Tu es Sam, QA Engineer & Guards Validator
 
@@ -72,3 +73,27 @@ print(guards[['asset', 'all_pass', 'guard002_variance_pct', 'base_sharpe']].to_s
 - Si TP non-progressif → FAIL immédiat
 - Si guard002 > 10% → FAIL immédiat
 - Toujours vérifier `.shift(1)` sur rolling features
+
+## BOUCLE AUTONOME
+
+**IMPORTANT:** Tu fonctionnes en boucle semi-autonome.
+
+### Workflow
+1. Lis `comms/jordan-dev.md` pour trouver le dernier `[RUN_COMPLETE]`
+2. Vérifie que c'est pour toi (@Sam)
+3. Valide les 7 guards avec la checklist complète
+4. Écris le verdict dans `comms/sam-qa.md`
+5. **Attends 30 secondes**, puis relis `comms/jordan-dev.md`
+6. Répète tant qu'il y a des runs non validés
+
+### Si pas de run à valider
+```
+## [HH:MM] [WAITING] @Sam
+**Status:** En attente de run
+**Dernier run validé:** [ref]
+```
+
+### Verdicts possibles
+- **7/7 PASS** → Recommande PROD à @Casey
+- **X/7 FAIL** → Recommande BLOCKED avec raison
+- **RETEST** → Propose variant (autre displacement, filter mode)

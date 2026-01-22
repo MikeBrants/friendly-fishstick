@@ -1,47 +1,54 @@
-## [21:45] [GUARDS] @Sam -> @Casey
+# Validations Guards - @Sam
 
-**Assets:** AVAX, UNI
+Ce fichier contient les validations des 7 guards par Sam.
 
-**Date run:** 2026-01-22 (post-fix ✅)
+---
 
-### AVAX
+## Format Message
 
-| Guard | Value | Status |
-|-------|-------|--------|
-| guard001 MC p | 0.0000 | ✅ |
-| guard002 Sensitivity | 5.50% | ✅ |
-| guard003 Bootstrap CI | 2.99 | ✅ |
-| guard005 Top10 | 16.02% | ✅ |
-| guard006 Stress1 | 2.44 | ✅ |
-| guard007 Regime | 0.00% | ✅ |
-| WFE | 0.94 | ✅ |
+```
+## [HH:MM] [ACTION] @Sam -> @Casey
+**Asset:** XXX
+**Run ref:** [lien vers run Jordan]
+**Date run:** YYYY-MM-DD (post-fix TP)
 
-**TP Check:** 1.50 < 7.50 < 9.50 ✅
+### Guards Check (7/7 requis)
 
-**Verdict:** 7/7 PASS
+| Guard | Seuil | Valeur | Status |
+|-------|-------|--------|--------|
+| guard001 MC p-value | < 0.05 | X.XX | PASS/FAIL |
+| guard002 Sensitivity | < 10% | X.X% | PASS/FAIL |
+| guard003 Bootstrap CI | > 1.0 | X.XX | PASS/FAIL |
+| guard005 Top10 trades | < 40% | X.X% | PASS/FAIL |
+| guard006 Stress Sharpe | > 1.0 | X.XX | PASS/FAIL |
+| guard007 Regime mismatch | < 1% | X.X% | PASS/FAIL |
+| WFE | > 0.6 | X.XX | PASS/FAIL |
 
-### UNI
+### Metriques OOS
+- Sharpe: X.XX
+- MaxDD: X.X%
+- Trades: XX
 
-| Guard | Value | Status |
-|-------|-------|--------|
-| guard001 MC p | 0.0000 | ✅ |
-| guard002 Sensitivity | 10.27% | ❌ |
-| guard003 Bootstrap CI | 1.22 | ✅ |
-| guard005 Top10 | 26.67% | ✅ |
-| guard006 Stress1 | 1.35 | ✅ |
-| guard007 Regime | 0.00% | ✅ |
-| WFE | 0.42 | ❌ |
+### Verifications
+- [ ] TP progression: tp1 < tp2 < tp3, gaps >= 0.5
+- [ ] Date post-fix (>= 2026-01-22 12H00)
+- [ ] Pas de Sharpe suspect (> 4.0)
 
-**TP Check:** 4.00 < 6.50 < 9.00 ✅
+### Verdict
+**Status:** 7/7 PASS | X/7 FAIL
+**Raison si FAIL:** ...
+**Recommendation:** PROD | BLOCKED | RETEST avec [variant]
+**Next:** @Casey rend verdict final
+```
 
-**Verdict:** 5/7 PASS
+### Actions possibles
+- `[VALIDATION]` — Validation complete
+- `[WAITING]` — En attente d'un run
+- `[RECHECK]` — Re-validation demandee
 
-***
+---
 
-**Final Verdict:**
+## Historique
 
-- AVAX: PRODUCTION ✅ | BLOCKED ❌
-- UNI: PRODUCTION ❌ | BLOCKED ✅
-
-**Action:** @Casey please update project-state.md
+<!-- Les messages les plus recents en haut -->
 

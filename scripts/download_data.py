@@ -115,7 +115,7 @@ def download_all(
             df = download_asset(asset, timeframe, days_back, output_dir)
 
             if df.empty:
-                print(f"  ✗ {asset}: No data returned")
+                print(f"  [FAIL] {asset}: No data returned")
                 results["failed"].append(asset)
                 continue
 
@@ -131,11 +131,11 @@ def download_all(
             # Stats
             start_date = df.index[0].strftime("%Y-%m-%d")
             end_date = df.index[-1].strftime("%Y-%m-%d")
-            print(f"  ✓ {asset}: {len(df):,} bars [{start_date} → {end_date}]")
+            print(f"  [OK] {asset}: {len(df):,} bars [{start_date} -> {end_date}]")
             results["success"].append(asset)
 
         except Exception as e:
-            print(f"  ✗ {asset}: {e}")
+            print(f"  [FAIL] {asset}: {e}")
             results["failed"].append(asset)
 
     # Summary

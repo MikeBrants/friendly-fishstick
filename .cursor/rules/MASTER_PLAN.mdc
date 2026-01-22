@@ -19,6 +19,11 @@ Systeme de trading quant crypto valide statistiquement, deploye via pipeline mul
 | Assets Exclus | 20+ |
 | Bug TP | RESOLU |
 
+## CUTOFF DATE
+
+**2026-01-22 12:00 UTC** — Tout resultat anterieur est INVALIDE (bug TP non-progressif).
+Verifier timestamp fichier outputs avant validation.
+
 ### Assets PROD (7/7 Guards PASS)
 
 | Asset | Mode | Disp | OOS Sharpe | WFE | Trades |
@@ -29,10 +34,17 @@ Systeme de trading quant crypto valide statistiquement, deploye via pipeline mul
 | OSMO | baseline | 65 | 3.18 | 0.77 | 57 |
 | MINA | baseline | 78 | 1.76 | 0.61 | 78 |
 
-### Assets Exclus (Definitif)
+### Assets Exclus (Definitif — low sample/outlier)
 
-SEI, CAKE, AXS, RUNE, TON, SOL, AAVE, HYPE, ATOM, ARB, LINK, INJ, TIA,
-HOOK, ALICE, HMSTR, LOOM, APT, EIGEN, ONDO, ICP, ARKM, YGG, CELO
+APT, EIGEN, ONDO, HMSTR, LOOM, ALICE, HOOK
+
+### Assets Exclus (FAIL guards, variant epuise)
+
+SEI, CAKE, AXS, RUNE, TON, SOL, AAVE, HYPE, ATOM, ARB, LINK, INJ, TIA
+
+### Assets Guards Pending (rerun requis post-fix)
+
+ICP, HBAR, EGLD, IMX, YGG, CELO, ARKM, AR, ANKR, W, STRK, METIS, AEVO
 
 ## Objectif Q1 2026
 
@@ -55,6 +67,17 @@ Casey assigne -> Jordan execute -> Sam valide -> Casey verdict
          ^___________________________________________|
 ```
 
+## BOUCLE AUTONOME (pattern Cursor)
+
+Chaque agent applique ce cycle:
+1. Lire `comms/*.md` pour nouvelles taches/resultats
+2. Executer son action
+3. Ecrire output dans son fichier `comms/[agent].md`
+4. Relire `comms/*.md` apres 30s
+5. Repeter jusqu'a `[CYCLE COMPLETE]` ou timeout 2h
+
+**Anti-race:** Un seul agent ecrit dans son propre fichier. Lecture = tous.
+
 ### Fichiers Cles
 
 | Fichier | Fonction | Owner |
@@ -75,6 +98,7 @@ Casey assigne -> Jordan execute -> Sam valide -> Casey verdict
 | MC p-value | guard001 | < 0.05 | OUI |
 | Sensitivity variance | guard002 | < 10% | OUI |
 | Bootstrap CI lower | guard003 | > 1.0 | OUI |
+| (obsolete) | guard004 | - | Retire: remplace par guard003 |
 | Top10 trades % | guard005 | < 40% | OUI |
 | Stress1 Sharpe | guard006 | > 1.0 | OUI |
 | Regime mismatch | guard007 | < 1% | OUI |
@@ -158,6 +182,7 @@ Asset type?
 ├── Majeur (BTC, ETH) ──────────────> d52
 ├── L2/Infrastructure (OP, ARB) ────> d78
 ├── Meme/Fast (DOGE, SHIB, JOE) ───> d26
+├── Edge case (OSMO) ───────────────> d65 (custom, valide empiriquement)
 └── Inconnu ────────────────────────> d52, puis ajuster si WFE < 0.6
 ```
 
@@ -172,14 +197,16 @@ Quel guard?
 └── Autre ──────────────> BLOCKED, documenter raison
 ```
 
-### Filter Modes
+### Filter Modes (ordre de test)
 
-| Mode | Usage |
-|:-----|:------|
-| baseline | Default, premier test |
-| medium_distance_volume | Winner ETH, assets sensibles |
-| light_kama / light_distance / light_volume | Tests intermediaires |
-| moderate / conservative | Dernier recours |
+| Mode | Quand l'utiliser | Effet |
+|:-----|:-----------------|:------|
+| baseline | Premier test, toujours | Aucun filtre |
+| medium_distance_volume | Si guard002 (sensitivity) FAIL | Reduit bruit, winner ETH |
+| light_kama | Si baseline trop sensible | Filtre momentum |
+| light_distance / light_volume | Tests intermediaires | Filtres legers |
+| moderate | Si light_* insuffisant | Filtres moyens |
+| conservative | Dernier recours avant BLOCKED | Filtre agressif |
 
 ---
 
@@ -266,6 +293,17 @@ python scripts/download_data.py --assets [ASSET_LIST]
 - **Min trades OOS**: 60
 - **Min bars IS**: 8000
 - **Timeout pipeline**: 2h max par asset
+
+---
+
+## ERREURS CONNUES (a ne pas repeter)
+
+| Bug | Status | Fix |
+|-----|--------|-----|
+| TP1 > TP2 (Optuna) | RESOLU | `--enforce-tp-progression` |
+| AXS MC p=0.09 | EN ATTENTE | Rerun post-fix requis |
+| Slippage fixe 2bps | NON CORRIGE | TODO: f(volume) |
+| Funding rates | NON INTEGRE | Biais potentiel sur longs |
 
 ---
 

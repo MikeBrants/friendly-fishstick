@@ -1,52 +1,57 @@
-# Communication - Casey (Quant Orchestrator)
+# Taches Quant - @Casey
 
-## Messages Actifs
-
-### [22:30] [ASSIGNATION] @Casey -> @Jordan
-
-**Priorite P0:**
-
-1. **AVAX + UNI** — Download data puis rerun medium_distance_volume
-   ```bash
-   python scripts/download_data.py --assets AVAX UNI
-   python scripts/run_full_pipeline.py \
-     --assets AVAX UNI \
-     --workers 6 \
-     --trials-atr 150 \
-     --trials-ichi 150 \
-     --enforce-tp-progression \
-     --optimization-mode medium_distance_volume \
-     --run-guards
-   ```
-
-2. **HBAR** — Filter grid pour reduire sensitivity (13% -> <10%)
-   ```bash
-   python scripts/run_filter_grid.py --asset HBAR
-   ```
-
-**Status attendu:** Resultats scan + guards dans comms/jordan-dev.md
+Ce fichier contient les taches assignees par Casey aux autres agents.
 
 ---
 
-### [22:00] [VERDICT] @Casey
+## Format Message
 
-| Asset | Status | Rationale |
-|-------|--------|-----------|
-| ICP | EXCLU | Overfitting severe (OOS Sharpe -1.04, WFE -0.13) |
-| HBAR | PENDING | Scan OK, guards 5/7 (sens 13%, stress1 0.72) |
-| ARKM | EXCLU | OOS Sharpe -0.93, WFE 0.39 |
-| YGG | EXCLU | WFE 0.56 < 0.6 |
-| CELO | EXCLU | OOS Sharpe 0.48, WFE 0.23 |
-| AR | PENDING | Excellent metrics mais trades 47 < 50 |
+```
+## [HH:MM] [ACTION] @Casey -> @Agent
+**Context:** ...
+**Task:** ...
+**Command:** ...
+**Criteres succes:** ...
+**Next:** @Agent fait X
+```
 
-**Action:** @Jordan tester AR avec plus de trials ou timeframe plus long
+### Actions possibles
+- `[TASK]` — Nouvelle tache assignee
+- `[DECISION]` — Verdict rendu (PROD/BLOCKED/RETEST)
+- `[WAITING]` — En attente d'un autre agent
+- `[CYCLE COMPLETE]` — Fin du cycle
 
 ---
 
-***
+## Historique
 
-## Archive
+<!-- Les messages les plus recents en haut -->
 
-### [21:33] AVAX/UNI rerun — BLOCKER data manquante
-- Pipeline echoue avec "No data found for AVAX/UNI in data"
-- Resolution: executer download_data.py avant pipeline
+## [22:45] [TASK] @Casey -> @Jordan
+
+**Context:** HBAR a passe le scan (Sharpe 1.28, WFE 0.63) mais guards FAIL (sensitivity 13% > 10%, stress1 0.72 < 1.0). On teste avec filter grid medium_distance_volume comme pour ETH.
+
+**Asset:** HBAR
+**Variant:** medium_distance_volume (comme ETH winner)
+**Hypothese:** Le filter mode reduira la sensitivity variance sous 10%
+
+**Command:**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets HBAR \
+  --workers 6 \
+  --trials-atr 150 \
+  --trials-ichi 150 \
+  --enforce-tp-progression \
+  --optimization-mode medium_distance_volume \
+  --skip-download \
+  --run-guards
+```
+
+**Criteres succes:** 
+- 7/7 guards PASS
+- WFE > 0.6
+- Sensitivity < 10%
+
+**Next:** @Jordan execute, puis @Sam valide
+
