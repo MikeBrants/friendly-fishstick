@@ -1,0 +1,284 @@
+---
+description: Master Plan FINAL TRIGGER v2 Multi-Agent System
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# MASTER PLAN — FINAL TRIGGER v2
+
+## Vision
+
+Systeme de trading quant crypto valide statistiquement, deploye via pipeline multi-agent semi-autonome.
+
+## Etat Actuel (2026-01-22)
+
+| Metrique | Valeur |
+|----------|--------|
+| Assets PROD | 5 |
+| Assets Pending | ~15 |
+| Assets Exclus | 20+ |
+| Bug TP | RESOLU |
+
+### Assets PROD (7/7 Guards PASS)
+
+| Asset | Mode | Disp | OOS Sharpe | WFE | Trades |
+|:------|:-----|:-----|:-----------|:----|:-------|
+| BTC | baseline | 52 | 2.14 | >0.6 | 416 |
+| ETH | medium_distance_volume | 52 | 2.09 | 0.82 | 57 |
+| JOE | baseline | 26 | 5.03 | 1.44 | 63 |
+| OSMO | baseline | 65 | 3.18 | 0.77 | 57 |
+| MINA | baseline | 78 | 1.76 | 0.61 | 78 |
+
+### Assets Exclus (Definitif)
+
+SEI, CAKE, AXS, RUNE, TON, SOL, AAVE, HYPE, ATOM, ARB, LINK, INJ, TIA,
+HOOK, ALICE, HMSTR, LOOM, APT, EIGEN, ONDO, ICP, ARKM, YGG, CELO
+
+## Objectif Q1 2026
+
+Valider 20+ assets en PROD avec 7/7 guards, prets pour paper trading.
+
+---
+
+## ARCHITECTURE AGENTS
+
+| Agent | Role | Decide | Ne decide PAS |
+|-------|------|--------|---------------|
+| Casey | Orchestrateur | Priorites, verdicts finaux | Implementation |
+| Jordan | Developer | Fixes techniques | Validation stats |
+| Sam | QA | Guards PASS/FAIL | Priorites business |
+
+### Communication
+
+```
+Casey assigne -> Jordan execute -> Sam valide -> Casey verdict
+         ^___________________________________________|
+```
+
+### Fichiers Cles
+
+| Fichier | Fonction | Owner |
+|---------|----------|-------|
+| status/project-state.md | Source de verite dynamique | Casey |
+| comms/casey-quant.md | Taches et verdicts | Casey |
+| comms/jordan-dev.md | Runs et outputs | Jordan |
+| comms/sam-qa.md | Validations guards | Sam |
+
+---
+
+## REGLES ABSOLUES
+
+### 7 Guards (tous obligatoires)
+
+| Guard | ID | Seuil | Critique |
+|-------|:---|-------|----------|
+| MC p-value | guard001 | < 0.05 | OUI |
+| Sensitivity variance | guard002 | < 10% | OUI |
+| Bootstrap CI lower | guard003 | > 1.0 | OUI |
+| Top10 trades % | guard005 | < 40% | OUI |
+| Stress1 Sharpe | guard006 | > 1.0 | OUI |
+| Regime mismatch | guard007 | < 1% | OUI |
+| WFE | - | > 0.6 | OUI |
+
+**Seuils additionnels:**
+- OOS Sharpe > 1.0 (target > 2.0)
+- OOS Trades > 60
+- TP Progression: TP1 < TP2 < TP3, gap >= 0.5
+
+**GATE: 7/7 PASS obligatoire avant tout merge en PROD.**
+
+### Anti-patterns (JAMAIS)
+
+1. **Look-Ahead**
+   ```python
+   signal = indicator.shift(1)  # TOUJOURS
+   signal = indicator           # INTERDIT
+   ```
+
+2. **TP non-progressif**
+   ```python
+   assert tp1 < tp2 < tp3, "TP must be progressive"
+   assert (tp2 - tp1) >= 0.5 and (tp3 - tp2) >= 0.5, "Gap min 0.5"
+   ```
+
+3. **Regime sur exit_time**
+   ```python
+   regime = get_regime_at(entry_time)  # CORRECT
+   regime = get_regime_at(exit_time)   # INTERDIT
+   ```
+
+4. **Filtrer SIDEWAYS** — c'est 79.5% du profit
+
+### Resultats Suspects (CHALLENGER)
+
+- Sharpe > 4.0 -> demander reconciliation
+- WFE > 2.0 -> verifier overfitting
+- MaxDD < 1% -> verifier calcul
+
+---
+
+## WORKFLOW STANDARD
+
+### Phase 1 — Assignation (Casey)
+
+1. Choisir asset(s) prioritaire(s)
+2. Determiner displacement (d26/d52/d78)
+3. Ecrire tache dans `comms/casey-quant.md`
+4. Assigner a Jordan
+
+### Phase 2 — Execution (Jordan)
+
+1. Lire tache dans `comms/casey-quant.md`
+2. Executer pipeline avec `--enforce-tp-progression`
+3. Documenter dans `comms/jordan-dev.md`
+4. Signaler Sam
+
+### Phase 3 — Validation (Sam)
+
+1. Lire run dans `comms/jordan-dev.md`
+2. Valider 7 guards (checklist complete)
+3. Ecrire verdict dans `comms/sam-qa.md`
+4. Signaler Casey
+
+### Phase 4 — Verdict (Casey)
+
+1. Lire validation dans `comms/sam-qa.md`
+2. Decider: PROD / BLOCKED / RETEST
+3. Mettre a jour `status/project-state.md`
+4. Si RETEST -> retour Phase 1 avec variant
+
+---
+
+## ARBRES DE DECISION
+
+### Choix Displacement
+
+```
+Asset type?
+├── Majeur (BTC, ETH) ──────────────> d52
+├── L2/Infrastructure (OP, ARB) ────> d78
+├── Meme/Fast (DOGE, SHIB, JOE) ───> d26
+└── Inconnu ────────────────────────> d52, puis ajuster si WFE < 0.6
+```
+
+### Si Guard FAIL
+
+```
+Quel guard?
+├── WFE < 0.6 ──────────> Tester autre displacement
+├── MC p > 0.05 ────────> Plus de donnees ou trials
+├── Sensitivity > 10% ──> Filter grid (medium_distance_volume)
+├── Top10 > 40% ────────> Donnees insuffisantes
+└── Autre ──────────────> BLOCKED, documenter raison
+```
+
+### Filter Modes
+
+| Mode | Usage |
+|:-----|:------|
+| baseline | Default, premier test |
+| medium_distance_volume | Winner ETH, assets sensibles |
+| light_kama / light_distance / light_volume | Tests intermediaires |
+| moderate / conservative | Dernier recours |
+
+---
+
+## PRIORITES ACTUELLES
+
+### P0 (cette semaine)
+
+- [ ] HBAR — guards en cours (scan SUCCESS)
+- [ ] AVAX — download data + rerun medium_distance_volume
+- [ ] UNI — download data + rerun medium_distance_volume
+
+### P1 (next)
+
+- [ ] DOT, SHIB, NEAR — baseline TP enforced
+- [ ] OP — disp=78
+- [ ] DOGE — disp=26
+
+### P2 (backlog)
+
+- [ ] AR, EGLD, CELO, ANKR — baseline
+
+### P3 (debug)
+
+- [ ] YGG, ARKM, STRK, METIS, AEVO — guard errors
+
+---
+
+## COMMANDES REFERENCE
+
+### Run standard
+
+```bash
+python scripts/run_full_pipeline.py \
+  --assets [ASSET] \
+  --workers 6 \
+  --trials-atr 150 \
+  --trials-ichi 150 \
+  --enforce-tp-progression \
+  --run-guards
+```
+
+### Avec filter mode
+
+```bash
+python scripts/run_full_pipeline.py \
+  --assets [ASSET] \
+  --optimization-mode medium_distance_volume \
+  --enforce-tp-progression \
+  --run-guards
+```
+
+### Avec displacement fixe
+
+```bash
+python scripts/run_full_pipeline.py \
+  --assets [ASSET] \
+  --fixed-displacement [26|52|65|78] \
+  --enforce-tp-progression \
+  --run-guards
+```
+
+### Download data
+
+```bash
+python scripts/download_data.py --assets [ASSET_LIST]
+```
+
+---
+
+## METRIQUES DE SUCCES
+
+| Metrique | Cible | Actuel |
+|----------|-------|--------|
+| Assets PROD | 20+ | 5 |
+| Guards pass rate | 100% | 100% |
+| Avg Sharpe OOS | > 1.5 | ~2.5 |
+| Avg MaxDD | < 10% | ~2% |
+
+---
+
+## CONTRAINTES
+
+- **Degradation live attendue**: Sharpe x0.5-0.7, MaxDD x2-3
+- **Min trades OOS**: 60
+- **Min bars IS**: 8000
+- **Timeout pipeline**: 2h max par asset
+
+---
+
+## FICHIERS REFERENCE
+
+| Fichier | Description |
+|---------|-------------|
+| docs/HANDOFF.md | Resume executif et next steps |
+| docs/BACKTESTING.md | Resultats detailles |
+| docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md | Workflow 3 phases |
+| outputs/multiasset_scan_*.csv | Resultats scans |
+| outputs/multiasset_guards_summary_*.csv | Resultats guards |
+| .cursor/rules/global-quant.mdc | Regles quant detaillees |
+| .cursor/rules/casey-orchestrator.mdc | Role Casey |
+| .cursor/rules/jordan-backtest.mdc | Role Jordan |
+| .cursor/rules/sam-guards.mdc | Role Sam |
