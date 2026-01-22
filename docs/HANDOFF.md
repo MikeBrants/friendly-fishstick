@@ -1,7 +1,7 @@
 # Handoff — FINAL TRIGGER v2 Backtest System
 
-> **Date de transmission**: 2026-01-21
-> **État**: PRODUCTION READY — Portfolio 1H validé (guards)
+> **Date de transmission**: 2026-01-22
+> **État**: ⚠️ REVALIDATION REQUISE — Bug TP progression détecté
 
 ---
 
@@ -10,158 +10,165 @@
 ### Qu'est-ce que c'est ?
 Pipeline de backtest complet pour la stratégie TradingView "FINAL TRIGGER v2" convertie en Python. Inclut optimisation bayésienne (ATR + Ichimoku), validation walk-forward, tests Monte Carlo, analyse de régimes, et construction de portfolio multi-asset.
 
-### État Final
-- **Portfolio Production (scan)**: BTC + ETH + XRP + AVAX + UNI + SUI + SEI (7 assets validés)
-- **Portfolio Production (full guards)**: BTC + ETH + AVAX + UNI + SEI (SUI exclu)
-- **Assets Exclus**: SOL, AAVE, HYPE, ATOM, ARB, LINK, INJ, TIA (WFE < 0.6 ou overfit), SUI (guards)
-- **Sharpe Portfolio Original**: ~4.52 (BTC/ETH/XRP weights optimisés)
-- **Tous les tests de robustesse passés**: WFE, Monte Carlo, Bootstrap, Sensitivity
-- **Clustering**: invalidé (CLUSTERFAIL) → fallback params individuels (voir `outputs/pine_plan.csv`)
+### ⚠️ ÉTAT CRITIQUE (2026-01-22)
 
-### Backtesting dossier
-Toutes les infos backtesting, resultats, problemes, analyses et next steps: `docs/BACKTESTING.md`.
+**Bug TP Progression découvert**: Les optimisations précédentes n'appliquaient PAS la contrainte `TP1 < TP2 < TP3` avec gap minimum 0.5 ATR.
+- **519 erreurs TP détectées** dans l'audit (`outputs/tp_progression_errors_*.csv`)
+- **Conséquence**: La plupart des résultats d'optimisation sont INVALIDES
+- **Action**: Reruns requis avec `--enforce-tp-progression` (maintenant ON par défaut)
 
-### Dernières mises à jour (2026-01-21)
-- **Guards timestampés**: `scripts/run_guards_multiasset.py` suffixe chaque fichier guard avec `run_id` et génère un résumé `multiasset_guards_summary_{run_id}.csv`.
-- **Streamlit**: page Guards affiche les valeurs (p_value, variance, CI, etc.) en plus des flags pass, et charge automatiquement le résumé guard le plus récent (fallback legacy).
-- **Console persistante**: panel “Console” dans la sidebar Streamlit avec logs horodatés et niveaux (RUN/OK/ERR/etc.).
-- **Console UI**: version compacte et déplacée en bas de sidebar (corbeille réduite).
-- **Machine profile**: config `config/machine_profile.json` + utilitaires `system_utils.py` (workers dynamiques + warning stockage) et sliders Streamlit ajustés.
-- **README**: installation corrigée (`crypto_backtest/requirements.txt`) + section Machine Profile.
-- **Fail diagnostics**: diagnostic FAIL + réoptimisation conservative dans Streamlit, persistance JSON (diagnostic/reopt/validated/dead).
-- **Session dialogs**: remplacement des modals `st.dialog` + fix Portfolio Builder (min 2 assets).
-- **Bayesian UX**: progression vers Guards seulement si ≥1 asset PASS (sinon warning + retry/force).
-- **Dashboard scans**: historique multi-scan (PASS/FAIL par run) affiché dans le Dashboard.
-- **Dashboard scans**: actions rapides par scan (CSV + chargement assets) sans menu secondaire.
-- **TP progression**: enforcement default ON; use `--no-enforce-tp-progression` to disable. Audit outputs in `outputs/tp_progression_errors_*.csv`.
-- **Pine Strategies**: scripts `FT_BTC.pine`, `FT_ETH.pine`, `FT_AVAX.pine`, `FT_UNI.pine`, `FT_SEI.pine` générés (paramètres frozen + exécution multi-TP).
-- **Sessions + Stepper**: ajout d’un système de session (`crypto_backtest/config/session_manager.py`) et d’un stepper visuel dans Streamlit (Dashboard, Download, Bayesian, Guards, Comparateur).
-- **Modals Sessions**: création/chargement de session via modals (boutons désormais fonctionnels).
-- **Auto-progression**: auto-update des étapes (Download/Optimize/Guards/Validate) + recommandations contextuelles sur le Dashboard.
-- **Historique**: page Streamlit “📋 Historique” avec filtres, comparaison, notes et gestion des sessions.
-- **Final polish**: pages pipeline “session-aware”, liaison outputs→session, footer progression, raccourcis sidebar, empty state Dashboard.
-- **Top 50 (sans BTC/ETH/AVAX/UNI/SEI) - 2 batches**:
-  - **PASS**: DOT (OOS Sharpe 3.54, WFE 1.24), SHIB (4.71, 1.85), NEAR (3.25, 2.02), SUI (1.39, 0.75), APT (3.77, 8.11)
-  - **FAIL**: SOL, XRP, BNB, ADA, DOGE, LINK, MATIC, LTC, ATOM, XLM, FIL, ARB, OP, INJ, RENDER, FET, TAO, PEPE, WIF, BONK, AAVE, MKR, CRV, SNX, SAND
-  - **Clustering**: batch 1 only (k=2, silhouette 0.096); batch 2 skipped (<3 assets PASS)
-  - **Outputs**: `outputs/multiasset_scan_20260121_1619.csv`, `outputs/multiasset_scan_20260121_1626.csv`, `outputs/cluster_analysis_20260121_1619.json`, `outputs/cluster_param_loss_20260121_1619.csv`
-- **OP displacement=78 full run**: SUCCESS, OOS Sharpe 2.48, WFE 1.66, OOS trades 90 (baseline disp=52 was 1.07). Outputs: `outputs/displacement_grid_OP_20260121_173045.csv`, `outputs/op_fullrun_disp78_20260121_174550.csv`
-- **OP guards (disp=78)**: ALL PASS. p=0.0000, sens var=5.34%, bootstrap CI lower=2.01, stress1 sharpe=1.73, regime mismatch=0.00. Outputs: `outputs/multiasset_guards_summary_20260121_175759.csv`, `outputs/OP_validation_report_20260121_175759.txt`
-- **Displacement grid (near-threshold FAIL)**: SOL best=52 (no gain), DOGE best=26 (+2.18 Sharpe vs 52), LINK best=39 (+1.36). Outputs: `outputs/displacement_grid_summary_20260121_175713.csv`
-- **Full runs with fixed displacement**:
-  - DOGE disp=26: SUCCESS, OOS Sharpe 3.12, WFE 1.18, OOS trades 78. Output overwritten in `outputs/multiasset_scan_20260121_1759.csv` by LINK; see `optim_DOGE_disp26.log` for details.
-  - LINK disp=39: FAIL (WFE<0.6), OOS Sharpe 1.79, WFE 0.46, OOS trades 62. Output: `outputs/multiasset_scan_20260121_1759.csv`
-- **Fixed displacement mode**: `scripts/run_full_pipeline.py` and `crypto_backtest/optimization/parallel_optimizer.py` accept `--fixed-displacement` (applies to Ichimoku + 5in1). Guards accept optional `displacement` column in params CSV.
-- **Modes de filtrage KAMA**: 3 configs (BASELINE/MODERATE/CONSERVATIVE) ajoutées à `crypto_backtest/validation/conservative_reopt.py`
-  - **BASELINE**: 0 filtres (only Ichimoku external), pour optimisation initiale
-  - **MODERATE** (défaut reopt): 4 filtres (Distance, Volume, RegCloud, KAMA Osc), mama_kama=False, ichi_strict=False
-  - **CONSERVATIVE**: 5 filtres (all KAMA + strict Ichi), pour overfit sévère uniquement
-- **Diagnostics granulaires**: `crypto_backtest/analysis/diagnostics.py` avec 6+ checks (Sharpe OOS, WFE, Max DD, Trade Count, IS/OOS Consistency, Guards)
-  - Recommandations auto de filter mode (MODERATE par défaut, CONSERVATIVE si WFE < 0.3)
-  - Intégration Streamlit: page "Comparaison Assets" avec diagnostics détaillés + bouton reopt
-- **Tests DOGE KAMA**: comparaison BASELINE vs CONSERVATIVE montre que plus de filtres ≠ meilleure performance
-  - BASELINE (0 filtres): Sharpe 1.75, 459 trades
-  - CONSERVATIVE (5 filtres): Sharpe 1.41, 348 trades (-19% Sharpe)
-  - Conclusion: filtres KAMA utiles pour réduire overfit, mais peuvent dégrader performance sur certains assets
+### État Production Réel
 
-### Fichiers Critiques
-| Fichier | Description |
-|---------|-------------|
-| `app.py` | Dashboard Streamlit (Dark Trading Theme) |
-| `README.md` | **Guide d'utilisation + interprétation outputs pour agents** |
-| `crypto_backtest/config/asset_config.py` | Config production (params optimaux par asset) |
-| `crypto_backtest/config/scan_assets.py` | Top 50 cryptos (tiers) + critères |
-| `docs/HANDOFF.md` | Ce document - resume + liens |
-| `docs/BACKTESTING.md` | Dossier backtesting (resultats, analyses, problemes, next steps) |
-| `outputs/portfolio_construction.csv` | Résultats portfolio optimisé |
-| `outputs/optim_*_best_params.json` | Params optimaux par asset |
-| `outputs/pine_plan_fullguards.csv` | Plan Pine pour assets full guards |
-| `scripts/run_guards_multiasset.py` | Guards multi-asset (outputs timestampés) |
-| `crypto_backtest/config/session_manager.py` | Gestion des sessions Streamlit |
-| `crypto_backtest/analysis/diagnostics.py` | Diagnostics granulaires + recommandations reopt |
-| `crypto_backtest/validation/conservative_reopt.py` | Configs filtres KAMA + reopt conservative |
+| Asset | Status | Raison |
+|-------|--------|--------|
+| **BTC** | ✅ PRODUCTION | Baseline validé (params manuels historiques) |
+| ETH | ⚠️ À REVALIDER | Résultats pré-fix TP invalides |
+| AVAX | ⚠️ À REVALIDER | Résultats pré-fix TP invalides |
+| UNI | ⚠️ À REVALIDER | Résultats pré-fix TP invalides |
+| SEI | ⚠️ À REVALIDER | Résultats pré-fix TP invalides |
+| OP (disp=78) | ⚠️ À REVALIDER | Guards OK mais params pré-fix |
+| DOGE (disp=26) | ⚠️ À REVALIDER | Guards OK mais params pré-fix |
+| DOT, SHIB, NEAR | ⚠️ À REVALIDER | Scan PASS mais pré-fix |
+| AR, EGLD, CELO, ANKR | ⚠️ À REVALIDER | Guards PASS mais pré-fix |
 
-### Interprétation des Outputs (Pour Agents)
+**Seul BTC est actuellement en production.**
 
-Le dashboard Streamlit génère automatiquement des CSV/JSON dans `outputs/`. Pour interpréter ces données **sans l'UI**, consulter la section **"📁 Outputs et Interprétation (Pour Agents)"** dans [README.md](../README.md#-outputs-et-interprétation-pour-agents).
+### Assets Exclus (définitif)
+- SOL, AAVE, HYPE, ATOM, ARB, LINK, INJ, TIA (WFE < 0.6 ou overfit)
+- HOOK, ALICE, HMSTR, LOOM (données insuffisantes: <60 trades OOS ou <10K bars)
+- APT, EIGEN, ONDO (outliers suspects)
 
-**Fichiers clés à analyser**:
-- `multiasset_scan_*.csv` — Résultats scan avec status PASS/FAIL
-- `optim_{ASSET}_best_params.json` — Paramètres optimaux par asset
-- `multiasset_guards_summary_{run_id}.csv` — Résultats des 7 guards par asset (le plus récent est auto-chargé)
-- `portfolio_correlation.csv` — Corrélations entre assets (diversification)
-- `concurrent_dd.csv` — Périodes de drawdown simultanés (risque portfolio)
-- `pine_plan_fullguards.csv` — Plan de production pour TradingView
+### Documentation Clé
 
-**Exemples Python** pour lire ces fichiers disponibles dans le README.
+| Document | Description |
+|----------|-------------|
+| **[docs/BACKTESTING.md](BACKTESTING.md)** | Résultats, analyses, problèmes, next steps |
+| **[docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md](WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md)** | Workflow scalable Screen→Validate→Prod (Phase 1: 200 trials, Phase 2: 300 trials + guards) |
+| **[README.md](../README.md)** | Guide d'utilisation + interprétation outputs |
 
-### Gestion des Runs (RunManager)
+---
 
-**Problème résolu**: Éviter l'écrasement des résultats lors de scans multiples.
+## RERUNS PRIORITAIRES
 
-Depuis 2026-01-21, les outputs sont organisés par **run timestampé**:
+### Commande Batch (avec TP enforcement)
 
-```
-outputs/
-├── run_20260121_120000/
-│   ├── manifest.json    # Métadonnées (description, assets, config)
-│   ├── scan.csv         # Résultats scan
-│   ├── guards.csv       # Résultats guards
-│   └── params/
-│       ├── BTC.json     # Params optimaux par asset
-│       └── ETH.json
-└── run_20260121_150000/ # Nouveau scan, pas de conflit
-    └── ...
-```
-
-**Usage**:
-```python
-from crypto_backtest.utils.run_manager import RunManager
-
-# Créer un nouveau run
-run = RunManager.create_run(
-    description="Displacement grid [26-78]",
-    assets=["BTC", "ETH"],
-    metadata={"displacement_range": [26, 39, 52, 65, 78]}
-)
-
-# Sauvegarder résultats
-run.save_scan_results(scan_df)
-run.save_params("BTC", btc_params)
-run.save_guards_summary(guards_df)
-
-# Lister et comparer
-runs = RunManager.list_runs()
-latest = RunManager.get_latest_run()
-scan_df = latest.load_scan_results()
-```
-
-**Fichiers**:
-- `crypto_backtest/utils/run_manager.py` — Module principal
-- `examples/run_manager_usage.py` — Exemples détaillés
-
-**Migration**: Les anciens fichiers legacy (`outputs/optim_*.json`, `multiasset_guards_summary.csv`) restent accessibles en lecture seule. Les nouveaux scans utilisent automatiquement la structure de runs.
-
-### Notes de Test (2026-01-21)
-- `python scripts/run_guards_multiasset.py --assets BTC --params-file outputs/pine_plan.csv` lancé deux fois, **timeouts** après 120s puis 300s (création partielle de fichiers Monte Carlo). Les fichiers partiels ont été supprimés.
-
-### Prochaines Étapes Suggérées
-1. ✅ ~~**P1 - Multi-Timeframe**~~: DONE → rester en 1H (4H/1D insuffisant)
-2. 🔴 **P1 - Displacement Grid**: Optimiser displacement [26, 39, 52, 65, 78] — **PRIORITAIRE**
-3. ✅ **P2 - CODEX-005**: Multi-Asset Scan 10 Alts + Clustering — **IMPLEMENTED**
-4. ✅ **P3 - Dashboard Streamlit**: Interface visuelle — **IMPLEMENTED** (Dark Trading Theme)
-5. ✅ **P4 - Filter Modes**: BASELINE/MODERATE/CONSERVATIVE configs — **IMPLEMENTED**
-6. ✅ **P5 - Diagnostics**: Système de diagnostics granulaires avec recommandations — **IMPLEMENTED**
-7. 🟡 **P6 - MODERATE Testing**: Valider config MODERATE sur assets FAIL (DOGE, OP, etc.)
-8. **P7 - Live Trading**: Implémenter connecteur exchange live
-
-### Données (Local Only)
-Les fichiers `data/Binance_*_1h.csv` sont ignorés par git. Pour régénérer:
 ```bash
-python fetch_binance_data.py  # ou relancer les scripts de fetch
+# Batch 1: Core assets (disp=52)
+python scripts/run_full_pipeline.py \
+  --assets ETH AVAX UNI SEI DOT SHIB NEAR \
+  --workers 6 --trials-atr 100 --trials-ichi 100 \
+  --enforce-tp-progression \
+  --skip-download
+
+# Batch 2: Displacement variants
+python scripts/run_full_pipeline.py \
+  --assets OP --fixed-displacement 78 \
+  --workers 6 --trials-atr 100 --trials-ichi 100 \
+  --enforce-tp-progression --skip-download
+
+python scripts/run_full_pipeline.py \
+  --assets DOGE --fixed-displacement 26 \
+  --workers 6 --trials-atr 100 --trials-ichi 100 \
+  --enforce-tp-progression --skip-download
+
+# Batch 3: Nouveaux displacement winners (non encore validés)
+python scripts/run_full_pipeline.py \
+  --assets MINA RUNE TON --fixed-displacement 78 \
+  --workers 6 --trials-atr 100 --trials-ichi 100 \
+  --enforce-tp-progression --skip-download
+
+python scripts/run_full_pipeline.py \
+  --assets OSMO --fixed-displacement 65 \
+  --workers 6 --trials-atr 100 --trials-ichi 100 \
+  --enforce-tp-progression --skip-download
+```
+
+### Validation Post-Rerun
+
+```python
+import pandas as pd
+from glob import glob
+
+scan = pd.read_csv(sorted(glob("outputs/multiasset_scan_*.csv"))[-1])
+for _, row in scan.iterrows():
+    tp1, tp2, tp3 = row['tp1_mult'], row['tp2_mult'], row['tp3_mult']
+    ok = (tp1 < tp2 < tp3) and (tp2 - tp1 >= 0.5) and (tp3 - tp2 >= 0.5)
+    print(f"{row['asset']}: TP {tp1:.2f}<{tp2:.2f}<{tp3:.2f} | {'✅' if ok else '❌'}")
 ```
 
 ---
 
-## Backtesting dossier
-Full backtesting details moved to `docs/BACKTESTING.md` to keep this handoff short.
+## Dernières mises à jour (2026-01-22)
+
+- **🔴 CRITIQUE - TP Progression Bug**: 519 erreurs détectées, tous les résultats pré-fix sont invalides. Seul BTC baseline reste en production.
+- **Workflow multi-asset**: Nouveau document `docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md` décrivant le processus scalable en 3 phases.
+- **TP progression enforcement**: Maintenant ON par défaut. Utiliser `--no-enforce-tp-progression` pour désactiver (non recommandé).
+- **Guards timestampés**: `scripts/run_guards_multiasset.py` suffixe chaque fichier avec `run_id`.
+- **Fixed displacement mode**: `--fixed-displacement` disponible pour optimiser avec displacement figé.
+
+### Historique (2026-01-21)
+- Top 50 scan (2 batches): DOT, SHIB, NEAR, SUI, APT PASS (mais pré-fix TP)
+- OP displacement=78: OOS Sharpe 2.48, WFE 1.66 (guards PASS mais pré-fix)
+- DOGE displacement=26: OOS Sharpe 3.12, WFE 1.18 (pré-fix)
+- Guard errors "complex numbers": YGG, ARKM, STRK, METIS, AEVO (debug requis)
+
+---
+
+## Fichiers Critiques
+
+| Fichier | Description |
+|---------|-------------|
+| `app.py` | Dashboard Streamlit (Dark Trading Theme) |
+| `README.md` | Guide d'utilisation + interprétation outputs |
+| `crypto_backtest/config/asset_config.py` | Config production (params optimaux par asset) |
+| `crypto_backtest/config/scan_assets.py` | Top 50 cryptos (tiers) + critères |
+| `docs/HANDOFF.md` | Ce document - résumé + liens |
+| `docs/BACKTESTING.md` | Dossier backtesting (résultats, analyses, next steps) |
+| `docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md` | Workflow scalable multi-asset |
+| `outputs/tp_progression_errors_*.csv` | ⚠️ Audit des erreurs TP (519 détectées) |
+| `scripts/run_guards_multiasset.py` | Guards multi-asset (outputs timestampés) |
+
+---
+
+## Seuils de Validation (Rappel)
+
+| Guard | Seuil | Critique |
+|-------|-------|----------|
+| WFE | > 0.6 | OUI |
+| MC p-value | < 0.05 | OUI |
+| Sensitivity var | < 10% | OUI |
+| Bootstrap CI lower | > 1.0 | OUI |
+| Top10 trades | < 40% | OUI |
+| Stress1 Sharpe | > 1.0 | OUI |
+| Regime mismatch | < 1% | OUI |
+| Min trades OOS | > 60 | OUI |
+| Min bars IS | > 8000 | OUI |
+
+**Targets**: Sharpe > 1.0 (target > 2.0) | PF > 1.3 | MaxDD < 15%
+
+---
+
+## Prochaines Étapes
+
+1. 🔴 **P0 - Reruns TP Progression**: Revalider ETH, AVAX, UNI, SEI, OP, DOGE avec enforcement ON
+2. 🔴 **P1 - Guards post-rerun**: Lancer 7 guards sur tous les assets PASS
+3. 🟡 **P2 - Displacement grid**: Finaliser MINA, OSMO, RUNE, TON
+4. 🟡 **P3 - Debug guard errors**: Investiguer YGG, ARKM, STRK, METIS, AEVO
+5. ⬜ **P4 - Portfolio construction**: Après validation, construire portfolio final
+6. ⬜ **P5 - Pine generation**: Générer scripts TradingView pour assets validés
+7. ⬜ **P6 - Live trading**: Implémenter connecteur exchange
+
+---
+
+## Données (Local Only)
+
+Les fichiers `data/Binance_*_1h.csv` sont ignorés par git. Pour régénérer:
+```bash
+python fetch_binance_data.py
+```
+
+---
+
+## Backtesting Dossier
+
+Détails complets dans `docs/BACKTESTING.md`.
