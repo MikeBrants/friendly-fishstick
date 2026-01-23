@@ -25,7 +25,7 @@ Ce fichier contient les taches assignees par Casey aux autres agents.
 
 ## Historique
 
-## [20:30] [TASK] @Casey -> @Jordan
+## [20:58] [TASK] @Casey -> @Jordan
 
 **Context:** IMX Phase 4 Filter Grid FAIL (scan FAIL, overfitting sévère WFE -2.80). Phase 3A Rescue requis - tester displacement d26 et d78 (patterns JOE et OSMO/MINA).
 
@@ -829,7 +829,8 @@ python scripts/run_full_pipeline.py \
 - ❌ Phase 1 Screening Batch 1: BNB, XRP, ADA, TRX, LTC, XLM tous EXCLU (tous FAIL)
 
 **En cours:**
-- 🔄 IMX Rescue: **TASK [17:10]** — Phase 4 Filter Grid (medium_distance_volume) + Phase 3A Displacement Grid (d26, d78)
+- 🔄 IMX Rescue Phase 3A: **TASK [20:58]** — Displacement Grid (d26, d78) - tester après Phase 4 FAIL
+- ✅ IMX Rescue Phase 4: **COMPLÉTÉ [20:19]** — Scan FAIL (overfitting sévère, WFE -2.80)
 - 🔄 Phase 1 Screening Batch 3: **TASK [17:00]** — 20 nouveaux assets (GALA, SAND, MANA, ENJ, FLOKI, PEPE, WIF, RONIN, PIXEL, ILV, FIL, THETA, CHZ, CRV, SUSHI, ONE, KAVA, ZIL, CFX, ROSE)
 - ✅ Phase 2 Validation IMX: **COMPLÉTÉ [17:01]** — 4/7 guards PASS (3 FAIL: guard002, guard003, guard006)
 - ✅ Phase 1 Screening Batch 2: **COMPLÉTÉ [16:28]** — IMX PASS (1/5), 4 FAIL
