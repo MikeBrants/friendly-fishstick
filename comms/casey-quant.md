@@ -25,6 +25,66 @@ Ce fichier contient les taches assignees par Casey aux autres agents.
 
 ## Historique
 
+## [16:00] [TASK] @Casey -> @Jordan
+
+**Context:** Phase 1 Screening Batch 2 - RELANCE URGENTE. Échecs précédents (0 min) indiquent problème de données ou commande. Instructions détaillées étape par étape.
+
+**Task:** Phase 1 Screening Batch 2 - RELANCE URGENTE
+**Assets:** GMX, PENDLE, STX, IMX, FET (5 assets)
+**Objectif:** Identifier les candidats viables pour Phase 2 (validation complète avec guards)
+
+**CHECKLIST OBLIGATOIRE (dans l'ordre):**
+
+1. **Vérifier données disponibles (PowerShell):**
+   ```powershell
+   # Vérifier chaque asset
+   Test-Path "data\Binance_GMX*_1h.parquet"
+   Test-Path "data\Binance_PENDLE*_1h.parquet"
+   Test-Path "data\Binance_STX*_1h.parquet"
+   Test-Path "data\Binance_IMX*_1h.parquet"
+   Test-Path "data\Binance_FET*_1h.parquet"
+   ```
+
+2. **Si AUCUN fichier trouvé, télécharger D'ABORD:**
+   ```bash
+   python scripts/download_data.py --assets GMX PENDLE STX IMX FET
+   ```
+   **Attendre la fin du téléchargement avant de continuer.**
+
+3. **Vérifier que le script existe:**
+   ```bash
+   Test-Path "scripts\run_full_pipeline.py"
+   ```
+
+4. **Exécuter Phase 1 Screening (TOUS les assets ensemble):**
+   ```bash
+   python scripts/run_full_pipeline.py --assets GMX,PENDLE,STX,IMX,FET --trials-atr 200 --trials-ichi 200 --enforce-tp-progression --skip-guards --workers 10
+   ```
+
+5. **Documenter IMMÉDIATEMENT dans `comms/jordan-dev.md`:**
+   - `[RUN_START]` avec timestamp exact
+   - Attendre la fin du run
+   - `[RUN_COMPLETE]` avec:
+     - Statut par asset (SUCCESS/FAIL)
+     - OOS Sharpe, WFE, Trades pour chaque asset
+     - Référence au fichier CSV (`outputs/multiasset_scan_*.csv`)
+
+**Criteres succes Phase 1 (souples):**
+- WFE > 0.5
+- Sharpe OOS > 0.8
+- Trades OOS > 50
+
+**Si erreur:**
+- Copier le message d'erreur complet
+- Vérifier que Python est dans le PATH
+- Vérifier que les dépendances sont installées (`pip install -r requirements.txt`)
+
+**Next:** 
+- Les assets PASS Phase 1 → Phase 2 validation (300 trials + 7 guards complets)
+- Les assets FAIL Phase 1 → Exclus (non viables)
+
+---
+
 ## [15:50] [TASK] @Casey -> @Jordan
 
 **Context:** Phase 1 Screening Batch 2 - Relance après échecs immédiats (0 min). Vérifier données et exécuter correctement.
