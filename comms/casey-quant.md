@@ -129,13 +129,19 @@ Ce fichier contient les taches assignees par Casey aux autres agents.
 
 <!-- Les messages les plus recents en haut -->
 
-## [15:10] [TASK] @Casey -> @Jordan
+## [15:40] [TASK] @Casey -> @Jordan
 
-**Context:** Expansion portfolio - Phase 1 Screening sur 5 nouveaux assets (GMX, PENDLE, STX, IMX, FET) pour identifier candidats viables avant Phase 2 validation complète.
+**Context:** Expansion portfolio - Phase 1 Screening Batch 2 sur 5 nouveaux assets (GMX, PENDLE, STX, IMX, FET) pour identifier candidats viables avant Phase 2 validation complète.
 
-**Task:** Phase 1 Screening - Identifier assets viables
-**Assets:** GMX, PENDLE, STX, IMX, FET
+**Task:** Phase 1 Screening Batch 2 - Identifier assets viables
+**Assets:** GMX, PENDLE, STX, IMX, FET (5 assets)
 **Objectif:** Identifier les candidats viables pour Phase 2 (validation complète avec guards)
+
+**IMPORTANT - Instructions:**
+1. **Télécharger les données d'abord** si nécessaire (vérifier `data/Binance_*_1h.parquet`)
+2. **Exécuter la commande complète** avec tous les assets en une seule fois
+3. **Documenter les résultats** dans `comms/jordan-dev.md` avec statut RUN_START puis RUN_COMPLETE
+4. **Inclure les métriques** (OOS Sharpe, WFE, Trades) dans le log
 
 **Command:**
 ```bash
@@ -148,14 +154,24 @@ python scripts/run_full_pipeline.py \
   --workers 10
 ```
 
+**Note:** Si certains assets n'ont pas de données, télécharger d'abord:
+```bash
+python scripts/download_data.py --assets GMX PENDLE STX IMX FET
+```
+
 **Criteres succes Phase 1 (souples):**
 - WFE > 0.5
 - Sharpe OOS > 0.8
 - Trades OOS > 50
 
+**Outputs attendus:**
+- `outputs/multiasset_scan_YYYYMMDD_HHMMSS.csv` (résultats scan)
+- Documenter dans `comms/jordan-dev.md` avec format standard
+
 **Next:** 
 - Les assets PASS Phase 1 → Phase 2 validation (300 trials + 7 guards complets)
 - Les assets FAIL Phase 1 → Exclus (non viables)
+- Documenter tous les résultats (PASS et FAIL) dans `jordan-dev.md`
 
 ---
 
