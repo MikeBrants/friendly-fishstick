@@ -390,26 +390,30 @@ python scripts/run_full_pipeline.py \
 
 ---
 
-## [15:10] [SUPERVISION] @Casey
+## [15:35] [SUPERVISION] @Casey
 
 **Cycle P0 - Etat actuel:**
 
 **Completes:**
 - ✅ AVAX: PRODUCTION (7/7 guards PASS, WFE 0.94)
+- ✅ JOE: KEEP baseline d26 (Sharpe 5.03, WFE 1.44) — Phase 3B arrêtée, d78 dégrade
 - ❌ HBAR: EXCLU (d26, d52, d78 tous FAIL — variants épuisés)
 - ❌ UNI moderate: EXCLU (Sharpe 0.03, WFE 0.01)
 - ❌ Phase 1 Screening Batch 1: BNB, XRP, ADA, TRX, LTC, XLM tous EXCLU (tous FAIL)
 
 **En cours:**
 - 🔄 Phase 1 Screening Batch 2: GMX, PENDLE, STX, IMX, FET (5 assets, 200 trials, skip-guards)
+- 🔄 HBAR medium_distance_volume: Run complété [15:29] @Jordan, validation en cours [15:29] @Sam
 
 **Portfolio actuel:**
 - **15 assets PROD** (75% objectif atteint)
 - **30+ assets exclus** (HBAR + 6 assets Phase 1 Batch 1 ajoutés)
+- **Phase 3B:** Arrêtée (dégradation systématique) — garder baselines originaux
 
 **Prochaines actions:**
+- Attendre validation HBAR medium_distance_volume par @Sam
 - Attendre résultats Phase 1 Screening Batch 2 (GMX, PENDLE, STX, IMX, FET)
-- Les PASS → Phase 2 validation (300 trials + 7 guards complets)
+- Les PASS Phase 1 → Phase 2 validation (300 trials + 7 guards complets)
 - Objectif: 20+ assets PROD (5 restants)
 
 ---
