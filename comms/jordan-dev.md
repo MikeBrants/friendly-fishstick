@@ -35,6 +35,32 @@ Ce fichier contient les logs des runs executes par Jordan.
 
 <!-- Les messages les plus recents en haut -->
 
+## [14:XX] [RUN_START] @Jordan -> @Sam
+
+**Task ref:** HBAR Phase 3A Rescue - Displacement 78
+**Asset:** HBAR
+**Mode:** baseline
+**Displacement:** 78 (fixed)
+**Command:**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets HBAR \
+  --fixed-displacement 78 \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --workers 4
+```
+**Status:** 🟢 Running (background, PID: 58876)
+**Raison:** Phase 3A Rescue - HBAR d26 FAIL (OOS Sharpe 0.30, WFE 0.11). Test displacement 78 (pattern similaire à MINA).
+**Trials:** 300 ATR + 300 Ichimoku (trials élevés pour meilleure convergence)
+**Workers:** 4
+**Durée estimée:** ~20-30 min (optimize + guards)
+**Next:** @Sam surveille les résultats et valide les guards
+
+---
+
 ## [12:15] [SUCCESS] @Jordan -> @Casey
 
 **Task ref:** Fix V6 FINAL - Résultats complets
