@@ -1,6 +1,6 @@
 # Pipeline Multi-Asset — 6 Phases (Screen → Validate → Prod)
 
-**Derniere mise a jour:** 2026-01-23
+**Derniere mise a jour:** 2026-01-23 (correction: --skip-guards n'existe pas, comportement par défaut)
 
 Ce document decrit le workflow **scalable** pour executer le pipeline FINAL TRIGGER v2 sur des dizaines d'assets, en minimisant le compute gaspille et en maximisant la robustesse des assets qui passent en production.
 
@@ -25,7 +25,7 @@ Ce document decrit le workflow **scalable** pour executer le pipeline FINAL TRIG
 ```
 Phase 0: Download
     |
-Phase 1: Screening (200 trials, --skip-guards)
+Phase 1: Screening (200 trials, guards OFF par défaut)
     |
     +---> FAIL --> Stop ou Phase 3A (si asset important)
     |
@@ -73,7 +73,7 @@ python scripts/download_data.py --assets [ASSET_LIST]
 | Parametre | Valeur |
 |-----------|--------|
 | Trials | 200 |
-| Guards | OFF (`--skip-guards`) |
+| Guards | OFF (par défaut, ne pas utiliser `--run-guards`) |
 | TP progression | ON (`--enforce-tp-progression`) |
 
 ### Criteres PASS (souples)
@@ -88,10 +88,10 @@ python scripts/download_data.py --assets [ASSET_LIST]
 
 ```bash
 python scripts/run_full_pipeline.py \
-  --assets BNB,ADA,DOGE,TRX,DOT \
-  --trials 200 \
+  --assets BNB ADA DOGE TRX DOT \
+  --trials-atr 200 \
+  --trials-ichi 200 \
   --enforce-tp-progression \
-  --skip-guards \
   --workers 4 \
   --output-prefix screen_batch1
 ```
@@ -132,8 +132,9 @@ python scripts/run_full_pipeline.py \
 
 ```bash
 python scripts/run_full_pipeline.py \
-  --assets AVAX,SEI,NEAR,DOT \
-  --trials 300 \
+  --assets AVAX SEI NEAR DOT \
+  --trials-atr 300 \
+  --trials-ichi 300 \
   --enforce-tp-progression \
   --run-guards \
   --workers 4 \
@@ -171,7 +172,8 @@ Teste d26, d52, d78 sur chaque PENDING. Si un displacement passe 7/7 → passe e
 python scripts/run_full_pipeline.py \
   --assets [PENDING_ASSET] \
   --fixed-displacement 26 \
-  --trials 300 \
+  --trials-atr 300 \
+  --trials-ichi 300 \
   --enforce-tp-progression \
   --run-guards \
   --workers 4
@@ -254,7 +256,8 @@ Teste 12 combinaisons de filtres (baseline, medium_distance_volume, moderate, co
 python scripts/run_full_pipeline.py \
   --assets [PENDING_ASSET] \
   --optimization-mode medium_distance_volume \
-  --trials 300 \
+  --trials-atr 300 \
+  --trials-ichi 300 \
   --enforce-tp-progression \
   --run-guards \
   --workers 4

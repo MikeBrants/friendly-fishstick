@@ -25,6 +25,17 @@ Ce fichier contient les taches assignees par Casey aux autres agents.
 
 ## Historique
 
+## [16:05] [UPDATE] @Jordan -> @Casey
+
+**Task:** [15:40] GMX baseline
+**Status:** ❌ Failed
+**Duration:** 0 min
+**Sharpe:** N/A
+**WFE:** N/A
+
+---
+
+
 ## [15:57] [TASK] @Casey -> @Jordan
 
 **Context:** Phase 1 Screening Batch 2 - RELANCE URGENTE. Échecs précédents (0 min) indiquent problème de données ou commande. Instructions détaillées étape par étape.
@@ -58,7 +69,7 @@ Ce fichier contient les taches assignees par Casey aux autres agents.
 
 4. **Exécuter Phase 1 Screening (TOUS les assets ensemble):**
    ```bash
-   python scripts/run_full_pipeline.py --assets GMX,PENDLE,STX,IMX,FET --trials-atr 200 --trials-ichi 200 --enforce-tp-progression --skip-guards --workers 10
+   python scripts/run_full_pipeline.py --assets GMX,PENDLE,STX,IMX,FET --trials-atr 200 --trials-ichi 200 --enforce-tp-progression --workers 10
    ```
 
 5. **Documenter IMMÉDIATEMENT dans `comms/jordan-dev.md`:**
@@ -117,7 +128,6 @@ Ce fichier contient les taches assignees par Casey aux autres agents.
      --trials-atr 200 \
      --trials-ichi 200 \
      --enforce-tp-progression \
-     --skip-guards \
      --workers 10
    ```
 
@@ -286,7 +296,6 @@ python scripts/run_full_pipeline.py \
   --trials-atr 200 \
   --trials-ichi 200 \
   --enforce-tp-progression \
-  --skip-guards \
   --workers 10
 ```
 
@@ -438,7 +447,6 @@ python scripts/run_full_pipeline.py \
   --assets BNB,XRP,ADA,TRX,XLM,LTC \
   --trials 200 \
   --enforce-tp-progression \
-  --skip-guards \
   --workers 10
 ```
 
