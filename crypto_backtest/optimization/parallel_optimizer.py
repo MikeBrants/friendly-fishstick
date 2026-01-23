@@ -385,7 +385,8 @@ def optimize_atr(
         return result["sharpe"]
 
     sampler = optuna.samplers.TPESampler(seed=42)
-    study = optuna.create_study(direction="maximize", sampler=sampler)
+    storage = optuna.storages.InMemoryStorage()
+    study = optuna.create_study(direction="maximize", sampler=sampler, storage=storage)
     study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
 
     return study.best_params, float(study.best_value)
@@ -427,7 +428,8 @@ def optimize_atr_conservative(
         return result["sharpe"]
 
     sampler = optuna.samplers.TPESampler(seed=42)
-    study = optuna.create_study(direction="maximize", sampler=sampler)
+    storage = optuna.storages.InMemoryStorage()
+    study = optuna.create_study(direction="maximize", sampler=sampler, storage=storage)
     study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
 
     return study.best_params, float(study.best_value)
@@ -470,7 +472,8 @@ def optimize_ichimoku(
         return result["sharpe"]
 
     sampler = optuna.samplers.TPESampler(seed=42)
-    study = optuna.create_study(direction="maximize", sampler=sampler)
+    storage = optuna.storages.InMemoryStorage()
+    study = optuna.create_study(direction="maximize", sampler=sampler, storage=storage)
     study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
 
     return study.best_params, float(study.best_value)
@@ -516,7 +519,8 @@ def optimize_ichimoku_conservative(
         return result["sharpe"]
 
     sampler = optuna.samplers.TPESampler(seed=42)
-    study = optuna.create_study(direction="maximize", sampler=sampler)
+    storage = optuna.storages.InMemoryStorage()
+    study = optuna.create_study(direction="maximize", sampler=sampler, storage=storage)
     study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
 
     return study.best_params, float(study.best_value)
@@ -573,6 +577,9 @@ def optimize_single_asset(
     filter_config: dict[str, bool] | None = None,
 ) -> AssetScanResult:
     """Full optimization pipeline for one asset."""
+    # Fix numpy random state for reproducibility across parallel workers
+    np.random.seed(SEED)
+
     default_atr = OPTIM_CONFIG["n_trials_atr"]
     default_ichi = OPTIM_CONFIG["n_trials_ichi"]
     n_trials_atr = n_trials_atr or default_atr
