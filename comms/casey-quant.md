@@ -25,7 +25,7 @@ Ce fichier contient les taches assignees par Casey aux autres agents.
 
 ## Historique
 
-## [16:00] [TASK] @Casey -> @Jordan
+## [15:57] [TASK] @Casey -> @Jordan
 
 **Context:** Phase 1 Screening Batch 2 - RELANCE URGENTE. Échecs précédents (0 min) indiquent problème de données ou commande. Instructions détaillées étape par étape.
 
