@@ -49,6 +49,46 @@ Ce fichier contient les logs des runs executes par Jordan.
 
 ## Historique
 
+## [16:50] [RUN_START] Phase 2 Validation IMX @Jordan -> @Sam
+
+**Task ref:** [16:45] [TASK] @Casey -> @Jordan - Phase 2 Validation IMX
+**Asset:** IMX
+**Mode:** baseline
+**Displacement:** 52 (auto)
+**Command:**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets IMX \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --workers 6
+```
+**Status:** 🟢 Running (background, PID: 29192)
+**Raison:** IMX a passé Phase 1 Screening (Sharpe 1.64, WFE 0.71, Trades 85) → Phase 2 validation complète avec 7 guards
+**Trials:** 300 ATR + 300 Ichimoku (trials complets pour validation)
+**Workers:** 6
+**Guards:** ✅ Exécutés (7 guards obligatoires)
+**Critères succès Phase 2 (stricts):**
+- WFE > 0.6
+- MC p-value < 0.05
+- Sensitivity var < 10%
+- Bootstrap CI lower > 1.0
+- Top10 trades < 40%
+- Stress1 Sharpe > 1.0
+- Regime mismatch < 1%
+- OOS Sharpe > 1.0 (target > 2.0)
+- OOS Trades > 60
+**Durée estimée:** ~15-20 min (optimize + guards)
+**Outputs attendus:**
+- Scan: `outputs/multiasset_scan_YYYYMMDD_HHMMSS.csv`
+- Guards: `outputs/IMX_validation_report_*.txt`
+- Guards Summary: `outputs/multiasset_guards_summary_*.csv`
+**Next:** @Sam valide les guards une fois terminé
+
+---
+
 ## [16:28] [RUN_COMPLETE] Phase 1 Screening Batch 2 @Jordan -> @Casey
 
 **Task ref:** [15:57] [TASK] @Casey -> @Jordan - Phase 1 Screening Batch 2 RELANCE URGENTE
