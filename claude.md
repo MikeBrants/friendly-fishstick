@@ -1,6 +1,6 @@
 # Plan: Système de Backtest Pro pour "FINAL TRIGGER v2"
 
-**Derniere MAJ**: 22 janvier 2026
+**Derniere MAJ**: 23 janvier 2026
 
 ## Objectif
 Convertir l'indicateur TradingView "FINAL TRIGGER v2 - State/Transition + A/D Line + Ichi Light" en Python et créer un système de backtest professionnel avec walk-forward analysis et optimisation bayésienne.
@@ -663,7 +663,7 @@ python crypto_backtest/examples/run_backtest.py
 ## Prochaines Étapes Prioritaires
 
 1. ✅ ~~**Dashboard Streamlit**~~: Interface visuelle complète (DONE)
-2. 🔴 **Displacement Grid Optimization**: Grid search [26, 39, 52, 65, 78] sur 5 assets (PRIORITAIRE)
+2. ✅ ~~**Displacement Grid Optimization**~~: Intégré dans le workflow 6 phases (Phase 3A/3B)
 3. **Live Trading Connector**: Implémenter connecteur exchange pour trading live
 4. **Documentation README**: Workflow complet et guide utilisateur
 5. **Tests E2E supplémentaires**: Validation signaux sur datasets étendus
@@ -675,7 +675,9 @@ python crypto_backtest/examples/run_backtest.py
 | Fichier | Description |
 |---------|-------------|
 | [app.py](app.py) | Dashboard Streamlit principal (~2300 lignes) |
-| [docs/HANDOFF.md](docs/HANDOFF.md) | Documentation complète du projet (contexte, résultats, next steps) |
+| [status/project-state.md](status/project-state.md) | **SOURCE DE VERITE** — état actuel du projet |
+| [docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md](docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md) | Workflow 6 phases (référence principale) |
+| [docs/HANDOFF.md](docs/HANDOFF.md) | **OBSOLETE** — ne plus utiliser |
 | [crypto_backtest/config/asset_config.py](crypto_backtest/config/asset_config.py) | Config production (params optimaux par asset) |
 | [crypto_backtest/config/scan_assets.py](crypto_backtest/config/scan_assets.py) | Top 50 cryptos (tiers) + critères de validation |
 | [crypto_backtest/strategies/final_trigger.py](crypto_backtest/strategies/final_trigger.py) | Main strategy (Puzzle + Grace logic) |

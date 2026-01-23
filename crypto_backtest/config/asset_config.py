@@ -1,6 +1,6 @@
-"""Production asset configuration for the validated 5-asset portfolio.
+"""Production asset configuration for the validated 12-asset portfolio.
 
-Updated: 2026-01-22
+Updated: 2026-01-23
 All TP values are progressive: TP1 < TP2 < TP3 with min gap 0.5
 """
 
@@ -68,6 +68,97 @@ ASSET_CONFIG = {
         "ichimoku": {"tenkan": 5, "kijun": 29},
         "five_in_one": {"tenkan_5": 14, "kijun_5": 29},
         "displacement": 78,
+        "filter_mode": "baseline",
+    },
+    "AVAX": {
+        "pair": "AVAX/USDT",
+        "atr": {
+            "sl_mult": 2.75,
+            "tp1_mult": 1.5,
+            "tp2_mult": 7.5,
+            "tp3_mult": 9.5,
+        },
+        "ichimoku": {"tenkan": 7, "kijun": 32},
+        "five_in_one": {"tenkan_5": 15, "kijun_5": 27},
+        "displacement": 52,
+        "filter_mode": "medium_distance_volume",  # Winner from filter grid
+    },
+    "AR": {
+        "pair": "AR/USDT",
+        "atr": {
+            "sl_mult": 1.5,
+            "tp1_mult": 4.0,
+            "tp2_mult": 5.5,
+            "tp3_mult": 8.0,
+        },
+        "ichimoku": {"tenkan": 8, "kijun": 31},
+        "five_in_one": {"tenkan_5": 9, "kijun_5": 22},
+        "displacement": 52,
+        "filter_mode": "baseline",
+    },
+    "ANKR": {
+        "pair": "ANKR/USDT",
+        "atr": {
+            "sl_mult": 5.0,
+            "tp1_mult": 2.0,
+            "tp2_mult": 8.0,
+            "tp3_mult": 9.5,
+        },
+        "ichimoku": {"tenkan": 20, "kijun": 25},
+        "five_in_one": {"tenkan_5": 16, "kijun_5": 25},
+        "displacement": 52,
+        "filter_mode": "baseline",
+    },
+    "DOGE": {
+        "pair": "DOGE/USDT",
+        "atr": {
+            "sl_mult": 3.25,
+            "tp1_mult": 1.5,
+            "tp2_mult": 6.0,
+            "tp3_mult": 9.0,
+        },
+        "ichimoku": {"tenkan": 15, "kijun": 39},
+        "five_in_one": {"tenkan_5": 15, "kijun_5": 17},
+        "displacement": 26,
+        "filter_mode": "baseline",
+    },
+    "OP": {
+        "pair": "OP/USDT",
+        "atr": {
+            "sl_mult": 4.5,
+            "tp1_mult": 2.25,
+            "tp2_mult": 3.0,
+            "tp3_mult": 8.5,
+        },
+        "ichimoku": {"tenkan": 12, "kijun": 36},
+        "five_in_one": {"tenkan_5": 9, "kijun_5": 23},
+        "displacement": 78,
+        "filter_mode": "baseline",
+    },
+    "DOT": {
+        "pair": "DOT/USDT",
+        "atr": {
+            "sl_mult": 2.5,
+            "tp1_mult": 5.0,
+            "tp2_mult": 5.5,
+            "tp3_mult": 10.0,
+        },
+        "ichimoku": {"tenkan": 12, "kijun": 21},
+        "five_in_one": {"tenkan_5": 8, "kijun_5": 27},
+        "displacement": 52,
+        "filter_mode": "baseline",
+    },
+    "NEAR": {
+        "pair": "NEAR/USDT",
+        "atr": {
+            "sl_mult": 5.0,
+            "tp1_mult": 3.25,
+            "tp2_mult": 9.0,
+            "tp3_mult": 9.5,
+        },
+        "ichimoku": {"tenkan": 8, "kijun": 32},
+        "five_in_one": {"tenkan_5": 9, "kijun_5": 28},
+        "displacement": 52,
         "filter_mode": "baseline",
     },
 }
