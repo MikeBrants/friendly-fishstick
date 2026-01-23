@@ -311,9 +311,10 @@ python scripts/download_data.py --assets [ASSET_LIST]
 
 | Fichier | Description |
 |---------|-------------|
-| docs/HANDOFF.md | Resume executif et next steps |
-| docs/BACKTESTING.md | Resultats detailles |
-| docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md | Workflow 3 phases |
+| docs/HANDOFF.md | **OBSOLETE** — ne plus utiliser |
+| docs/BACKTESTING.md | Historique seulement, pas source de verite |
+| docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md | Workflow 6 phases (reference principale) |
+| status/project-state.md | **SOURCE DE VERITE** — etat actuel du projet |
 | outputs/multiasset_scan_*.csv | Resultats scans |
 | outputs/multiasset_guards_summary_*.csv | Resultats guards |
 | .cursor/rules/global-quant.mdc | Regles quant detaillees |

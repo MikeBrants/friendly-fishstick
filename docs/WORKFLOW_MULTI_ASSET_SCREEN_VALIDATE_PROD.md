@@ -1,80 +1,90 @@
-# Brief — Workflow multi-assets (Screen → Revalidate → Prod)
+# Pipeline Multi-Asset — 6 Phases (Screen → Validate → Prod)
 
-Ce document décrit une stratégie **scalable** pour exécuter le pipeline FINAL TRIGGER v2 sur **des dizaines d'assets**, en minimisant le compute gaspillé et en maximisant la robustesse des assets qui passent en production.
+**Derniere mise a jour:** 2026-01-23
 
----
-
-## Architecture en 3 phases
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                     PHASE 0 — DOWNLOAD (1x)                     │
-│            Télécharger toutes les données 1H (batch)            │
-└─────────────────────────────────────────────────────────────────┘
-                                │
-┌─────────────────────────────────────────────────────────────────┐
-│                 PHASE 1 — SCREENING PARALLÈLE                   │
-│      Batches 5–8 assets × 200 trials × --skip-guards (rapide)   │
-└─────────────────────────────────────────────────────────────────┘
-                                │
-                ┌───────────────┴───────────────┐
-              PASS                            FAIL
-                │                               │
-┌───────────────▼───────────────┐               │
-│       PHASE 2 — VALIDATION    │               ▼
-│  Winners × 300 trials × full  │     Grid / Diagnostic / Stop
-│            guards             │
-└───────────────────────────────┘
-                │
-        ┌───────▼────────┐
-        │  PROD READY ?  │
-        └───────┬────────┘
-                │
-         Pine + Alerts
-```
+Ce document decrit le workflow **scalable** pour executer le pipeline FINAL TRIGGER v2 sur des dizaines d'assets, en minimisant le compute gaspille et en maximisant la robustesse des assets qui passent en production.
 
 ---
 
-## Phase 0 — Download centralisé (1 fois)
+## Pipeline Actuel (6 Phases)
 
-**Objectif** : ne **pas** re-télécharger les données à chaque run.
+| Phase | Nom | Input | Output |
+|-------|-----|-------|--------|
+| 0 | Download | - | `data/*.parquet` |
+| 1 | Screening | 97 assets | `outputs/multiasset_scan_*.csv` |
+| 2 | Validation | Screening winners | WINNERS + PENDING |
+| 3A | Rescue (PENDING) | PENDING | `displacement_rescue_*.csv` |
+| 3B | Optimization (WINNERS) | WINNERS | `displacement_optimization_*.csv` |
+| 4 | Filter Grid | PENDING restants | `ANALYSIS_FILTER_GRID_*.md` |
+| 5 | Production | Tous valides | `asset_config.py` |
 
-- Télécharger tous les assets (ou un tier complet) en batch.
-- Vérifier que chaque asset a assez d'historique (barres) et de trades potentiels.
+---
 
-Exemple (à adapter selon scripts disponibles) :
+## Diagramme de Flux
+
+```
+Phase 0: Download
+    |
+Phase 1: Screening (200 trials, --skip-guards)
+    |
+    +---> FAIL --> Stop ou Phase 3A (si asset important)
+    |
+Phase 2: Validation (300 trials, --run-guards)
+    |
+    +---> WINNERS (7/7) --> Phase 3B --> Phase 5
+    |
+    +---> PENDING (<7/7) --> Phase 3A
+                               |
+                               +---> PASS --> Phase 5
+                               |
+                               +---> FAIL --> Phase 4
+                                              |
+                                              +---> PASS --> Phase 5
+                                              |
+                                              +---> FAIL --> EXCLU
+```
+
+---
+
+## Phase 0 : Download
+
+**Objectif** : Telecharger OHLCV 1H pour tous les assets depuis Binance.
+
+- Stocke en Parquet dans `data/`
+- Evite les re-telechargements si fichier existe
+- Verifie que chaque asset a assez d'historique (min 8000 barres)
+
+**Commande :**
 
 ```bash
-python scripts/batch_download.py \
-  --assets-file crypto_backtest/config/scan_assets.py \
-  --tier ALL \
-  --interval 1h \
-  --workers 4
+python scripts/download_data.py --assets [ASSET_LIST]
 ```
 
-**Outputs attendus** : `data/Binance_*_1h.csv`
+**Outputs :** `data/Binance_*_1h.parquet`
 
 ---
 
-## Phase 1 — Screening rapide (200 trials)
+## Phase 1 : Screening (rapide)
 
-**Objectif** : éliminer vite les assets faibles (sur des critères "souples"), sans payer le coût des guards.
+**Objectif** : Eliminer rapidement les assets non-viables sans payer le cout des guards.
 
-### Paramètres Phase 1
+### Parametres
 
-| Paramètre | Valeur |
+| Parametre | Valeur |
 |-----------|--------|
 | Trials | 200 |
 | Guards | OFF (`--skip-guards`) |
-| TP progression | ON (`--enforce-tp-progression`) — critique pour éviter des plans multi-TP incohérents. |
+| TP progression | ON (`--enforce-tp-progression`) |
 
-### Organisation des batches (pratique)
+### Criteres PASS (souples)
 
-- **Batch size** : 5 à 8 assets (selon CPU/RAM)
-- **Priorisation** : TIER1 → TIER2 → TIER3 → TIER4 → BONUS.
-- **Référence tiers** : `crypto_backtest/config/scan_assets.py` (TIER1..4, BONUS, VALIDATED, EXCLUDED).
+| Metrique | Seuil |
+|----------|-------|
+| WFE | > 0.5 |
+| Sharpe OOS | > 0.8 |
+| Trades OOS | > 50 |
 
-### Commande type
+### Commande
 
 ```bash
 python scripts/run_full_pipeline.py \
@@ -83,34 +93,42 @@ python scripts/run_full_pipeline.py \
   --enforce-tp-progression \
   --skip-guards \
   --workers 4 \
-  --output-prefix screen_tier1
+  --output-prefix screen_batch1
 ```
 
-### Critères PASS (souples) Phase 1
-
-| Métrique | Seuil |
-|----------|-------|
-| WFE | > 0.5 |
-| Sharpe OOS | > 0.8 |
-| Trades OOS | > 50 |
-
-L'objectif est de sortir une **shortlist "winners"** rapidement.
+**Output :** `outputs/multiasset_scan_*.csv`
 
 ---
 
-## Phase 2 — Validation des winners (300 trials + guards)
+## Phase 2 : Validation (robuste)
 
-**Objectif** : produire des params production-grade, robustes et justifiés par les 7 guards.
+**Objectif** : Produire des params production-grade avec validation complete des 7 guards.
 
-### Paramètres Phase 2
+### Parametres
 
-| Paramètre | Valeur |
+| Parametre | Valeur |
 |-----------|--------|
-| Trials | 300 (reopt des winners) |
+| Trials | 300 |
 | Guards | ON (`--run-guards`) |
 | TP progression | ON (toujours) |
 
-### Commande type
+### Criteres PASS (stricts) — 7 Guards Obligatoires
+
+| Guard | Seuil | Critique |
+|-------|-------|----------|
+| WFE | > 0.6 | OUI |
+| MC p-value | < 0.05 | OUI |
+| Sensitivity var | < 10% | OUI |
+| Bootstrap CI lower | > 1.0 | OUI |
+| Top10 trades | < 40% | OUI |
+| Stress1 Sharpe | > 1.0 | OUI |
+| Regime mismatch | < 1% | OUI |
+
+**Seuils additionnels :**
+- OOS Sharpe > 1.0 (target > 2.0)
+- OOS Trades > 60
+
+### Commande
 
 ```bash
 python scripts/run_full_pipeline.py \
@@ -122,57 +140,165 @@ python scripts/run_full_pipeline.py \
   --output-prefix validated
 ```
 
-### Critères PASS (stricts) Phase 2
+### Resultats
 
-| Métrique | Seuil | Critique |
-|----------|-------|----------|
-| WFE | > 0.6 | OUI |
-| Sharpe OOS | > 1.0 | OUI |
-| Trades OOS | > 60 | OUI |
-| MC p-value | < 0.05 | OUI |
-| Sensitivity var | < 10% | OUI |
-| Bootstrap CI lower | > 1.0 | OUI |
-| Top10 trades | < 40% | OUI |
-| Stress1 Sharpe | > 1.0 | OUI |
-| Regime mismatch | < 1% | OUI |
+- **WINNERS** (7/7 PASS) → Phase 3B (optionnel) → Phase 5
+- **PENDING** (<7/7 PASS) → Phase 3A
+
+**Output :** `outputs/{ASSET}_validation_report_*.txt`
 
 ---
 
-## Gestion FAIL : grid / diagnostic / stop
+## Phase 3A : Rescue — Displacement Grid (PENDING only)
 
-### Si FAIL en phase 1
+**Objectif** : Sauver les assets qui echouent avec d52 en testant d'autres displacements.
 
-- **Option 1** : Stop (asset non prioritaire)
-- **Option 2** : lancer un **displacement grid** (26/39/52/65/78) si l'asset est important.
+### Principe
 
-### Si FAIL en phase 2 (guards)
+Teste d26, d52, d78 sur chaque PENDING. Si un displacement passe 7/7 → passe en WINNERS.
 
-- **Diagnostic** : sur/sous-fitting, trades insuffisants, instabilité sensi, top10 trop dominant.
-- **Reopt "conservative"** (modes KAMA) si overfit détecté.
+### Displacement Variants
+
+| Displacement | Type d'asset | Exemples |
+|--------------|--------------|----------|
+| d26 | Meme/fast | DOGE, SHIB, JOE |
+| d52 | Standard | BTC, ETH, majeurs |
+| d78 | L2/slow | OP, ARB |
+
+### Commande
+
+```bash
+python scripts/run_full_pipeline.py \
+  --assets [PENDING_ASSET] \
+  --fixed-displacement 26 \
+  --trials 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --workers 4
+```
+
+Repeter pour d52, d78.
+
+**Output :** `outputs/displacement_rescue_*.csv`
 
 ---
 
-## Suivi et traçabilité (indispensable)
+## Phase 3B : Optimization — Displacement Grid (WINNERS only)
 
-Créer / maintenir un **tracker CSV** (ex : `outputs/pipeline_tracker.csv`) :
+**Objectif** : Ameliorer les winners avec un displacement alternatif.
 
-| Asset | Tier | Screen Status | WFE | Sharpe | Reopt Status | Guards | Prod Ready |
-|-------|------|---------------|-----|--------|--------------|--------|------------|
-| BTC | 1 | DONE | 1.05 | 2.14 | DONE | 7/7 | YES |
-| AVAX | 1 | DONE | 0.78 | 2.10 | RERUN | - | NO (TP) |
+### Principe
 
-**But** : savoir en 10 secondes où en est chaque asset.
+- Teste d26, d52, d78 sur chaque winner
+- Compare Sharpe OOS et WFE vs baseline d52
+- **Garde le meilleur** si amelioration > 10% ET toujours 7/7 PASS
+
+### Critere de remplacement
+
+```python
+if new_sharpe > old_sharpe * 1.10 and all_guards_pass:
+    use_new_displacement = True
+```
+
+### Commande
+
+```bash
+python scripts/run_full_pipeline.py \
+  --assets [WINNER_ASSET] \
+  --fixed-displacement [26|52|78] \
+  --trials 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --workers 4
+```
+
+**Output :** `outputs/displacement_optimization_*.csv`
 
 ---
 
-## Planning réaliste (ordre de grandeur)
+## Phase 4 : Filter Grid (PENDING restants)
 
-| Étape | Durée estimée |
-|-------|---------------|
-| Download 50 assets | ~30 min |
-| Screening 25 assets en 4 batches | ~1–2h (selon workers) |
-| Validation 8–12 winners | ~2–3h |
-| Pine + mise en prod | ~1h |
+**Objectif** : Tester des combinaisons de filtres pour les assets toujours en echec apres Phase 3A.
+
+### Principe
+
+Teste 12 combinaisons de filtres (baseline, medium_distance_volume, moderate, conservative, etc.)
+
+### Filter Modes (ordre de test)
+
+| Mode | Quand l'utiliser | Effet |
+|:-----|:-----------------|:------|
+| baseline | Premier test, toujours | Aucun filtre |
+| medium_distance_volume | Si guard002 (sensitivity) FAIL | Reduit bruit |
+| light_kama | Si baseline trop sensible | Filtre momentum |
+| light_distance / light_volume | Tests intermediaires | Filtres legers |
+| moderate | Si light_* insuffisant | Filtres moyens |
+| conservative | Dernier recours avant BLOCKED | Filtre agressif |
+
+### Commande
+
+```bash
+python scripts/run_full_pipeline.py \
+  --assets [PENDING_ASSET] \
+  --optimization-mode medium_distance_volume \
+  --trials 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --workers 4
+```
+
+**Output :** `outputs/ANALYSIS_FILTER_GRID_{ASSET}_*.md`
+
+---
+
+## Phase 5 : Production Config
+
+**Objectif** : Figer les parametres finaux pour tous les assets valides.
+
+### Actions
+
+1. Mettre a jour `crypto_backtest/config/asset_config.py` avec :
+   - Displacement optimal
+   - Filter mode
+   - Parametres ATR/Ichimoku optimaux
+   - TP progressifs (TP1 < TP2 < TP3)
+
+2. Mettre a jour `status/project-state.md` :
+   - Ajouter asset en PROD
+   - Retirer de PENDING
+   - Documenter la date de validation
+
+3. **Ne pas toucher** `docs/HANDOFF.md` (obsolete)
+
+---
+
+## NE PAS FAIRE
+
+- Ne jamais utiliser `docs/HANDOFF.md` comme reference
+- Ne jamais modifier les seuils guards sans validation
+- Ne jamais skip le warmup (200 barres minimum)
+- Ne jamais oublier `.shift(1)` sur les rolling features (look-ahead)
+- Ne jamais valider avec Sharpe > 4 ou WFE > 2 sans reconciliation (trop beau = suspect)
+
+---
+
+## IMPORTANT
+
+- **`status/project-state.md`** = source de verite actuelle
+- **`docs/HANDOFF.md`** = obsolete, ne pas utiliser
+- **`docs/BACKTESTING.md`** = historique seulement, pas l'etat actuel
+- **`.cursor/rules/*.mdc`** = regles generales (lues automatiquement)
+
+---
+
+## Suivi et Tracabilite
+
+Maintenir `status/project-state.md` a jour avec :
+
+| Asset | Mode | Disp | Sharpe | WFE | Trades | Date Validation |
+|:------|:-----|:-----|:-------|:----|:-------|:---------------|
+| BTC | baseline | 52 | 2.14 | >0.6 | 416 | Pre-fix |
+| ETH | medium_distance_volume | 52 | 2.09 | 0.82 | 57 | 2026-01-22 |
 
 ---
 
@@ -180,23 +306,32 @@ Créer / maintenir un **tracker CSV** (ex : `outputs/pipeline_tracker.csv`) :
 
 ### Pre-flight
 
-- [ ] Machine profile OK (`config/machine_profile.json`)
-- [ ] Données 1H téléchargées pour le batch
+- [ ] Donnees 1H telechargees pour le batch
 - [ ] TP progression enforcement ON
+- [ ] Verifier timestamp fichier > 2026-01-22 12:00 UTC (cutoff bug TP)
 
 ### Phase 1 — Screening
 
 - [ ] Tous les batches run
-- [ ] Shortlist winners exportée (ex : `outputs/phase2_candidates.txt`)
+- [ ] Shortlist winners exportee
 
 ### Phase 2 — Validation
 
 - [ ] Reopt 300 trials
-- [ ] Guards 7/7
-- [ ] Plans multi-TP cohérents
+- [ ] Guards 7/7 pour WINNERS
 
-### Production
+### Phase 3A/3B — Displacement
 
-- [ ] Génération Pine
-- [ ] `pine_plan_fullguards.csv` à jour
-- [ ] Alerts TradingView / exécution live définies
+- [ ] Grid displacement teste pour PENDING/WINNERS
+- [ ] Meilleur displacement documente
+
+### Phase 4 — Filter Grid
+
+- [ ] Combinaisons testees pour PENDING restants
+- [ ] Resultats documentes
+
+### Phase 5 — Production
+
+- [ ] `asset_config.py` a jour
+- [ ] `status/project-state.md` a jour
+- [ ] Plans Pine generes si necessaire
