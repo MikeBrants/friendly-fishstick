@@ -25,6 +25,82 @@ Ce fichier contient les taches assignees par Casey aux autres agents.
 
 ## Historique
 
+## [15:50] [TASK] @Casey -> @Jordan
+
+**Context:** Phase 1 Screening Batch 2 - Relance après échecs immédiats (0 min). Vérifier données et exécuter correctement.
+
+**Task:** Phase 1 Screening Batch 2 - RELANCE
+**Assets:** GMX, PENDLE, STX, IMX, FET (5 assets)
+**Objectif:** Identifier les candidats viables pour Phase 2 (validation complète avec guards)
+
+**ÉTAPES OBLIGATOIRES:**
+
+1. **Vérifier données disponibles:**
+   ```bash
+   # Vérifier si fichiers existent
+   ls data/Binance_GMX*_1h.parquet
+   ls data/Binance_PENDLE*_1h.parquet
+   ls data/Binance_STX*_1h.parquet
+   ls data/Binance_IMX*_1h.parquet
+   ls data/Binance_FET*_1h.parquet
+   ```
+
+2. **Si données manquantes, télécharger D'ABORD:**
+   ```bash
+   python scripts/download_data.py --assets GMX PENDLE STX IMX FET
+   ```
+
+3. **Exécuter Phase 1 Screening (tous assets ensemble):**
+   ```bash
+   python scripts/run_full_pipeline.py \
+     --assets GMX,PENDLE,STX,IMX,FET \
+     --trials-atr 200 \
+     --trials-ichi 200 \
+     --enforce-tp-progression \
+     --skip-guards \
+     --workers 10
+   ```
+
+4. **Documenter dans `comms/jordan-dev.md`:**
+   - `[RUN_START]` au début avec timestamp
+   - `[RUN_COMPLETE]` à la fin avec:
+     - Statut (SUCCESS/FAIL par asset)
+     - OOS Sharpe, WFE, Trades pour chaque asset
+     - Référence au fichier CSV de sortie
+
+**Criteres succes Phase 1 (souples):**
+- WFE > 0.5
+- Sharpe OOS > 0.8
+- Trades OOS > 50
+
+**Outputs attendus:**
+- `outputs/multiasset_scan_YYYYMMDD_HHMMSS.csv` (résultats scan)
+- Log complet dans `comms/jordan-dev.md`
+
+**Next:** 
+- Les assets PASS Phase 1 → Phase 2 validation (300 trials + 7 guards complets)
+- Les assets FAIL Phase 1 → Exclus (non viables)
+
+---
+
+## [15:42] [UPDATE] @Jordan -> @Casey
+
+**Task ref:** [15:40] [TASK]
+**Asset:** GMX
+**Mode:** baseline
+**Displacement:** auto
+**Status:** ❌ Failed
+**Duration:** 0 min
+
+**Résultats:**
+- OOS Sharpe: N/A
+- WFE: N/A
+
+**Note:** Échec immédiat (0 min) - probablement données manquantes ou erreur script
+
+---
+
+
 <!-- Les messages les plus recents en haut -->
 
 ## [15:35] [DECISION] @Casey -> JOE d78
@@ -418,7 +494,7 @@ python scripts/run_full_pipeline.py \
 - ❌ Phase 1 Screening Batch 1: BNB, XRP, ADA, TRX, LTC, XLM tous EXCLU (tous FAIL)
 
 **En cours:**
-- 🔄 Phase 1 Screening Batch 2: GMX, PENDLE, STX, IMX, FET (5 assets, 200 trials, skip-guards)
+- 🔄 Phase 1 Screening Batch 2: GMX, PENDLE, STX, IMX, FET — **RELANCE [15:50]** (vérifier données + exécuter correctement)
 - 🔄 HBAR medium_distance_volume: Run complété [15:29] @Jordan, validation en cours [15:29] @Sam
 
 **Portfolio actuel:**
