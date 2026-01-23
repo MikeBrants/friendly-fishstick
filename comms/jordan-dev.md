@@ -31,13 +31,117 @@ Ce fichier contient les logs des runs executes par Jordan.
 
 ---
 
-## État Actuel (2026-01-23 15:36)
+## [03:18] [TASK] @Casey -> @Jordan — OVERNIGHT RESET PIPELINE
 
-**Aucun run en cours** ✅
+**Ref:** `comms/casey-quant.md` [02:58] RESET COMPLET OBLIGATOIRE  
+**Date:** 24 janvier 2026, 03:18 UTC  
+**Priority:** 🔥 **URGENT — Overnight Run**
+
+### Context
+- ⚠️ **TOUS les résultats antérieurs sont INVALIDES** (bug Optuna non-déterministe)
+- Fix implémenté et vérifié ✅ (deterministic seeds, `multivariate=True`, `constant_liar=True`)
+- Données 60/60 disponibles ✅ (FTM + GRT téléchargés)
+- Système reproductible confirmé ✅ (5+ test runs identiques)
+
+### Task
+**Lancer le pipeline overnight complet:**
+- **Phase 1:** Re-screening 60 assets (5 batches, workers=10, ~3h)
+- **Phase 2:** Auto-validation SUCCESS assets (Run 1 + Run 2, workers=1, ~2-6h)
+
+### Command
+```powershell
+cd C:\Users\Arthur\friendly-fishstick
+.\scripts\run_overnight_reset.ps1
+```
+
+**Le script va automatiquement:**
+1. ✅ Exécuter 5 batches séquentiels (60 assets)
+2. ✅ Logger tout dans `outputs/overnight_log_*.txt`
+3. ✅ Parser les SUCCESS automatiquement
+4. ✅ Lancer Phase 2 validation (Run 1 + Run 2) pour chaque SUCCESS
+5. ✅ Générer rapport final avec metrics agrégées
+
+### Timeline Estimée
+- **Phase 1:** 3h (5 batches x 30-45 min)
+- **Phase 2:** 2-6h (selon nombre SUCCESS: 5-15 assets x 20-24 min)
+- **Total:** 5-9h (finish 04h00-08h00 si lancement ~23h)
+
+### Batches Phase 1
+
+**Batch 1** (15 assets, 45 min): BTC, ETH, JOE, OSMO, MINA, AVAX, AR, ANKR, DOGE, OP, DOT, NEAR, SHIB, METIS, YGG  
+**Batch 2** (15 assets, 45 min): SOL, ADA, XRP, BNB, TRX, LTC, MATIC, ATOM, LINK, UNI, ARB, HBAR, ICP, ALGO, FTM  
+**Batch 3** (10 assets, 30 min): AAVE, MKR, CRV, SUSHI, RUNE, INJ, TIA, SEI, CAKE, TON  
+**Batch 4** (10 assets, 30 min): PEPE, ILV, GALA, SAND, MANA, ENJ, FLOKI, WIF, RONIN, AXS  
+**Batch 5** (10 assets, 30 min): FIL, GRT, THETA, VET, RENDER, EGLD, KAVA, CFX, ROSE, STRK
+
+### Outputs Attendus
+
+**Phase 1 (5 fichiers):**
+```
+outputs/multiasset_scan_*_phase1_reset_batch1_prod.csv
+outputs/multiasset_scan_*_phase1_reset_batch2_highcap.csv
+outputs/multiasset_scan_*_phase1_reset_batch3_defi.csv
+outputs/multiasset_scan_*_phase1_reset_batch4_gaming.csv
+outputs/multiasset_scan_*_phase1_reset_batch5_infra.csv
+```
+
+**Phase 2 (2xN fichiers, N = nombre SUCCESS):**
+```
+outputs/*_phase2_validation_[ASSET]_run1_scan*.csv
+outputs/*_phase2_validation_[ASSET]_run1_guards*.csv
+outputs/*_phase2_validation_[ASSET]_run2_scan*.csv
+outputs/*_phase2_validation_[ASSET]_run2_guards*.csv
+```
+
+**Log Global:**
+```
+outputs/overnight_log_[timestamp].txt
+```
+
+### Résultats Attendus Demain Matin
+
+**Phase 1 (Screening):**
+- 60 assets testés
+- 15-20 SUCCESS (~25-30%)
+- Critères: WFE > 0.5, Sharpe OOS > 0.8, Trades > 50
+
+**Phase 2 (Validation):**
+- 15-20 assets validés (Run 1 + Run 2)
+- Reproducibilité 100% vérifiée
+- Guards 7/7 PASS: **10-15 assets → PROD** ⭐
+
+### Critères Succès
+1. ✅ Phase 1 complète (5 batches, 60 assets)
+2. ✅ Phase 2 complète (SUCCESS assets validés Run 1 + Run 2)
+3. ✅ Log complet dans `outputs/overnight_log_*.txt`
+4. ✅ Reproducibilité 100% (Run 1 = Run 2)
+5. ✅ Guards 7/7 PASS pour 10-15 assets
+
+### Next
+1. **@Jordan:** Lancer le script et laisser tourner overnight
+2. **Demain matin:** Analyser `outputs/overnight_log_*.txt`
+3. **@Jordan:** Documenter résumé dans `comms/jordan-dev.md`
+4. **@Sam:** Valider guards et reproducibilité
+5. **@Casey:** Verdict final → Mettre à jour `status/project-state.md`
+
+### Documentation
+- `LAUNCH_READY.md` — Checklist complète
+- `OVERNIGHT_PLAN.md` — Plan détaillé 5 batches
+- `RESET_SUMMARY.md` — Contexte reset complet
+- `scripts/run_overnight_reset.ps1` — Script principal
+- `scripts/check_data_overnight.ps1` — Vérification données
+
+**Status:** ⏳ **WAITING FOR JORDAN LAUNCH**
+
+---
+
+## État Actuel (2026-01-24 03:18)
+
+**Task en cours:** 🔥 OVERNIGHT RESET PIPELINE (60 assets, 5-9h)
 
 **Derniers runs complétés:**
-- ❌ Phase 1 Screening (BNB, XRP, ADA, TRX, XLM, LTC) - ALL FAIL (14:22)
-- ❌ HBAR d78 - FAIL (overfitting sévère, 14:02)
+- ❌ Phase 1 Screening (BNB, XRP, ADA, TRX, XLM, LTC) - ALL FAIL (2026-01-23 14:22)
+- ❌ HBAR d78 - FAIL (overfitting sévère, 2026-01-23 14:02)
 - ⏹️ HBAR d78 (processus auto) - STOPPED (15:36)
 
 **Résumé:**
