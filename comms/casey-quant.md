@@ -25,6 +25,71 @@ Ce fichier contient les taches assignees par Casey aux autres agents.
 
 ## Historique
 
+## [17:00] [TASK] @Casey -> @Jordan
+
+**Context:** IMX a passé Phase 1 Screening (OOS Sharpe 1.64, WFE 0.71). GMX, PENDLE, STX, FET ont FAIL (overfit). Objectif: trouver 5+ nouveaux assets viables pour PROD.
+
+**Task:** Phase 1 Screening - 20 nouveaux assets
+**Assets:** GALA, SAND, MANA, ENJ, FLOKI, PEPE, WIF, RONIN, PIXEL, ILV, FIL, THETA, CHZ, CRV, SUSHI, ONE, KAVA, ZIL, CFX, ROSE (20 assets)
+**Objectif:** Identifier les candidats viables pour Phase 2 (validation complète avec guards)
+
+**Catégories:**
+- **Gaming:** GALA, SAND, MANA, ENJ, RONIN, PIXEL, ILV (7)
+- **Meme:** FLOKI, PEPE, WIF (3)
+- **Infra:** FIL, THETA, CHZ, ONE, KAVA, ZIL (6)
+- **DeFi:** CRV, SUSHI (2)
+- **L1:** CFX, ROSE (2)
+
+**ÉTAPES OBLIGATOIRES:**
+
+1. **Télécharger les données (TOUS les assets ensemble):**
+   ```bash
+   python scripts/download_data.py --assets GALA SAND MANA ENJ FLOKI PEPE WIF RONIN PIXEL ILV FIL THETA CHZ CRV SUSHI ONE KAVA ZIL CFX ROSE
+   ```
+   **Attendre la fin du téléchargement avant de continuer.**
+
+2. **Exécuter Phase 1 Screening (TOUS les assets ensemble):**
+   ```bash
+   python scripts/run_full_pipeline.py \
+     --assets GALA SAND MANA ENJ FLOKI PEPE WIF RONIN PIXEL ILV FIL THETA CHZ CRV SUSHI ONE KAVA ZIL CFX ROSE \
+     --trials-atr 200 \
+     --trials-ichi 200 \
+     --enforce-tp-progression \
+     --workers 10
+   ```
+   **Note:** Guards OFF par défaut (Phase 1 seulement - critères souples)
+
+3. **Documenter dans `comms/jordan-dev.md`:**
+   - `[RUN_START]` avec timestamp exact
+   - Attendre la fin du run
+   - `[RUN_COMPLETE]` avec:
+     - Statut par asset (SUCCESS/FAIL)
+     - OOS Sharpe, WFE, Trades pour chaque asset
+     - Référence au fichier CSV (`outputs/multiasset_scan_*.csv`)
+     - Liste des SUCCESS et FAIL avec raisons
+
+**Criteres succes Phase 1 (souples):**
+- WFE > 0.5
+- Sharpe OOS > 0.8
+- Trades OOS > 50
+
+**Outputs attendus:**
+- `outputs/multiasset_scan_YYYYMMDD_HHMMSS.csv` (résultats scan)
+- Log complet dans `comms/jordan-dev.md` avec format standard
+
+**Après le run:**
+1. Analyser le CSV généré
+2. Assets SUCCESS → Phase 2 Validation (300 trials + 7 guards complets)
+3. Assets FAIL → EXCLU (documenter dans `status/project-state.md`)
+4. Mettre à jour `status/project-state.md` avec nouveaux exclus
+
+**Next:** 
+- Les assets PASS Phase 1 → Phase 2 validation (300 trials + 7 guards complets)
+- Les assets FAIL Phase 1 → Exclus (non viables)
+- Objectif: 5+ nouveaux assets viables pour atteindre 20+ assets PROD
+
+---
+
 ## [16:45] [TASK] @Casey -> @Jordan
 
 **Context:** IMX a passé Phase 1 Screening (Sharpe OOS 1.64, WFE 0.71, Trades 85). Phase 2 validation complète requise avec 7 guards pour validation production.
@@ -610,6 +675,7 @@ python scripts/run_full_pipeline.py \
 - ❌ Phase 1 Screening Batch 1: BNB, XRP, ADA, TRX, LTC, XLM tous EXCLU (tous FAIL)
 
 **En cours:**
+- 🔄 Phase 1 Screening Batch 3: **TASK [17:00]** — 20 nouveaux assets (GALA, SAND, MANA, ENJ, FLOKI, PEPE, WIF, RONIN, PIXEL, ILV, FIL, THETA, CHZ, CRV, SUSHI, ONE, KAVA, ZIL, CFX, ROSE)
 - 🔄 Phase 2 Validation IMX: **TASK [16:45]** — 300 trials + 7 guards complets
 - ✅ Phase 1 Screening Batch 2: **COMPLÉTÉ [16:28]** — IMX PASS (1/5), 4 FAIL
 
@@ -619,9 +685,9 @@ python scripts/run_full_pipeline.py \
 - **Phase 3B:** Arrêtée (dégradation systématique) — garder baselines originaux
 
 **Prochaines actions:**
+- Attendre Phase 1 Screening Batch 3 (20 assets) — identifier 5+ candidats viables
 - Attendre Phase 2 Validation IMX (300 trials + 7 guards)
-- Si IMX 7/7 guards PASS → PRODUCTION (16ème asset)
-- Si IMX <7/7 guards PASS → Phase 3A Rescue (displacement grid)
+- Les PASS Phase 1 Batch 3 → Phase 2 validation (300 trials + 7 guards complets)
 - Objectif: 20+ assets PROD (5 restants)
 
 ---
