@@ -1,0 +1,50 @@
+{
+  "n_clusters": 2,
+  "clusters": {
+    "cluster_0": {
+      "assets": [
+        "CRV",
+        "ONE"
+      ],
+      "size": 2,
+      "params": {
+        "sl_mult": 2.0,
+        "tp1_mult": 4.5,
+        "tp2_mult": 6.0,
+        "tp3_mult": 9.5,
+        "tenkan": 14,
+        "kijun": 33,
+        "tenkan_5": 9,
+        "kijun_5": 18
+      },
+      "avg_oos_sharpe": 2.3389479084749643,
+      "avg_oos_trades": 108.0,
+      "avg_wfe": 1.3027008793667907
+    },
+    "cluster_1": {
+      "assets": [
+        "ZIL"
+      ],
+      "size": 1,
+      "params": {
+        "sl_mult": 1.5,
+        "tp1_mult": 5.0,
+        "tp2_mult": 8.0,
+        "tp3_mult": 10.0,
+        "tenkan": 13,
+        "kijun": 26,
+        "tenkan_5": 8,
+        "kijun_5": 25
+      },
+      "avg_oos_sharpe": 1.325079261163156,
+      "avg_oos_trades": 120.0,
+      "avg_wfe": 0.7503539370365512
+    }
+  },
+  "asset_assignments": {
+    "CRV": 0,
+    "ONE": 0,
+    "ZIL": 1
+  },
+  "silhouette_score": 0.20617420841726034
+}

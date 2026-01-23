@@ -50,7 +50,8 @@ class BayesianOptimizer:
                 return float("-inf")
             return float(score)
 
-        study = optuna.create_study(direction=direction)
+        storage = optuna.storages.InMemoryStorage()
+        study = optuna.create_study(direction=direction, storage=storage)
         study.optimize(objective, n_trials=n_trials)
 
         best_params = study.best_params

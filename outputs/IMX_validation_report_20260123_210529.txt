@@ -1,0 +1,11 @@
+GUARDS VALIDATION REPORT: IMX
+======================================================================
+GUARD-001 Monte Carlo p-value: 0.0000 -> PASS
+GUARD-002 Sensitivity variance: 5.72% -> PASS
+GUARD-003 Bootstrap Sharpe CI lower: 0.34 -> FAIL
+GUARD-005 Trade distribution top10: 43.45% -> FAIL
+GUARD-006 Stress1 Sharpe: 0.60 -> FAIL
+GUARD-007 Regime reconciliation mismatch: 0.00% -> PASS
+GUARD-WFE: -0.17 -> FAIL
+----------------------------------------------------------------------
+ALL PASS: NO

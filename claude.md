@@ -5,14 +5,30 @@
 ## Objectif
 Convertir l'indicateur TradingView "FINAL TRIGGER v2 - State/Transition + A/D Line + Ichi Light" en Python et créer un système de backtest professionnel avec walk-forward analysis et optimisation bayésienne.
 
-## Etat Actuel: Revalidation en cours
+## Etat Actuel: 24 janvier 2026 - Reproducibility Crisis Identified & Fixed
 
 **Tests**: 17 tests passent (`pytest -v`)
 **Validation**: 100% match FINAL LONG/SHORT vs Pine Script (apres warmup)
-**Portfolio Production**: BTC seulement (revalidation TP + guards en cours)
-**ETH**: SUCCESS en scan mais guards FAIL (variance 12.96%)
-**CAKE**: SUCCESS en scan mais guards FAIL (variance 20.70%)
-**Filter grid ETH**: termine. Winner = medium_distance_volume (all_pass True, sens_var 3.95%, trades 57). Voir `outputs/filter_grid_results_ETH_20260122_1917.csv`
+
+### 🚨 CRITICAL BUG FOUND & FIXED
+**Issue**: Parallel optimization (workers > 1) with Optuna TPESampler was **non-deterministic**
+- Numpy RNG not seeded globally
+- Python random module not seeded
+- Optuna TPESampler seeds hardcoded to 42 (collisions in parallel)
+- Monte Carlo p-values non-reproductible
+
+**Impact**: All Phase 1 Screening results (350+ assets) were **scientifically unreliable**
+
+**Solution Applied**: Option B Strategy (see REPRODUCIBILITY_STRATEGY.md)
+- Phase 1: Fast screening with workers=10 (filtre grossier)
+- Phase 2: Strict validation with workers=1 (reproductible)
+- Phase 3: Multi-seed robustness (optional, ultra-rigorous)
+
+**Current Status**:
+- ✅ Reproducibility fixes applied to parallel_optimizer.py
+- ✅ New REPRODUCIBILITY_STRATEGY.md created
+- ⏳ Phase 1 Screening candidates identified
+- 🔄 Phase 2 Validation (workers=1) starting soon
 
 ## Résumé du Code Pine Script (1223 lignes)
 
@@ -670,14 +686,15 @@ python crypto_backtest/examples/run_backtest.py
 
 ---
 
-## Fichiers Clés
+## Fichiers Clés (Mise à Jour 24 janvier 2026)
 
-| Fichier | Description |
-|---------|-------------|
-| [app.py](app.py) | Dashboard Streamlit principal (~2300 lignes) |
-| [status/project-state.md](status/project-state.md) | **SOURCE DE VERITE** — état actuel du projet |
-| [docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md](docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md) | Workflow 6 phases (référence principale) |
-| [docs/HANDOFF.md](docs/HANDOFF.md) | **OBSOLETE** — ne plus utiliser |
+| Fichier | Description | Priorité |
+|---------|-------------|----------|
+| [REPRODUCIBILITY_STRATEGY.md](REPRODUCIBILITY_STRATEGY.md) | **LIRE EN PREMIER** — Stratégie Option B (workers parallèles vs séquentiel) | 🔴 CRÍTICA |
+| [comms/PHASE1_PHASE2_INSTRUCTIONS.md](comms/PHASE1_PHASE2_INSTRUCTIONS.md) | Instructions concrètes pour Jordan (Phase 1) et Sam (Phase 2) | 🔴 CRÍTICA |
+| [docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md](docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md) | Workflow 6 phases UPDATED avec Option B | ✅ ACTIVE |
+| [app.py](app.py) | Dashboard Streamlit principal (~2300 lignes) | ✅ ACTIVE |
+| [docs/HANDOFF.md](docs/HANDOFF.md) | **OBSOLETE** — ne plus utiliser | ❌ DEPRECATED |
 | [crypto_backtest/config/asset_config.py](crypto_backtest/config/asset_config.py) | Config production (params optimaux par asset) |
 | [crypto_backtest/config/scan_assets.py](crypto_backtest/config/scan_assets.py) | Top 50 cryptos (tiers) + critères de validation |
 | [crypto_backtest/strategies/final_trigger.py](crypto_backtest/strategies/final_trigger.py) | Main strategy (Puzzle + Grace logic) |

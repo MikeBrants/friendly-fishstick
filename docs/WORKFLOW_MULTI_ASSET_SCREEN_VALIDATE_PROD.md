@@ -1,8 +1,12 @@
 # Pipeline Multi-Asset — 6 Phases (Screen → Validate → Prod)
 
-**Derniere mise a jour:** 2026-01-23 (correction: --skip-guards n'existe pas, comportement par défaut)
+**Derniere mise a jour:** 2026-01-24 (CRITICAL: Reproducibility Strategy Option B Implemented)
+
+**⚠️ BREAKING CHANGE**: Parallel screening (workers > 1) is non-deterministic by Optuna design. Phase 2 MUST use workers=1 for scientific validity.
 
 Ce document decrit le workflow **scalable** pour executer le pipeline FINAL TRIGGER v2 sur des dizaines d'assets, en minimisant le compute gaspille et en maximisant la robustesse des assets qui passent en production.
+
+**SEE ALSO**: [REPRODUCIBILITY_STRATEGY.md](../REPRODUCIBILITY_STRATEGY.md) — explains the scientific foundation for this workflow.
 
 ---
 
@@ -64,53 +68,73 @@ python scripts/download_data.py --assets [ASSET_LIST]
 
 ---
 
-## Phase 1 : Screening (rapide)
+## Phase 1 : Screening (rapide, filtering grossier)
 
-**Objectif** : Eliminer rapidement les assets non-viables sans payer le cout des guards.
+**Objectif** : Eliminer rapidement les assets non-viables. **IMPORTANT**: Results are approximate only due to parallel non-determinism.
 
 ### Parametres
 
-| Parametre | Valeur |
-|-----------|--------|
-| Trials | 200 |
-| Guards | OFF (par défaut, ne pas utiliser `--run-guards`) |
-| TP progression | ON (`--enforce-tp-progression`) |
+| Parametre | Valeur | Justification |
+|-----------|--------|---------------|
+| Trials | 200 | Balance speed vs exploration |
+| Workers | **10** | Fast filtering, non-exact OK |
+| Guards | OFF | Guards trop coûteux à cette phase |
+| TP progression | ON | Enforce realistic SL/TP ratios |
 
-### Criteres PASS (souples)
+### Criteres PASS (souples, ordre de grandeur)
 
 | Metrique | Seuil |
 |----------|-------|
-| WFE | > 0.5 |
-| Sharpe OOS | > 0.8 |
-| Trades OOS | > 50 |
+| WFE | > 0.4 (approximate) |
+| Sharpe OOS | > 0.5 (approximate) |
+| Trades OOS | > 30 |
+
+**⚠️ These thresholds are SOFT — parallel execution introduces variance. Use to identify ~20-30 candidates for Phase 2.**
 
 ### Commande
 
 ```bash
+# Phase 1: SCREENING with parallel workers (fast)
 python scripts/run_full_pipeline.py \
-  --assets BNB ADA DOGE TRX DOT \
+  --assets BNB ADA DOGE TRX DOT ... \
+  --phase screening \
   --trials-atr 200 \
   --trials-ichi 200 \
   --enforce-tp-progression \
-  --workers 4 \
-  --output-prefix screen_batch1
+  --workers-screening 10 \
+  --skip-download \
+  --output-prefix screening_batch1
 ```
 
 **Output :** `outputs/multiasset_scan_*.csv`
 
+**Next Step:** Extract SUCCESS/HIGH-POTENTIAL assets for Phase 2 validation
+
+```bash
+# Export candidates for strict validation
+python scripts/export_screening_results.py \
+  --input outputs/multiasset_scan_*.csv \
+  --status SUCCESS \
+  --output candidates_for_validation.txt
+```
+
 ---
 
-## Phase 2 : Validation (robuste)
+## Phase 2 : Validation (Rigoureuse & Reproductible)
 
-**Objectif** : Produire des params production-grade avec validation complete des 7 guards.
+**Objectif** : Valider scientifiquement les candidates de Phase 1 avec reproducibilité 100%.
+
+**🚨 CRITICAL**: Phase 2 MUST use `workers=1` for reproducibility. Parallel execution causes non-deterministic results.
 
 ### Parametres
 
-| Parametre | Valeur |
-|-----------|--------|
-| Trials | 300 |
-| Guards | ON (`--run-guards`) |
-| TP progression | ON (toujours) |
+| Parametre | Valeur | Justification |
+|-----------|--------|---------------|
+| Trials | 300 | More exploration for accuracy |
+| Workers | **1** (ENFORCED) | Optuna reproducibility requirement |
+| Guards | ON (`--run-guards`) | Robustness validation |
+| TP progression | ON | Enforce realistic ratios |
+| Reproducibility Test | 2x run | Verify bit-exact match |
 
 ### Criteres PASS (stricts) — 7 Guards Obligatoires
 
@@ -127,24 +151,58 @@ python scripts/run_full_pipeline.py \
 **Seuils additionnels :**
 - OOS Sharpe > 1.0 (target > 2.0)
 - OOS Trades > 60
+- **Reproducible across 2 identical runs**
 
-### Commande
+### Commande — Run 1 (Validation)
 
 ```bash
+# Phase 2: VALIDATION with sequential workers (reproducible)
 python scripts/run_full_pipeline.py \
-  --assets AVAX SEI NEAR DOT \
+  --assets $(cat candidates_for_validation.txt) \
+  --phase validation \
   --trials-atr 300 \
   --trials-ichi 300 \
   --enforce-tp-progression \
   --run-guards \
-  --workers 4 \
-  --output-prefix validated
+  --workers-validation 1 \
+  --skip-download \
+  --output-prefix validated_run1
+```
+
+### Commande — Run 2 (Reproducibility Check)
+
+```bash
+# Phase 2: VALIDATION Run 2 — IDENTICAL for reproducibility verification
+python scripts/run_full_pipeline.py \
+  --assets $(cat candidates_for_validation.txt) \
+  --phase validation \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --workers-validation 1 \
+  --skip-download \
+  --output-prefix validated_run2
+```
+
+### Reproducibility Verification
+
+```bash
+# Verify Run 1 and Run 2 are 100% identical
+python scripts/verify_reproducibility.py \
+  --run1 outputs/multiasset_scan_*_run1.csv \
+  --run2 outputs/multiasset_scan_*_run2.csv
+
+# Expected output:
+# ✅ PASS: 100% identical across runs
+# All metrics match bit-for-bit
 ```
 
 ### Resultats
 
-- **WINNERS** (7/7 PASS) → Phase 3B (optionnel) → Phase 5
+- **WINNERS** (7/7 PASS + Reproducible) → Phase 3B (optionnel) → Phase 5
 - **PENDING** (<7/7 PASS) → Phase 3A
+- **INVALID** (Fails reproducibility) → Investigate source of randomness
 
 **Output :** `outputs/{ASSET}_validation_report_*.txt`
 

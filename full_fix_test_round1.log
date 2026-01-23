@@ -1,0 +1,329 @@
+======================================================================
+MULTI-ASSET SCAN PIPELINE (CODEX-005)
+Started: 2026-01-24T01:30:09.377771
+======================================================================
+
+[STEP 1/3] Skipping download (--skip-download or --skip-optimize)
+
+======================================================================
+[STEP 2/3] RUNNING PARALLEL OPTIMIZATION
+======================================================================
+============================================================
+MULTI-ASSET PARALLEL SCAN
+Assets: ['GALA', 'SAND', 'MANA', 'ENJ', 'FLOKI', 'PEPE', 'WIF', 'RONIN', 'PIXEL', 'ILV', 'FIL', 'THETA', 'CHZ', 'CRV', 'SUSHI', 'ONE', 'KAVA', 'ZIL', 'CFX', 'ROSE']
+Workers: 10
+Conservative: False
+Optimization mode: baseline
+Enforce TP progression: True
+============================================================
+
+============================================================
+SCAN COMPLETE
+============================================================
+
+PASSED ASSETS:
+asset  oos_sharpe  oos_trades      wfe
+ PEPE    2.950068          93 1.329354
+  ILV    2.721355          94 0.736330
+  ONE    3.604304          99 0.923238
+
+FAILED ASSETS:
+asset status  oos_sharpe       wfe
+ GALA   FAIL   -0.116916 -0.041379
+ SAND   FAIL    1.372725  0.567138
+ MANA   FAIL   -0.704286 -0.425075
+  ENJ   FAIL    1.246981  0.376707
+FLOKI   FAIL   -0.153245 -0.041593
+  WIF   FAIL   -0.073921 -0.013556
+RONIN   FAIL   -0.861836 -0.230938
+PIXEL   FAIL    0.017196  0.005747
+  FIL   FAIL    0.500630  0.192651
+THETA   FAIL    1.149302  0.545790
+  CHZ   FAIL    0.627270  0.240665
+  CRV   FAIL    0.892894  0.816722
+SUSHI   FAIL    1.654335  0.432915
+ KAVA   FAIL    0.790028  0.224803
+  ZIL   FAIL   -1.858768 -0.817350
+  CFX   FAIL   -1.060696 -0.298375
+ ROSE   FAIL   -0.042376 -0.021626
+
+Results saved to: outputs/multiasset_scan_20260124_013949.csv
+Debug copy saved to: outputs/multi_asset_scan_20260124_013949.csv
+
+======================================================================
+[STEP 3/3] RUNNING CLUSTER ANALYSIS
+======================================================================
+============================================================
+CLUSTER ANALYSIS
+============================================================
+
+Loaded 3 successful assets
+
+[1] Extracting parameter vectors...
+[2] Finding optimal clusters...
+  k=2: silhouette=0.030
+  -> Optimal k=2
+[3] Running K-means with k=2...
+
+============================================================
+CLUSTER RESULTS
+============================================================
+
+CLUSTER_0 (2 assets)
+  Assets: ['ILV', 'ONE']
+  Avg OOS Sharpe: 3.16
+  Avg OOS Trades: 96
+  Avg WFE: 0.83
+  ATR: SL=2.0, TP1=3.5, TP2=7.5, TP3=9.0
+  Ichi: tenkan=8, kijun=35
+  5in1: tenkan_5=12, kijun_5=28
+
+CLUSTER_1 (1 assets)
+  Assets: ['PEPE']
+  Avg OOS Sharpe: 2.95
+  Avg OOS Trades: 93
+  Avg WFE: 1.33
+  ATR: SL=2.5, TP1=3.25, TP2=5.5, TP3=10.0
+  Ichi: tenkan=9, kijun=21
+  5in1: tenkan_5=14, kijun_5=21
+
+Overall Silhouette Score: 0.030
+
+Parameter Distance from Cluster Centers:
+asset   cluster  individual_sharpe  cluster_avg_sharpe  param_distance
+  ILV cluster_0           2.721355            3.162830        6.041523
+  ONE cluster_0           3.604304            3.162830        5.706356
+ PEPE cluster_1           2.950068            2.950068        0.000000
+Traceback (most recent call last):
+  File "c:\Users\Arthur\friendly-fishstick\scripts\run_full_pipeline.py", line 289, in <module>
+    main()
+    ~~~~^^
+  File "c:\Users\Arthur\friendly-fishstick\scripts\run_full_pipeline.py", line 213, in main
+    cluster_info = run_full_analysis(scan_path, args.clusters)
+  File "c:\Users\Arthur\friendly-fishstick\crypto_backtest\analysis\cluster_params.py", line 267, in run_full_analysis
+    print(f"\n\u2713 Exported: {json_path}")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\wybra\AppData\Local\Programs\Python\Python313\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2713' in position 2: character maps to <undefined>
+[WIF] START
+[WIF] download
+[WIF] Data: IS=9805, VAL=3268, OOS=3269 bars [2024-03-05 -> 2026-01-23]
+[WIF] ATR opt
+[WIF] ATR done: Sharpe=4.47, params={'sl_mult': 4.5, 'tp1_mult': 5.0, 'tp2_mult': 5.5, 'tp3_mult': 8.0}
+[WIF] Ichi opt
+[WIF] Ichi done: Sharpe=5.45, params={'tenkan': 19, 'kijun': 29, 'tenkan_5': 11, 'kijun_5': 20}
+[WIF] WF
+[WIF] MC
+[WIF] DONE
+[WIF] OK Complete: OOS Sharpe=-0.07, WFE=-0.01, Status=FAIL
+[THETA] START
+[THETA] download
+[THETA] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-24 -> 2026-01-23]
+[THETA] ATR opt
+[THETA] ATR done: Sharpe=1.69, params={'sl_mult': 2.0, 'tp1_mult': 3.25, 'tp2_mult': 4.5, 'tp3_mult': 7.0}
+[THETA] Ichi opt
+[THETA] Ichi done: Sharpe=2.11, params={'tenkan': 10, 'kijun': 30, 'tenkan_5': 11, 'kijun_5': 19}
+[THETA] WF
+[THETA] MC
+[THETA] DONE
+[THETA] OK Complete: OOS Sharpe=1.15, WFE=0.55, Status=FAIL
+[PIXEL] START
+[PIXEL] download
+[PIXEL] Data: IS=10023, VAL=3341, OOS=3342 bars [2024-02-19 -> 2026-01-23]
+[PIXEL] ATR opt
+[PIXEL] ATR done: Sharpe=2.22, params={'sl_mult': 2.5, 'tp1_mult': 3.5, 'tp2_mult': 4.5, 'tp3_mult': 9.0}
+[PIXEL] Ichi opt
+[PIXEL] Ichi done: Sharpe=2.99, params={'tenkan': 14, 'kijun': 40, 'tenkan_5': 9, 'kijun_5': 16}
+[PIXEL] WF
+[PIXEL] MC
+[PIXEL] DONE
+[PIXEL] OK Complete: OOS Sharpe=0.02, WFE=0.01, Status=FAIL
+[FIL] START
+[FIL] download
+[FIL] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-24 -> 2026-01-23]
+[FIL] ATR opt
+[FIL] ATR done: Sharpe=2.07, params={'sl_mult': 5.0, 'tp1_mult': 3.25, 'tp2_mult': 6.0, 'tp3_mult': 8.0}
+[FIL] Ichi opt
+[FIL] Ichi done: Sharpe=2.60, params={'tenkan': 8, 'kijun': 37, 'tenkan_5': 9, 'kijun_5': 20}
+[FIL] WF
+[FIL] MC
+[FIL] DONE
+[FIL] OK Complete: OOS Sharpe=0.50, WFE=0.19, Status=FAIL
+[RONIN] START
+[RONIN] download
+[RONIN] Data: IS=10223, VAL=3408, OOS=3408 bars [2024-02-05 -> 2026-01-23]
+[RONIN] ATR opt
+[RONIN] ATR done: Sharpe=3.54, params={'sl_mult': 3.25, 'tp1_mult': 5.0, 'tp2_mult': 9.0, 'tp3_mult': 10.0}
+[RONIN] Ichi opt
+[RONIN] Ichi done: Sharpe=3.73, params={'tenkan': 11, 'kijun': 22, 'tenkan_5': 12, 'kijun_5': 22}
+[RONIN] WF
+[RONIN] MC
+[RONIN] DONE
+[RONIN] OK Complete: OOS Sharpe=-0.86, WFE=-0.23, Status=FAIL
+[CHZ] START
+[CHZ] download
+[CHZ] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-24 -> 2026-01-23]
+[CHZ] ATR opt
+[CHZ] ATR done: Sharpe=1.97, params={'sl_mult': 4.25, 'tp1_mult': 4.5, 'tp2_mult': 7.5, 'tp3_mult': 8.0}
+[CHZ] Ichi opt
+[CHZ] Ichi done: Sharpe=2.61, params={'tenkan': 5, 'kijun': 30, 'tenkan_5': 10, 'kijun_5': 20}
+[CHZ] WF
+[CHZ] MC
+[CHZ] DONE
+[CHZ] OK Complete: OOS Sharpe=0.63, WFE=0.24, Status=FAIL
+[ENJ] START
+[ENJ] download
+[ENJ] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-24 -> 2026-01-23]
+[ENJ] ATR opt
+[ENJ] ATR done: Sharpe=2.88, params={'sl_mult': 2.25, 'tp1_mult': 4.25, 'tp2_mult': 8.0, 'tp3_mult': 10.0}
+[ENJ] Ichi opt
+[ENJ] Ichi done: Sharpe=3.31, params={'tenkan': 14, 'kijun': 30, 'tenkan_5': 13, 'kijun_5': 24}
+[ENJ] WF
+[ENJ] MC
+[ENJ] DONE
+[ENJ] OK Complete: OOS Sharpe=1.25, WFE=0.38, Status=FAIL
+[CRV] START
+[CRV] download
+[CRV] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-24 -> 2026-01-23]
+[CRV] ATR opt
+[CRV] ATR done: Sharpe=1.17, params={'sl_mult': 2.0, 'tp1_mult': 4.25, 'tp2_mult': 5.5, 'tp3_mult': 9.5}
+[CRV] Ichi opt
+[CRV] Ichi done: Sharpe=1.09, params={'tenkan': 12, 'kijun': 37, 'tenkan_5': 12, 'kijun_5': 15}
+[CRV] WF
+[CRV] MC
+[CRV] DONE
+[CRV] OK Complete: OOS Sharpe=0.89, WFE=0.82, Status=FAIL
+[ILV] START
+[ILV] download
+[ILV] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-24 -> 2026-01-23]
+[ILV] ATR opt
+[ILV] ATR done: Sharpe=3.14, params={'sl_mult': 2.0, 'tp1_mult': 2.0, 'tp2_mult': 8.5, 'tp3_mult': 9.5}
+[ILV] Ichi opt
+[ILV] Ichi done: Sharpe=3.70, params={'tenkan': 11, 'kijun': 37, 'tenkan_5': 8, 'kijun_5': 26}
+[ILV] WF
+[ILV] MC
+[ILV] DONE
+[ILV] OK Complete: OOS Sharpe=2.72, WFE=0.74, Status=SUCCESS
+[ONE] START
+[ONE] download
+[ONE] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-24 -> 2026-01-23]
+[ONE] ATR opt
+[ONE] ATR done: Sharpe=3.36, params={'sl_mult': 2.0, 'tp1_mult': 4.75, 'tp2_mult': 6.5, 'tp3_mult': 9.0}
+[ONE] Ichi opt
+[ONE] Ichi done: Sharpe=3.90, params={'tenkan': 5, 'kijun': 33, 'tenkan_5': 16, 'kijun_5': 29}
+[ONE] WF
+[ONE] MC
+[ONE] DONE
+[ONE] OK Complete: OOS Sharpe=3.60, WFE=0.92, Status=SUCCESS
+[MANA] START
+[MANA] download
+[MANA] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-24 -> 2026-01-23]
+[MANA] ATR opt
+[MANA] ATR done: Sharpe=1.65, params={'sl_mult': 3.25, 'tp1_mult': 5.0, 'tp2_mult': 8.0, 'tp3_mult': 8.5}
+[MANA] Ichi opt
+[MANA] Ichi done: Sharpe=1.66, params={'tenkan': 10, 'kijun': 34, 'tenkan_5': 10, 'kijun_5': 28}
+[MANA] WF
+[MANA] MC
+[MANA] DONE
+[MANA] OK Complete: OOS Sharpe=-0.70, WFE=-0.43, Status=FAIL
+[ZIL] START
+[ZIL] download
+[ZIL] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-24 -> 2026-01-23]
+[ZIL] ATR opt
+[ZIL] ATR done: Sharpe=2.25, params={'sl_mult': 2.75, 'tp1_mult': 5.0, 'tp2_mult': 8.0, 'tp3_mult': 8.5}
+[ZIL] Ichi opt
+[ZIL] Ichi done: Sharpe=2.27, params={'tenkan': 14, 'kijun': 32, 'tenkan_5': 16, 'kijun_5': 29}
+[ZIL] WF
+[ZIL] MC
+[ZIL] DONE
+[ZIL] OK Complete: OOS Sharpe=-1.86, WFE=-0.82, Status=FAIL
+[PEPE] START
+[PEPE] download
+[PEPE] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-24 -> 2026-01-23]
+[PEPE] ATR opt
+[PEPE] ATR done: Sharpe=1.97, params={'sl_mult': 2.5, 'tp1_mult': 3.25, 'tp2_mult': 5.5, 'tp3_mult': 10.0}
+[PEPE] Ichi opt
+[PEPE] Ichi done: Sharpe=2.22, params={'tenkan': 9, 'kijun': 21, 'tenkan_5': 14, 'kijun_5': 21}
+[PEPE] WF
+[PEPE] MC
+[PEPE] DONE
+[PEPE] OK Complete: OOS Sharpe=2.95, WFE=1.33, Status=SUCCESS
+[CFX] START
+[CFX] download
+[CFX] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-24 -> 2026-01-23]
+[CFX] ATR opt
+[CFX] ATR done: Sharpe=3.04, params={'sl_mult': 2.75, 'tp1_mult': 3.25, 'tp2_mult': 8.5, 'tp3_mult': 9.0}
+[CFX] Ichi opt
+[CFX] Ichi done: Sharpe=3.55, params={'tenkan': 5, 'kijun': 39, 'tenkan_5': 12, 'kijun_5': 24}
+[CFX] WF
+[CFX] MC
+[CFX] DONE
+[CFX] OK Complete: OOS Sharpe=-1.06, WFE=-0.30, Status=FAIL
+[FLOKI] START
+[FLOKI] download
+[FLOKI] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-24 -> 2026-01-23]
+[FLOKI] ATR opt
+[FLOKI] ATR done: Sharpe=2.83, params={'sl_mult': 2.75, 'tp1_mult': 3.75, 'tp2_mult': 7.0, 'tp3_mult': 8.5}
+[FLOKI] Ichi opt
+[FLOKI] Ichi done: Sharpe=3.68, params={'tenkan': 17, 'kijun': 21, 'tenkan_5': 11, 'kijun_5': 22}
+[FLOKI] WF
+[FLOKI] MC
+[FLOKI] DONE
+[FLOKI] OK Complete: OOS Sharpe=-0.15, WFE=-0.04, Status=FAIL
+[SUSHI] START
+[SUSHI] download
+[SUSHI] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-24 -> 2026-01-23]
+[SUSHI] ATR opt
+[SUSHI] ATR done: Sharpe=3.29, params={'sl_mult': 4.75, 'tp1_mult': 3.25, 'tp2_mult': 6.5, 'tp3_mult': 9.0}
+[SUSHI] Ichi opt
+[SUSHI] Ichi done: Sharpe=3.82, params={'tenkan': 8, 'kijun': 40, 'tenkan_5': 10, 'kijun_5': 18}
+[SUSHI] WF
+[SUSHI] MC
+[SUSHI] DONE
+[SUSHI] OK Complete: OOS Sharpe=1.65, WFE=0.43, Status=FAIL
+[SAND] START
+[SAND] download
+[SAND] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-24 -> 2026-01-23]
+[SAND] ATR opt
+[SAND] ATR done: Sharpe=2.33, params={'sl_mult': 1.75, 'tp1_mult': 4.5, 'tp2_mult': 6.5, 'tp3_mult': 8.0}
+[SAND] Ichi opt
+[SAND] Ichi done: Sharpe=2.42, params={'tenkan': 11, 'kijun': 23, 'tenkan_5': 12, 'kijun_5': 29}
+[SAND] WF
+[SAND] MC
+[SAND] DONE
+[SAND] OK Complete: OOS Sharpe=1.37, WFE=0.57, Status=FAIL
+[ROSE] START
+[ROSE] download
+[ROSE] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-24 -> 2026-01-23]
+[ROSE] ATR opt
+[ROSE] ATR done: Sharpe=1.83, params={'sl_mult': 4.0, 'tp1_mult': 4.75, 'tp2_mult': 7.0, 'tp3_mult': 7.5}
+[ROSE] Ichi opt
+[ROSE] Ichi done: Sharpe=1.96, params={'tenkan': 9, 'kijun': 26, 'tenkan_5': 9, 'kijun_5': 15}
+[ROSE] WF
+[ROSE] MC
+[ROSE] DONE
+[ROSE] OK Complete: OOS Sharpe=-0.04, WFE=-0.02, Status=FAIL
+[GALA] START
+[GALA] download
+[GALA] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-24 -> 2026-01-23]
+[GALA] ATR opt
+[GALA] ATR done: Sharpe=2.19, params={'sl_mult': 4.25, 'tp1_mult': 4.25, 'tp2_mult': 5.5, 'tp3_mult': 9.5}
+[GALA] Ichi opt
+[GALA] Ichi done: Sharpe=2.83, params={'tenkan': 7, 'kijun': 30, 'tenkan_5': 15, 'kijun_5': 18}
+[GALA] WF
+[GALA] MC
+[GALA] DONE
+[GALA] OK Complete: OOS Sharpe=-0.12, WFE=-0.04, Status=FAIL
+[KAVA] START
+[KAVA] download
+[KAVA] Data: IS=10392, VAL=3464, OOS=3464 bars [2024-01-24 -> 2026-01-23]
+[KAVA] ATR opt
+[KAVA] ATR done: Sharpe=3.31, params={'sl_mult': 3.0, 'tp1_mult': 2.75, 'tp2_mult': 5.5, 'tp3_mult': 6.5}
+[KAVA] Ichi opt
+[KAVA] Ichi done: Sharpe=3.51, params={'tenkan': 10, 'kijun': 20, 'tenkan_5': 11, 'kijun_5': 28}
+[KAVA] WF
+[KAVA] MC
+[KAVA] DONE
+[KAVA] OK Complete: OOS Sharpe=0.79, WFE=0.22, Status=FAIL

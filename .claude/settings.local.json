@@ -9,7 +9,8 @@
       "Bash(git add:*)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: add MODERATE filter config + diagnostic system\n\nKAMA Filter Configurations:\n- BASELINE \\(0 filters\\): initial optimization only\n- MODERATE \\(4 filters\\): default reopt, balanced approach\n  * mama_kama=False, ichi_strict=False \\(per user preference\\)\n  * distance, volume, regression_cloud, kama_osc=True\n- CONSERVATIVE \\(5 filters\\): severe overfit only \\(WFE < 0.3\\)\n\nDiagnostic System:\n- 6+ granular checks \\(Sharpe OOS, WFE, Max DD, trades, etc.\\)\n- Auto-recommendations for filter mode, trials, displacement\n- Streamlit integration: Comparaison Assets page with reopt button\n\nTests DOGE 1H:\n- BASELINE \\(0 filters\\): Sharpe 1.75, 459 trades\n- CONSERVATIVE \\(5 filters\\): Sharpe 1.41, 348 trades \\(-19%\\)\n- Conclusion: more filters ≠ better performance\n\nFiles:\n- crypto_backtest/validation/conservative_reopt.py: 3 filter configs\n- crypto_backtest/analysis/diagnostics.py: diagnostic checks\n- test_doge_kama_*.py: comparative tests BASELINE vs CONSERVATIVE\n- CLAUDE.md + docs/HANDOFF.md: documentation updated\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git config:*)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(git checkout:*)"
     ]
   }
 }

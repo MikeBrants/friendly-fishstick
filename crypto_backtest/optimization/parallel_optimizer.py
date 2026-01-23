@@ -63,6 +63,33 @@ BASE_CONFIG = BacktestConfig(
 
 SEED = 42  # Global seed for reproducibility
 MIN_TP_GAP = 0.5
+_CURRENT_ASSET_SEED = SEED  # Will be set per-asset to ensure unique seeds in parallel
+
+
+def create_sampler(seed: int = None) -> optuna.samplers.TPESampler:
+    """
+    Create optimized TPESampler for this pipeline.
+
+    Args:
+        seed: Seed value. If None, uses _CURRENT_ASSET_SEED.
+              Use unique per-asset seeds to avoid collisions in parallel.
+
+    Returns:
+        TPESampler configured for reproducibility + parallel robustness
+
+    Params:
+        - multivariate=True: Captures correlations between params (tp1 < tp2 < tp3)
+        - constant_liar=True: Avoids duplicates when workers > 1
+    """
+    if seed is None:
+        seed = _CURRENT_ASSET_SEED
+
+    return optuna.samplers.TPESampler(
+        seed=seed,
+        multivariate=True,      # Capture correlations between parameters
+        constant_liar=True,     # Avoid duplicate suggestions with parallel workers
+        n_startup_trials=10,    # Random trials before TPE (good default for 200 trials)
+    )
 
 
 @dataclass
@@ -384,7 +411,7 @@ def optimize_atr(
 
         return result["sharpe"]
 
-    sampler = optuna.samplers.TPESampler(seed=42)
+    sampler = create_sampler()
     storage = optuna.storages.InMemoryStorage()
     study = optuna.create_study(direction="maximize", sampler=sampler, storage=storage)
     study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
@@ -427,7 +454,7 @@ def optimize_atr_conservative(
 
         return result["sharpe"]
 
-    sampler = optuna.samplers.TPESampler(seed=42)
+    sampler = create_sampler()
     storage = optuna.storages.InMemoryStorage()
     study = optuna.create_study(direction="maximize", sampler=sampler, storage=storage)
     study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
@@ -471,7 +498,7 @@ def optimize_ichimoku(
 
         return result["sharpe"]
 
-    sampler = optuna.samplers.TPESampler(seed=42)
+    sampler = create_sampler()
     storage = optuna.storages.InMemoryStorage()
     study = optuna.create_study(direction="maximize", sampler=sampler, storage=storage)
     study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
@@ -518,7 +545,7 @@ def optimize_ichimoku_conservative(
 
         return result["sharpe"]
 
-    sampler = optuna.samplers.TPESampler(seed=42)
+    sampler = create_sampler()
     storage = optuna.storages.InMemoryStorage()
     study = optuna.create_study(direction="maximize", sampler=sampler, storage=storage)
     study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
@@ -531,9 +558,13 @@ def monte_carlo_pvalue(
     params: dict[str, Any],
     actual_sharpe: float,
     iterations: int = 500,
-    seed: int = 42,
+    seed: int = None,
 ) -> float:
-    """Quick Monte Carlo permutation test."""
+    """Quick Monte Carlo permutation test - uses current asset seed for reproducibility."""
+    # Use unique per-asset seed for reproducibility
+    if seed is None:
+        seed = _CURRENT_ASSET_SEED
+
     strategy = _instantiate_strategy(FinalTriggerStrategy, params)
     backtester = VectorizedBacktester(BASE_CONFIG)
     result = backtester.run(data, strategy)
@@ -577,8 +608,17 @@ def optimize_single_asset(
     filter_config: dict[str, bool] | None = None,
 ) -> AssetScanResult:
     """Full optimization pipeline for one asset."""
-    # Fix numpy random state for reproducibility across parallel workers
-    np.random.seed(SEED)
+    # Create unique seed per asset to avoid sampler conflicts in parallel execution
+    unique_seed = SEED + (hash(asset) % 10000)
+
+    # Fix ALL random sources with unique seed for reproducibility across parallel workers
+    import random
+    np.random.seed(unique_seed)
+    random.seed(unique_seed)
+
+    # Set global seed for Optuna sampler and other components
+    global _CURRENT_ASSET_SEED
+    _CURRENT_ASSET_SEED = unique_seed
 
     default_atr = OPTIM_CONFIG["n_trials_atr"]
     default_ichi = OPTIM_CONFIG["n_trials_ichi"]
