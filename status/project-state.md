@@ -1,6 +1,6 @@
 # Project State — FINAL TRIGGER v2
 
-**Derniere mise a jour:** 2026-01-23 12:15 @Jordan
+**Derniere mise a jour:** 2026-01-23 14:58 @Casey
 
 ***
 
@@ -11,7 +11,7 @@
 | Phase | Expansion Portfolio (75% objectif) |
 | Assets PROD | **15** (BTC, ETH, JOE, OSMO, MINA, AVAX, AR, ANKR, DOGE, OP, DOT, NEAR, SHIB, METIS, YGG) |
 | Assets en attente | 0 |
-| Assets exclus | 23+ (STRK, AEVO ajoutés) |
+| Assets exclus | 30+ (HBAR, BNB, XRP, ADA, TRX, LTC, XLM ajoutés) |
 | Bug critique | RESOLU (TP progression + complex numbers) |
 
 ***
@@ -45,7 +45,7 @@
 ## EN ATTENTE
 
 ### P0 (Urgent)
-- [❌] HBAR — **FAIL** d26 (OOS Sharpe 0.30, WFE 0.11) — Tester d78 (Phase 3A Rescue)
+- Aucun asset en attente
 
 ### P1
 - [✅] METIS — **PRODUCTION** (OOS Sharpe 2.69, WFE 0.85, 7/7 guards PASS) — Fix V6 réussi
@@ -62,12 +62,15 @@
 ## EXCLUS (Definitif)
 
 SEI, CAKE, AXS, RUNE, TON, SOL, AAVE, HYPE, ATOM, ARB, LINK, INJ, TIA,
-HOOK, ALICE, HMSTR, LOOM, APT, EIGEN, ONDO, ICP, ARKM, EGLD, UNI, STRK, AEVO
+HOOK, ALICE, HMSTR, LOOM, APT, EIGEN, ONDO, ICP, ARKM, EGLD, UNI, STRK, AEVO,
+HBAR, BNB, XRP, ADA, TRX, LTC, XLM
 
 **Nouveaux (2026-01-23):**
 - UNI exclu — moderate mode FAIL (OOS Sharpe 0.03, WFE 0.01)
 - STRK exclu — sensitivity 12.5% > 10%, bootstrap CI 0.56 < 1.0
 - AEVO exclu — sensitivity 15.0% > 10%
+- HBAR exclu — d26 FAIL (Sharpe 0.30, WFE 0.11), d78 FAIL (Sharpe 0.067, WFE 0.175) — variants épuisés
+- BNB, XRP, ADA, TRX, LTC, XLM exclus — Phase 1 Screening FAIL (tous WFE < 0.5, Sharpe OOS < 0.8)
 
 ***
 
@@ -76,7 +79,7 @@ HOOK, ALICE, HMSTR, LOOM, APT, EIGEN, ONDO, ICP, ARKM, EGLD, UNI, STRK, AEVO
 | Asset | Blocker | Resolution | Status |
 |-------|---------|------------|--------|
 | UNI | guard002 variance 26.23% > 10%, WFE 0.42 < 0.6, moderate FAIL | Variants épuisés — **EXCLU** | ❌ |
-| HBAR | d26 FAIL (Sharpe 0.30, WFE 0.11) | Tester d78 — Phase 3A Rescue | 🔄 |
+| HBAR | d26 FAIL (Sharpe 0.30, WFE 0.11), d78 FAIL (Sharpe 0.067, WFE 0.175) | Variants épuisés — **EXCLU** | ❌ |
 | SHIB | Guards complex number error | ✅ **RESOLU** — Fix V3 réussi, 7/7 guards PASS | ✅ |
 | METIS, YGG | Guards complex number error | ✅ **RESOLU** — Fix V6 réussi, 7/7 guards PASS | ✅ |
 | STRK, AEVO | Guards complex number error | Fix V6 appliqué — EXCLUS (sensitivity > 10%) | ❌ |
@@ -113,13 +116,15 @@ HOOK, ALICE, HMSTR, LOOM, APT, EIGEN, ONDO, ICP, ARKM, EGLD, UNI, STRK, AEVO
 | 2026-01-23 | UNI test moderate mode | FAIL (OOS Sharpe 0.03, WFE 0.01) — EXCLU | @Jordan |
 | 2026-01-23 | asset_config.py mis à jour | 12 assets PROD avec params validés | @Jordan |
 | 2026-01-23 | DOT, NEAR ajoutés en PROD | 6/7 guards PASS, WFE > 0.6 (scan) | @Jordan |
+| 2026-01-23 | HBAR exclu | d26 et d78 FAIL, variants épuisés | @Casey |
+| 2026-01-23 | Phase 1 Screening | BNB, XRP, ADA, TRX, LTC, XLM tous FAIL | @Casey |
 
 ***
 
 ## Prochaines Étapes
 
 1. ✅ **METIS, YGG débloqués** — Fix V6 réussi, 7/7 guards PASS → 15 assets PROD (75%)
-2. 🔄 **Phase 3B** — BTC, ETH, JOE displacement grid optimization en cours
-3. ⏸️ **HBAR d78** — Phase 3A Rescue (d26 FAIL)
-4. 📊 **Nouveaux assets** — Screening Top 50 cryptos pour expansion portfolio (objectif 20+)
+2. ✅ **HBAR d78 complété** — FAIL (Sharpe 0.067, WFE 0.175) → EXCLU (variants épuisés)
+3. ✅ **Phase 1 Screening complété** — BNB, XRP, ADA, TRX, LTC, XLM tous FAIL → EXCLU
+4. 📊 **Nouveaux assets** — Identifier autres assets Top 50 pour screening (objectif 20+)
 5. 🎯 **Objectif:** 20+ assets PROD → 5 assets restants

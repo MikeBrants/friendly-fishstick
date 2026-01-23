@@ -33,9 +33,133 @@ Ce fichier contient les logs des runs executes par Jordan.
 
 ## Historique
 
+## [14:42] [RUN_START] @Jordan -> @Sam
+
+**Task ref:** [14:00] Casey TASK - HBAR Phase 3A Rescue - Displacement 78 (baseline mode)
+**Asset:** HBAR
+**Mode:** Phase 3A Rescue - Displacement 78 (baseline mode)
+**Displacement:** 78
+**Command:**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets HBAR \
+  --fixed-displacement 78 \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --workers 4
+```
+**Status:** 🟢 Running (auto-launched by watcher)
+**Next:** @Sam valide les guards une fois terminé
+
+---
+
+
+## [14:42] [RUN_FAILED] @Jordan -> @Sam
+
+**Task ref:** BNB baseline
+**Asset:** BNB
+**Status:** ❌ Failed
+**Duration:** 0 min
+
+**Next:** @Sam valide les guards
+
+---
+
+
+## [14:42] [RUN_START] @Jordan -> @Sam
+
+**Task ref:** [14:30] Casey TASK - BNB baseline
+**Asset:** BNB
+**Mode:** baseline
+**Displacement:** auto
+**Command:**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets BNB,XRP,ADA,TRX,XLM,LTC \
+  --trials 200 \
+  --enforce-tp-progression \
+  --skip-guards \
+  --workers 10
+```
+**Status:** 🟢 Running (auto-launched by watcher)
+**Next:** @Sam valide les guards une fois terminé
+
+---
+
+
+## [14:32] [RUN_START] @Jordan -> @Sam
+
+**Task ref:** [14:00] Casey TASK - HBAR Phase 3A Rescue - Displacement 78 (baseline mode)
+**Asset:** HBAR
+**Mode:** Phase 3A Rescue - Displacement 78 (baseline mode)
+**Displacement:** 78
+**Command:**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets HBAR \
+  --fixed-displacement 78 \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --workers 4
+```
+**Status:** 🟢 Running (auto-launched by watcher)
+**Next:** @Sam valide les guards une fois terminé
+
+---
+
+
 <!-- Les messages les plus recents en haut -->
 
-## [14:XX] [RUN_START] @Jordan -> @Sam
+## [14:22] [RUN_COMPLETE] Phase 1 Screening @Jordan -> @Casey
+
+**Task ref:** [14:30] [TASK] @Casey -> @Jordan - Phase 1 Screening
+**Assets:** BNB, XRP, ADA, TRX, XLM, LTC (6 assets majeurs)
+**Mode:** baseline
+**Displacement:** Auto (52 par défaut)
+**Command:**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets BNB XRP ADA TRX XLM LTC \
+  --trials-atr 200 \
+  --trials-ichi 200 \
+  --enforce-tp-progression \
+  --workers 10
+```
+**Status:** ❌ **ALL FAIL** - Aucun candidat viable identifié
+**Duration:** ~11 min (14:10 - 14:22 UTC)
+**PID:** 65000
+
+**Résultats Phase 1 (tous FAIL):**
+
+| Asset | OOS Sharpe | WFE | OOS Trades | IS Sharpe | Status |
+|:------|:-----------|:----|:-----------|:----------|:------|
+| **BNB** | -1.28 ❌ | -0.56 ❌ | 90 | 2.28 | FAIL |
+| **XRP** | -1.04 ❌ | -0.33 ❌ | 90 | 3.15 | FAIL |
+| **ADA** | -0.23 ❌ | -0.08 ❌ | 81 | 2.88 | FAIL |
+| **TRX** | 0.56 ❌ | 0.19 ❌ | 114 | 3.00 | FAIL (meilleur mais < 0.8) |
+| **XLM** | -0.82 ❌ | -0.36 ❌ | 84 | 2.25 | FAIL |
+| **LTC** | -0.81 ❌ | -0.24 ❌ | 48 | 3.38 | FAIL |
+
+**Analyse:**
+- **Tous FAIL critères Phase 1:** Aucun asset ne passe WFE > 0.5 ou Sharpe OOS > 0.8
+- **Overfitting sévère:** Tous montrent dégradation majeure IS → OOS (IS Sharpe 2.25-3.38 vs OOS Sharpe négatif ou < 0.8)
+- **TRX meilleur:** Sharpe OOS 0.56, WFE 0.19 (mais toujours < seuils Phase 1)
+- **Pattern:** Tous les assets majeurs (Top 10 market cap) montrent overfitting avec baseline mode
+
+**Verdict:** ❌ **AUCUN CANDIDAT VIABLE** - Tous les 6 assets exclus de Phase 2
+**Outputs:**
+- Scan: `outputs/multiasset_scan_20260123_142201.csv`
+- Cluster: Non généré (0 assets réussis, minimum 3 requis)
+
+**Next:** @Casey décide si tester variants (filter modes, displacements) ou exclure définitivement ces assets
+
+---
+
+## [14:02] [RUN_COMPLETE] @Jordan -> @Sam
 
 **Task ref:** HBAR Phase 3A Rescue - Displacement 78
 **Asset:** HBAR
@@ -52,12 +176,35 @@ python scripts/run_full_pipeline.py \
   --run-guards \
   --workers 4
 ```
-**Status:** 🟢 Running (background, PID: 58876)
-**Raison:** Phase 3A Rescue - HBAR d26 FAIL (OOS Sharpe 0.30, WFE 0.11). Test displacement 78 (pattern similaire à MINA).
-**Trials:** 300 ATR + 300 Ichimoku (trials élevés pour meilleure convergence)
-**Workers:** 4
-**Durée estimée:** ~20-30 min (optimize + guards)
-**Next:** @Sam surveille les résultats et valide les guards
+**Status:** ❌ **FAIL** - Overfitting sévère détecté
+**Duration:** ~13 min (09:53 - 10:02 UTC)
+**PID:** 58876
+
+**Résultats scan:**
+- Status: **FAIL** ❌
+- OOS Sharpe: **0.067** (< 1.0 ❌)
+- WFE: **0.175** (< 0.6 ❌)
+- IS Sharpe: 1.86
+- OOS Trades: 78
+- Fail reason: `OOS_SHARPE<1.0; WFE<0.6; OVERFIT`
+- MC p-value: 0.136 (> 0.05 ❌ - Guard001 FAIL)
+
+**Params optimisés:**
+- sl=1.75, tp1=2.75, tp2=9.5, tp3=10.0
+- tenkan=9, kijun=40, displacement=78
+
+**Analyse:**
+- **Dégradation majeure:** OOS Sharpe 0.067 vs IS Sharpe 1.86 → Overfitting massif
+- **WFE 0.175:** Performance OOS très faible (17.5% de l'IS)
+- **MC p-value 0.136:** Guard001 FAIL (pas de significativité statistique)
+- **Pattern:** Displacement 78 ne résout pas le problème (similaire à d26)
+
+**Verdict:** ❌ **HBAR d78 FAIL** - Overfitting sévère, variants épuisés
+**Outputs:**
+- Scan: `outputs/multiasset_scan_20260123_140203.csv`
+- Guards: Non générés (scan FAIL avant guards)
+
+**Next:** @Casey décide si HBAR doit être EXCLU ou si d'autres variants sont possibles (filter modes?)
 
 ---
 

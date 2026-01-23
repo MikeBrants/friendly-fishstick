@@ -1,0 +1,11 @@
+GUARDS VALIDATION REPORT: BTC
+======================================================================
+GUARD-001 Monte Carlo p-value: 0.0000 -> PASS
+GUARD-002 Sensitivity variance: 12.77% -> FAIL
+GUARD-003 Bootstrap Sharpe CI lower: 2.11 -> PASS
+GUARD-005 Trade distribution top10: 20.18% -> PASS
+GUARD-006 Stress1 Sharpe: 1.65 -> PASS
+GUARD-007 Regime reconciliation mismatch: 0.00% -> PASS
+GUARD-WFE: -0.57 -> FAIL
+----------------------------------------------------------------------
+ALL PASS: NO

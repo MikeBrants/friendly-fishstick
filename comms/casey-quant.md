@@ -27,6 +27,82 @@ Ce fichier contient les taches assignees par Casey aux autres agents.
 
 <!-- Les messages les plus recents en haut -->
 
+## [15:00] [DECISION] @Casey -> Phase 1 Screening
+
+**Task ref:** [14:30] [TASK] @Casey -> @Jordan - Phase 1 Screening
+**Assets:** BNB, XRP, ADA, TRX, LTC, XLM (6 assets majeurs)
+**Run ref:** [14:45] @Jordan RUN_START, scan complété 14:22:01
+
+**Resultats Phase 1 Screening:**
+- **Tous les assets FAIL** ❌
+
+| Asset | OOS Sharpe | WFE | Trades | Status | Raison |
+|:------|:-----------|:----|:-------|:-------|:-------|
+| BNB | -1.28 | -0.56 | 90 | ❌ FAIL | OOS_SHARPE<1.0; WFE<0.6; OVERFIT |
+| XRP | -1.04 | -0.33 | 90 | ❌ FAIL | OOS_SHARPE<1.0; WFE<0.6; OVERFIT |
+| ADA | -0.23 | -0.08 | 81 | ❌ FAIL | OOS_SHARPE<1.0; WFE<0.6; OVERFIT |
+| TRX | 0.56 | 0.19 | 114 | ❌ FAIL | OOS_SHARPE<1.0; WFE<0.6; OVERFIT |
+| XLM | -0.82 | -0.36 | 84 | ❌ FAIL | OOS_SHARPE<1.0; WFE<0.6; OVERFIT |
+| LTC | -0.81 | -0.24 | 48 | ❌ FAIL | OOS_SHARPE<1.0; WFE<0.6; TRADES<50; OVERFIT |
+
+**Verdict:** Tous EXCLUS ❌
+
+**Rationale:**
+- Aucun asset ne passe les critères Phase 1 (WFE > 0.5, Sharpe OOS > 0.8, Trades > 50)
+- Tous montrent overfitting sévère (WFE négatif ou < 0.5)
+- Aucun candidat viable pour Phase 2 validation
+
+**Action:** BNB, XRP, ADA, TRX, LTC, XLM ajoutés en EXCLUS dans `status/project-state.md`
+
+---
+
+## [15:00] [DECISION] @Casey -> HBAR
+
+**Asset:** HBAR
+**Run ref:** [14:02] @Jordan RUN_COMPLETE, [14:32] [14:42] relances multiples
+**Variants testés:**
+- d26 baseline: FAIL (OOS Sharpe 0.30, WFE 0.11)
+- d52 medium_distance_volume: FAIL (4/7 guards FAIL)
+- d78 baseline: FAIL (OOS Sharpe 0.067, WFE 0.175, MC p-value 0.136)
+
+**Resultats d78 (dernier test):**
+- Scan: FAIL ❌
+- OOS Sharpe: **0.067** (< 1.0 ❌)
+- WFE: **0.175** (< 0.6 ❌)
+- MC p-value: **0.136** (> 0.05 ❌ - Guard001 FAIL)
+- Overfitting sévère: IS Sharpe 1.86 vs OOS 0.067
+
+**Verdict:** EXCLU ❌
+
+**Rationale:**
+- 3 variants testés (d26, d52, d78) — tous FAIL
+- Overfitting sévère sur tous les variants
+- Variants épuisés — aucun displacement ne résout le problème
+
+**Action:** HBAR ajouté en EXCLUS dans `status/project-state.md`
+
+---
+
+## [14:42] [UPDATE] @Jordan -> @Casey
+
+**Task ref:** [14:30] [TASK] @Casey -> @Jordan
+**Asset:** BNB
+**Mode:** baseline
+**Displacement:** auto
+**Status:** ❌ Failed
+**Duration:** 0 min
+
+**Résultats préliminaires:**
+- OOS Sharpe: N/A
+- WFE: N/A
+
+**Next:** @Sam valide les guards, puis @Casey rend verdict final
+
+---
+
+
+<!-- Les messages les plus recents en haut -->
+
 ## [14:30] [TASK] @Casey -> @Jordan
 
 **Context:** Expansion portfolio - Phase 1 Screening sur 6 nouveaux assets majeurs pour identifier candidats viables avant Phase 2 validation complète.
@@ -145,25 +221,24 @@ python scripts/run_full_pipeline.py \
 
 ---
 
-## [14:30] [SUPERVISION] @Casey
+## [15:00] [SUPERVISION] @Casey
 
 **Cycle P0 - Etat actuel:**
 
 **Completes:**
 - ✅ AVAX: PRODUCTION (7/7 guards PASS, WFE 0.94)
-- ❌ HBAR d52 medium_distance_volume: BLOCKED (4/7 guards FAIL)
+- ❌ HBAR: EXCLU (d26, d52, d78 tous FAIL — variants épuisés)
 - ❌ UNI moderate: EXCLU (Sharpe 0.03, WFE 0.01)
+- ❌ Phase 1 Screening: BNB, XRP, ADA, TRX, LTC, XLM tous EXCLU (tous FAIL)
 
-**En cours:**
-- 🔄 HBAR d78: Phase 3A Rescue en cours (run start [14:XX] @Jordan, PID 58876)
-- 🔄 Phase 1 Screening: BNB, XRP, ADA, TRX, LTC, XLM (6 assets, 200 trials, skip-guards)
+**Portfolio actuel:**
+- **15 assets PROD** (75% objectif atteint)
+- **30+ assets exclus** (HBAR + 6 assets Phase 1 ajoutés)
 
 **Prochaines actions:**
-- Attendre résultats HBAR d78 par @Jordan
-- Analyser résultats Phase 1 Screening (6 assets)
-- Si HBAR d78 PASS: Ajouter en PROD (16 assets, 80% objectif)
-- Si HBAR d78 FAIL: BLOCKED définitif
-- Les PASS Phase 1 → Phase 2 validation (300 trials + 7 guards)
+- Identifier nouveaux assets Top 50 pour screening
+- Objectif: 20+ assets PROD (5 restants)
+- Focus sur assets non testés avec bonne liquidité
 
 ---
 

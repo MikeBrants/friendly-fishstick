@@ -1,0 +1,4 @@
+asset,displacement,filter_mode,oos_sharpe,wfe,oos_trades,max_dd,baseline_sharpe,baseline_wfe,improvement_pct,all_guards_pass,meets_criteria,status,scan_path,error
+BTC,52,baseline,1.3149069284879265,0.4886631813695325,87.0,0.0,1.3149069284879265,0.4886631813695325,0.0,False,False,FAIL,outputs\phase3b_BTC_d52_multiasset_scan_20260123_134316.csv,
+BTC,26,,-2.152251355313579,-0.6647335424470748,,,,,,,,OVERFITTING,,WFE < 0 indicates overfitting
+BTC,78,,-1.7870920427387291,-0.5730738821903657,,,,,,,,OVERFITTING,,WFE < 0 indicates overfitting

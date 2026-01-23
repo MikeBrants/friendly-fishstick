@@ -52,6 +52,114 @@ Ce fichier contient les validations des 7 guards par Sam.
 
 <!-- Les messages les plus recents en haut -->
 
+## [14:15] [VALIDATION] @Sam -> @Casey
+
+**Asset:** HBAR
+**Run ref:** [14:02] [RUN_COMPLETE] @Jordan -> @Sam
+**Date run:** 2026-01-23 14:02:03 (post-fix TP ✅)
+**Mode:** baseline
+**Displacement:** 78 (Phase 3A Rescue)
+
+### Scan Results (Pre-Guards)
+
+**Status:** ❌ **FAIL** - Scan échoué avant génération des guards
+
+| Métrique | Seuil | Valeur | Status |
+|----------|-------|--------|--------|
+| OOS Sharpe | > 1.0 | 0.067 | ❌ FAIL |
+| WFE | > 0.6 | 0.175 | ❌ FAIL |
+| MC p-value | < 0.05 | 0.136 | ❌ FAIL |
+| OOS Trades | > 60 | 78 | ✅ PASS |
+| IS Sharpe | - | 1.86 | - |
+| OOS MaxDD | - | -4.23% | - |
+
+**Fail reason:** `OOS_SHARPE<1.0; WFE<0.6; OVERFIT`
+
+### Guards Check (7/7 requis)
+
+**⚠️ Guards non générés** - Scan FAIL avant guards
+
+| Guard | Seuil | Valeur | Status |
+|-------|-------|--------|--------|
+| guard001 MC p-value | < 0.05 | 0.136 | ❌ FAIL (scan) |
+| guard002 Sensitivity | < 10% | N/A | ❌ N/A |
+| guard003 Bootstrap CI | > 1.0 | N/A | ❌ N/A |
+| guard005 Top10 trades | < 40% | N/A | ❌ N/A |
+| guard006 Stress Sharpe | > 1.0 | N/A | ❌ N/A |
+| guard007 Regime mismatch | < 1% | N/A | ❌ N/A |
+| WFE | > 0.6 | 0.175 | ❌ FAIL |
+
+### Métriques OOS
+- Sharpe: **0.067** ❌ (< 1.0 requis)
+- MaxDD: **-4.23%**
+- Trades: 78 ✅ (> 60 requis)
+- Profit Factor: 1.07
+- IS Sharpe: 1.86 (dégradation majeure: OOS/IS = 0.036)
+
+### Vérifications
+- [x] TP progression: tp1=2.75 < tp2=9.5 < tp3=10.0 ✅ (gaps: 6.75 et 0.5 >= 0.5)
+- [x] Date post-fix (>= 2026-01-22 12H00) ✅ (2026-01-23 14:02:03)
+- [x] Pas de Sharpe suspect (> 4.0) ✅ (0.067 très faible)
+
+### Analyse de l'échec
+
+**Overfitting sévère détecté:**
+- **Dégradation majeure:** OOS Sharpe 0.067 vs IS Sharpe 1.86 → Ratio 0.036 (3.6% de performance retenue)
+- **WFE 0.175:** Performance OOS très faible (17.5% de l'IS), bien en dessous du seuil critique de 0.6
+- **MC p-value 0.136:** Guard001 FAIL (pas de significativité statistique, > 0.05)
+- **Pattern:** Displacement 78 ne résout pas le problème (similaire à d26 qui avait échoué)
+
+**Comparaison avec variants précédents:**
+- **HBAR d52 medium_distance_volume:** WFE 0.63, OOS Sharpe 1.28 (4/7 guards FAIL)
+- **HBAR d78 baseline:** WFE 0.175, OOS Sharpe 0.067 (scan FAIL, overfitting sévère)
+
+### Verdict
+**Status:** ❌ **SCAN FAIL** - Overfitting sévère, guards non générés
+
+**Raisons FAIL:**
+1. OOS Sharpe 0.067 < 1.0 (seuil critique)
+2. WFE 0.175 < 0.6 (seuil critique)
+3. MC p-value 0.136 > 0.05 (guard001 FAIL)
+4. Dégradation majeure IS→OOS (ratio 0.036 = 3.6% performance retenue)
+5. Overfitting sévère détecté (IS Sharpe 1.86 vs OOS 0.067)
+
+**Recommandation:** ❌ **BLOCKED** - Variants épuisés
+
+**Rationale:**
+- Displacement 78 aggrave le problème (WFE 0.175 vs 0.63 en d52)
+- Overfitting sévère (dégradation 96.4% IS→OOS)
+- Aucun guard ne peut être validé (scan FAIL avant guards)
+- Pattern similaire à d26 (échec précédent)
+
+**Variants testés:**
+1. ❌ **d52 baseline:** FAIL (guards non documentés)
+2. ❌ **d52 medium_distance_volume:** 4/7 guards FAIL (sensitivity 11.49%, bootstrap CI 0.30, stress 0.62)
+3. ❌ **d78 baseline:** Scan FAIL (overfitting sévère, WFE 0.175)
+
+**Conclusion:** HBAR montre un pattern d'overfitting sévère qui ne peut être résolu par changement de displacement ou filter mode. Les variants sont épuisés.
+
+**Next:** @Casey rend verdict final (BLOCKED définitif ou autres options)
+
+---
+
+## [14:20] [WAITING] @Sam
+
+**Status:** Validation complétée, en attente de nouveaux runs
+
+**Dernière validation:**
+- ✅ [14:15] HBAR d78 - Scan FAIL (overfitting sévère, WFE 0.175) → BLOCKED
+
+**Runs en attente:**
+- 🔄 Phase 1 Screening: BNB, XRP, ADA, TRX, LTC, XLM (assigné [14:30] @Casey -> @Jordan, critères souples: WFE > 0.5, Sharpe > 0.8, Trades > 50)
+  - **Note:** Phase 1 utilise `--skip-guards`, donc validation Sam requise seulement pour Phase 2 (si assets PASS Phase 1)
+
+**Prochaines actions:**
+- Surveiller `comms/jordan-dev.md` pour Phase 1 Screening results
+- Valider les assets qui PASS Phase 1 → Phase 2 (300 trials + 7 guards complets)
+- Documenter verdicts dans ce fichier
+
+---
+
 ## [10:30] [WAITING] Phase 3B Optimization - Surveillance @Sam
 
 **Task ref:** Phase 3B Displacement Grid Optimization

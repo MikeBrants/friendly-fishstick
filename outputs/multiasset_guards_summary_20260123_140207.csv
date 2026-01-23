@@ -1,0 +1,2 @@
+asset,base_sharpe,guard001_p_value,guard001_pass,guard002_variance_pct,guard002_pass,guard003_sharpe_ci_lower,guard003_pass,guard005_top10_pct,guard005_pass,guard006_stress1_sharpe,guard006_pass,guard007_mismatch_pct,guard007_pass,guard_wfe,guard_wfe_pass,all_pass,error
+HBAR,1.0734983130099927,0.045,True,20.682000409315236,False,-0.043697449604884,False,66.18711050710986,False,0.5933042237630257,False,1.8645245373055477e-14,True,0.1746993625426889,False,False,
