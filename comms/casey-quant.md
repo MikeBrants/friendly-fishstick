@@ -25,7 +25,7 @@ Ce fichier contient les taches assignees par Casey aux autres agents.
 
 ## Historique
 
-## [17:10] [TASK] @Casey -> @Jordan
+## [20:11] [TASK] @Casey -> @Jordan
 
 **Context:** IMX Phase 2 Validation FAIL (4/7 guards PASS). 3 guards FAIL: guard002 (sensitivity 13.20%), guard003 (bootstrap CI 0.37), guard006 (stress Sharpe 0.92). Tester deux options de rescue.
 
