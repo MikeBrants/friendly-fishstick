@@ -202,17 +202,30 @@ if new_sharpe > old_sharpe * 1.10 and all_guards_pass:
 
 ### Commande
 
+**Script dédié (recommandé) :**
+
 ```bash
-python scripts/run_full_pipeline.py \
-  --assets [WINNER_ASSET] \
-  --fixed-displacement [26|52|78] \
-  --trials 300 \
-  --enforce-tp-progression \
-  --run-guards \
-  --workers 4
+python scripts/run_phase3b_optimization.py \
+  --workers 4 \
+  --trials-atr 300 \
+  --trials-ichi 300
 ```
 
-**Output :** `outputs/displacement_optimization_*.csv`
+**Pour des assets spécifiques :**
+
+```bash
+python scripts/run_phase3b_optimization.py \
+  --assets BTC ETH \
+  --workers 4 \
+  --trials-atr 300 \
+  --trials-ichi 300
+```
+
+**Outputs :**
+- `outputs/displacement_optimization_*.csv` — Résultats détaillés par asset/displacement
+- `outputs/displacement_optimization_summary_*.csv` — Résumé avec recommandations (KEEP/UPDATE)
+
+**Note :** Le script teste automatiquement tous les displacements (26, 52, 78) pour chaque asset PROD et compare avec le baseline actuel. Il recommande une mise à jour si amélioration > 10% ET 7/7 guards PASS.
 
 ---
 

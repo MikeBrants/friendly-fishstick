@@ -1,0 +1,4 @@
+asset,guard001_pass,guard002_pass,guard003_pass,guard005_pass,guard006_pass,guard007_pass,all_pass,error,base_sharpe,guard001_p_value,guard002_variance_pct,guard003_sharpe_ci_lower,guard005_top10_pct,guard006_stress1_sharpe,guard007_mismatch_pct,guard_wfe,guard_wfe_pass
+SHIB,False,False,False,False,False,False,False,"float() argument must be a string or a real number, not 'complex'",,,,,,,,,
+DOT,True,True,True,True,True,True,False,,1.8981607795002735,0.0,3.2514478793711015,1.6835458928091338,21.26629496265906,1.4669285034291932,0.0,,False
+NEAR,True,True,True,True,True,True,False,,1.6585704488178872,0.003,9.837829046359541,1.1084387260300477,26.67953497237337,1.425892763310302,1.1303555088743432e-14,,False

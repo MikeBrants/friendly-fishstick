@@ -802,6 +802,11 @@ if st.sidebar.button("📈 Fichiers", use_container_width=True, key="btn_files")
 if st.sidebar.button("📋 Historique", use_container_width=True, key="btn_history"):
     st.session_state.current_page = "📋 Historique"
 
+# Section: Monitoring
+st.sidebar.markdown("### 🔧 Système")
+if st.sidebar.button("🔍 Monitor Processes", use_container_width=True, key="btn_monitor"):
+    st.session_state.current_page = "🔍 Monitor Processes"
+
 # Keyboard shortcuts
 st.sidebar.markdown("---")
 with st.sidebar.expander("⌨️ Raccourcis"):
@@ -4380,6 +4385,158 @@ elif page == "📋 Historique":
             st.session_state.show_comparison = False
             st.session_state.compare_sessions = []
             st.rerun()
+
+
+# -----------------------------------------------------------------------------
+# PROCESS MONITORING
+# -----------------------------------------------------------------------------
+elif page == "🔍 Monitor Processes":
+    st.title("🔍 Process Monitor")
+    
+    st.markdown("""
+    Surveillez les scripts Python en cours d'exécution et leur utilisation des ressources.
+    """)
+    
+    # Auto-refresh toggle
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        auto_refresh = st.checkbox("🔄 Auto-refresh", value=False)
+    with col2:
+        refresh_interval = st.selectbox("Intervalle (s)", [2, 5, 10], index=0, label_visibility="collapsed")
+    
+    # Import monitoring functions
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).parent))
+    
+    try:
+        from scripts.monitor_processes import get_python_processes, get_system_stats
+        
+        # Get current data
+        processes = get_python_processes()
+        system = get_system_stats()
+        
+        # System overview
+        st.markdown("---")
+        st.subheader("💻 System Resources")
+        
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric(
+                "CPU Usage",
+                f"{system['cpu_percent']:.1f}%",
+                delta=f"{system['cpu_count']} cores"
+            )
+        
+        with col2:
+            memory_pct = system['memory_percent']
+            st.metric(
+                "Memory",
+                f"{system['memory_used_gb']:.1f} GB",
+                delta=f"{memory_pct:.1f}%",
+                delta_color="inverse" if memory_pct < 80 else "normal"
+            )
+        
+        with col3:
+            st.metric(
+                "Disk Usage",
+                f"{system['disk_used_gb']:.1f} GB",
+                delta=f"{system['disk_percent']:.1f}%"
+            )
+        
+        with col4:
+            st.metric(
+                "Python Processes",
+                len(processes),
+                delta="active"
+            )
+        
+        # Visual indicators
+        st.markdown("---")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("#### CPU Usage")
+            st.progress(system['cpu_percent'] / 100)
+        
+        with col2:
+            st.markdown("#### Memory Usage")
+            st.progress(system['memory_percent'] / 100)
+        
+        # Process list
+        st.markdown("---")
+        st.subheader(f"🐍 Python Processes ({len(processes)})")
+        
+        if not processes:
+            st.info("Aucun processus Python détecté (monitor et streamlit exclus)")
+        else:
+            # Create DataFrame
+            import pandas as pd
+            df = pd.DataFrame(processes)
+            
+            # Format columns
+            display_df = df[['pid', 'script', 'cpu_percent', 'memory_mb', 'runtime', 'status']].copy()
+            display_df.columns = ['PID', 'Script', 'CPU %', 'Memory (MB)', 'Runtime', 'Status']
+            
+            # Color code by CPU usage
+            def highlight_cpu(val):
+                if val > 50:
+                    return 'background-color: #ff6b6b'
+                elif val > 20:
+                    return 'background-color: #ffd93d'
+                return ''
+            
+            def highlight_memory(val):
+                if val > 1000:
+                    return 'background-color: #ff6b6b'
+                elif val > 500:
+                    return 'background-color: #ffd93d'
+                return ''
+            
+            styled_df = display_df.style.applymap(
+                highlight_cpu,
+                subset=['CPU %']
+            ).applymap(
+                highlight_memory,
+                subset=['Memory (MB)']
+            )
+            
+            st.dataframe(
+                styled_df,
+                use_container_width=True,
+                height=400
+            )
+            
+            # Show command line for selected process
+            if len(df) > 0:
+                selected_idx = st.selectbox(
+                    "Voir la commande complète",
+                    range(len(df)),
+                    format_func=lambda i: f"{df.iloc[i]['script']} (PID: {df.iloc[i]['pid']})"
+                )
+                
+                with st.expander("📋 Commande complète"):
+                    st.code(df.iloc[selected_idx]['cmdline'], language="bash")
+        
+        # Manual refresh button
+        col1, col2 = st.columns([1, 4])
+        with col1:
+            if st.button("🔄 Refresh Now", type="primary", use_container_width=True):
+                st.rerun()
+        
+        # Auto-refresh using Streamlit's built-in mechanism
+        if auto_refresh:
+            import time
+            time.sleep(refresh_interval)
+            st.rerun()
+            
+    except ImportError as e:
+        st.error(f"❌ Erreur d'import: {e}")
+        st.info("Assurez-vous que `scripts/monitor_processes.py` existe et que `psutil` est installé.")
+    except Exception as e:
+        st.error(f"❌ Erreur: {e}")
+        st.exception(e)
 
 
 # =============================================================================

@@ -1,0 +1,11 @@
+GUARDS VALIDATION REPORT: DOT
+======================================================================
+GUARD-001 Monte Carlo p-value: 0.0000 -> PASS
+GUARD-002 Sensitivity variance: 3.25% -> PASS
+GUARD-003 Bootstrap Sharpe CI lower: 1.68 -> PASS
+GUARD-005 Trade distribution top10: 21.27% -> PASS
+GUARD-006 Stress1 Sharpe: 1.47 -> PASS
+GUARD-007 Regime reconciliation mismatch: 0.00% -> PASS
+GUARD-WFE: n/a -> FAIL
+----------------------------------------------------------------------
+ALL PASS: NO

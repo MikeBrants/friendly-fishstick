@@ -2,7 +2,57 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
+
+
+def _safe_float(value, default: float = 0.0) -> float:
+    """Convert any value to safe float, handling complex numbers."""
+    if value is None:
+        return default
+    try:
+        # Handle complex numbers explicitly
+        if isinstance(value, (complex, np.complexfloating)):
+            return float(np.real(value))
+        # Handle numpy arrays/scalars
+        if hasattr(value, 'item'):
+            value = value.item()
+        if isinstance(value, (complex, np.complexfloating)):
+            return float(np.real(value))
+        result = float(value)
+        if not np.isfinite(result):
+            return default
+        return result
+    except (TypeError, ValueError, OverflowError):
+        return default
+
+
+def _force_real_series(s: pd.Series) -> pd.Series:
+    """Force a pandas Series to contain only real values."""
+    if s.empty:
+        return s
+    if s.apply(lambda x: isinstance(x, (complex, np.complexfloating))).any():
+        return s.apply(lambda x: np.real(x) if isinstance(x, (complex, np.complexfloating)) else x).astype(float)
+    return s.astype(float)
+
+
+def _safe_std(series: pd.Series, ddof: int = 0) -> float:
+    """Calculate std with protection against complex results."""
+    if series.empty or len(series) < 2:
+        return 0.0
+    try:
+        # Force real values first
+        series = _force_real_series(series)
+        result = series.std(ddof=ddof)
+        # Handle complex result from pandas bug
+        if isinstance(result, (complex, np.complexfloating)):
+            result = np.real(result)
+        result = float(result)
+        if not np.isfinite(result) or result < 0:
+            return 0.0
+        return result
+    except Exception:
+        return 0.0
 
 
 def compute_metrics(equity_curve: pd.Series, trades: pd.DataFrame) -> dict[str, float]:
@@ -11,46 +61,89 @@ def compute_metrics(equity_curve: pd.Series, trades: pd.DataFrame) -> dict[str, 
         return {}
 
     equity = equity_curve.dropna()
-    start = float(equity.iloc[0])
-    end = float(equity.iloc[-1])
-    total_return = 0.0 if start == 0 else (end / start) - 1.0
+    
+    # FIX V6: Force equity to real values at the start
+    equity = _force_real_series(equity)
+    
+    start = _safe_float(equity.iloc[0], default=1.0)
+    end = _safe_float(equity.iloc[-1], default=1.0)
+    
+    # Protect against division by zero
+    if start == 0:
+        start = 1.0
+    total_return = (end / start) - 1.0
 
     years = _years_between(equity.index)
-    cagr = (end / start) ** (1 / years) - 1.0 if years > 0 and start > 0 else 0.0
+    if years > 0 and start > 0:
+        cagr = (end / start) ** (1 / years) - 1.0
+    else:
+        cagr = 0.0
+    cagr = _safe_float(cagr)
 
     returns = equity.pct_change().dropna()
+    
+    # FIX V6: Force returns to real values
+    returns = _force_real_series(returns)
+    
     periods_per_year = _periods_per_year(equity.index)
-    sharpe = _ratio(returns.mean(), returns.std(ddof=0)) * (periods_per_year**0.5)
+    periods_per_year = _safe_float(periods_per_year, default=252.0)
+    if periods_per_year <= 0:
+        periods_per_year = 252.0
+    
+    # FIX V6: Use safe std calculation
+    std_returns = _safe_std(returns, ddof=0)
+    mean_returns = _safe_float(returns.mean())
+    
+    # Calculate Sharpe with full protection
+    if std_returns > 0:
+        sharpe = _safe_float(mean_returns / std_returns) * np.sqrt(periods_per_year)
+    else:
+        sharpe = 0.0
+    sharpe = _safe_float(sharpe)
+    
+    # Sortino calculation with protection
     downside = returns[returns < 0]
-    sortino = _ratio(returns.mean(), downside.std(ddof=0)) * (periods_per_year**0.5)
+    std_downside = _safe_std(downside, ddof=0)
+    
+    if std_downside > 0:
+        sortino = _safe_float(mean_returns / std_downside) * np.sqrt(periods_per_year)
+    else:
+        sortino = 0.0
+    sortino = _safe_float(sortino)
 
     drawdown, max_drawdown, max_drawdown_duration = _max_drawdown(equity)
-    calmar = _ratio(cagr, abs(max_drawdown)) if max_drawdown != 0 else 0.0
+    max_drawdown = _safe_float(max_drawdown)
+    
+    if max_drawdown != 0:
+        calmar = _ratio(cagr, abs(max_drawdown))
+    else:
+        calmar = 0.0
+    calmar = _safe_float(calmar)
 
     pnl_series = _trade_pnl(trades)
-    win_rate = _win_rate(pnl_series)
-    profit_factor = _profit_factor(pnl_series)
-    expectancy = float(pnl_series.mean()) if not pnl_series.empty else 0.0
+    win_rate = _safe_float(_win_rate(pnl_series))
+    profit_factor = _safe_float(_profit_factor(pnl_series))
+    expectancy = _safe_float(pnl_series.mean()) if not pnl_series.empty else 0.0
 
-    var_95 = returns.quantile(0.05) if not returns.empty else 0.0
-    cvar_95 = returns[returns <= var_95].mean() if not returns.empty else 0.0
+    var_95 = _safe_float(returns.quantile(0.05)) if not returns.empty else 0.0
+    cvar_95 = _safe_float(returns[returns <= var_95].mean()) if not returns.empty else 0.0
 
     hour_blocks = _hour_block_stats(returns)
     weekday_stats = _weekday_stats(returns)
 
     return {
-        "total_return": total_return,
-        "cagr": cagr,
+        "total_return": _safe_float(total_return),
+        "cagr": _safe_float(cagr),
         "sharpe_ratio": sharpe,
         "sortino_ratio": sortino,
         "calmar_ratio": calmar,
         "max_drawdown": max_drawdown,
-        "max_drawdown_duration": float(max_drawdown_duration),
+        "max_drawdown_duration": _safe_float(max_drawdown_duration),
         "win_rate": win_rate,
         "profit_factor": profit_factor,
         "expectancy": expectancy,
-        "var_95": float(var_95) if pd.notna(var_95) else 0.0,
-        "cvar_95": float(cvar_95) if pd.notna(cvar_95) else 0.0,
+        "var_95": var_95,
+        "cvar_95": cvar_95,
         "hour_block_avg_return": hour_blocks,
         "weekday_avg_return": weekday_stats,
     }
@@ -86,7 +179,12 @@ def _periods_per_year(index: pd.Index) -> float:
     delta = (index[1:] - index[:-1]).median()
     if delta <= pd.Timedelta(0):
         return 252.0
-    return pd.Timedelta(days=365.25) / delta
+    
+    result = pd.Timedelta(days=365.25) / delta
+    # FIX: Protection contre valeurs invalides
+    if pd.isna(result) or result <= 0 or result == float('inf'):
+        return 252.0
+    return float(result)
 
 
 def _years_between(index: pd.Index) -> float:

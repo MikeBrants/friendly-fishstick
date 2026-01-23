@@ -52,6 +52,65 @@ Ce fichier contient les validations des 7 guards par Sam.
 
 <!-- Les messages les plus recents en haut -->
 
+## [10:30] [WAITING] Phase 3B Optimization - Surveillance @Sam
+
+**Task ref:** Phase 3B Displacement Grid Optimization
+**Assets:** BTC, ETH, JOE
+**Run ref:** @Jordan lance `run_phase3b_optimization.py`
+**Date run:** 2026-01-23 (en cours)
+
+### Contexte
+Phase 3B lancée sur les 3 premiers assets PROD pour tester les displacements alternatifs (26, 52, 78) et identifier des améliorations potentielles.
+
+**Baseline actuel:**
+- BTC: d52, baseline mode, Sharpe 2.14, WFE >0.6
+- ETH: d52, medium_distance_volume mode, Sharpe 2.09, WFE 0.82
+- JOE: d26, baseline mode, Sharpe 5.03, WFE 1.44
+
+### Objectif
+Surveiller les résultats de Phase 3B et analyser:
+1. **Fichiers à surveiller:**
+   - `outputs/displacement_optimization_*.csv` (résultats détaillés)
+   - `outputs/displacement_optimization_summary_*.csv` (résumé avec recommandations)
+   - `outputs/phase3b_*_guards_summary_*.csv` (guards par displacement)
+
+2. **Critères d'évaluation:**
+   - Amélioration Sharpe OOS > 10% vs baseline
+   - 7/7 guards PASS pour le nouveau displacement
+   - WFE maintenu > 0.6
+   - Trades OOS > 60
+
+3. **Actions requises:**
+   - [ ] Vérifier que tous les runs sont complétés (3 assets × 3 displacements = 9 runs)
+   - [ ] Analyser les résultats dans `displacement_optimization_summary_*.csv`
+   - [ ] Pour chaque asset, valider les guards pour chaque displacement testé
+   - [ ] Identifier les recommandations KEEP vs UPDATE
+   - [ ] Vérifier que les améliorations > 10% respectent les critères (guards PASS)
+   - [ ] Documenter les findings et recommandations
+
+### Checklist Validation
+
+Pour chaque asset (BTC, ETH, JOE) et chaque displacement (26, 52, 78):
+
+- [ ] **Optimization complétée:** Scan results disponibles
+- [ ] **Guards complétés:** 7/7 guards PASS/FAIL documentés
+- [ ] **Métriques comparées:** Sharpe OOS, WFE, Trades vs baseline
+- [ ] **Critère remplacement:** Amélioration > 10% ET 7/7 guards PASS
+- [ ] **Recommandation:** KEEP (baseline optimal) ou UPDATE (nouveau displacement meilleur)
+
+### Outputs attendus
+
+1. **Résumé par asset:**
+   - Displacement actuel vs meilleur displacement trouvé
+   - Amélioration Sharpe (si applicable)
+   - Status guards (7/7 PASS requis pour UPDATE)
+
+2. **Recommandations finales:**
+   - Assets à mettre à jour dans `asset_config.py` (si amélioration > 10% + guards PASS)
+   - Assets à garder avec displacement actuel (baseline optimal)
+
+**Next:** Analyser les résultats dès que disponibles et documenter les recommandations pour @Casey
+
 ## [23:20] [VALIDATION] @Sam -> @Casey
 
 **Asset:** HBAR

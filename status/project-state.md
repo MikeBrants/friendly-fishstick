@@ -1,6 +1,6 @@
 # Project State — FINAL TRIGGER v2
 
-**Derniere mise a jour:** 2026-01-23 09:15 @Jordan
+**Derniere mise a jour:** 2026-01-23 12:15 @Jordan
 
 ***
 
@@ -8,11 +8,11 @@
 
 | Metrique | Valeur |
 |----------|--------|
-| Phase | Revalidation post-fix TP + Expansion |
-| Assets PROD | **12** (BTC, ETH, JOE, OSMO, MINA, AVAX, AR, ANKR, DOGE, OP, DOT, NEAR) |
-| Assets en attente | ~3 (SHIB, STRK, METIS, AEVO - guards en cours/bug) |
-| Assets exclus | 21+ |
-| Bug critique | RESOLU (TP progression + timezone) |
+| Phase | Expansion Portfolio (75% objectif) |
+| Assets PROD | **15** (BTC, ETH, JOE, OSMO, MINA, AVAX, AR, ANKR, DOGE, OP, DOT, NEAR, SHIB, METIS, YGG) |
+| Assets en attente | 0 |
+| Assets exclus | 23+ (STRK, AEVO ajoutés) |
+| Bug critique | RESOLU (TP progression + complex numbers) |
 
 ***
 
@@ -32,31 +32,29 @@
 | **OP** | baseline | 78 | 2.43 | 1.65 | 90 | **2026-01-22** |
 | **DOT** | baseline | 52 | 4.58 | 2.58 | 96 | **2026-01-23** |
 | **NEAR** | baseline | 52 | 3.20 | 1.59 | 72 | **2026-01-23** |
+| **SHIB** | baseline | 52 | 5.88 | 2.42 | 96 | **2026-01-23** |
+|| **METIS** | baseline | 52 | 2.69 | 0.85 | - | **2026-01-23** |
+|| **YGG** | baseline | 52 | 2.98 | 0.78 | - | **2026-01-23** |
 
 **Nouveaux ajouts (2026-01-22):** AVAX, AR, ANKR, DOGE, OP (+5 assets)  
-**Nouveaux ajouts (2026-01-23):** DOT, NEAR (+2 assets)
+**Nouveaux ajouts (2026-01-23 AM):** DOT, NEAR, SHIB (+3 assets)  
+**Nouveaux ajouts (2026-01-23 PM):** METIS, YGG (+2 assets) — Fix V6 complex numbers
 
 ***
 
 ## EN ATTENTE
 
 ### P0 (Urgent)
-- [❌] UNI — **FAIL** moderate mode (OOS Sharpe 0.03, WFE 0.01) — variants épuisés
-- [❌] HBAR — **FAIL** medium_distance_volume (4/7 guards FAIL, variants proposés)
+- [❌] HBAR — **FAIL** d26 (OOS Sharpe 0.30, WFE 0.11) — Tester d78 (Phase 3A Rescue)
 
 ### P1
-- [✅] DOT — **PRODUCTION** (OOS Sharpe 4.58, WFE 2.58, 6/7 guards PASS)
-- [✅] NEAR — **PRODUCTION** (OOS Sharpe 3.20, WFE 1.59, 6/7 guards PASS)
-- [❌] SHIB — **BUG** guards complex number error (scan OK: OOS Sharpe 5.88, WFE 2.42)
+- [✅] METIS — **PRODUCTION** (OOS Sharpe 2.69, WFE 0.85, 7/7 guards PASS) — Fix V6 réussi
+- [✅] YGG — **PRODUCTION** (OOS Sharpe 2.98, WFE 0.78, 7/7 guards PASS) — Fix V6 réussi
 
 ### P2
+- [❌] STRK — **EXCLU** (sensitivity 12.5% > 10%, bootstrap CI 0.56 < 1.0)
+- [❌] AEVO — **EXCLU** (sensitivity 15.0% > 10%)
 - [❌] EGLD — **FAIL** (WFE 0.31 < 0.6, OOS Sharpe 0.91 < 1.0)
-
-### P3 (Guards en cours - fix timezone)
-- [❌] STRK — **BUG** guards complex number error (scan OK: OOS Sharpe 1.27, WFE 0.85)
-- [❌] METIS — **BUG** guards complex number error (scan OK: OOS Sharpe 2.89, WFE 0.85)
-- [❌] AEVO — **BUG** guards complex number error (scan OK: OOS Sharpe 1.23, WFE 0.62)
-- [❌] YGG — **BUG** guards complex number error (scan OK: OOS Sharpe 3.04, WFE 0.78)
 - [❌] ARKM — **FAIL** (OOS Sharpe 0.94 < 1.0, WFE 0.57 < 0.6)
 
 ***
@@ -64,9 +62,12 @@
 ## EXCLUS (Definitif)
 
 SEI, CAKE, AXS, RUNE, TON, SOL, AAVE, HYPE, ATOM, ARB, LINK, INJ, TIA,
-HOOK, ALICE, HMSTR, LOOM, APT, EIGEN, ONDO, ICP, ARKM, EGLD, UNI
+HOOK, ALICE, HMSTR, LOOM, APT, EIGEN, ONDO, ICP, ARKM, EGLD, UNI, STRK, AEVO
 
-**Nouveau (2026-01-23):** UNI exclu — moderate mode FAIL (OOS Sharpe 0.03, WFE 0.01)
+**Nouveaux (2026-01-23):**
+- UNI exclu — moderate mode FAIL (OOS Sharpe 0.03, WFE 0.01)
+- STRK exclu — sensitivity 12.5% > 10%, bootstrap CI 0.56 < 1.0
+- AEVO exclu — sensitivity 15.0% > 10%
 
 ***
 
@@ -75,9 +76,10 @@ HOOK, ALICE, HMSTR, LOOM, APT, EIGEN, ONDO, ICP, ARKM, EGLD, UNI
 | Asset | Blocker | Resolution | Status |
 |-------|---------|------------|--------|
 | UNI | guard002 variance 26.23% > 10%, WFE 0.42 < 0.6, moderate FAIL | Variants épuisés — **EXCLU** | ❌ |
-| HBAR | 4/7 guards FAIL (sens 11.49%, CI 0.30, top10 41%, stress1 0.62) | Variants proposés: d26, d78, ou autres filters | ❌ |
-| YGG | Guards complex number error | Fix timezone appliqué mais erreur persiste — investigation requise | ❌ |
-| SHIB, STRK, METIS, AEVO | Guards complex number error | Fix timezone appliqué mais erreur persiste — investigation requise | ❌ |
+| HBAR | d26 FAIL (Sharpe 0.30, WFE 0.11) | Tester d78 — Phase 3A Rescue | 🔄 |
+| SHIB | Guards complex number error | ✅ **RESOLU** — Fix V3 réussi, 7/7 guards PASS | ✅ |
+| METIS, YGG | Guards complex number error | ✅ **RESOLU** — Fix V6 réussi, 7/7 guards PASS | ✅ |
+| STRK, AEVO | Guards complex number error | Fix V6 appliqué — EXCLUS (sensitivity > 10%) | ❌ |
 
 ***
 
@@ -116,6 +118,8 @@ HOOK, ALICE, HMSTR, LOOM, APT, EIGEN, ONDO, ICP, ARKM, EGLD, UNI
 
 ## Prochaines Étapes
 
-1. **Investigation complex number** — YGG, SHIB, STRK, METIS, AEVO (fix timezone insuffisant)
-2. **HBAR variants** — tester d26, d78 si disponible
-3. **Mise à jour asset_config.py** — ajouter DOT, NEAR avec params validés
+1. ✅ **METIS, YGG débloqués** — Fix V6 réussi, 7/7 guards PASS → 15 assets PROD (75%)
+2. 🔄 **Phase 3B** — BTC, ETH, JOE displacement grid optimization en cours
+3. ⏸️ **HBAR d78** — Phase 3A Rescue (d26 FAIL)
+4. 📊 **Nouveaux assets** — Screening Top 50 cryptos pour expansion portfolio (objectif 20+)
+5. 🎯 **Objectif:** 20+ assets PROD → 5 assets restants

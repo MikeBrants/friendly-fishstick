@@ -1,0 +1,11 @@
+GUARDS VALIDATION REPORT: YGG
+======================================================================
+GUARD-001 Monte Carlo p-value: 0.0000 -> PASS
+GUARD-002 Sensitivity variance: 4.95% -> PASS
+GUARD-003 Bootstrap Sharpe CI lower: 3.26 -> PASS
+GUARD-005 Trade distribution top10: 17.70% -> PASS
+GUARD-006 Stress1 Sharpe: 2.64 -> PASS
+GUARD-007 Regime reconciliation mismatch: 0.00% -> PASS
+GUARD-WFE: 0.78 -> PASS
+----------------------------------------------------------------------
+ALL PASS: YES

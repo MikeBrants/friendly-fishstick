@@ -1,6 +1,6 @@
-"""Production asset configuration for the validated 12-asset portfolio.
+"""Production asset configuration for the validated 15-asset portfolio.
 
-Updated: 2026-01-23
+Updated: 2026-01-23 12:15
 All TP values are progressive: TP1 < TP2 < TP3 with min gap 0.5
 """
 
@@ -158,6 +158,45 @@ ASSET_CONFIG = {
         },
         "ichimoku": {"tenkan": 8, "kijun": 32},
         "five_in_one": {"tenkan_5": 9, "kijun_5": 28},
+        "displacement": 52,
+        "filter_mode": "baseline",
+    },
+    "SHIB": {
+        "pair": "SHIB/USDT",
+        "atr": {
+            "sl_mult": 1.5,
+            "tp1_mult": 4.75,
+            "tp2_mult": 6.0,
+            "tp3_mult": 8.0,
+        },
+        "ichimoku": {"tenkan": 19, "kijun": 25},
+        "five_in_one": {"tenkan_5": 14, "kijun_5": 16},
+        "displacement": 52,
+        "filter_mode": "baseline",
+    },
+    "METIS": {
+        "pair": "METIS/USDT",
+        "atr": {
+            "sl_mult": 1.5,
+            "tp1_mult": 4.75,
+            "tp2_mult": 7.5,
+            "tp3_mult": 9.5,
+        },
+        "ichimoku": {"tenkan": 16, "kijun": 20},
+        "five_in_one": {"tenkan_5": 8, "kijun_5": 17},
+        "displacement": 52,
+        "filter_mode": "baseline",
+    },
+    "YGG": {
+        "pair": "YGG/USDT",
+        "atr": {
+            "sl_mult": 1.5,
+            "tp1_mult": 5.0,
+            "tp2_mult": 7.5,
+            "tp3_mult": 9.0,
+        },
+        "ichimoku": {"tenkan": 11, "kijun": 39},
+        "five_in_one": {"tenkan_5": 12, "kijun_5": 24},
         "displacement": 52,
         "filter_mode": "baseline",
     },

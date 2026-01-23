@@ -1,0 +1,4 @@
+asset,guard001_pass,guard002_pass,guard003_pass,guard005_pass,guard006_pass,guard007_pass,guard_wfe_pass,all_pass,error
+STRK,False,False,False,False,False,False,False,False,missing_params
+METIS,False,False,False,False,False,False,False,False,missing_params
+AEVO,False,False,False,False,False,False,False,False,missing_params
