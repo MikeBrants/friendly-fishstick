@@ -25,6 +25,87 @@ Ce fichier contient les taches assignees par Casey aux autres agents.
 
 ## Historique
 
+## [17:10] [TASK] @Casey -> @Jordan
+
+**Context:** IMX Phase 2 Validation FAIL (4/7 guards PASS). 3 guards FAIL: guard002 (sensitivity 13.20%), guard003 (bootstrap CI 0.37), guard006 (stress Sharpe 0.92). Tester deux options de rescue.
+
+**Task:** IMX Rescue - Phase 4 Filter Grid + Phase 3A Displacement Grid
+**Asset:** IMX
+**Objectif:** Résoudre les 3 guards FAIL pour passer en PROD
+
+**Option 1 - Phase 4 Filter Grid (medium_distance_volume):**
+**Hypothèse:** Le filter mode `medium_distance_volume` a résolu guard002 (sensitivity) pour ETH (6.00% < 10%). Tester sur IMX.
+
+**Command Phase 4:**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets IMX \
+  --optimization-mode medium_distance_volume \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --workers 6 \
+  --skip-download
+```
+
+**Option 2 - Phase 3A Rescue (Displacement Grid):**
+**Hypothèse:** Tester displacement d26 et d78 (pattern JOE d26, OSMO/MINA d78) pour améliorer guards.
+
+**Command Phase 3A - Displacement 26:**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets IMX \
+  --fixed-displacement 26 \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --workers 6 \
+  --skip-download
+```
+
+**Command Phase 3A - Displacement 78:**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets IMX \
+  --fixed-displacement 78 \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --workers 6 \
+  --skip-download
+```
+
+**Ordre d'exécution recommandé:**
+1. **Phase 4 Filter Grid** (medium_distance_volume) - priorité car a résolu guard002 pour ETH
+2. Si Phase 4 FAIL → **Phase 3A d26** (pattern JOE)
+3. Si Phase 3A d26 FAIL → **Phase 3A d78** (pattern OSMO/MINA)
+
+**Criteres succes (7/7 guards PASS):**
+- WFE > 0.6
+- MC p-value < 0.05
+- Sensitivity var < 10% (guard002 - CRITIQUE)
+- Bootstrap CI lower > 1.0 (guard003 - CRITIQUE)
+- Top10 trades < 40%
+- Stress1 Sharpe > 1.0 (guard006 - CRITIQUE)
+- Regime mismatch < 1%
+- OOS Sharpe > 1.0 (target > 2.0)
+- OOS Trades > 60
+
+**Outputs attendus:**
+- `outputs/multiasset_scan_YYYYMMDD_HHMMSS.csv` (résultats scan)
+- `outputs/multiasset_guards_summary_YYYYMMDD_HHMMSS.csv` (résultats guards)
+- Documenter dans `comms/jordan-dev.md` avec format standard
+
+**Next:** 
+- Si 7/7 guards PASS → PRODUCTION ✅
+- Si <7/7 guards PASS → Documenter et passer à l'option suivante
+- Si toutes options FAIL → EXCLU
+
+---
+
 ## [17:00] [TASK] @Casey -> @Jordan
 
 **Context:** IMX a passé Phase 1 Screening (OOS Sharpe 1.64, WFE 0.71). GMX, PENDLE, STX, FET ont FAIL (overfit). Objectif: trouver 5+ nouveaux assets viables pour PROD.
@@ -675,8 +756,9 @@ python scripts/run_full_pipeline.py \
 - ❌ Phase 1 Screening Batch 1: BNB, XRP, ADA, TRX, LTC, XLM tous EXCLU (tous FAIL)
 
 **En cours:**
+- 🔄 IMX Rescue: **TASK [17:10]** — Phase 4 Filter Grid (medium_distance_volume) + Phase 3A Displacement Grid (d26, d78)
 - 🔄 Phase 1 Screening Batch 3: **TASK [17:00]** — 20 nouveaux assets (GALA, SAND, MANA, ENJ, FLOKI, PEPE, WIF, RONIN, PIXEL, ILV, FIL, THETA, CHZ, CRV, SUSHI, ONE, KAVA, ZIL, CFX, ROSE)
-- 🔄 Phase 2 Validation IMX: **TASK [16:45]** — 300 trials + 7 guards complets
+- ✅ Phase 2 Validation IMX: **COMPLÉTÉ [17:01]** — 4/7 guards PASS (3 FAIL: guard002, guard003, guard006)
 - ✅ Phase 1 Screening Batch 2: **COMPLÉTÉ [16:28]** — IMX PASS (1/5), 4 FAIL
 
 **Portfolio actuel:**
