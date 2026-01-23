@@ -261,6 +261,19 @@ def evaluate_displacement(
             "error": "No optimization results",
         }
     
+    # Garde-fou: WFE négatif = overfitting détecté
+    wfe_value = opt_results.get("wfe", 0)
+    if wfe_value < 0:
+        print(f"  [{asset}] WARNING: WFE négatif ({wfe_value:.2f}) = overfitting détecté")
+        return {
+            "asset": asset,
+            "displacement": displacement,
+            "status": "OVERFITTING",
+            "wfe": wfe_value,
+            "oos_sharpe": opt_results.get("oos_sharpe", 0),
+            "error": "WFE < 0 indicates overfitting",
+        }
+    
     # Charge résultats guards
     guards_results = load_guards_results(asset, displacement)
     
@@ -306,17 +319,20 @@ def main() -> None:
         default=None,
         help="Specific assets to optimize (default: all PROD assets)",
     )
+    # Phase 3B: 150 trials (vs 300 Phase 2) pour éviter overfitting
+    # sur assets avec baseline déjà optimisé. Augmenter seulement si
+    # WFE reste >0.6 et amélioration <5%.
     parser.add_argument(
         "--trials-atr",
         type=int,
-        default=300,
-        help="Number of ATR optimization trials (default: 300)",
+        default=150,
+        help="Number of ATR optimization trials (default: 150)",
     )
     parser.add_argument(
         "--trials-ichi",
         type=int,
-        default=300,
-        help="Number of Ichimoku optimization trials (default: 300)",
+        default=150,
+        help="Number of Ichimoku optimization trials (default: 150)",
     )
     parser.add_argument(
         "--workers",
@@ -419,7 +435,7 @@ def main() -> None:
             all_results.append(result)
             
             if result.get("status") == "PASS":
-                print(f"\n[{asset}] ✅ Displacement {disp} PASSES criteria:")
+                print(f"\n[{asset}] [PASS] Displacement {disp} PASSES criteria:")
                 print(f"  Sharpe: {result['oos_sharpe']:.2f} (improvement: {result['improvement_pct']:.1f}%)")
                 print(f"  WFE: {result['wfe']:.2f}")
                 print(f"  Guards: PASS")
@@ -429,7 +445,7 @@ def main() -> None:
                     best_result = result
                     best_displacement = disp
             else:
-                print(f"\n[{asset}] ❌ Displacement {disp} FAILS criteria:")
+                print(f"\n[{asset}] [FAIL] Displacement {disp} FAILS criteria:")
                 if not result.get("all_guards_pass"):
                     print(f"  Guards: FAIL")
                 if result.get("improvement_pct", 0) <= 10.0:
@@ -452,9 +468,9 @@ def main() -> None:
         print(f"  Current: d{baseline_disp} (Sharpe {baseline_sharpe:.2f})")
         print(f"  Best: d{best_displacement} (Sharpe {best_result['oos_sharpe']:.2f})")
         if best_displacement != baseline_disp:
-            print(f"  ✅ RECOMMENDATION: Update to d{best_displacement}")
+            print(f"  [PASS] RECOMMENDATION: Update to d{best_displacement}")
         else:
-            print(f"  ✅ RECOMMENDATION: Keep current d{baseline_disp}")
+            print(f"  [PASS] RECOMMENDATION: Keep current d{baseline_disp}")
     
     # Export résultats
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -478,12 +494,12 @@ def main() -> None:
     
     updates = summary_df[summary_df["recommendation"] == "UPDATE"]
     if not updates.empty:
-        print(f"\n✅ Assets to update: {len(updates)}")
+        print(f"\n[PASS] Assets to update: {len(updates)}")
         for _, row in updates.iterrows():
             print(f"  {row['asset']}: d{row['current_displacement']} → d{row['best_displacement']} "
                   f"(+{row['improvement_pct']:.1f}% Sharpe)")
     else:
-        print("\n✅ No updates recommended - all assets already optimal")
+        print("\n[PASS] No updates recommended - all assets already optimal")
     
     print(f"\nFinished: {datetime.now().isoformat()}")
 

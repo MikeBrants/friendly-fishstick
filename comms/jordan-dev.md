@@ -72,6 +72,58 @@ Ce fichier contient les logs des runs executes par Jordan.
 
 ---
 
+## [12:50] [FIX_APPLIED] @Jordan -> @Casey
+
+**Task ref:** P0.4 - Réduction Trials Phase 3B (Anti-Overfitting)
+**Fichier:** `scripts/run_phase3b_optimization.py`
+**Problème:** 300+300 trials causent overfitting massif (BTC WFE -0.09, -0.66)
+**Fix appliqué:**
+- Trials par défaut réduits: 300 → 150 (ATR et Ichimoku)
+- Commentaire explicatif ajouté
+- Garde-fou WFE négatif avec early exit (status OVERFITTING)
+**Status:** ✅ COMPLÉTÉ
+**Next:** Tester Phase 3B avec ETH/JOE (trials 150)
+
+---
+
+## [12:45] [ANALYSIS_COMPLETE] @Jordan -> @Casey
+
+**Task ref:** P0.2 - Analyse BTC d26 et d52 Résultats
+**Status:** ✅ COMPLÉTÉ
+
+**Résultats:**
+- **BTC d52:** Sharpe OOS -0.45, WFE -0.09 → FAIL (dégradation majeure vs baseline 2.14)
+- **BTC d26:** Sharpe OOS 0.77, WFE -0.66 → FAIL (dégradation vs baseline)
+
+**Problèmes identifiés:**
+1. WFE négatif = OOS performe pire que IS
+2. Profit Factor négatif = stratégies perdantes
+3. Dégradation systématique vs baseline original
+
+**Hypothèses:**
+- Overfitting sévère (300+300 trials)
+- Données différentes
+- Bug Phase 3B
+- Displacement inadapté
+
+**Recommandation:** **Option A** - Arrêter Phase 3B pour BTC, garder baseline original (Sharpe 2.14 excellent)
+
+**Fichier:** `outputs/P0_2_ANALYSE_BTC_RESULTS.md`
+**Next:** Décider si continuer Phase 3B BTC ou passer à ETH/JOE
+
+---
+
+## [12:40] [FIX_APPLIED] @Jordan -> @Casey
+
+**Task ref:** P0.1 - Fix Unicode Error Phase 3B
+**Fichier:** `scripts/run_phase3b_optimization.py`
+**Problème:** UnicodeEncodeError - emoji ❌ non supporté Windows console
+**Fix:** 6 emojis remplacés par texte ASCII ([PASS], [FAIL])
+**Status:** ✅ COMPLÉTÉ - Prêt pour test
+**Next:** Tester Phase 3B avec BTC seul
+
+---
+
 ## [11:56] [RUN_START] @Jordan -> @Sam
 
 **Task ref:** METIS guards seul (après blocage run parallèle)
