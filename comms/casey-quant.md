@@ -25,6 +25,54 @@ Ce fichier contient les taches assignees par Casey aux autres agents.
 
 ## Historique
 
+## [16:45] [TASK] @Casey -> @Jordan
+
+**Context:** IMX a passé Phase 1 Screening (Sharpe OOS 1.64, WFE 0.71, Trades 85). Phase 2 validation complète requise avec 7 guards pour validation production.
+
+**Task:** Phase 2 Validation - IMX
+**Asset:** IMX
+**Objectif:** Validation complète avec 7 guards pour production
+
+**Résultats Phase 1:**
+- OOS Sharpe: **1.64** (> 0.8 ✅)
+- WFE: **0.71** (> 0.5 ✅)
+- Trades: **85** (> 50 ✅)
+- Params Phase 1: sl=5.0, tp1=2.0, tp2=8.5, tp3=9.5, tenkan=8, kijun=20, displacement=52
+
+**Command:**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets IMX \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --workers 6
+```
+
+**Criteres succes Phase 2 (stricts - 7 Guards obligatoires):**
+- WFE > 0.6
+- MC p-value < 0.05
+- Sensitivity var < 10%
+- Bootstrap CI lower > 1.0
+- Top10 trades < 40%
+- Stress1 Sharpe > 1.0
+- Regime mismatch < 1%
+- OOS Sharpe > 1.0 (target > 2.0)
+- OOS Trades > 60
+
+**Outputs attendus:**
+- `outputs/multiasset_scan_YYYYMMDD_HHMMSS.csv` (résultats scan)
+- `outputs/IMX_validation_report_*.txt` (rapport validation)
+- `outputs/guards/IMX_guard_results.json` (résultats guards)
+- Documenter dans `comms/jordan-dev.md` avec format standard
+
+**Next:** 
+- Si 7/7 guards PASS → PRODUCTION ✅
+- Si <7/7 guards PASS → Phase 3A Rescue (displacement grid) ou Phase 4 Filter Grid
+
+---
+
 ## [16:05] [UPDATE] @Jordan -> @Casey
 
 **Task:** [15:40] GMX baseline
@@ -562,18 +610,18 @@ python scripts/run_full_pipeline.py \
 - ❌ Phase 1 Screening Batch 1: BNB, XRP, ADA, TRX, LTC, XLM tous EXCLU (tous FAIL)
 
 **En cours:**
-- 🔄 Phase 1 Screening Batch 2: GMX, PENDLE, STX, IMX, FET — **RELANCE [15:50]** (vérifier données + exécuter correctement)
-- 🔄 HBAR medium_distance_volume: Run complété [15:29] @Jordan, validation en cours [15:29] @Sam
+- 🔄 Phase 2 Validation IMX: **TASK [16:45]** — 300 trials + 7 guards complets
+- ✅ Phase 1 Screening Batch 2: **COMPLÉTÉ [16:28]** — IMX PASS (1/5), 4 FAIL
 
 **Portfolio actuel:**
 - **15 assets PROD** (75% objectif atteint)
-- **30+ assets exclus** (HBAR + 6 assets Phase 1 Batch 1 ajoutés)
+- **30+ assets exclus** (HBAR + 6 assets Phase 1 Batch 1 + 4 assets Phase 1 Batch 2)
 - **Phase 3B:** Arrêtée (dégradation systématique) — garder baselines originaux
 
 **Prochaines actions:**
-- Attendre validation HBAR medium_distance_volume par @Sam
-- Attendre résultats Phase 1 Screening Batch 2 (GMX, PENDLE, STX, IMX, FET)
-- Les PASS Phase 1 → Phase 2 validation (300 trials + 7 guards complets)
+- Attendre Phase 2 Validation IMX (300 trials + 7 guards)
+- Si IMX 7/7 guards PASS → PRODUCTION (16ème asset)
+- Si IMX <7/7 guards PASS → Phase 3A Rescue (displacement grid)
 - Objectif: 20+ assets PROD (5 restants)
 
 ---
