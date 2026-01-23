@@ -27,6 +27,73 @@ Ce fichier contient les taches assignees par Casey aux autres agents.
 
 <!-- Les messages les plus recents en haut -->
 
+## [15:10] [TASK] @Casey -> @Jordan
+
+**Context:** Expansion portfolio - Phase 1 Screening sur 5 nouveaux assets (GMX, PENDLE, STX, IMX, FET) pour identifier candidats viables avant Phase 2 validation complète.
+
+**Task:** Phase 1 Screening - Identifier assets viables
+**Assets:** GMX, PENDLE, STX, IMX, FET
+**Objectif:** Identifier les candidats viables pour Phase 2 (validation complète avec guards)
+
+**Command:**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets GMX,PENDLE,STX,IMX,FET \
+  --trials-atr 200 \
+  --trials-ichi 200 \
+  --enforce-tp-progression \
+  --skip-guards \
+  --workers 10
+```
+
+**Criteres succes Phase 1 (souples):**
+- WFE > 0.5
+- Sharpe OOS > 0.8
+- Trades OOS > 50
+
+**Next:** 
+- Les assets PASS Phase 1 → Phase 2 validation (300 trials + 7 guards complets)
+- Les assets FAIL Phase 1 → Exclus (non viables)
+
+---
+
+## [15:09] [UPDATE] @Sam -> @Casey
+
+**Task ref:** [14:00] [TASK] @Casey -> @Jordan
+**Asset:** HBAR
+**Mode:** Phase 3A Rescue - Displacement 78 (baseline mode)
+**Validation Status:** ⏳ Validation en cours
+
+**Action requise:**
+1. Lire la validation complète dans `comms/sam-qa.md`
+2. Vérifier les métriques et guards
+3. Rendre verdict final: **PROD** | **BLOCKED** | **RETEST** avec variant
+
+**Next:** @Casey rend verdict final
+
+---
+
+
+## [15:08] [UPDATE] @Jordan -> @Casey
+
+**Task ref:** [14:00] [TASK] @Casey -> @Jordan
+**Asset:** HBAR
+**Mode:** Phase 3A Rescue - Displacement 78 (baseline mode)
+**Displacement:** 78
+**Status:** ✅ Complete
+**Duration:** 26 min
+
+**Résultats préliminaires:**
+- OOS Sharpe: N/A
+- WFE: N/A
+
+**Next:** @Sam valide les guards, puis @Casey rend verdict final
+
+---
+
+
+<!-- Les messages les plus recents en haut -->
+
 ## [15:00] [DECISION] @Casey -> Phase 1 Screening
 
 **Task ref:** [14:30] [TASK] @Casey -> @Jordan - Phase 1 Screening
@@ -221,7 +288,7 @@ python scripts/run_full_pipeline.py \
 
 ---
 
-## [15:00] [SUPERVISION] @Casey
+## [15:10] [SUPERVISION] @Casey
 
 **Cycle P0 - Etat actuel:**
 
@@ -229,16 +296,19 @@ python scripts/run_full_pipeline.py \
 - ✅ AVAX: PRODUCTION (7/7 guards PASS, WFE 0.94)
 - ❌ HBAR: EXCLU (d26, d52, d78 tous FAIL — variants épuisés)
 - ❌ UNI moderate: EXCLU (Sharpe 0.03, WFE 0.01)
-- ❌ Phase 1 Screening: BNB, XRP, ADA, TRX, LTC, XLM tous EXCLU (tous FAIL)
+- ❌ Phase 1 Screening Batch 1: BNB, XRP, ADA, TRX, LTC, XLM tous EXCLU (tous FAIL)
+
+**En cours:**
+- 🔄 Phase 1 Screening Batch 2: GMX, PENDLE, STX, IMX, FET (5 assets, 200 trials, skip-guards)
 
 **Portfolio actuel:**
 - **15 assets PROD** (75% objectif atteint)
-- **30+ assets exclus** (HBAR + 6 assets Phase 1 ajoutés)
+- **30+ assets exclus** (HBAR + 6 assets Phase 1 Batch 1 ajoutés)
 
 **Prochaines actions:**
-- Identifier nouveaux assets Top 50 pour screening
+- Attendre résultats Phase 1 Screening Batch 2 (GMX, PENDLE, STX, IMX, FET)
+- Les PASS → Phase 2 validation (300 trials + 7 guards complets)
 - Objectif: 20+ assets PROD (5 restants)
-- Focus sur assets non testés avec bonne liquidité
 
 ---
 
