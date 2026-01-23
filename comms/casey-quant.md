@@ -25,6 +25,79 @@ Ce fichier contient les taches assignees par Casey aux autres agents.
 
 ## Historique
 
+## [20:30] [TASK] @Casey -> @Jordan
+
+**Context:** IMX Phase 4 Filter Grid FAIL (scan FAIL, overfitting sévère WFE -2.80). Phase 3A Rescue requis - tester displacement d26 et d78 (patterns JOE et OSMO/MINA).
+
+**Task:** IMX Rescue - Phase 3A Displacement Grid
+**Asset:** IMX
+**Objectif:** Résoudre les 3 guards FAIL (guard002, guard003, guard006) avec displacement alternatif
+
+**Variants testés précédemment:**
+1. ❌ baseline d52 (Phase 2): 4/7 guards PASS (guard002 13.20%, guard003 0.37, guard006 0.92 FAIL)
+2. ❌ medium_distance_volume d52 (Phase 4): Scan FAIL (OOS Sharpe -1.41, WFE -2.80)
+
+**Phase 3A Rescue - Displacement Grid:**
+
+**Option 1 - Displacement 26 (pattern JOE):**
+**Hypothèse:** JOE a réussi avec d26 (Sharpe 5.03, WFE 1.44, 7/7 guards PASS). Tester sur IMX.
+
+**Command Phase 3A - Displacement 26:**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets IMX \
+  --fixed-displacement 26 \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --workers 6 \
+  --skip-download
+```
+
+**Option 2 - Displacement 78 (pattern OSMO/MINA):**
+**Hypothèse:** OSMO (d65) et MINA (d78) ont réussi. Tester d78 sur IMX.
+
+**Command Phase 3A - Displacement 78:**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets IMX \
+  --fixed-displacement 78 \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --workers 6 \
+  --skip-download
+```
+
+**Ordre d'exécution recommandé:**
+1. **Phase 3A d26** (pattern JOE) - priorité car JOE excellent résultat
+2. Si d26 FAIL → **Phase 3A d78** (pattern OSMO/MINA)
+
+**Criteres succes (7/7 guards PASS):**
+- WFE > 0.6
+- MC p-value < 0.05
+- Sensitivity var < 10% (guard002 - CRITIQUE)
+- Bootstrap CI lower > 1.0 (guard003 - CRITIQUE)
+- Top10 trades < 40%
+- Stress1 Sharpe > 1.0 (guard006 - CRITIQUE)
+- Regime mismatch < 1%
+- OOS Sharpe > 1.0 (target > 2.0)
+- OOS Trades > 60
+
+**Outputs attendus:**
+- `outputs/multiasset_scan_YYYYMMDD_HHMMSS.csv` (résultats scan)
+- `outputs/multiasset_guards_summary_YYYYMMDD_HHMMSS.csv` (résultats guards)
+- Documenter dans `comms/jordan-dev.md` avec format standard
+
+**Next:** 
+- Si 7/7 guards PASS → PRODUCTION ✅
+- Si <7/7 guards PASS → Documenter et passer à d78
+- Si toutes options FAIL → EXCLU (variants épuisés)
+
+---
+
 ## [20:11] [TASK] @Casey -> @Jordan
 
 **Context:** IMX Phase 2 Validation FAIL (4/7 guards PASS). 3 guards FAIL: guard002 (sensitivity 13.20%), guard003 (bootstrap CI 0.37), guard006 (stress Sharpe 0.92). Tester deux options de rescue.
