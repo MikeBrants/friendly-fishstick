@@ -25,6 +25,66 @@ Ce fichier contient les taches assignees par Casey aux autres agents.
 
 ## Historique
 
+## [21:22] [TASK] @Casey -> @Jordan
+
+**Context:** Jordan est en attente. Deux tâches prioritaires en attente:
+1. IMX Rescue Phase 3A (displacement d26, d78) - tâche [20:58]
+2. Phase 1 Screening Batch 3 (20 assets) - tâche [17:00]
+
+**Priorité:** IMX Rescue Phase 3A d'abord (plus rapide, 1 asset), puis Phase 1 Batch 3 (20 assets, plus long).
+
+**Task:** Exécuter IMX Rescue Phase 3A - Displacement Grid
+**Asset:** IMX
+**Objectif:** Tester displacement d26 et d78 pour résoudre les 3 guards FAIL
+
+**ÉTAPES:**
+
+**1. Phase 3A - Displacement 26 (pattern JOE):**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets IMX \
+  --fixed-displacement 26 \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --workers 6 \
+  --skip-download
+```
+
+**2. Si d26 FAIL → Phase 3A - Displacement 78 (pattern OSMO/MINA):**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets IMX \
+  --fixed-displacement 78 \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --workers 6 \
+  --skip-download
+```
+
+**Documentation requise:**
+- `[RUN_START]` dans `comms/jordan-dev.md` avec timestamp
+- `[RUN_COMPLETE]` avec résultats (scan + guards)
+- Format standard: Asset, Mode, Scan (SUCCESS/FAIL), Guards (X/7 PASS), Next
+
+**Criteres succes:**
+- 7/7 guards PASS
+- WFE > 0.6
+- OOS Sharpe > 1.0 (target > 2.0)
+- OOS Trades > 60
+
+**Next:** 
+- Si 7/7 guards PASS → @Sam valide → PRODUCTION ✅
+- Si <7/7 guards PASS → Documenter et tester d78
+- Si toutes options FAIL → EXCLU (variants épuisés)
+
+**Après IMX:** Passer à Phase 1 Screening Batch 3 (20 assets) si IMX terminé.
+
+---
+
 ## [20:58] [TASK] @Casey -> @Jordan
 
 **Context:** IMX Phase 4 Filter Grid FAIL (scan FAIL, overfitting sévère WFE -2.80). Phase 3A Rescue requis - tester displacement d26 et d78 (patterns JOE et OSMO/MINA).
@@ -829,7 +889,8 @@ python scripts/run_full_pipeline.py \
 - ❌ Phase 1 Screening Batch 1: BNB, XRP, ADA, TRX, LTC, XLM tous EXCLU (tous FAIL)
 
 **En cours:**
-- 🔄 IMX Rescue Phase 3A: **TASK [20:58]** — Displacement Grid (d26, d78) - tester après Phase 4 FAIL
+- 🔄 IMX Rescue Phase 3A: **TASK [21:22]** — Displacement Grid (d26, d78) - PRIORITÉ - instructions détaillées
+- 🔄 Phase 1 Screening Batch 3: **TASK [17:00]** — 20 nouveaux assets (GALA, SAND, MANA, ENJ, FLOKI, PEPE, WIF, RONIN, PIXEL, ILV, FIL, THETA, CHZ, CRV, SUSHI, ONE, KAVA, ZIL, CFX, ROSE) - après IMX
 - ✅ IMX Rescue Phase 4: **COMPLÉTÉ [20:19]** — Scan FAIL (overfitting sévère, WFE -2.80)
 - 🔄 Phase 1 Screening Batch 3: **TASK [17:00]** — 20 nouveaux assets (GALA, SAND, MANA, ENJ, FLOKI, PEPE, WIF, RONIN, PIXEL, ILV, FIL, THETA, CHZ, CRV, SUSHI, ONE, KAVA, ZIL, CFX, ROSE)
 - ✅ Phase 2 Validation IMX: **COMPLÉTÉ [17:01]** — 4/7 guards PASS (3 FAIL: guard002, guard003, guard006)
