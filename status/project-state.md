@@ -1,80 +1,45 @@
 # Project State — FINAL TRIGGER v2
 
-**Derniere mise a jour:** 2026-01-24 02:50 @Casey
+**Derniere mise a jour:** 2026-01-24 02:58 @Casey
 
 ***
 
-## Status Global
+## 🚨 STATUS GLOBAL: RESET COMPLET REQUIS
 
 | Metrique | Valeur |
 |----------|--------|
-| Phase | Expansion Portfolio (75% objectif) |
-| Assets PROD | **15** (BTC, ETH, JOE, OSMO, MINA, AVAX, AR, ANKR, DOGE, OP, DOT, NEAR, SHIB, METIS, YGG) |
-| Assets en attente | 0 |
-| Assets exclus | 31+ (HBAR, IMX, BNB, XRP, ADA, TRX, LTC, XLM ajoutés) |
-| Bug critique | RESOLU (TP progression + complex numbers + Optuna sampler) |
+| Phase | **RESET COMPLET — Re-screening requis** |
+| Assets PROD | **0** (tous résultats invalides, bug Optuna) |
+| Assets à re-tester | **60+** (anciens PROD + EXCLUS + nouveaux) |
+| Assets définitivement exclus | **7** (données insuffisantes: HOOK, ALICE, HMSTR, LOOM, APT, EIGEN, ONDO) |
+| Bug critique | ✅ RESOLU (TP progression + complex numbers + Optuna sampler) |
 | Optuna Fix | ✅ VERIFIED (deterministic hashlib seeds, 5+ identical runs) |
 | Guards Config | ✅ VERIFIED (mc=1000, bootstrap=10000) |
 | Reproducibility | ✅ CONFIRMED (100% match across runs) |
+| **CONSÉQUENCE** | ⚠️ **TOUS LES RÉSULTATS ANTÉRIEURS SONT INVALIDES** |
 
 ***
 
-## PROD (7/7 Guards PASS)
+## 📋 ANCIENS RÉSULTATS (INVALIDES — Bug Optuna)
 
-| Asset | Mode | Disp | Sharpe | WFE | Trades | Date Validation |
-|:------|:-----|:-----|:-------|:----|:-------|:---------------|
-| BTC | baseline | 52 | 2.14 | >0.6 | 416 | Pre-fix |
-| ETH | medium_distance_volume | 52 | 2.09 | 0.82 | 57 | 2026-01-22 |
-| JOE | baseline | 26 | 5.03 | 1.44 | 63 | Pre-fix |
-| OSMO | baseline | 65 | 3.18 | 0.77 | 57 | Pre-fix |
-| MINA | baseline | 78 | 1.76 | 0.61 | 78 | Pre-fix |
-| **AVAX** | medium_distance_volume | 52 | 3.52 | 0.94 | 96 | **2026-01-22** |
-| **AR** | baseline | 52 | 3.26 | 1.33 | 90 | **2026-01-22** |
-| **ANKR** | baseline | 52 | 3.66 | 0.93 | 66 | **2026-01-22** |
-| **DOGE** | baseline | 26 | 2.85 | 1.03 | 78 | **2026-01-22** |
-| **OP** | baseline | 78 | 2.43 | 1.65 | 90 | **2026-01-22** |
-| **DOT** | baseline | 52 | 4.58 | 2.58 | 96 | **2026-01-23** |
-| **NEAR** | baseline | 52 | 3.20 | 1.59 | 72 | **2026-01-23** |
-| **SHIB** | baseline | 52 | 5.88 | 2.42 | 96 | **2026-01-23** |
-|| **METIS** | baseline | 52 | 2.69 | 0.85 | - | **2026-01-23** |
-|| **YGG** | baseline | 52 | 2.98 | 0.78 | - | **2026-01-23** |
+### Anciens "PROD" (15 assets) — RE-SCREENING REQUIS ⚠️
+BTC, ETH, JOE, OSMO, MINA, AVAX, AR, ANKR, DOGE, OP, DOT, NEAR, SHIB, METIS, YGG
 
-**Nouveaux ajouts (2026-01-22):** AVAX, AR, ANKR, DOGE, OP (+5 assets)  
-**Nouveaux ajouts (2026-01-23 AM):** DOT, NEAR, SHIB (+3 assets)  
-**Nouveaux ajouts (2026-01-23 PM):** METIS, YGG (+2 assets) — Fix V6 complex numbers
+**Note:** Ces assets avaient passé 7/7 guards AVEC BUG. Résultats non-reproductibles.  
+**Action:** Re-tester en Phase 1 (Batch 1 prioritaire).
 
-***
-
-## EN ATTENTE
-
-### P0 (Urgent)
-- Aucun asset en attente
-
-### P1
-- [✅] METIS — **PRODUCTION** (OOS Sharpe 2.69, WFE 0.85, 7/7 guards PASS) — Fix V6 réussi
-- [✅] YGG — **PRODUCTION** (OOS Sharpe 2.98, WFE 0.78, 7/7 guards PASS) — Fix V6 réussi
-
-### P2
-- [❌] STRK — **EXCLU** (sensitivity 12.5% > 10%, bootstrap CI 0.56 < 1.0)
-- [❌] AEVO — **EXCLU** (sensitivity 15.0% > 10%)
-- [❌] EGLD — **FAIL** (WFE 0.31 < 0.6, OOS Sharpe 0.91 < 1.0)
-- [❌] ARKM — **FAIL** (OOS Sharpe 0.94 < 1.0, WFE 0.57 < 0.6)
-
-***
-
-## EXCLUS (Definitif)
-
+### Anciens "EXCLUS" (31+ assets) — RE-SCREENING REQUIS ⚠️
 SEI, CAKE, AXS, RUNE, TON, SOL, AAVE, HYPE, ATOM, ARB, LINK, INJ, TIA,
-HOOK, ALICE, HMSTR, LOOM, APT, EIGEN, ONDO, ICP, ARKM, EGLD, UNI, STRK, AEVO,
-HBAR, IMX, BNB, XRP, ADA, TRX, LTC, XLM
+ICP, ARKM, EGLD, UNI, STRK, AEVO, HBAR, IMX, BNB, XRP, ADA, TRX, LTC, XLM
 
-**Nouveaux (2026-01-23):**
-- UNI exclu — moderate mode FAIL (OOS Sharpe 0.03, WFE 0.01)
-- STRK exclu — sensitivity 12.5% > 10%, bootstrap CI 0.56 < 1.0
-- AEVO exclu — sensitivity 15.0% > 10%
-- HBAR exclu — d26 FAIL (Sharpe 0.30, WFE 0.11), d78 FAIL (Sharpe 0.067, WFE 0.175) — variants épuisés
-- IMX exclu — baseline d52 (4/7 guards), medium_distance_volume d52 FAIL, d26 FAIL, d78 FAIL — variants épuisés
-- BNB, XRP, ADA, TRX, LTC, XLM exclus — Phase 1 Screening FAIL (tous WFE < 0.5, Sharpe OOS < 0.8)
+**Note:** Ces assets avaient FAIL guards AVEC BUG. Décisions basées sur résultats faux.  
+**Action:** Re-tester en Phase 1 (Batch 2-5).
+
+### Exclusions DÉFINITIVES (7 assets) — Pas de re-test ❌
+HOOK, ALICE, HMSTR, LOOM, APT, EIGEN, ONDO
+
+**Raison:** Problèmes techniques fondamentaux (données insuffisantes < 8000 bars, outliers structurels).  
+**Action:** EXCLURE définitivement (pas lié au bug Optuna).
 
 ***
 
@@ -150,13 +115,33 @@ HBAR, IMX, BNB, XRP, ADA, TRX, LTC, XLM
 
 ***
 
-## Prochaines Étapes
+## Prochaines Étapes — RESET COMPLET
 
-1. ✅ **METIS, YGG débloqués** — Fix V6 réussi, 7/7 guards PASS → 15 assets PROD (75%)
-2. ✅ **HBAR d78 complété** — FAIL (Sharpe 0.067, WFE 0.175) → EXCLU (variants épuisés)
-3. ✅ **Phase 1 Screening (old)** — BNB, XRP, ADA, TRX, LTC, XLM tous FAIL → EXCLU
-4. ✅ **Optuna Fix** — Deterministic seeds + reseed, VERIFIED avec 5+ runs ✅
-5. ✅ **Reproducibility** — 100% confirmed (BTC, ETH, ONE, GALA, ZIL tous reproductibles)
-6. ⚠️ **Old Phase 1 Results** — Non-fiables (seeds non-deterministic), re-screening requis
-7. 🔄 **Phase 1 Re-screening** — Lancer avec workers=10 (deterministic, constant_liar)
-8. 🎯 **Objectif:** Valider 5+ nouveaux assets avec système reproductible → 20+ PROD
+### Phase 0: Préparation (DONE ✅)
+1. ✅ Pipeline fix complet (TP progression + complex numbers + Optuna)
+2. ✅ Reproducibility audit (BTC, ETH, ONE, GALA, ZIL confirmés)
+3. ✅ Guards config verification (mc=1000, bootstrap=10000)
+4. ✅ Stratégie RESET COMPLET définie
+
+### Phase 1: Re-screening (60+ assets, ~3h total) — URGENT ⚠️
+**TOUS LES ANCIENS RÉSULTATS SONT INVALIDES** (bug Optuna non-déterministe)
+
+**Batch 1** (15 assets, 45 min): BTC, ETH, JOE, OSMO, MINA, AVAX, AR, ANKR, DOGE, OP, DOT, NEAR, SHIB, METIS, YGG  
+**Batch 2** (15 assets, 45 min): SOL, ADA, XRP, BNB, TRX, LTC, MATIC, ATOM, LINK, UNI, ARB, HBAR, ICP, ALGO, FTM  
+**Batch 3** (10 assets, 30 min): AAVE, MKR, CRV, SUSHI, RUNE, INJ, TIA, SEI, CAKE, TON  
+**Batch 4** (10 assets, 30 min): PEPE, ILV, GALA, SAND, MANA, ENJ, FLOKI, WIF, RONIN, AXS  
+**Batch 5** (10 assets, 30 min): FIL, GRT, THETA, VET, RENDER, EGLD, KAVA, CFX, ROSE, STRK
+
+**Critères:** WFE > 0.5, Sharpe OOS > 0.8, Trades > 50 (screening souples, workers=10)
+
+### Phase 2: Validation (15-20 assets, ~30h)
+Pour chaque SUCCESS de Phase 1:
+- Run 1 + Run 2 avec `workers=1` (300 trials)
+- Vérifier reproducibilité 100%
+- Guards 7/7 PASS (workers=10)
+- → **PROD**
+
+### Target Final
+**Objectif:** 20+ assets PROD validés avec système reproductible  
+**Timeline:** Phase 1 = 3h, Phase 2 = 1-2 semaines  
+**Status:** Système reproductible vérifié ✅, prêt pour re-screening déterministe

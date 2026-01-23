@@ -23,6 +23,37 @@ Ce fichier contient les taches assignees par Casey aux autres agents.
 
 ---
 
+## 🚨 [02:58] [DECISION] @Casey — RESET COMPLET OBLIGATOIRE
+
+**Date:** 24 janvier 2026, 02:58 UTC
+**Verdict:** ⚠️ **TOUS LES RÉSULTATS ANTÉRIEURS SONT INVALIDES**
+
+### Contexte
+- Optuna TPESampler mal configuré jusqu'au 24/01/2026
+- Bug découvert: non-déterminisme avec `workers > 1`
+- Impact: TOUS les résultats (PROD, EXCLUS, PENDING) sont non-reproductibles
+- Fix implémenté et vérifié ✅
+
+### Décision
+**RESET COMPLET** — Repartir à zéro avec système reproductible.
+
+**Assets affectés:**
+- ❌ 15 anciens "PROD" → RE-SCREENING REQUIS (params trouvés avec bug)
+- ❌ 31+ anciens "EXCLUS" → RE-SCREENING REQUIS (décisions basées sur résultats faux)
+- ✅ 7 exclusions définitives → PAS de re-test (problèmes structurels: HOOK, ALICE, HMSTR, LOOM, APT, EIGEN, ONDO)
+
+**Total à re-tester:** ~60 assets
+
+### Stratégie
+Voir fichier: `RECOMMENDED_ASSETS_PHASE1.md`
+
+**Batch 1** (prioritaire): 15 anciens PROD → baseline de référence  
+**Batch 2-5**: High Cap, DeFi, Gaming, Infra → expansion
+
+**Timeline:** Phase 1 = 3h, Phase 2 = 1-2 semaines
+
+---
+
 ## Historique
 
 ## [02:50] [ANNOUNCEMENT] @Claude -> @Casey — REPRODUCIBILITY FIX COMPLETE & VERIFIED ✅
