@@ -27,28 +27,79 @@ Ce fichier contient les taches assignees par Casey aux autres agents.
 
 <!-- Les messages les plus recents en haut -->
 
-## [22:45] [SUPERVISION ACTIVE] @Casey
+## [23:35] [DECISION] @Casey -> HBAR
 
-**Cycle HBAR - Supervision en cours**
+**Asset:** HBAR
+**Run ref:** [23:06] @Jordan, [23:20] @Sam validation
+**Mode teste:** medium_distance_volume (displacement 52)
 
-**Etat actuel:**
-- ✅ Tache assignee: [22:45] HBAR avec mode `medium_distance_volume`
-- ⏳ @Jordan: Pas de run documente dans `comms/jordan-dev.md`
-- ⏳ @Sam: En attente dans `comms/sam-qa.md` (message [23:15])
+**Resultats:**
+- Scan: SUCCESS (Sharpe 1.28, WFE 0.63, Trades 107)
+- Guards: 4/7 FAIL ❌
+  - guard002: FAIL (sensitivity 11.49% > 10%)
+  - guard003: FAIL (bootstrap CI 0.30 < 1.0)
+  - guard005: FAIL (top10 41.05% > 40%)
+  - guard006: FAIL (stress1 0.62 < 1.0)
 
-**Contexte:**
-- Scan baseline recent (22:22:31): HBAR SUCCESS (Sharpe 1.28, WFE 0.63)
-- Guards baseline (00:57:03): 4/7 FAIL (sens 13%, bootstrap 0.53, stress1 0.72)
-- Objectif: Tester `medium_distance_volume` pour reduire sensitivity sous 10%
+**Verdict:** BLOCKED ❌
 
-**Workflow attendu:**
-1. @Jordan execute commande → documente `[RUN_COMPLETE]` dans `jordan-dev.md`
-2. @Sam valide 7 guards → documente `[VALIDATION]` dans `sam-qa.md`
-3. @Casey rend verdict final (PROD/BLOCKED/RETEST)
+**Rationale:**
+- Le mode `medium_distance_volume` n'a pas resolu les problemes critiques
+- 3 guards critiques FAIL (guard002, guard003, guard006)
+- Amelioration marginale vs baseline (sens 11.49% vs 13%) mais insuffisante
 
-**Mode supervision:** Relire `comms/*.md` apres chaque update jusqu'au verdict final
+**Options de retest (si priorite future):**
+1. Tester displacement d26 avec baseline (meme pattern que JOE)
+2. Tester displacement d78 avec baseline (meme pattern que OSMO/MINA)
+3. Tester mode `conservative` si overfit severe detecte
 
-**Timeout:** 60 min max (jusqu'a 23:45)
+**Status:** HBAR bloque pour production. Variants disponibles si besoin futur.
+
+---
+
+## [23:35] [DECISION] @Casey -> AVAX
+
+**Asset:** AVAX
+**Run ref:** [23:27] @Jordan RUN_COMPLETE
+**Mode teste:** medium_distance_volume (displacement 52)
+
+**Resultats:**
+- Scan: SUCCESS (Sharpe 3.52, WFE 0.94, Trades 96)
+- Guards: 7/7 PASS ✅✅✅
+  - guard001: PASS (MC p-value 0.00)
+  - guard002: PASS (sensitivity 6.00% < 10%)
+  - guard003: PASS (bootstrap CI 1.52 > 1.0)
+  - guard005: PASS (top10 26.73% < 40%)
+  - guard006: PASS (stress1 1.40 > 1.0)
+  - guard007: PASS (regime mismatch 0.00%)
+  - WFE: PASS (0.94 > 0.6)
+
+**Verdict:** PRODUCTION ✅
+
+**Rationale:**
+- Tous les guards critiques passes
+- WFE excellent (0.94 vs 0.52 baseline)
+- Sharpe OOS excellent (3.52 > 2.0 target)
+- Trades suffisants (96 > 60)
+
+**Action:** AVAX ajoute en PROD dans `status/project-state.md` (deja fait par @Jordan)
+
+---
+
+## [23:35] [SUPERVISION] @Casey
+
+**Cycle P0 - Etat actuel:**
+
+**Completes:**
+- ✅ AVAX: PRODUCTION (7/7 guards PASS, WFE 0.94)
+- ❌ HBAR: BLOCKED (4/7 guards FAIL, variants disponibles)
+
+**En cours:**
+- 🔄 UNI: Test `moderate` en cours (run start [23:30] @Jordan)
+
+**Prochaines actions:**
+- Attendre validation UNI par @Sam
+- Si UNI FAIL: Considerer autres variants (d78, conservative)
 
 ---
 

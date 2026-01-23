@@ -1,0 +1,11 @@
+GUARDS VALIDATION REPORT: ARKM
+======================================================================
+GUARD-001 Monte Carlo p-value: 0.2290 -> FAIL
+GUARD-002 Sensitivity variance: -889.23% -> PASS
+GUARD-003 Bootstrap Sharpe CI lower: -1.37 -> FAIL
+GUARD-005 Trade distribution top10: 125.25% -> FAIL
+GUARD-006 Stress1 Sharpe: 0.19 -> FAIL
+GUARD-007 Regime reconciliation mismatch: 0.00% -> PASS
+GUARD-WFE: -0.39 -> FAIL
+----------------------------------------------------------------------
+ALL PASS: NO

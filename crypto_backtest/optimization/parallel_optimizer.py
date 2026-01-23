@@ -180,7 +180,11 @@ def append_partial_result(
 
 
 def load_data(asset: str, data_dir: str = "data") -> pd.DataFrame:
-    """Load OHLCV data for an asset."""
+    """Load OHLCV data for an asset.
+    
+    Ensures the returned DataFrame has a UTC-aware DatetimeIndex to avoid
+    timezone mismatch errors with trade timestamps.
+    """
     # Try parquet first, then CSV
     parquet_path = Path(data_dir) / f"{asset}_1H.parquet"
     csv_path = Path(data_dir) / f"Binance_{asset}USDT_1h.csv"
@@ -192,6 +196,11 @@ def load_data(asset: str, data_dir: str = "data") -> pd.DataFrame:
                 df.index = pd.to_datetime(df["timestamp"], utc=True)
             else:
                 df.index = pd.to_datetime(df.index, utc=True)
+        # Ensure UTC timezone (fix for guards timezone mismatch)
+        if df.index.tz is None:
+            df.index = df.index.tz_localize("UTC")
+        elif str(df.index.tz) != "UTC":
+            df.index = df.index.tz_convert("UTC")
         return df
 
     if csv_path.exists():
@@ -199,6 +208,9 @@ def load_data(asset: str, data_dir: str = "data") -> pd.DataFrame:
         df.columns = [col.strip() for col in df.columns]
         if "timestamp" in df.columns:
             df.index = pd.to_datetime(df["timestamp"], utc=True)
+        # Ensure UTC timezone
+        if df.index.tz is None:
+            df.index = df.index.tz_localize("UTC")
         return df[["open", "high", "low", "close", "volume"]]
 
     raise FileNotFoundError(f"No data found for {asset} in {data_dir}")
