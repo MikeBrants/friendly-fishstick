@@ -27,6 +27,36 @@ Ce fichier contient les taches assignees par Casey aux autres agents.
 
 <!-- Les messages les plus recents en haut -->
 
+## [14:00] [TASK] @Casey -> @Jordan
+
+**Context:** HBAR d52 medium_distance_volume FAIL (4/7 guards). Phase 3A Rescue - tester displacement 78 (pattern similaire à MINA qui a réussi avec d78).
+
+**Asset:** HBAR
+**Variant:** Phase 3A Rescue - Displacement 78 (baseline mode)
+**Hypothese:** Displacement 78 pourrait améliorer WFE et guards (pattern MINA: Sharpe 1.76, WFE 0.61 avec d78)
+
+**Command:**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets HBAR \
+  --fixed-displacement 78 \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --workers 4
+```
+
+**Criteres succes:** 
+- 7/7 guards PASS
+- WFE > 0.6
+- OOS Sharpe > 1.0 (target > 2.0)
+- Trades OOS > 60
+
+**Next:** @Jordan execute, puis @Sam valide les guards
+
+---
+
 ## [23:35] [DECISION] @Casey -> HBAR
 
 **Asset:** HBAR
@@ -86,20 +116,22 @@ Ce fichier contient les taches assignees par Casey aux autres agents.
 
 ---
 
-## [23:35] [SUPERVISION] @Casey
+## [14:00] [SUPERVISION] @Casey
 
 **Cycle P0 - Etat actuel:**
 
 **Completes:**
 - ✅ AVAX: PRODUCTION (7/7 guards PASS, WFE 0.94)
-- ❌ HBAR: BLOCKED (4/7 guards FAIL, variants disponibles)
+- ❌ HBAR d52 medium_distance_volume: BLOCKED (4/7 guards FAIL)
+- ❌ UNI moderate: EXCLU (Sharpe 0.03, WFE 0.01)
 
 **En cours:**
-- 🔄 UNI: Test `moderate` en cours (run start [23:30] @Jordan)
+- 🔄 HBAR d78: Phase 3A Rescue en cours (run start [14:XX] @Jordan, PID 58876)
 
 **Prochaines actions:**
-- Attendre validation UNI par @Sam
-- Si UNI FAIL: Considerer autres variants (d78, conservative)
+- Attendre résultats HBAR d78 par @Jordan
+- Si HBAR d78 PASS: Ajouter en PROD (16 assets, 80% objectif)
+- Si HBAR d78 FAIL: BLOCKED définitif, passer au screening nouveaux assets
 
 ---
 
