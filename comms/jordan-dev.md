@@ -31,35 +31,259 @@ Ce fichier contient les logs des runs executes par Jordan.
 
 ---
 
+## État Actuel (2026-01-23 15:36)
+
+**Aucun run en cours** ✅
+
+**Derniers runs complétés:**
+- ❌ Phase 1 Screening (BNB, XRP, ADA, TRX, XLM, LTC) - ALL FAIL (14:22)
+- ❌ HBAR d78 - FAIL (overfitting sévère, 14:02)
+- ⏹️ HBAR d78 (processus auto) - STOPPED (15:36)
+
+**Résumé:**
+- 15 assets PROD (objectif 20+)
+- Phase 1 Screening: 0/6 assets viables
+- HBAR: variants épuisés (d26, d52, d78 tous FAIL)
+
+---
+
 ## Historique
 
-## [14:42] [RUN_START] @Jordan -> @Sam
+## [16:28] [RUN_COMPLETE] Phase 1 Screening Batch 2 @Jordan -> @Casey
 
-**Task ref:** [14:00] Casey TASK - HBAR Phase 3A Rescue - Displacement 78 (baseline mode)
-**Asset:** HBAR
-**Mode:** Phase 3A Rescue - Displacement 78 (baseline mode)
-**Displacement:** 78
+**Task ref:** [15:57] [TASK] @Casey -> @Jordan - Phase 1 Screening Batch 2 RELANCE URGENTE
+**Assets:** GMX, PENDLE, STX, IMX, FET (5 assets)
+**Mode:** baseline
+**Displacement:** Auto (52 par défaut)
 **Command:**
 ```bash
+# Étape 1: Téléchargement données ✅ COMPLÉTÉ
+python scripts/download_data.py --assets GMX PENDLE STX IMX FET
+# Résultat: 5 assets téléchargés (17,520 bars chacun)
+
+# Étape 2: Phase 1 Screening ✅ COMPLÉTÉ
 python scripts/run_full_pipeline.py \
-  --assets HBAR \
-  --fixed-displacement 78 \
-  --trials-atr 300 \
-  --trials-ichi 300 \
+  --assets GMX PENDLE STX IMX FET \
+  --trials-atr 200 \
+  --trials-ichi 200 \
   --enforce-tp-progression \
-  --run-guards \
-  --workers 4
+  --workers 10
 ```
-**Status:** 🟢 Running (auto-launched by watcher)
-**Next:** @Sam valide les guards une fois terminé
+**Status:** ✅ **COMPLÉTÉ** - 1/5 assets PASS Phase 1
+**Duration:** ~8 min (16:20 - 16:28 UTC)
+**PID:** 31728
+
+**Résultats Phase 1:**
+
+| Asset | OOS Sharpe | WFE | OOS Trades | IS Sharpe | Status | Verdict |
+|:------|:-----------|:----|:-----------|:----------|:------|:-------|
+| **IMX** | **1.64** ✅ | **0.71** ✅ | 85 ✅ | 2.30 | **SUCCESS** | **PASS Phase 1** 🎯 |
+| GMX | -1.37 ❌ | -0.34 ❌ | 96 | 4.03 | FAIL | EXCLU (overfitting) |
+| PENDLE | -0.12 ❌ | -0.12 ❌ | 120 | 0.96 | FAIL | EXCLU (overfitting) |
+| STX | -0.60 ❌ | -0.14 ❌ | 105 | 4.41 | FAIL | EXCLU (overfitting) |
+| FET | -0.09 ❌ | -0.03 ❌ | 81 | 2.93 | FAIL | EXCLU (overfitting) |
+
+**Analyse:**
+- **IMX PASS Phase 1:** Sharpe OOS 1.64 (> 0.8 ✅), WFE 0.71 (> 0.5 ✅), Trades 85 (> 50 ✅)
+- **4 assets FAIL:** Tous montrent overfitting sévère (WFE négatif ou < 0.5, Sharpe OOS négatif ou < 0.8)
+- **Pattern:** Même problème que Phase 1 Batch 1 (BNB, XRP, etc.) - overfitting massif avec baseline mode
+
+**Params IMX (candidat Phase 2):**
+- sl=5.0, tp1=2.0, tp2=8.5, tp3=9.5
+- tenkan=8, kijun=20, displacement=52
+
+**Verdict:** ✅ **1 CANDIDAT VIABLE** - IMX passe Phase 1 → Phase 2 validation requise
+**Outputs:**
+- Scan: `outputs/multiasset_scan_20260123_162831.csv`
+- Cluster: Non généré (1 asset réussi, minimum 3 requis)
+
+**Next:** @Casey décide si IMX passe en Phase 2 validation (300 trials + 7 guards complets)
+
+---
+
+## [16:05] [SKIP] @Jordan
+
+**Task ref:** [22:45] Casey TASK
+**Asset:** HBAR
+**Mode:** medium_distance_volume (comme ETH winner)
+**Displacement:** auto
+**Raison:** ⏭️ Asset HBAR est EXCLU
 
 ---
 
 
-## [14:42] [RUN_FAILED] @Jordan -> @Sam
+## [16:05] [SKIP] @Jordan
 
-**Task ref:** BNB baseline
+**Task ref:** [14:00] Casey TASK
+**Asset:** HBAR
+**Mode:** Phase 3A Rescue - Displacement 78 (baseline mode)
+**Displacement:** 78
+**Raison:** ⏭️ Asset HBAR est EXCLU
+
+---
+
+
+## [16:05] [SKIP] @Jordan
+
+**Task ref:** [14:30] Casey TASK
 **Asset:** BNB
+**Mode:** baseline
+**Displacement:** auto
+**Raison:** ⏭️ Asset BNB est EXCLU
+
+---
+
+
+## [16:05] [RUN_FAILED] @Jordan -> @Sam
+
+**Asset:** GMX
+**Mode:** baseline
+**Displacement:** auto
+**Status:** ❌ Failed
+**Duration:** 0 min
+**Erreur:**
+```
+usage: run_full_pipeline.py [-h] [--skip-download] [--skip-optimize]
+                            [--workers WORKERS] [--assets ASSETS [ASSETS ...]]
+                            [--scan-only] [--trials-atr TRIALS_ATR]
+                            [--trials-ichi TRIALS_ICHI]
+                            [--enforce-tp-progression]
+```
+
+---
+
+
+## [16:05] [RUN_START] @Jordan -> @Sam
+
+**Task ref:** [15:40] Casey TASK
+**Asset:** GMX
+**All assets:** GMX, PENDLE, STX, IMX, FET
+**Mode:** baseline
+**Displacement:** auto
+**Command:**
+```bash
+python scripts/run_full_pipeline.py --assets GMX PENDLE STX IMX FET --trials-atr 200 --trials-ichi 200 --enforce-tp-progression --workers 10
+```
+**Status:** 🟢 Running
+**Auto-fixes:** Syntaxe commande corrigée
+
+---
+
+
+## [15:50] [SKIP] @Jordan
+
+**Task ref:** [22:45] Casey TASK
+**Asset:** HBAR
+**Mode:** medium_distance_volume (comme ETH winner)
+**Displacement:** auto
+**Raison:** ⏭️ Asset HBAR est EXCLU
+**Status:** Skipped (auto-protection)
+
+---
+
+
+## [15:50] [SKIP] @Jordan
+
+**Task ref:** [14:00] Casey TASK
+**Asset:** HBAR
+**Mode:** Phase 3A Rescue - Displacement 78 (baseline mode)
+**Displacement:** 78
+**Raison:** ⏭️ Asset HBAR est EXCLU
+**Status:** Skipped (auto-protection)
+
+---
+
+
+## [15:50] [SKIP] @Jordan
+
+**Task ref:** [14:30] Casey TASK
+**Asset:** BNB
+**Mode:** baseline
+**Displacement:** auto
+**Raison:** ⏭️ Asset BNB est EXCLU
+**Status:** Skipped (auto-protection)
+
+---
+
+
+## [15:46] [SKIP] @Jordan
+
+**Task ref:** [22:45] Casey TASK
+**Asset:** HBAR
+**Mode:** medium_distance_volume (comme ETH winner)
+**Displacement:** auto
+**Raison:** ⏭️ Asset HBAR est EXCLU
+**Status:** Skipped (auto-protection)
+
+---
+
+
+## [15:46] [SKIP] @Jordan
+
+**Task ref:** [14:00] Casey TASK
+**Asset:** HBAR
+**Mode:** Phase 3A Rescue - Displacement 78 (baseline mode)
+**Displacement:** 78
+**Raison:** ⏭️ Asset HBAR est EXCLU
+**Status:** Skipped (auto-protection)
+
+---
+
+
+## [15:46] [SKIP] @Jordan
+
+**Task ref:** [14:30] Casey TASK
+**Asset:** BNB
+**Mode:** baseline
+**Displacement:** auto
+**Raison:** ⏭️ Asset BNB est EXCLU
+**Status:** Skipped (auto-protection)
+
+---
+
+
+## [15:42] [SKIP] @Jordan
+
+**Task ref:** [22:45] Casey TASK
+**Asset:** HBAR
+**Mode:** medium_distance_volume (comme ETH winner)
+**Displacement:** auto
+**Raison:** ⏭️ Asset HBAR est EXCLU dans project-state.md
+**Status:** Skipped (auto-protection)
+
+---
+
+
+## [15:42] [SKIP] @Jordan
+
+**Task ref:** [14:00] Casey TASK
+**Asset:** HBAR
+**Mode:** Phase 3A Rescue - Displacement 78 (baseline mode)
+**Displacement:** 78
+**Raison:** ⏭️ Asset HBAR est EXCLU dans project-state.md
+**Status:** Skipped (auto-protection)
+
+---
+
+
+## [15:42] [SKIP] @Jordan
+
+**Task ref:** [14:30] Casey TASK
+**Asset:** BNB
+**Mode:** baseline
+**Displacement:** auto
+**Raison:** ⏭️ Asset BNB est EXCLU dans project-state.md
+**Status:** Skipped (auto-protection)
+
+---
+
+
+## [15:42] [RUN_FAILED] @Jordan -> @Sam
+
+**Task ref:** GMX baseline
+**Asset:** GMX
+**Mode:** baseline
+**Displacement:** auto
 **Status:** ❌ Failed
 **Duration:** 0 min
 
@@ -68,19 +292,19 @@ python scripts/run_full_pipeline.py \
 ---
 
 
-## [14:42] [RUN_START] @Jordan -> @Sam
+## [15:42] [RUN_START] @Jordan -> @Sam
 
-**Task ref:** [14:30] Casey TASK - BNB baseline
-**Asset:** BNB
+**Task ref:** [15:40] Casey TASK - GMX baseline
+**Asset:** GMX
 **Mode:** baseline
 **Displacement:** auto
 **Command:**
 ```bash
 python scripts/run_full_pipeline.py \
-  --assets BNB,XRP,ADA,TRX,XLM,LTC \
-  --trials 200 \
+  --assets GMX,PENDLE,STX,IMX,FET \
+  --trials-atr 200 \
+  --trials-ichi 200 \
   --enforce-tp-progression \
-  --skip-guards \
   --workers 10
 ```
 **Status:** 🟢 Running (auto-launched by watcher)
@@ -89,7 +313,45 @@ python scripts/run_full_pipeline.py \
 ---
 
 
-## [14:32] [RUN_START] @Jordan -> @Sam
+## [15:42] [SKIP] @Jordan
+
+**Task ref:** [22:45] Casey TASK
+**Asset:** HBAR
+**Mode:** medium_distance_volume (comme ETH winner)
+**Displacement:** auto
+**Raison:** ⏭️ Asset HBAR est EXCLU dans project-state.md
+**Status:** Skipped (auto-protection)
+
+---
+
+
+## [15:42] [SKIP] @Jordan
+
+**Task ref:** [14:00] Casey TASK
+**Asset:** HBAR
+**Mode:** Phase 3A Rescue - Displacement 78 (baseline mode)
+**Displacement:** 78
+**Raison:** ⏭️ Asset HBAR est EXCLU dans project-state.md
+**Status:** Skipped (auto-protection)
+
+---
+
+
+## [15:42] [SKIP] @Jordan
+
+**Task ref:** [14:30] Casey TASK
+**Asset:** BNB
+**Mode:** baseline
+**Displacement:** auto
+**Raison:** ⏭️ Asset BNB est EXCLU dans project-state.md
+**Status:** Skipped (auto-protection)
+
+---
+
+
+<!-- Les messages les plus recents en haut -->
+
+## [15:36] [RUN_STOPPED] @Jordan -> @Casey
 
 **Task ref:** [14:00] Casey TASK - HBAR Phase 3A Rescue - Displacement 78 (baseline mode)
 **Asset:** HBAR
@@ -106,13 +368,14 @@ python scripts/run_full_pipeline.py \
   --run-guards \
   --workers 4
 ```
-**Status:** 🟢 Running (auto-launched by watcher)
-**Next:** @Sam valide les guards une fois terminé
+**Status:** ⏹️ **STOPPED** - Processus terminé automatiquement
+**PID:** 36500 (détecté 15:35, déjà terminé à 15:36)
+**Raison:** Run HBAR d78 déjà testé et FAIL plus tôt (OOS Sharpe 0.067, WFE 0.175). Processus probablement lancé automatiquement par watcher, mais déjà terminé avant kill.
+**Next:** Aucun run en cours
 
 ---
 
 
-<!-- Les messages les plus recents en haut -->
 
 ## [14:22] [RUN_COMPLETE] Phase 1 Screening @Jordan -> @Casey
 

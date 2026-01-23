@@ -142,20 +142,245 @@ Ce fichier contient les validations des 7 guards par Sam.
 
 ---
 
-## [14:20] [WAITING] @Sam
+## [15:30] [ANALYSIS] Phase 1 Screening - Résultats @Sam
 
-**Status:** Validation complétée, en attente de nouveaux runs
+**Task ref:** [14:30] [TASK] @Casey -> @Jordan - Phase 1 Screening
+**Run ref:** [14:45] @Jordan RUN_START, scan complété 14:22:01
+**Assets:** BNB, XRP, ADA, TRX, LTC, XLM (6 assets majeurs)
+**Date run:** 2026-01-23 14:22:01 (post-fix TP ✅)
 
-**Dernière validation:**
+### Résultats Phase 1 Screening
+
+**Verdict global:** ❌ **TOUS FAIL** - Aucun candidat viable pour Phase 2
+
+**Note:** Phase 1 utilise `--skip-guards` (critères souples), donc analyse Sam basée sur métriques scan uniquement.
+
+| Asset | OOS Sharpe | WFE | Trades | MC p-value | Status | Raison |
+|:------|:-----------|:----|:-------|:----------|:-------|:-------|
+| BNB | -1.28 | -0.56 | 90 | 0.848 | ❌ FAIL | OOS_SHARPE<1.0; WFE<0.6; OVERFIT |
+| XRP | -1.04 | -0.33 | 90 | 0.482 | ❌ FAIL | OOS_SHARPE<1.0; WFE<0.6; OVERFIT |
+| ADA | -0.23 | -0.08 | 81 | 0.108 | ❌ FAIL | OOS_SHARPE<1.0; WFE<0.6; OVERFIT |
+| TRX | 0.56 | 0.19 | 114 | 0.218 | ❌ FAIL | OOS_SHARPE<1.0; WFE<0.6; OVERFIT |
+| XLM | -0.82 | -0.36 | 84 | 0.374 | ❌ FAIL | OOS_SHARPE<1.0; WFE<0.6; OVERFIT |
+| LTC | -0.81 | -0.24 | 48 | 0.418 | ❌ FAIL | OOS_SHARPE<1.0; WFE<0.6; TRADES<50; OVERFIT |
+
+### Critères Phase 1 (souples)
+
+| Critère | Seuil | Résultat |
+|---------|-------|----------|
+| WFE | > 0.5 | ❌ **Tous FAIL** (valeurs négatives ou < 0.2) |
+| Sharpe OOS | > 0.8 | ❌ **Tous FAIL** (valeurs négatives sauf TRX 0.56) |
+| Trades OOS | > 50 | ✅ 5/6 PASS (LTC FAIL avec 48 trades) |
+
+### Analyse détaillée par asset
+
+#### BNB
+- **IS Sharpe:** 2.28
+- **OOS Sharpe:** -1.28 ❌
+- **WFE:** -0.56 ❌ (dégradation négative = OOS pire que IS)
+- **MC p-value:** 0.848 ❌ (> 0.05, pas de significativité)
+- **OOS MaxDD:** -4.08%
+- **Params:** sl=4.5, tp1=3.75, tp2=5.5, tp3=7.5, tenkan=20, kijun=31, disp=52
+
+#### XRP
+- **IS Sharpe:** 3.15
+- **OOS Sharpe:** -1.04 ❌
+- **WFE:** -0.33 ❌
+- **MC p-value:** 0.482 ❌
+- **OOS MaxDD:** -2.81%
+- **Params:** sl=3.75, tp1=4.0, tp2=5.5, tp3=9.5, tenkan=11, kijun=21, disp=52
+
+#### ADA
+- **IS Sharpe:** 2.88
+- **OOS Sharpe:** -0.23 ❌
+- **WFE:** -0.08 ❌ (dégradation presque totale)
+- **MC p-value:** 0.108 ❌
+- **OOS MaxDD:** -3.53%
+- **Params:** sl=3.0, tp1=2.75, tp2=8.5, tp3=10.0, tenkan=9, kijun=36, disp=52
+
+#### TRX
+- **IS Sharpe:** 3.00
+- **OOS Sharpe:** 0.56 ❌ (< 0.8 requis Phase 1)
+- **WFE:** 0.19 ❌ (< 0.5 requis)
+- **MC p-value:** 0.218 ❌
+- **OOS MaxDD:** -2.75%
+- **Params:** sl=3.75, tp1=3.0, tp2=6.0, tp3=9.5, tenkan=10, kijun=31, disp=52
+
+#### XLM
+- **IS Sharpe:** 2.25
+- **OOS Sharpe:** -0.82 ❌
+- **WFE:** -0.36 ❌
+- **MC p-value:** 0.374 ❌
+- **OOS MaxDD:** -2.45%
+- **Params:** sl=3.75, tp1=1.75, tp2=6.5, tp3=10.0, tenkan=7, kijun=27, disp=52
+
+#### LTC
+- **IS Sharpe:** 3.38
+- **OOS Sharpe:** -0.81 ❌
+- **WFE:** -0.24 ❌
+- **OOS Trades:** 48 ❌ (< 50 requis)
+- **MC p-value:** 0.418 ❌
+- **OOS MaxDD:** -3.40%
+- **Params:** sl=4.5, tp1=5.0, tp2=8.0, tp3=10.0, tenkan=6, kijun=38, disp=52
+
+### Patterns d'échec observés
+
+**1. Overfitting sévère (tous les assets):**
+- WFE négatif ou très faible (< 0.2) → OOS performe pire que IS
+- Dégradation IS→OOS massive (souvent > 90%)
+- MC p-value élevée (> 0.05) → pas de significativité statistique
+
+**2. Critères Phase 1 non atteints:**
+- **WFE > 0.5:** Tous FAIL (valeurs négatives ou < 0.2)
+- **Sharpe OOS > 0.8:** Tous FAIL (valeurs négatives sauf TRX 0.56)
+- **Trades > 50:** 5/6 PASS (LTC FAIL avec 48 trades)
+
+**3. Pattern commun:**
+- Tous les assets montrent IS Sharpe positif (2.25-3.38)
+- Tous montrent OOS Sharpe négatif ou très faible (< 0.8)
+- Tous montrent WFE négatif ou < 0.2
+- Tous montrent MC p-value > 0.05 (pas de significativité)
+
+### Verdict
+
+**Status:** ❌ **TOUS EXCLUS** - Aucun candidat viable pour Phase 2
+
+**Rationale:**
+- Aucun asset ne passe les critères Phase 1 (WFE > 0.5, Sharpe OOS > 0.8, Trades > 50)
+- Tous montrent overfitting sévère (WFE négatif ou < 0.2)
+- MC p-value élevée (> 0.05) pour tous → pas de significativité statistique
+- Aucun candidat viable pour Phase 2 validation (300 trials + 7 guards complets)
+
+**Recommandation:** ❌ **EXCLUS** - Tous les assets ajoutés en EXCLUS dans `status/project-state.md`
+
+**Next:** @Casey a déjà rendu verdict [15:00] - Tous EXCLUS
+
+---
+
+## [16:35] [ANALYSIS] Phase 1 Screening Batch 2 - Résultats @Sam
+
+**Task ref:** [15:57] [TASK] @Casey -> @Jordan - Phase 1 Screening Batch 2
+**Run ref:** [16:28] [RUN_COMPLETE] @Jordan -> @Casey
+**Assets:** GMX, PENDLE, STX, IMX, FET (5 assets)
+**Date run:** 2026-01-23 16:28:31 (post-fix TP ✅)
+
+### Résultats Phase 1 Screening Batch 2
+
+**Verdict global:** ✅ **1/5 PASS** - IMX candidat viable pour Phase 2
+
+**Note:** Phase 1 utilise `--skip-guards` (critères souples), donc analyse Sam basée sur métriques scan uniquement.
+
+| Asset | OOS Sharpe | WFE | Trades | MC p-value | Status | Verdict |
+|:------|:-----------|:----|:-------|:----------|:-------|:-------|
+| **IMX** | **1.64** ✅ | **0.71** ✅ | 85 ✅ | 0.062 | ✅ **SUCCESS** | **PASS Phase 1** 🎯 |
+| GMX | -1.37 ❌ | -0.34 ❌ | 96 | 0.49 | ❌ FAIL | EXCLU (overfitting) |
+| PENDLE | -0.12 ❌ | -0.12 ❌ | 120 | 0.222 | ❌ FAIL | EXCLU (overfitting) |
+| STX | -0.60 ❌ | -0.14 ❌ | 105 | 0.322 | ❌ FAIL | EXCLU (overfitting) |
+| FET | -0.09 ❌ | -0.03 ❌ | 81 | 0.232 | ❌ FAIL | EXCLU (overfitting) |
+
+### Critères Phase 1 (souples)
+
+| Critère | Seuil | Résultat |
+|---------|-------|----------|
+| WFE | > 0.5 | ✅ **1/5 PASS** (IMX 0.71) |
+| Sharpe OOS | > 0.8 | ✅ **1/5 PASS** (IMX 1.64) |
+| Trades OOS | > 50 | ✅ **5/5 PASS** (tous > 50) |
+
+### Analyse détaillée par asset
+
+#### ✅ IMX - PASS Phase 1
+- **IS Sharpe:** 2.30
+- **OOS Sharpe:** **1.64** ✅ (> 0.8 requis)
+- **WFE:** **0.71** ✅ (> 0.5 requis)
+- **OOS Trades:** 85 ✅ (> 50 requis)
+- **MC p-value:** 0.062 ❌ (> 0.05, mais acceptable pour Phase 1)
+- **OOS MaxDD:** -1.09%
+- **Profit Factor:** 1.51
+- **Params:** sl=5.0, tp1=2.0, tp2=8.5, tp3=9.5, tenkan=8, kijun=20, disp=52
+- **Verdict:** ✅ **CANDIDAT VIABLE** → Phase 2 validation requise (300 trials + 7 guards complets)
+
+#### ❌ GMX - FAIL
+- **IS Sharpe:** 4.03
+- **OOS Sharpe:** -1.37 ❌
+- **WFE:** -0.34 ❌ (dégradation négative)
+- **MC p-value:** 0.49 ❌
+- **OOS MaxDD:** -2.29%
+- **Params:** sl=5.0, tp1=1.5, tp2=7.0, tp3=8.0, tenkan=14, kijun=34, disp=52
+
+#### ❌ PENDLE - FAIL
+- **IS Sharpe:** 0.96
+- **OOS Sharpe:** -0.12 ❌
+- **WFE:** -0.12 ❌
+- **MC p-value:** 0.222 ❌
+- **OOS MaxDD:** -2.33%
+- **Params:** sl=3.0, tp1=3.0, tp2=4.0, tp3=8.5, tenkan=6, kijun=22, disp=52
+
+#### ❌ STX - FAIL
+- **IS Sharpe:** 4.41
+- **OOS Sharpe:** -0.60 ❌
+- **WFE:** -0.14 ❌
+- **MC p-value:** 0.322 ❌
+- **OOS MaxDD:** -2.65%
+- **Params:** sl=3.5, tp1=3.0, tp2=5.0, tp3=7.0, tenkan=6, kijun=38, disp=52
+
+#### ❌ FET - FAIL
+- **IS Sharpe:** 2.93
+- **OOS Sharpe:** -0.09 ❌
+- **WFE:** -0.03 ❌ (dégradation presque totale)
+- **MC p-value:** 0.232 ❌
+- **OOS MaxDD:** -2.59%
+- **Params:** sl=3.25, tp1=2.75, tp2=6.5, tp3=10.0, tenkan=8, kijun=20, disp=52
+
+### Patterns d'échec observés
+
+**1. Overfitting sévère (4/5 assets):**
+- GMX, PENDLE, STX, FET montrent WFE négatif ou très faible (< 0.2)
+- Dégradation IS→OOS massive (souvent > 90%)
+- MC p-value élevée (> 0.05) → pas de significativité statistique
+
+**2. IMX exception:**
+- WFE positif (0.71) → Performance OOS meilleure que IS
+- Sharpe OOS positif (1.64) → Performance solide
+- MC p-value 0.062 (légèrement > 0.05 mais acceptable pour Phase 1)
+- Pattern différent des autres assets → Candidat viable
+
+### Verdict
+
+**Status:** ✅ **1/5 PASS** - IMX candidat viable pour Phase 2
+
+**Recommandation:**
+- ✅ **IMX:** PASS Phase 1 → Phase 2 validation requise (300 trials + 7 guards complets)
+- ❌ **GMX, PENDLE, STX, FET:** EXCLUS (overfitting sévère, critères Phase 1 non atteints)
+
+**Rationale:**
+- IMX est le seul asset à passer les 3 critères Phase 1 (WFE > 0.5, Sharpe OOS > 0.8, Trades > 50)
+- IMX montre WFE positif (0.71) contrairement aux autres assets (WFE négatif)
+- IMX montre Sharpe OOS positif (1.64) avec performance solide
+- Les 4 autres assets montrent overfitting sévère (pattern similaire à Phase 1 Batch 1)
+
+**Next:** @Casey décide si IMX passe en Phase 2 validation (300 trials + 7 guards complets)
+
+---
+
+## [16:15] [WAITING] @Sam
+
+**Status:** Validations complétées, surveillance active
+
+**Dernières validations:**
 - ✅ [14:15] HBAR d78 - Scan FAIL (overfitting sévère, WFE 0.175) → BLOCKED
+- ✅ [15:30] Phase 1 Screening Batch 1 - 6 assets tous FAIL → EXCLUS (BNB, XRP, ADA, TRX, LTC, XLM)
+- ✅ [16:35] Phase 1 Screening Batch 2 - 1/5 PASS (IMX) → Phase 2 requis
 
-**Runs en attente:**
-- 🔄 Phase 1 Screening: BNB, XRP, ADA, TRX, LTC, XLM (assigné [14:30] @Casey -> @Jordan, critères souples: WFE > 0.5, Sharpe > 0.8, Trades > 50)
-  - **Note:** Phase 1 utilise `--skip-guards`, donc validation Sam requise seulement pour Phase 2 (si assets PASS Phase 1)
+**Statut actuel:**
+- **Assets PROD:** 15/20 (75% objectif)
+- **Assets exclus récents:** HBAR, BNB, XRP, ADA, TRX, LTC, XLM, GMX, PENDLE, STX, FET
+- **Phase 1 Batch 1:** 0/6 assets viables (tous FAIL)
+- **Phase 1 Batch 2:** 1/5 assets viables (IMX PASS)
+- **Candidat Phase 2:** IMX (en attente décision @Casey)
 
 **Prochaines actions:**
-- Surveiller `comms/jordan-dev.md` pour Phase 1 Screening results
-- Valider les assets qui PASS Phase 1 → Phase 2 (300 trials + 7 guards complets)
+- Surveiller décision @Casey pour IMX Phase 2
+- Valider IMX Phase 2 si lancé (300 trials + 7 guards complets)
 - Documenter verdicts dans ce fichier
 
 ---
@@ -281,4 +506,61 @@ Pour chaque asset (BTC, ETH, JOE) et chaque displacement (26, 52, 78):
 3. Considérer HBAR comme variant épuisé si aucun mode ne passe 7/7
 
 **Next:** @Casey rend verdict final (BLOCKED ou RETEST avec variant)
+
+---
+
+## Référence - Patterns d'Échec Observés
+
+### Overfitting Sévère (Pattern Principal)
+
+**Symptômes:**
+- WFE négatif ou très faible (< 0.2)
+- Dégradation IS→OOS massive (> 90%)
+- MC p-value élevée (> 0.05)
+- OOS Sharpe négatif ou très faible (< 0.8)
+
+**Exemples récents:**
+- **HBAR d78:** WFE 0.175, OOS Sharpe 0.067, dégradation 96.4%
+- **BNB:** WFE -0.56, OOS Sharpe -1.28, MC p-value 0.848
+- **ADA:** WFE -0.08, OOS Sharpe -0.23, dégradation presque totale
+
+**Action:** EXCLUS - Variants épuisés, pas de solution via displacement/filter mode
+
+### Guards Critiques FAIL
+
+**Pattern:**
+- guard002 (Sensitivity) > 10% → Params instables
+- guard003 (Bootstrap CI) < 1.0 → Robustesse statistique insuffisante
+- guard006 (Stress Sharpe) < 1.0 → Résistance au stress insuffisante
+
+**Exemple:**
+- **HBAR d52 medium_distance_volume:** guard002 11.49%, guard003 0.30, guard006 0.62
+
+**Action:** BLOCKED - Tester autres variants (displacement, filter mode)
+
+### Critères Phase 1 Non Atteints
+
+**Pattern:**
+- WFE < 0.5 (souvent négatif)
+- Sharpe OOS < 0.8 (souvent négatif)
+- Trades < 50 (parfois)
+
+**Exemple:**
+- **Phase 1 Screening (6 assets):** Tous FAIL sur au moins 2 critères
+
+**Action:** EXCLUS - Non viable pour Phase 2 validation
+
+---
+
+## Statistiques de Validation
+
+**Total validations (2026-01-23):**
+- HBAR d78: SCAN FAIL → BLOCKED
+- Phase 1 Screening Batch 1: 6 assets → Tous EXCLUS (0/6)
+- Phase 1 Screening Batch 2: 1/5 PASS (IMX) → Phase 2 requis
+- **Taux de succès Phase 1:** 1/11 (9.1%) - IMX seul candidat viable
+- **Taux de succès global:** 0% (0 assets validés Phase 2 aujourd'hui)
+
+**Assets PROD actuel:** 15/20 (75% objectif)
+**Candidat Phase 2:** IMX (en attente décision @Casey)
 

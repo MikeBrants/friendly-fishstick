@@ -84,18 +84,19 @@ print(remaining[:20])
 # 2. Phase 0: Download data pour nouveaux assets
 python scripts/download_data.py --assets [LISTE_NOUVEAUX] --format parquet --days 730
 
-# 3. Phase 1: Screening rapide (200 trials, skip-guards)
+# 3. Phase 1: Screening rapide (200 trials, guards OFF par défaut)
 python scripts/run_full_pipeline.py \
   --assets [LISTE_NOUVEAUX] --workers 6 \
-  --trials 200 \
+  --trials-atr 200 \
+  --trials-ichi 200 \
   --enforce-tp-progression \
-  --skip-guards \
   --output-prefix screen_new_batch
 
 # 4. Phase 2: Validation complète pour winners Phase 1
 python scripts/run_full_pipeline.py \
   --assets [WINNERS_PHASE1] --workers 6 \
-  --trials 300 \
+  --trials-atr 300 \
+  --trials-ichi 300 \
   --enforce-tp-progression \
   --run-guards \
   --output-prefix validated_new_batch
@@ -177,7 +178,7 @@ sharpe = _safe_float(mean_returns / std_returns) * np.sqrt(periods_per_year)
 ### Phase 1 — Screening
 - [ ] Identifier assets non testés
 - [ ] Download data pour nouveaux assets
-- [ ] Screening batches run (200 trials, --skip-guards)
+- [ ] Screening batches run (200 trials, guards OFF par défaut - ne pas utiliser --run-guards)
 - [ ] Shortlist winners exportée
 
 ### Phase 2 — Validation

@@ -18,3 +18,5 @@ status/*.json
 .cursor/*
 !.cursor/rules/
 .cursor/rules/.DS_Store
+# Watcher seen tasks cache
+tools/.watcher_seen_tasks.txt
