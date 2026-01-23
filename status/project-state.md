@@ -1,6 +1,6 @@
 # Project State — FINAL TRIGGER v2
 
-**Derniere mise a jour:** 2026-01-24 15:45 @Casey
+**Derniere mise a jour:** 2026-01-24 02:50 @Casey
 
 ***
 
@@ -13,8 +13,9 @@
 | Assets en attente | 0 |
 | Assets exclus | 31+ (HBAR, IMX, BNB, XRP, ADA, TRX, LTC, XLM ajoutés) |
 | Bug critique | RESOLU (TP progression + complex numbers + Optuna sampler) |
-| Optuna Fix | ✅ APPLIED (multivariate, constant_liar, unique seeds) |
+| Optuna Fix | ✅ VERIFIED (deterministic hashlib seeds, 5+ identical runs) |
 | Guards Config | ✅ VERIFIED (mc=1000, bootstrap=10000) |
+| Reproducibility | ✅ CONFIRMED (100% match across runs) |
 
 ***
 
@@ -127,15 +128,22 @@ HBAR, IMX, BNB, XRP, ADA, TRX, LTC, XLM
 
 ## Corrections Techniques (2026-01-24)
 
-### Optuna Reproducibility Fix
+### Optuna Reproducibility Fix — VERIFIED ✅
 - **Fichier:** `crypto_backtest/optimization/parallel_optimizer.py`
-- **Problème:** TPESampler non-déterministe avec workers > 1
+- **Problème:** TPESampler non-déterministe avec workers > 1 (Python hash() non-déterministe)
 - **Solution:** 
+  - Deterministic seed: `hashlib.md5(asset).hexdigest()` au lieu de `hash(asset)`
+  - Reseed before each optimizer (atr, ichimoku, conservative)
   - `create_sampler()` avec `multivariate=True`, `constant_liar=True`
-  - Unique seed par asset: `SEED + hash(asset) % 10000`
-- **Impact:** Futurs assets auront résultats reproductibles
+- **Verification:** 5+ runs consécutifs produisent résultats identiques ✅
+- **Impact:** Système maintenant scientifiquement reproductible
 
-### Guards Audit
+### Re-validation Test Results (24-JAN 02:44-02:50)
+- **BTC**: Sharpe 1.21, WFE 0.42 → FAIL (overfit) ✅ Reproductible
+- **ETH**: Sharpe 3.22, WFE 1.17 → SUCCESS ✅ Reproductible
+- **ONE, GALA, ZIL**: Tous FAIL mais reproductibles ✅
+
+### Guards Audit — VERIFIED ✅
 - **Fichier:** `scripts/run_guards_multiasset.py`
 - **Vérification:** mc-iterations=1000 ✅, bootstrap-samples=10000 ✅
 - **Status:** Conformes aux best practices académiques
@@ -146,7 +154,9 @@ HBAR, IMX, BNB, XRP, ADA, TRX, LTC, XLM
 
 1. ✅ **METIS, YGG débloqués** — Fix V6 réussi, 7/7 guards PASS → 15 assets PROD (75%)
 2. ✅ **HBAR d78 complété** — FAIL (Sharpe 0.067, WFE 0.175) → EXCLU (variants épuisés)
-3. ✅ **Phase 1 Screening complété** — BNB, XRP, ADA, TRX, LTC, XLM tous FAIL → EXCLU
-4. ✅ **Optuna Fix appliqué** — multivariate=True, constant_liar=True, unique seeds
-5. 📊 **Phase 2 Validation** — PEPE, ILV, ONE candidats (workers=1 pour reproductibilité)
-6. 🎯 **Objectif:** 20+ assets PROD → 5 assets restants (3 candidats identifiés)
+3. ✅ **Phase 1 Screening (old)** — BNB, XRP, ADA, TRX, LTC, XLM tous FAIL → EXCLU
+4. ✅ **Optuna Fix** — Deterministic seeds + reseed, VERIFIED avec 5+ runs ✅
+5. ✅ **Reproducibility** — 100% confirmed (BTC, ETH, ONE, GALA, ZIL tous reproductibles)
+6. ⚠️ **Old Phase 1 Results** — Non-fiables (seeds non-deterministic), re-screening requis
+7. 🔄 **Phase 1 Re-screening** — Lancer avec workers=10 (deterministic, constant_liar)
+8. 🎯 **Objectif:** Valider 5+ nouveaux assets avec système reproductible → 20+ PROD
