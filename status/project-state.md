@@ -1,6 +1,6 @@
 # Project State — FINAL TRIGGER v2
 
-**Derniere mise a jour:** 2026-01-23 14:58 @Casey
+**Derniere mise a jour:** 2026-01-24 00:44 @Casey
 
 ***
 
@@ -11,7 +11,7 @@
 | Phase | Expansion Portfolio (75% objectif) |
 | Assets PROD | **15** (BTC, ETH, JOE, OSMO, MINA, AVAX, AR, ANKR, DOGE, OP, DOT, NEAR, SHIB, METIS, YGG) |
 | Assets en attente | 0 |
-| Assets exclus | 30+ (HBAR, BNB, XRP, ADA, TRX, LTC, XLM ajoutés) |
+| Assets exclus | 31+ (HBAR, IMX, BNB, XRP, ADA, TRX, LTC, XLM ajoutés) |
 | Bug critique | RESOLU (TP progression + complex numbers) |
 
 ***
@@ -63,13 +63,14 @@
 
 SEI, CAKE, AXS, RUNE, TON, SOL, AAVE, HYPE, ATOM, ARB, LINK, INJ, TIA,
 HOOK, ALICE, HMSTR, LOOM, APT, EIGEN, ONDO, ICP, ARKM, EGLD, UNI, STRK, AEVO,
-HBAR, BNB, XRP, ADA, TRX, LTC, XLM
+HBAR, IMX, BNB, XRP, ADA, TRX, LTC, XLM
 
 **Nouveaux (2026-01-23):**
 - UNI exclu — moderate mode FAIL (OOS Sharpe 0.03, WFE 0.01)
 - STRK exclu — sensitivity 12.5% > 10%, bootstrap CI 0.56 < 1.0
 - AEVO exclu — sensitivity 15.0% > 10%
 - HBAR exclu — d26 FAIL (Sharpe 0.30, WFE 0.11), d78 FAIL (Sharpe 0.067, WFE 0.175) — variants épuisés
+- IMX exclu — baseline d52 (4/7 guards), medium_distance_volume d52 FAIL, d26 FAIL, d78 FAIL — variants épuisés
 - BNB, XRP, ADA, TRX, LTC, XLM exclus — Phase 1 Screening FAIL (tous WFE < 0.5, Sharpe OOS < 0.8)
 
 ***
@@ -80,6 +81,7 @@ HBAR, BNB, XRP, ADA, TRX, LTC, XLM
 |-------|---------|------------|--------|
 | UNI | guard002 variance 26.23% > 10%, WFE 0.42 < 0.6, moderate FAIL | Variants épuisés — **EXCLU** | ❌ |
 | HBAR | d26 FAIL (Sharpe 0.30, WFE 0.11), d78 FAIL (Sharpe 0.067, WFE 0.175) | Variants épuisés — **EXCLU** | ❌ |
+| IMX | baseline d52 (4/7 guards), medium_distance_volume d52 FAIL, d26 FAIL, d78 FAIL | Variants épuisés — **EXCLU** | ❌ |
 | SHIB | Guards complex number error | ✅ **RESOLU** — Fix V3 réussi, 7/7 guards PASS | ✅ |
 | METIS, YGG | Guards complex number error | ✅ **RESOLU** — Fix V6 réussi, 7/7 guards PASS | ✅ |
 | STRK, AEVO | Guards complex number error | Fix V6 appliqué — EXCLUS (sensitivity > 10%) | ❌ |

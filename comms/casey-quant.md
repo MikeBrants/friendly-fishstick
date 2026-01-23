@@ -25,6 +25,35 @@ Ce fichier contient les taches assignees par Casey aux autres agents.
 
 ## Historique
 
+## [00:44] [DECISION] @Casey -> IMX
+
+**Asset:** IMX
+**Run ref:** [21:31] @Jordan, [21:35] @Sam validation
+**Variants testés:** 4 (baseline d52, medium_distance_volume d52, d26, d78)
+
+**Résultats complets:**
+1. ✅ Baseline d52 (Phase 2): OOS Sharpe 1.64, WFE 0.71 → **4/7 guards PASS** (meilleur résultat)
+2. ❌ Phase 4 medium_distance_volume d52: OOS Sharpe -1.41, WFE -2.80 → **Scan FAIL**
+3. ❌ Phase 3A d26: OOS Sharpe -0.33, WFE -0.17 → **3/7 guards PASS** (scan FAIL)
+4. ❌ Phase 3A d78: OOS Sharpe -0.34, WFE -0.28 → **Scan FAIL**
+
+**Guards FAIL persistants:**
+- guard002 (Sensitivity): 13.20% > 10% (baseline d52)
+- guard003 (Bootstrap CI): 0.37 < 1.0 (baseline d52)
+- guard006 (Stress Sharpe): 0.92 < 1.0 (baseline d52)
+
+**Verdict:** ❌ **EXCLU** - Variants épuisés
+
+**Rationale:**
+- Toutes les options de rescue testées (Phase 4 Filter Grid + Phase 3A Displacement Grid) ont échoué
+- Le meilleur résultat reste baseline d52 avec 4/7 guards PASS (insuffisant pour PROD)
+- Les variants alternatifs (d26, d78, medium_distance_volume) dégradent la performance (overfitting sévère)
+- Pattern JOE (d26) et OSMO/MINA (d78) ne s'appliquent pas à IMX
+
+**Status:** IMX exclu définitivement. Focus sur Phase 1 Screening Batch 3 pour identifier 5+ nouveaux assets viables.
+
+---
+
 ## [21:22] [TASK] @Casey -> @Jordan
 
 **Context:** Jordan est en attente. Deux tâches prioritaires en attente:
@@ -889,8 +918,8 @@ python scripts/run_full_pipeline.py \
 - ❌ Phase 1 Screening Batch 1: BNB, XRP, ADA, TRX, LTC, XLM tous EXCLU (tous FAIL)
 
 **En cours:**
-- 🔄 IMX Rescue Phase 3A: **TASK [21:22]** — Displacement Grid (d26, d78) - PRIORITÉ - instructions détaillées
-- 🔄 Phase 1 Screening Batch 3: **TASK [17:00]** — 20 nouveaux assets (GALA, SAND, MANA, ENJ, FLOKI, PEPE, WIF, RONIN, PIXEL, ILV, FIL, THETA, CHZ, CRV, SUSHI, ONE, KAVA, ZIL, CFX, ROSE) - après IMX
+- 🔄 Phase 1 Screening Batch 3: **RUN_START [21:40]** — 20 nouveaux assets (GALA, SAND, MANA, ENJ, FLOKI, PEPE, WIF, RONIN, PIXEL, ILV, FIL, THETA, CHZ, CRV, SUSHI, ONE, KAVA, ZIL, CFX, ROSE) - ⚠️ PAUSE (téléchargement données)
+- ✅ IMX Rescue Phase 3A: **COMPLÉTÉ [21:31]** — d26 FAIL, d78 FAIL → **EXCLU [00:44]**
 - ✅ IMX Rescue Phase 4: **COMPLÉTÉ [20:19]** — Scan FAIL (overfitting sévère, WFE -2.80)
 - 🔄 Phase 1 Screening Batch 3: **TASK [17:00]** — 20 nouveaux assets (GALA, SAND, MANA, ENJ, FLOKI, PEPE, WIF, RONIN, PIXEL, ILV, FIL, THETA, CHZ, CRV, SUSHI, ONE, KAVA, ZIL, CFX, ROSE)
 - ✅ Phase 2 Validation IMX: **COMPLÉTÉ [17:01]** — 4/7 guards PASS (3 FAIL: guard002, guard003, guard006)
