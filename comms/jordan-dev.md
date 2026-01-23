@@ -72,6 +72,54 @@ Ce fichier contient les logs des runs executes par Jordan.
 
 ---
 
+## [13:30] [DECISION_STOP] Phase 3B Optimization @Jordan -> @Casey
+
+**Task ref:** Phase 3B - Décision d'arrêt
+**Status:** ❌ **ARRÊTÉ** - Dégradation systématique identifiée
+
+**Résultats observés:**
+- **BTC d52:** Sharpe -0.45 (vs baseline 2.14) → Dégradation -2.59
+- **BTC d26:** Sharpe 0.77 (vs baseline 2.14) → Dégradation -1.37
+- **ETH d52:** Sharpe -1.19 (vs baseline 2.09) → Dégradation -3.28
+
+**Pattern:** Phase 3B dégrade systématiquement les baselines excellents, même avec trials réduits (150+150).
+
+**Décision:** Arrêter Phase 3B pour tous les assets, garder baselines originaux.
+
+**Justification:**
+- BTC, ETH, JOE baselines excellents (Sharpe 2.14, 2.09, 5.03)
+- Phase 3B dégrade au lieu d'améliorer
+- Temps mieux investi sur expansion portfolio
+
+**Action:** Killer PID 10636, documenter leçons apprises
+**Fichier:** `outputs/PHASE3B_DECISION_STOP_20260123_1330.md`
+**Next:** Focus sur HBAR d78 et screening nouveaux assets
+
+---
+
+## [12:52] [RUN_START] Phase 3B Optimization (RELAUNCH V4) @Jordan -> @Sam
+
+**Task ref:** Phase 3B Displacement Grid Optimization (après fix trials)
+**Assets:** ETH, JOE
+**Command:**
+```bash
+python scripts/run_phase3b_optimization.py --assets ETH JOE --workers 8
+```
+**Status:** 🟢 Running (background)
+**Raison:** Relance après fix trials (300→150) et fix Unicode
+**Fixes appliqués:**
+- Trials réduits: 150+150 (vs 300+300)
+- Garde-fou WFE négatif avec early exit
+- Fix Unicode (emojis remplacés)
+**Plan:**
+- ETH: d26, d52 (baseline), d78
+- JOE: d26 (baseline), d52, d78
+- 2 assets × 3 displacements = 6 optimizations + guards
+**Durée estimée:** ~1h30 avec 8 workers (trials réduits)
+**Next:** @Sam surveille les résultats et analyse les recommandations
+
+---
+
 ## [12:50] [FIX_APPLIED] @Jordan -> @Casey
 
 **Task ref:** P0.4 - Réduction Trials Phase 3B (Anti-Overfitting)
@@ -134,22 +182,53 @@ Ce fichier contient les logs des runs executes par Jordan.
 
 ---
 
-## [11:37] [RUN_START] Phase 3B Optimization (RELAUNCH V3) @Jordan -> @Sam
+## [12:40] [RUN_START] Phase 3B Optimization BTC (RELAUNCH V4) @Jordan -> @Sam
+
+**Task ref:** Phase 3B Displacement Grid Optimization - BTC seul
+**Assets:** BTC
+**Command:**
+```bash
+python scripts/run_phase3b_optimization.py --assets BTC --workers 8
+```
+**Status:** 🟢 Running (background, PID: 31000)
+**Raison:** Relance BTC après crash Unicode (fix appliqué) + investigation overfitting
+**Workers:** 8
+**Trials:** 150 ATR + 150 Ichimoku (réduit de 300 pour éviter overfitting)
+**Fixes appliqués:**
+- Unicode fix: emojis remplacés par [PASS]/[FAIL]
+- Garde-fou WFE négatif: détection overfitting automatique
+- Trials réduits: 150 au lieu de 300
+**Plan:**
+- BTC: 3 displacements (d26, d52, d78)
+- Investigation pourquoi baseline d52 montre WFE négatif
+**Durée estimée:** ~45-60 min (3 displacements × 15-20 min)
+**Next:** @Sam surveille les résultats et analyse overfitting BTC
+
+---
+
+## [12:52] [RUN_START] Phase 3B Optimization ETH & JOE @Jordan -> @Sam
+
+**Task ref:** Phase 3B Displacement Grid Optimization
+**Assets:** ETH, JOE
+**Command:**
+```bash
+python scripts/run_phase3b_optimization.py --assets ETH JOE --workers 8
+```
+**Status:** Completed (probablement terminé ou crashé)
+**PID:** 10636 (plus actif)
+**Raison:** Run séparé pour ETH & JOE pendant que BTC était en investigation
+**Next:** Vérifier résultats ETH & JOE
+
+---
+
+## [11:37] [RUN_STOPPED] Phase 3B Optimization (RELAUNCH V3) @Jordan
 
 **Task ref:** Phase 3B Displacement Grid Optimization
 **Assets:** BTC, ETH, JOE
-**Command:**
-```bash
-python scripts/run_phase3b_optimization.py --assets BTC ETH JOE --workers 10
-```
-**Status:** 🟢 Running (background, PID: 34344)
-**Raison:** Relance après interruption manuelle du run précédent
-**Workers:** 10 (augmenté de 8 pour plus de vitesse)
-**Plan:**
-- 3 assets × 3 displacements = 9 optimizations + guards
-- 300 trials ATR + 300 trials Ichimoku par displacement
-**Durée estimée:** ~2h avec 10 workers
-**Next:** @Sam surveille les résultats et analyse les recommandations
+**Status:** ❌ Crashé (UnicodeEncodeError à 12:37)
+**Erreur:** Emoji ❌ non supporté par Windows console
+**Progression:** BTC d52 et d26 partiellement complétés (WFE négatif détecté)
+**Fix appliqué:** Remplacement emojis + garde-fou WFE + trials réduits
 
 ---
 

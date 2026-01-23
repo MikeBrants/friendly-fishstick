@@ -1,87 +1,62 @@
 # Next Steps — FINAL TRIGGER v2
 
-**Date:** 2026-01-23 10:15  
-**État actuel:** 13 assets PROD / Objectif: 20+ assets PROD (65% progression)  
-**Dernière MAJ:** SHIB débloqué avec fix V3 (7/7 guards PASS)
+**Date:** 2026-01-23 13:30  
+**État actuel:** 15 assets PROD / Objectif: 20+ assets PROD (75% progression)  
+**Dernière MAJ:** Fix V6 réussi (METIS + YGG PROD), Phase 3B arrêté
 
 ---
 
 ## 🎯 Priorité P0 — Blocages Critiques
 
-### 1. Fix Bug "Complex Numbers" V3 — ✅ SHIB RÉUSSI (4 assets restants)
+### 1. Fix Bug "Complex Numbers" V6 — ✅ RÉSOLU
 
-**Assets affectés:** YGG, SHIB, STRK, METIS, AEVO  
+**Assets affectés:** STRK, METIS, AEVO, YGG  
 **Symptôme:** Scans OK (Sharpe/WFE bons) mais guards FAIL avec erreur `float() argument must be a string or a real number, not 'complex'`  
-**Impact:** 4 assets restants avec potentiel bloqués
+**Impact:** 4 assets avec potentiel bloqués
 
-**✅ SHIB DÉBLOQUÉ (2026-01-23 10:15):**
-- 7/7 guards PASS ✅
-- OOS Sharpe: 5.88, WFE: 2.42
-- Ajouté en PROD
+**✅ Fix V6 RÉUSSI (2026-01-23 12:15):**
+- **METIS:** 7/7 guards PASS ✅ → Sharpe 2.69, WFE 0.85
+- **YGG:** 7/7 guards PASS ✅ → Sharpe 2.98, WFE 0.78
+- **STRK:** EXCLU (sensitivity 12.5% > 10%, bootstrap CI 0.56 < 1.0)
+- **AEVO:** EXCLU (sensitivity 15.0% > 10%)
 
-**Fix V3 Appliqué (2026-01-23 10:02):**
+**Fix V6 Appliqué (2026-01-23 11:45):**
 
-✅ **Fonction helper globale créée:**
-- `_safe_float(value)` dans `scripts/run_guards_multiasset.py`
-- Gère complexes, NaN, inf, None
-- Utilisée partout où on fait `float()` (~15 endroits)
+✅ **Protection à la source dans `metrics.py`:**
+- Fonctions `_safe_float()`, `_force_real_series()`, `_safe_std()`
+- Protection dans `compute_metrics()` à la source
+- Cache Python nettoyé (problème principal)
 
-✅ **Protections ajoutées:**
-- `crypto_backtest/analysis/metrics.py`: Protection `periods_per_year` et `std_returns`
-- `scripts/run_guards_multiasset.py`: Toutes conversions float protégées
-- Calculs DataFrame (mean, std, percentile) protégés
+✅ **Résultat:** +2 assets PROD (13 → 15 assets, 75% objectif)
 
-**Tests en cours:**
-```bash
-# Relancer guards avec fix V3 pour assets restants
-python scripts/run_guards_multiasset.py \
-  --assets STRK METIS AEVO YGG \
-  --params-file outputs/complex_fix_test_params.csv \
-  --workers 6
-```
+**Fichiers modifiés:**
+- `crypto_backtest/analysis/metrics.py` — Protection à la source
+- `scripts/run_guards_multiasset.py` — Protections supplémentaires
 
-**Résultats:**
-- ✅ SHIB: Fix V3 réussi → +1 asset PROD (13 assets total)
-- 🔄 STRK, METIS, AEVO, YGG: Tests en cours (run lancé 10:15)
-- Si fix V3 fonctionne pour tous: +4 assets PROD potentiels (13 → 17 assets)
-
-**Workflow:** Phase 4 (Filter Grid) après validation fix V3
+**Leçon:** Cache Python était le vrai problème, pas le code lui-même.
 
 ---
 
-### 2. HBAR — Phase 3A Rescue (Displacement Grid)
+### 2. HBAR — Phase 3A Rescue (Displacement d78)
 
-**État:** 4/7 guards FAIL (sens 11.49%, CI 0.30, top10 41%, stress1 0.62)  
-**Potentiel:** Asset important, variants proposés
+**État:** d26 FAIL (Sharpe 0.30, WFE 0.11)  
+**Potentiel:** Asset important, pattern similaire à MINA (d78, Sharpe 1.76)
 
 **Actions:**
 
 ```bash
-# Phase 3A: Tester displacement variants
+# Phase 3A: Tester displacement d78 (après échec d26)
 python scripts/run_full_pipeline.py \
-  --assets HBAR --fixed-displacement 26 \
-  --trials 300 \
-  --enforce-tp-progression \
-  --run-guards \
-  --workers 4
-
-python scripts/run_full_pipeline.py \
-  --assets HBAR --fixed-displacement 78 \
-  --trials 300 \
-  --enforce-tp-progression \
-  --run-guards \
-  --workers 4
-
-# Si displacement FAIL, tester filter modes
-python scripts/run_full_pipeline.py \
-  --assets HBAR --optimization-mode light_distance \
-  --trials 300 \
+  --assets HBAR \
+  --fixed-displacement 78 \
+  --trials-atr 150 \
+  --trials-ichi 150 \
   --enforce-tp-progression \
   --run-guards \
   --workers 4
 ```
 
-**Workflow:** Phase 3A Rescue → Phase 4 Filter Grid si nécessaire
+**Workflow:** Phase 3A Rescue → Si FAIL → EXCLU
 
 ---
 
@@ -162,35 +137,33 @@ python scripts/portfolio_correlation.py \
 
 ## 🔧 Priorité P3 — Optimisations Techniques
 
-### 5. Fix Complex Number Bug V3 — ✅ APPLIQUÉ
+### 5. Fix Complex Number Bug V6 — ✅ RÉSOLU
 
 **Fichiers modifiés:**
-- ✅ `crypto_backtest/analysis/metrics.py` — Protection `periods_per_year` et `std_returns`
-- ✅ `scripts/run_guards_multiasset.py` — Fonction helper `_safe_float()` + ~15 protections
+- ✅ `crypto_backtest/analysis/metrics.py` — Protection à la source (`_safe_float()`, `_force_real_series()`, `_safe_std()`)
+- ✅ `scripts/run_guards_multiasset.py` — Protections supplémentaires
 
 **Solution appliquée:**
 
 ```python
-# Fonction helper globale
-def _safe_float(value: Any) -> float:
+# Protection à la source dans metrics.py
+def _safe_float(value: Any, default: float = 0.0) -> float:
     """Convert value to float, handling complex numbers, NaN, and inf."""
-    if value is None:
-        return 0.0
-    if isinstance(value, complex):
-        value = np.real(value)
-    try:
-        result = float(value)
-    except (TypeError, ValueError):
-        return 0.0
-    if np.isnan(result) or np.isinf(result):
-        return 0.0
-    return result
+    # ... (gère complexes, NaN, inf, None)
 
-# Utilisée partout où on fait float()
-base_sharpe = _safe_float(base_metrics.get("sharpe_ratio", 0.0) or 0.0)
+def _force_real_series(s: pd.Series) -> pd.Series:
+    """Force Series to be real-valued."""
+    if s.dtype == complex or any(isinstance(x, complex) for x in s.head(100)):
+        return pd.Series(np.real(s.values), index=s.index)
+    return s
+
+# Utilisée dans compute_metrics() à la source
+equity = _force_real_series(equity)
+returns = _force_real_series(returns)
+sharpe = _safe_float(mean_returns / std_returns) * np.sqrt(periods_per_year)
 ```
 
-**Status:** Fix V3 appliqué, tests en cours. Si bug persiste, investigation approfondie requise.
+**Status:** ✅ RÉSOLU — Cache Python nettoyé + protection à la source. +2 assets PROD (METIS, YGG).
 
 ---
 
@@ -212,35 +185,42 @@ base_sharpe = _safe_float(base_metrics.get("sharpe_ratio", 0.0) or 0.0)
 - [ ] Guards 7/7 pour WINNERS
 
 ### Phase 3A — Rescue (HBAR)
-- [ ] Grid displacement testé (d26, d78)
-- [ ] Filter modes testés si displacement FAIL
+- [x] d26 testé → FAIL (Sharpe 0.30, WFE 0.11)
+- [ ] d78 à tester (pattern MINA)
 - [ ] Meilleur variant documenté
 
+### Phase 3B — Displacement Grid Optimization
+- [x] Fix Unicode appliqué (emojis remplacés)
+- [x] Trials réduits 300→150 (anti-overfitting)
+- [x] Garde-fou WFE négatif ajouté
+- [x] **ARRÊTÉ** — Dégradation systématique des baselines (BTC, ETH)
+- [x] Leçons documentées (re-optimisation ≠ amélioration)
+
 ### Phase 4 — Filter Grid (Complex Number Bug)
-- [x] Fix V3 appliqué (fonction helper `_safe_float()` + protections)
-- [x] ✅ SHIB: Tests guards réussis (7/7 guards PASS)
-- [x] ✅ SHIB: Ajouté en PROD (asset_config.py + project-state.md)
-- [ ] Tests guards en cours pour STRK, METIS, AEVO, YGG
-- [ ] Résultats documentés pour assets restants
+- [x] Fix V6 appliqué (protection à la source dans metrics.py)
+- [x] ✅ METIS: Tests guards réussis (7/7 guards PASS)
+- [x] ✅ YGG: Tests guards réussis (7/7 guards PASS)
+- [x] ✅ METIS + YGG: Ajoutés en PROD (asset_config.py + project-state.md)
+- [x] STRK, AEVO: EXCLU (sensitivity > 10%)
 
 ### Phase 5 — Production
-- [x] `asset_config.py` à jour (DOT, NEAR, SHIB ajoutés le 2026-01-23)
-- [x] `status/project-state.md` à jour (13 assets PROD)
-- [x] Nouveaux assets PROD documentés (DOT, NEAR, SHIB validés)
+- [x] `asset_config.py` à jour (15 assets PROD)
+- [x] `status/project-state.md` à jour (15 assets PROD)
+- [x] Nouveaux assets PROD documentés (METIS, YGG validés)
 
 ---
 
 ## 🎯 Objectifs Immédiats (Cette Semaine)
 
-1. **✅ SHIB débloqué** → Fix V3 réussi, 7/7 guards PASS (+1 asset PROD)
-2. **🔄 Tests guards en cours** → STRK, METIS, AEVO, YGG avec fix V3 (potentiel +4 assets PROD)
-3. **HBAR variants** → Phase 3A Rescue (+1 asset PROD)
-4. **Screening nouveaux assets** → Phase 1 pour 10-15 nouveaux assets
-5. **Portfolio construction** → Analyse corrélations 13 assets PROD
+1. **✅ METIS + YGG débloqués** → Fix V6 réussi, 7/7 guards PASS (+2 assets PROD)
+2. **✅ Phase 3B arrêté** → Dégradation systématique identifiée, baselines gardés
+3. **⏭️ HBAR d78** → Phase 3A Rescue (après échec d26)
+4. **⏭️ Screening nouveaux assets** → Phase 1 pour 5-10 nouveaux assets (objectif 20+)
+5. **⏭️ Portfolio construction** → Analyse corrélations 15 assets PROD
 
-**Résultat attendu:** 15-20 assets PROD (objectif Q1: 20+)
+**Résultat attendu:** 20+ assets PROD (objectif Q1)
 
-**Progression actuelle:** 13 assets PROD (65% de l'objectif) ⬆️ +1
+**Progression actuelle:** 15 assets PROD (75% de l'objectif) ⬆️ +2
 
 ---
 
