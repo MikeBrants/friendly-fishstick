@@ -27,6 +27,35 @@ Ce fichier contient les taches assignees par Casey aux autres agents.
 
 <!-- Les messages les plus recents en haut -->
 
+## [14:30] [TASK] @Casey -> @Jordan
+
+**Context:** Expansion portfolio - Phase 1 Screening sur 6 nouveaux assets majeurs pour identifier candidats viables avant Phase 2 validation complète.
+
+**Task:** Phase 1 Screening - Identifier assets viables
+**Assets:** BNB, XRP, ADA, TRX, LTC, XLM
+**Objectif:** Identifier les candidats viables pour Phase 2 (validation complète avec guards)
+
+**Command:**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets BNB,XRP,ADA,TRX,XLM,LTC \
+  --trials 200 \
+  --enforce-tp-progression \
+  --skip-guards \
+  --workers 10
+```
+
+**Criteres succes Phase 1 (souples):**
+- WFE > 0.5
+- Sharpe OOS > 0.8
+- Trades OOS > 50
+
+**Next:** 
+- Les assets PASS Phase 1 → Phase 2 validation (300 trials + 7 guards complets)
+- Les assets FAIL Phase 1 → Exclus (non viables)
+
+---
+
 ## [14:00] [TASK] @Casey -> @Jordan
 
 **Context:** HBAR d52 medium_distance_volume FAIL (4/7 guards). Phase 3A Rescue - tester displacement 78 (pattern similaire à MINA qui a réussi avec d78).
@@ -116,7 +145,7 @@ python scripts/run_full_pipeline.py \
 
 ---
 
-## [14:00] [SUPERVISION] @Casey
+## [14:30] [SUPERVISION] @Casey
 
 **Cycle P0 - Etat actuel:**
 
@@ -127,11 +156,14 @@ python scripts/run_full_pipeline.py \
 
 **En cours:**
 - 🔄 HBAR d78: Phase 3A Rescue en cours (run start [14:XX] @Jordan, PID 58876)
+- 🔄 Phase 1 Screening: BNB, XRP, ADA, TRX, LTC, XLM (6 assets, 200 trials, skip-guards)
 
 **Prochaines actions:**
 - Attendre résultats HBAR d78 par @Jordan
+- Analyser résultats Phase 1 Screening (6 assets)
 - Si HBAR d78 PASS: Ajouter en PROD (16 assets, 80% objectif)
-- Si HBAR d78 FAIL: BLOCKED définitif, passer au screening nouveaux assets
+- Si HBAR d78 FAIL: BLOCKED définitif
+- Les PASS Phase 1 → Phase 2 validation (300 trials + 7 guards)
 
 ---
 
