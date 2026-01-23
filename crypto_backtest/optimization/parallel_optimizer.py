@@ -383,6 +383,12 @@ def optimize_atr(
     """Optimize ATR parameters."""
     import optuna
 
+    # CRITICAL: Reseed before optimization to ensure deterministic exploration
+    # This fixes the issue where different random state positions cause different trials
+    np.random.seed(_CURRENT_ASSET_SEED)
+    import random
+    random.seed(_CURRENT_ASSET_SEED)
+
     best_params = {}
     best_sharpe = -np.inf
     space = search_space or ATR_SEARCH_SPACE
@@ -430,6 +436,11 @@ def optimize_atr_conservative(
     """Optimize ATR parameters with a discrete grid."""
     import optuna
 
+    # CRITICAL: Reseed before optimization to ensure deterministic exploration
+    np.random.seed(_CURRENT_ASSET_SEED)
+    import random
+    random.seed(_CURRENT_ASSET_SEED)
+
     def objective(trial: optuna.Trial) -> float:
         sl = trial.suggest_categorical("sl_mult", CONSERVATIVE_ATR_SPACE["sl_mult"])
         tp1 = trial.suggest_categorical("tp1_mult", CONSERVATIVE_ATR_SPACE["tp1_mult"])
@@ -472,6 +483,11 @@ def optimize_ichimoku(
 ) -> tuple[dict[str, int], float]:
     """Optimize Ichimoku parameters."""
     import optuna
+
+    # CRITICAL: Reseed before optimization to ensure deterministic exploration
+    np.random.seed(_CURRENT_ASSET_SEED)
+    import random
+    random.seed(_CURRENT_ASSET_SEED)
 
     def objective(trial: optuna.Trial) -> float:
         tenkan = trial.suggest_int("tenkan", *ICHI_SEARCH_SPACE["tenkan"])
@@ -516,6 +532,11 @@ def optimize_ichimoku_conservative(
 ) -> tuple[dict[str, int], float]:
     """Optimize Ichimoku parameters with a discrete grid."""
     import optuna
+
+    # CRITICAL: Reseed before optimization to ensure deterministic exploration
+    np.random.seed(_CURRENT_ASSET_SEED)
+    import random
+    random.seed(_CURRENT_ASSET_SEED)
 
     def objective(trial: optuna.Trial) -> float:
         tenkan = trial.suggest_categorical("tenkan", CONSERVATIVE_ICHI_SPACE["tenkan"])
@@ -609,10 +630,13 @@ def optimize_single_asset(
 ) -> AssetScanResult:
     """Full optimization pipeline for one asset."""
     # Create unique seed per asset to avoid sampler conflicts in parallel execution
-    unique_seed = SEED + (hash(asset) % 10000)
+    # Use hashlib instead of hash() to ensure deterministic results (hash() is randomized in Python 3.3+)
+    import hashlib
+    import random
+    asset_hash = int(hashlib.md5(asset.encode()).hexdigest(), 16) % 10000
+    unique_seed = SEED + asset_hash
 
     # Fix ALL random sources with unique seed for reproducibility across parallel workers
-    import random
     np.random.seed(unique_seed)
     random.seed(unique_seed)
 

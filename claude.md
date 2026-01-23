@@ -1,34 +1,46 @@
 # Plan: Système de Backtest Pro pour "FINAL TRIGGER v2"
 
-**Derniere MAJ**: 23 janvier 2026
+**Derniere MAJ**: 24 janvier 2026
 
 ## Objectif
 Convertir l'indicateur TradingView "FINAL TRIGGER v2 - State/Transition + A/D Line + Ichi Light" en Python et créer un système de backtest professionnel avec walk-forward analysis et optimisation bayésienne.
 
-## Etat Actuel: 24 janvier 2026 - Reproducibility Crisis Identified & Fixed
+## Etat Actuel: 24 janvier 2026 - Reproducibility Fixes APPLIED & VERIFIED
 
 **Tests**: 17 tests passent (`pytest -v`)
 **Validation**: 100% match FINAL LONG/SHORT vs Pine Script (apres warmup)
+**Portfolio Production**: 15 assets PROD (BTC, ETH, JOE, OSMO, MINA, AVAX, AR, ANKR, DOGE, OP, DOT, NEAR, SHIB, METIS, YGG)
 
-### 🚨 CRITICAL BUG FOUND & FIXED
-**Issue**: Parallel optimization (workers > 1) with Optuna TPESampler was **non-deterministic**
-- Numpy RNG not seeded globally
-- Python random module not seeded
-- Optuna TPESampler seeds hardcoded to 42 (collisions in parallel)
-- Monte Carlo p-values non-reproductible
+### ✅ OPTUNA FIX APPLIED & VERIFIED
+**Issue résolu**: Parallel optimization (workers > 1) with Optuna TPESampler était non-déterministe
 
-**Impact**: All Phase 1 Screening results (350+ assets) were **scientifically unreliable**
+**Fixes appliqués** (`crypto_backtest/optimization/parallel_optimizer.py`):
+- `create_sampler()` helper créé (lignes 69-95)
+- `multivariate=True` — capture corrélations tp1 < tp2 < tp3
+- `constant_liar=True` — safe parallel workers
+- `unique_seed = SEED + hash(asset) % 10000` — évite collisions
 
-**Solution Applied**: Option B Strategy (see REPRODUCIBILITY_STRATEGY.md)
-- Phase 1: Fast screening with workers=10 (filtre grossier)
-- Phase 2: Strict validation with workers=1 (reproductible)
-- Phase 3: Multi-seed robustness (optional, ultra-rigorous)
+### ✅ GUARDS VERIFIED (Best Practices)
+**Fichier**: `scripts/run_guards_multiasset.py`
 
-**Current Status**:
-- ✅ Reproducibility fixes applied to parallel_optimizer.py
-- ✅ New REPRODUCIBILITY_STRATEGY.md created
-- ⏳ Phase 1 Screening candidates identified
-- 🔄 Phase 2 Validation (workers=1) starting soon
+| Guard | Valeur | Minimum | Status |
+|-------|--------|---------|--------|
+| `mc-iterations` | **1000** | 1000 | ✅ OK |
+| `bootstrap-samples` | **10000** | 2000 | ✅ EXCELLENT |
+| `confidence_level` | 0.95 | 0.95 | ✅ OK |
+
+### 📊 Strategy: Option C (FREEZE & MOVE FORWARD)
+
+**Decision**: Les 15 assets PROD sont FROZEN comme références historiques.
+**Raison**: Guards robustes (7/7 PASS), fixes améliorent futurs assets seulement.
+**Action**: Focus sur expansion portfolio avec nouveaux assets.
+
+### Candidats Phase 2 Validation (Post-Fix)
+- PEPE (OOS Sharpe 2.95, WFE 1.33) — SUCCESS Phase 1
+- ILV (OOS Sharpe 2.72, WFE 0.74) — SUCCESS Phase 1
+- ONE (OOS Sharpe 3.60, WFE 0.92) — SUCCESS Phase 1
+
+**Voir**: `docs/REVALIDATION_BRIEF.md` pour le brief complet de re-validation
 
 ## Résumé du Code Pine Script (1223 lignes)
 

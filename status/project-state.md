@@ -1,6 +1,6 @@
 # Project State — FINAL TRIGGER v2
 
-**Derniere mise a jour:** 2026-01-24 00:44 @Casey
+**Derniere mise a jour:** 2026-01-24 15:45 @Casey
 
 ***
 
@@ -12,7 +12,9 @@
 | Assets PROD | **15** (BTC, ETH, JOE, OSMO, MINA, AVAX, AR, ANKR, DOGE, OP, DOT, NEAR, SHIB, METIS, YGG) |
 | Assets en attente | 0 |
 | Assets exclus | 31+ (HBAR, IMX, BNB, XRP, ADA, TRX, LTC, XLM ajoutés) |
-| Bug critique | RESOLU (TP progression + complex numbers) |
+| Bug critique | RESOLU (TP progression + complex numbers + Optuna sampler) |
+| Optuna Fix | ✅ APPLIED (multivariate, constant_liar, unique seeds) |
+| Guards Config | ✅ VERIFIED (mc=1000, bootstrap=10000) |
 
 ***
 
@@ -123,10 +125,28 @@ HBAR, IMX, BNB, XRP, ADA, TRX, LTC, XLM
 
 ***
 
+## Corrections Techniques (2026-01-24)
+
+### Optuna Reproducibility Fix
+- **Fichier:** `crypto_backtest/optimization/parallel_optimizer.py`
+- **Problème:** TPESampler non-déterministe avec workers > 1
+- **Solution:** 
+  - `create_sampler()` avec `multivariate=True`, `constant_liar=True`
+  - Unique seed par asset: `SEED + hash(asset) % 10000`
+- **Impact:** Futurs assets auront résultats reproductibles
+
+### Guards Audit
+- **Fichier:** `scripts/run_guards_multiasset.py`
+- **Vérification:** mc-iterations=1000 ✅, bootstrap-samples=10000 ✅
+- **Status:** Conformes aux best practices académiques
+
+***
+
 ## Prochaines Étapes
 
 1. ✅ **METIS, YGG débloqués** — Fix V6 réussi, 7/7 guards PASS → 15 assets PROD (75%)
 2. ✅ **HBAR d78 complété** — FAIL (Sharpe 0.067, WFE 0.175) → EXCLU (variants épuisés)
 3. ✅ **Phase 1 Screening complété** — BNB, XRP, ADA, TRX, LTC, XLM tous FAIL → EXCLU
-4. 📊 **Nouveaux assets** — Identifier autres assets Top 50 pour screening (objectif 20+)
-5. 🎯 **Objectif:** 20+ assets PROD → 5 assets restants
+4. ✅ **Optuna Fix appliqué** — multivariate=True, constant_liar=True, unique seeds
+5. 📊 **Phase 2 Validation** — PEPE, ILV, ONE candidats (workers=1 pour reproductibilité)
+6. 🎯 **Objectif:** 20+ assets PROD → 5 assets restants (3 candidats identifiés)

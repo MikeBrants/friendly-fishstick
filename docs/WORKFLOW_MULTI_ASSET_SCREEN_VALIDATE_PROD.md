@@ -6,7 +6,14 @@
 
 Ce document decrit le workflow **scalable** pour executer le pipeline FINAL TRIGGER v2 sur des dizaines d'assets, en minimisant le compute gaspille et en maximisant la robustesse des assets qui passent en production.
 
-**SEE ALSO**: [REPRODUCIBILITY_STRATEGY.md](../REPRODUCIBILITY_STRATEGY.md) — explains the scientific foundation for this workflow.
+**SEE ALSO**: 
+- [REPRODUCIBILITY_STRATEGY.md](../REPRODUCIBILITY_STRATEGY.md) — Scientific foundation for Option B workflow
+- [REVALIDATION_BRIEF.md](./REVALIDATION_BRIEF.md) — Complete re-validation brief with commands
+
+**GUARDS CONFIG VERIFIED (2026-01-24):**
+- Monte Carlo iterations: **1000** ✅ (minimum standard)
+- Bootstrap samples: **10000** ✅ (5x minimum, excellent)
+- Confidence level: **0.95** ✅
 
 ---
 

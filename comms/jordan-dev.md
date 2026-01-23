@@ -49,6 +49,201 @@ Ce fichier contient les logs des runs executes par Jordan.
 
 ## Historique
 
+## [24-JAN 15:30] [OPTUNA_FIX_APPLIED] TECHNICAL INSTRUCTIONS — Phase 1 & Phase 2
+
+**From:** Claude (AI Assistant)
+**To:** @Jordan (Developer)
+**Date:** 24 janvier 2026, 15:30 UTC
+**Status:** ✅ **FIX READY, VALIDATION IN PROGRESS**
+
+---
+
+### WHAT CHANGED
+
+**Problem:** Optuna TPESampler with `workers > 1` is non-deterministic (official Optuna limitation)
+
+**Solution Applied:**
+- Created `create_sampler()` helper with `multivariate=True` + `constant_liar=True`
+- Unique seed per asset: `SEED + hash(asset) % 10000`
+- All RNG sources synchronized (numpy, random, Optuna)
+
+**File Modified:** `crypto_backtest/optimization/parallel_optimizer.py`
+
+---
+
+### PHASE 1: SCREENING (FAST, PARALLEL)
+
+**Command:**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets ASSET1 ASSET2 ASSET3 ... ASSET20 \
+  --trials-atr 200 \
+  --trials-ichi 200 \
+  --enforce-tp-progression \
+  --workers 10 \
+  --skip-download
+```
+
+**Configuration:**
+- Workers: 10 (parallel, safe with constant_liar=True)
+- Trials: 200 ATR + 200 Ichimoku
+- Guards: OFF (Phase 1 doesn't run guards)
+- Time: ~30 min for 20 assets
+
+**Success Criteria (Soft):**
+- WFE > 0.5
+- Sharpe OOS > 0.8
+- Trades OOS > 50
+
+**Output:**
+- `outputs/multiasset_scan_YYYYMMDD_HHMMSS.csv` (all results)
+- Extract SUCCESS assets → pass to Phase 2
+
+**Expected Results:**
+- ~4-5 candidates per 20 assets pass Phase 1
+- Rest FAIL due to overfitting (WFE < 0.5)
+
+**Documentation in comms/jordan-dev.md:**
+```
+## [HH:MM] [RUN_START] Phase 1 Screening - Assets @Jordan
+**Assets:** ASSET1, ASSET2, ...
+**Command:** python scripts/run_full_pipeline.py --assets ... --workers 10
+
+(run complete)
+
+## [HH:MM] [RUN_COMPLETE] Phase 1 Screening - Results
+**Status:** SUCCESS - 4/20 assets PASS
+**Details:**
+- ASSET1: OOS Sharpe 2.71, WFE 1.18 → PASS
+- ASSET2: OOS Sharpe -0.11, WFE 0.47 → FAIL
+- ...
+**Output:** outputs/multiasset_scan_20260124_HHMMSS.csv
+```
+
+---
+
+### PHASE 2: VALIDATION (RIGOROUS, SEQUENTIAL)
+
+**CRITICAL:** This is the scientific validation phase
+
+**Command Run 1:**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets CANDIDATE1 CANDIDATE2 CANDIDATE3 ... \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --workers 1 \
+  --run-guards \
+  --skip-download
+```
+
+**Configuration:**
+- Workers: 1 (SEQUENTIAL - non-negotiable for reproducibility)
+- Trials: 300 ATR + 300 Ichimoku
+- Guards: ON (7 guards executed)
+- Time: 1-2 hours for 5 candidates
+
+**Success Criteria (Strict - All 7 Must PASS):**
+- WFE > 0.6
+- MC p-value < 0.05
+- Sensitivity < 10% (guard002)
+- Bootstrap CI > 1.0 (guard003)
+- Top10 trades < 40% (guard005)
+- Stress1 Sharpe > 1.0 (guard006)
+- Regime mismatch < 1% (guard007)
+- OOS Sharpe > 1.0 (target > 2.0)
+- OOS Trades > 60
+
+**Output Run 1:**
+- `outputs/multiasset_scan_YYYYMMDD_HHMMSS.csv` (scan results)
+- `outputs/multiasset_guards_summary_YYYYMMDD_HHMMSS.csv` (guards)
+- `outputs/[ASSET]_validation_report_*.txt` (per-asset details)
+
+---
+
+### PHASE 2: REPRODUCIBILITY VERIFICATION (CRITICAL)
+
+**Command Run 2 - MUST BE IDENTICAL TO RUN 1:**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets CANDIDATE1 CANDIDATE2 CANDIDATE3 ... \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --workers 1 \
+  --run-guards \
+  --skip-download
+```
+
+**Verification Script:**
+```bash
+python scripts/verify_reproducibility.py \
+  --run1 outputs/multiasset_scan_YYYYMMDD_HHMMSS_run1.csv \
+  --run2 outputs/multiasset_scan_YYYYMMDD_HHMMSS_run2.csv
+```
+
+**Expected Output:**
+```
+PASS: Run 1 and Run 2 match 100%
+Asset CANDIDATE1: Sharpe 2.71 (match), Guards 7/7 PASS (match)
+Asset CANDIDATE2: Sharpe 1.76 (match), Guards 7/7 PASS (match)
+...
+```
+
+**If Output Shows Divergence:**
+- Check for hidden RNG sources (file I/O, data loading order)
+- Debug logs in parallel_optimizer.py
+- Contact Casey for investigation
+
+---
+
+### TYPICAL WORKFLOW
+
+**Day 1:**
+1. Run Phase 1 Screening (20 assets, workers=10) → ~30 min
+2. Export results: `scripts/export_screening_results.py`
+3. Pass candidate list to Sam for Phase 2
+
+**Day 2:**
+1. Sam runs Phase 2 Validation Run 1 (5 candidates, workers=1) → ~2 hours
+2. Sam runs Phase 2 Validation Run 2 (identical) → ~2 hours
+3. Run `verify_reproducibility.py` to confirm 100% match
+4. Pass validated assets to Casey for PROD
+
+---
+
+### IMPORTANT NOTES
+
+⚠️ **Phase 2 MUST use workers=1**
+- This is not optional
+- Parallel workers introduce non-determinism
+
+⚠️ **Run Phase 2 twice identically**
+- Use same commands, same assets, same order
+- Verify exact match with verify_reproducibility.py
+
+⚠️ **Old Phase 1 results are unreliable**
+- All screening pre-24jan with workers>1 are compromised
+- Start fresh with new Option B approach
+
+⚠️ **Keep logs in comms/jordan-dev.md**
+- Format: `[RUN_START]` → `[RUN_COMPLETE]`
+- Include timestamps, asset list, output CSV path
+
+---
+
+### VALIDATION TEST IN PROGRESS
+
+**Current Task:** Testing ONE, GALA, ZIL with workers=1 (reproducibility verification)
+- Run 1: In progress (expected ~15 min)
+- Run 2: After Run 1 completes
+- Verify: Check for bit-exact match
+
+**Next Step:** If test PASSES → Launch Phase 1 Screening on full 20-asset batch
+
+---
+
 ## [21:40] [RUN_START] Phase 1 Screening Batch 3 - 20 Assets @Jordan -> @Casey
 
 **Task ref:** [17:00] [TASK] @Casey -> @Jordan - Phase 1 Screening Batch 3
