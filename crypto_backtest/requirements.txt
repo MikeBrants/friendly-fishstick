@@ -17,6 +17,7 @@ plotly>=5.18.0
 scipy>=1.11.0
 quantstats>=0.0.62
 scikit-learn>=1.3.0
+empyrical-reloaded
 
 # Dashboard UI
 streamlit>=1.30.0

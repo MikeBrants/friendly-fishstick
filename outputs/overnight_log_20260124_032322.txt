@@ -362,3 +362,54 @@
 [16:10:08] ====================
 [16:10:08] Validating: TON (Run 1)
 [16:10:08] ====================
+[16:15:18] ✅ TON Run 1 COMPLETE
+[16:15:18] 
+[16:15:18] ====================
+[16:15:18] Validating: TON (Run 2 - Reproducibility)
+[16:15:18] ====================
+[16:20:06] ✅ TON Run 2 COMPLETE - Check reproducibility manually
+[16:20:11] 
+[16:20:11] ====================
+[16:20:11] Validating: EGLD (Run 1)
+[16:20:11] ====================
+[16:26:47] ✅ EGLD Run 1 COMPLETE
+[16:26:47] 
+[16:26:47] ====================
+[16:26:47] Validating: EGLD (Run 2 - Reproducibility)
+[16:26:47] ====================
+[16:33:25] ✅ EGLD Run 2 COMPLETE - Check reproducibility manually
+[16:33:30] 
+[16:33:30] ====================
+[16:33:30] Validating: EGLD (Run 1)
+[16:33:30] ====================
+[16:40:10] ✅ EGLD Run 1 COMPLETE
+[16:40:10] 
+[16:40:10] ====================
+[16:40:10] Validating: EGLD (Run 2 - Reproducibility)
+[16:40:10] ====================
+[16:47:18] ✅ EGLD Run 2 COMPLETE - Check reproducibility manually
+[16:47:23] 
+[16:47:23] ==========================================
+[16:47:23] PHASE 2 VALIDATION COMPLETE
+[16:47:23] ==========================================
+[16:47:23] Validated: 30 assets (Run 1 + Run 2)
+[16:47:23] Next: Compare Run 1 vs Run 2 for reproducibility
+[16:47:24] Then: Analyze guards results (7/7 PASS required)
+[16:47:24] 
+[16:47:24] ==========================================
+[16:47:24] OVERNIGHT PIPELINE COMPLETE
+[16:47:24] ==========================================
+[16:47:24] Start: 20260124_032322
+[16:47:24] End: 20260124_164724
+[16:47:24] Duration: h m
+[16:47:24] 
+[16:47:24] Phase 1: 60 assets tested, 30 SUCCESS
+[16:47:24] Phase 2: 30 assets validated (Run 1 + Run 2)
+[16:47:24] 
+[16:47:24] Next steps:
+[16:47:24] 1. Review log: outputs\overnight_log_20260124_032322.txt
+[16:47:24] 2. Compare Run 1 vs Run 2 (reproducibility)
+[16:47:24] 3. Analyze guards (7/7 PASS)
+[16:47:24] 4. Update status/project-state.md with PROD assets
+[16:47:24] 
+[16:47:24] ✅ PIPELINE COMPLETE

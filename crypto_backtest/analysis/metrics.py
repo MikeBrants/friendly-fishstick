@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+from typing import Any
 
 
 def _safe_float(value, default: float = 0.0) -> float:
@@ -147,6 +148,102 @@ def compute_metrics(equity_curve: pd.Series, trades: pd.DataFrame) -> dict[str, 
         "hour_block_avg_return": hour_blocks,
         "weekday_avg_return": weekday_stats,
     }
+
+
+# =============================================================================
+# Optional reference implementation (empyrical-reloaded)
+# =============================================================================
+
+def _import_empyrical():
+    """
+    Import empyrical (optionally provided by the package 'empyrical-reloaded').
+
+    We keep this optional so the core backtesting stack does not hard-depend
+    on empyrical. Tests should skip if missing.
+    """
+    try:
+        import empyrical as emp  # type: ignore
+    except Exception as exc:  # pragma: no cover
+        raise ImportError(
+            "empyrical not installed. Install 'empyrical-reloaded' to enable "
+            "metrics reference cross-check."
+        ) from exc
+    return emp
+
+
+def compute_metrics_reference(
+    equity_curve: pd.Series,
+    risk_free: float = 0.0,
+) -> dict[str, float]:
+    """
+    Compute a subset of metrics using a well-known reference library (empyrical).
+
+    This is intended for *sanity checking* only (e.g. CI/test comparisons),
+    not as the primary metrics source.
+
+    Returns values in the same units as `compute_metrics()`:
+    - total_return, cagr, max_drawdown are fractions (e.g. 0.10 = +10%)
+    - sharpe_ratio and sortino_ratio are annualized
+    """
+    if equity_curve is None or equity_curve.empty:
+        return {}
+
+    emp = _import_empyrical()
+
+    equity = equity_curve.dropna()
+    equity = _force_real_series(equity)
+
+    start = _safe_float(equity.iloc[0], default=1.0)
+    end = _safe_float(equity.iloc[-1], default=1.0)
+    if start == 0:
+        start = 1.0
+
+    total_return = (end / start) - 1.0
+    years = _years_between(equity.index)
+    if years > 0 and start > 0:
+        cagr = (end / start) ** (1 / years) - 1.0
+    else:
+        cagr = 0.0
+
+    returns = equity.pct_change().dropna()
+    returns = _force_real_series(returns)
+
+    periods_per_year = _periods_per_year(equity.index)
+    periods_per_year = _safe_float(periods_per_year, default=252.0)
+    if periods_per_year <= 0:
+        periods_per_year = 252.0
+
+    # Empyrical expects returns, not equity.
+    sharpe = emp.sharpe_ratio(returns, risk_free=risk_free, annualization=periods_per_year)
+    sortino = emp.sortino_ratio(returns, required_return=risk_free, annualization=periods_per_year)
+    max_dd = emp.max_drawdown(returns)
+
+    # empyrical may return numpy scalars; force safe floats.
+    return {
+        "total_return": _safe_float(total_return),
+        "cagr": _safe_float(cagr),
+        "sharpe_ratio": _safe_float(sharpe),
+        "sortino_ratio": _safe_float(sortino),
+        "max_drawdown": _safe_float(max_dd),
+    }
+
+
+def diff_metrics(
+    ours: dict[str, Any],
+    reference: dict[str, Any],
+    keys: list[str] | None = None,
+) -> dict[str, float]:
+    """
+    Convenience helper to compute per-metric deltas (ours - reference).
+    Missing keys are ignored.
+    """
+    if keys is None:
+        keys = sorted(set(ours.keys()) & set(reference.keys()))
+    out: dict[str, float] = {}
+    for k in keys:
+        if k in ours and k in reference:
+            out[k] = _safe_float(ours.get(k)) - _safe_float(reference.get(k))
+    return out
 
 
 def _trade_pnl(trades: pd.DataFrame) -> pd.Series:

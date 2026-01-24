@@ -26,6 +26,7 @@ from crypto_backtest.engine.backtest import BacktestConfig, VectorizedBacktester
 from crypto_backtest.optimization.bayesian import _instantiate_strategy
 from crypto_backtest.optimization.parallel_optimizer import build_strategy_params, load_data
 from crypto_backtest.strategies.final_trigger import FinalTriggerStrategy
+from crypto_backtest.validation.overfitting import compute_overfitting_report
 
 
 BASE_CONFIG = BacktestConfig(
@@ -824,6 +825,11 @@ def _write_report(
         f"{_fmt(guard_results.get('guard_wfe'), 2)} -> "
         f"{'PASS' if guard_results.get('guard_wfe_pass', True) else 'FAIL'}",
         "-" * 70,
+        "OVERFITTING (report-only):",
+        f"PSR (P[SR>0]): {_fmt(guard_results.get('overfit_psr'), 4)}",
+        f"DSR (deflated): {_fmt(guard_results.get('overfit_dsr'), 4)}",
+        f"SR* (deflated threshold): {_fmt(guard_results.get('overfit_sr_star'), 4)}",
+        "-" * 70,
         f"ALL PASS: {'YES' if guard_results['all_pass'] else 'NO'}",
     ]
     Path(path).write_text("\n".join(lines))
@@ -862,6 +868,7 @@ def _asset_guard_worker(
     bootstrap_samples: int,
     sensitivity_range: int,
     stress_scenarios: list[tuple[float, float]],
+    overfit_trials: int | None = None,
 ) -> dict[str, Any]:
     data = load_data(asset, data_dir)
     if data.index.tz is None:
@@ -891,6 +898,14 @@ def _asset_guard_worker(
     
     # FIX: Protection contre complexes dans conversion float
     base_sharpe = _safe_float(base_metrics.get("sharpe_ratio", 0.0) or 0.0)
+
+    # Overfitting report (report-only; does NOT affect all_pass)
+    overfit = compute_overfitting_report(
+        base_result.equity_curve,
+        sr_benchmark=0.0,
+        risk_free=0.0,
+        n_trials=overfit_trials,
+    )
 
     outputs_path = Path(outputs_dir)
     outputs_path.mkdir(exist_ok=True)
@@ -1037,6 +1052,9 @@ def _asset_guard_worker(
             "guard007_pass": guard007_pass,
             "guard_wfe": wfe_value,
             "guard_wfe_pass": guard_wfe_pass,
+            "overfit_psr": overfit.psr,
+            "overfit_dsr": overfit.dsr,
+            "overfit_sr_star": overfit.sr_star,
             "all_pass": all_pass,
         },
     )
@@ -1058,6 +1076,9 @@ def _asset_guard_worker(
         "guard007_pass": guard007_pass,
         "guard_wfe": wfe_value,
         "guard_wfe_pass": guard_wfe_pass,
+        "overfit_psr": overfit.psr,
+        "overfit_dsr": overfit.dsr,
+        "overfit_sr_star": overfit.sr_star,
         "all_pass": all_pass,
         "error": "",
     }
@@ -1079,6 +1100,13 @@ def main() -> None:
     parser.add_argument("--mc-iterations", type=int, default=1000)
     parser.add_argument("--bootstrap-samples", type=int, default=10000)
     parser.add_argument("--sensitivity-range", type=int, default=2)
+    parser.add_argument(
+        "--overfit-trials",
+        type=int,
+        default=None,
+        help="Optional number of optimizer trials used (for deflated Sharpe threshold). "
+        "If omitted, DSR is not computed (PSR still reported).",
+    )
     parser.add_argument(
         "--stress-fees",
         nargs="*",
@@ -1132,6 +1160,7 @@ def main() -> None:
                 args.bootstrap_samples,
                 args.sensitivity_range,
                 stress_scenarios,
+                args.overfit_trials,
             )] = asset
 
         for future in as_completed(futures):
