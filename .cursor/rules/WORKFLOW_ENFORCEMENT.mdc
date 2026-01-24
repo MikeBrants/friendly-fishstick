@@ -1,0 +1,258 @@
+---
+description: Workflow Rescue Enforcement - MANDATORY FOR ALL AGENTS
+globs: ["**/*"]
+alwaysApply: true
+priority: 1
+---
+
+# WORKFLOW RESCUE ENFORCEMENT - RÈGLE GLOBALE CRITIQUE
+
+**Version:** 1.0  
+**Date:** 24 janvier 2026  
+**Priority:** 🔴 **HIGHEST** - Supersedes all other rules
+
+---
+
+## 🎯 RÈGLE ABSOLUE
+
+**JAMAIS BLOQUER UN ASSET SANS ÉPUISER LE WORKFLOW RESCUE**
+
+**Source de vérité:** `docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md`
+
+---
+
+## 📋 WORKFLOW OBLIGATOIRE (7 Phases)
+
+```
+Phase 0: Download data
+    ↓
+Phase 1: Screening (200 trials, workers=10, guards OFF)
+    ↓
+    ├─→ SUCCESS → Phase 2
+    └─→ FAIL → Phase 3A (si asset prioritaire)
+
+Phase 2: Validation (300 trials, workers=1, guards ON)
+    ↓
+    ├─→ 7/7 GUARDS PASS → Phase 3B (optional) → Phase 5
+    └─→ <7/7 GUARDS FAIL → Phase 3A (OBLIGATOIRE)
+
+Phase 3A: Displacement Rescue (d26, d52, d78)
+    ↓
+    ├─→ 1+ displacement PASS → Phase 5 (PROD)
+    └─→ ALL FAIL → Phase 4 (OBLIGATOIRE)
+
+Phase 4: Filter Grid (12 configurations)
+    ↓
+    ├─→ 1+ config PASS → Phase 5 (PROD)
+    └─→ ALL FAIL → EXCLU DÉFINITIF
+
+Phase 5: Production Config (asset_config.py)
+    ↓
+Phase 6: Portfolio Construction
+```
+
+---
+
+## ⚠️ INTERDICTIONS ABSOLUES
+
+### ❌ INTERDIT #1: Skip Phase 3A
+```markdown
+# MAUVAIS (INTERDIT):
+Guards FAIL → BLOCKED définitif
+
+# CORRECT (OBLIGATOIRE):
+Guards FAIL → Phase 3A (displacement rescue)
+```
+
+### ❌ INTERDIT #2: Skip Phase 4
+```markdown
+# MAUVAIS (INTERDIT):
+Phase 3A FAIL → BLOCKED définitif
+
+# CORRECT (OBLIGATOIRE):
+Phase 3A FAIL → Phase 4 (filter grid)
+```
+
+### ❌ INTERDIT #3: Décision sans consulter workflow
+```markdown
+# MAUVAIS (INTERDIT):
+Décider de bloquer sans lire WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md
+
+# CORRECT (OBLIGATOIRE):
+TOUJOURS consulter workflow AVANT toute décision de blocage
+```
+
+---
+
+## ✅ PROCÉDURE CORRECTE (Guards FAIL)
+
+### Étape 1: Identifier échec
+```
+Asset X: guards FAIL (Y/7 PASS)
+Failed guards: [liste]
+```
+
+### Étape 2: Vérifier position workflow
+```
+Position actuelle: Phase 2 (validation)
+Rescue épuisé? NON
+Next: Phase 3A obligatoire
+```
+
+### Étape 3: Consulter workflow
+```bash
+cat docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md
+grep -A 20 "Phase 3A" docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md
+```
+
+### Étape 4: Recommandation correcte
+```markdown
+**Verdict:** PENDING (Phase 2 guards FAIL)
+**Recommendation:** Proceed Phase 3A (displacement rescue)
+**Rationale:** [Asset prioritaire / Workflow non épuisé / etc.]
+**Command:** 
+python scripts/run_full_pipeline.py \
+  --assets X --fixed-displacement 26 \
+  --trials-atr 300 --trials-ichi 300 \
+  --enforce-tp-progression --run-guards --workers 1
+
+**Next:** Test d78 si d26 FAIL
+**BLOCKED seulement si:** Phase 3A + Phase 4 épuisées
+```
+
+---
+
+## 🚫 EXCEPTIONS (Skip Rescue Autorisé)
+
+**Skip rescue UNIQUEMENT si:**
+
+1. **Données insuffisantes**
+   - < 50 trades OOS après optimization
+   - < 8000 bars IS
+
+2. **Asset low-priority** ET **tous conditions:**
+   - Portfolio a déjà 10+ assets PROD
+   - Compute resources limités
+   - User demande explicitement
+
+3. **Structural issue**
+   - WFE < 0.3 (overfit sévère)
+   - OOS Sharpe < 0.8 (performance trop faible)
+   - Negative performance
+
+4. **User explicit request**
+   - User dit "skip rescue pour X"
+   - User dit "BLOCKED définitif"
+
+**DANS TOUS LES AUTRES CAS: RESCUE OBLIGATOIRE**
+
+---
+
+## 📋 CHECKLIST AVANT BLOCAGE (MANDATORY)
+
+**TOUJOURS utiliser:** `DECISION_CHECKLIST.md`
+
+- [ ] **1. Workflow consulté**
+  ```
+  cat docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md
+  ```
+
+- [ ] **2. Position vérifiée**
+  - Asset en quelle phase? (1, 2, 3A, 3B, 4)
+  - Rescue épuisé? (Phase 3A + Phase 4 tentées)
+
+- [ ] **3. Historique consulté**
+  ```bash
+  grep "ASSET" outputs/*_scan_*.csv | tail -5
+  grep "ASSET" outputs/*_guards_*.csv | tail -5
+  ```
+
+- [ ] **4. Priorité évaluée**
+  - OOS Sharpe > 3.0? → Haute priorité rescue
+  - OOS Sharpe 2.0-3.0? → Priorité moyenne
+  - OOS Sharpe < 2.0? → Priorité basse
+
+- [ ] **5. Exception vérifiée**
+  - Skip rescue justifié par exception documentée?
+  - Si NON → Rescue OBLIGATOIRE
+
+**Si UNE SEULE case non cochée → PAS DE BLOCAGE**
+
+---
+
+## 🎯 POUR CHAQUE AGENT
+
+### Casey (Orchestrator)
+- ✅ Consulter workflow AVANT décision
+- ✅ Utiliser DECISION_CHECKLIST.md
+- ✅ Recommander rescue, pas blocage
+- ❌ JAMAIS bloquer sans rescue épuisé
+
+### Jordan (Executor)
+- ✅ Connaître commandes Phase 3A/4
+- ✅ Demander clarification si ordre "BLOCKED" direct
+- ✅ Référencer workflow dans questions
+- ❌ JAMAIS assumer que FAIL = stop
+
+### Sam (Validator)
+- ✅ Recommander rescue après guards FAIL
+- ✅ Indiquer phase suivante dans verdict
+- ✅ Utiliser format standardisé
+- ❌ JAMAIS dire "BLOCKED" sans préciser "après Phase 3A/4"
+
+---
+
+## 📊 TEMPLATE DÉCISION STANDARDISÉ
+
+```markdown
+## ASSET DECISION: [ASSET_NAME]
+
+**Context:**
+- Phase actuelle: [Phase X]
+- Guards results: [Y/7 PASS]
+- Failed guards: [liste]
+- OOS Sharpe: [X.XX]
+- WFE: [X.XX]
+
+**Workflow Check:**
+- [x] Workflow consulté
+- [x] Position confirmée: Post-Phase 2
+- [x] Rescue épuisé? NON
+- [x] Exceptions? NONE
+
+**Decision:** PENDING → Phase 3A (Displacement Rescue)
+
+**Rationale:**
+- [Asset prioritaire / Sharpe élevé / etc.]
+- Workflow rescue non épuisé
+- Displacement peut résoudre [guard002 / etc.]
+
+**Action:**
+1. @Jordan execute Phase 3A (d26 + d78)
+2. Duration: 4-6h
+3. Next: Phase 4 si FAIL, PROD si PASS
+
+**BLOCKED conditions:**
+- Phase 3A FAIL (d26, d52, d78 tous FAIL)
+- Phase 4 FAIL (filter grid épuisé)
+- ALORS: EXCLU définitif justifié
+```
+
+---
+
+## 🔴 CONSÉQUENCES VIOLATION
+
+**Si cette règle est violée:**
+1. Asset potentiellement PROD perdu
+2. Workflow non reproductible
+3. Décisions ad-hoc non standardisées
+4. Perte de confiance dans le système
+
+**Cette règle est NON-NÉGOCIABLE**
+
+---
+
+**Créé:** 24 janvier 2026  
+**Raison:** TIA workflow violation (presque BLOCKED sans rescue)  
+**Authority:** User directive  
+**Enforcement:** ALL AGENTS, ALL TIMES
