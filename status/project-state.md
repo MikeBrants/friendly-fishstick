@@ -1,8 +1,54 @@
 # PROJECT STATE - FINAL TRIGGER v2 Backtest System
 
-**Last Updated**: 24 janvier 2026, 18:50 UTC  
+**Last Updated**: 24 janvier 2026, 22:00 UTC  
 **Phase**: POST-PR7 INTEGRATION & RE-VALIDATION TESTING  
 **Status**: 🟡 ACTIVE TESTING (Multiple workstreams in progress)
+
+---
+
+## 🔴 ALERTE CRITIQUE: Bug KAMA Oscillator Corrigé (24 Jan 2026)
+
+### Bug Corrigé
+**Fichier**: `crypto_backtest/indicators/five_in_one.py` → `kama_oscillator()`
+
+La formule Python était **complètement fausse** par rapport au Pine Script:
+- **Avant (FAUX)**: `alpha² * price + (1-alpha²) * kama_prev` (KAMA classique avec α²)
+- **Après (CORRECT)**: `EMA + sc2 * (close - EMA)` (formule Pine Script)
+
+### Filter Grid à Relancer
+
+**Modes IMPACTÉS** (utilisent `use_kama_oscillator=True`):
+| Mode | Impact |
+|------|--------|
+| `light_kama` | ⚠️ INVALIDE - À RELANCER |
+| `medium_kama_distance` | ⚠️ INVALIDE - À RELANCER |
+| `medium_kama_volume` | ⚠️ INVALIDE - À RELANCER |
+| `medium_kama_regression` | ⚠️ INVALIDE - À RELANCER |
+| `moderate` | ⚠️ INVALIDE - À RELANCER |
+
+**Modes NON IMPACTÉS** (résultats valides):
+| Mode | Impact |
+|------|--------|
+| `baseline` | ✅ VALIDE |
+| `light_distance` | ✅ VALIDE |
+| `light_volume` | ✅ VALIDE |
+| `light_regression` | ✅ VALIDE |
+| `medium_distance_volume` | ✅ VALIDE (Winner ETH) |
+| `strict_ichi` | ✅ VALIDE |
+
+### Assets à Re-tester (Filter Grid)
+
+| Asset | Filter Grid Date | Action |
+|-------|------------------|--------|
+| **ETH** | 2026-01-22 | ⚠️ **RELANCER** modes KAMA (5 modes) |
+
+**Note**: Les assets PROD actuels (SHIB, DOT, NEAR, DOGE, ANKR, JOE, ETH) utilisent tous `baseline` → **NON IMPACTÉS**.
+
+### Commande de Retest
+```bash
+# Relancer le filter grid complet pour ETH (et autres assets testés)
+python scripts/run_filter_grid.py --asset ETH --workers 6 --trials-atr 150 --trials-ichi 150
+```
 
 ---
 
