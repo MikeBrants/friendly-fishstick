@@ -31,6 +31,8 @@ from crypto_backtest.config.scan_assets import (
     ICHI_SEARCH_SPACE,
     PASS_CRITERIA,
     EXCHANGE_MAP,
+    get_atr_search_space_for_asset,
+    get_volatility_profile,
 )
 from crypto_backtest.engine.backtest import BacktestConfig, VectorizedBacktester
 from crypto_backtest.strategies.final_trigger import FinalTriggerStrategy
@@ -810,8 +812,16 @@ def optimize_single_asset(
     fixed_displacement: int | None = None,
     atr_search_space: dict[str, tuple[float, float]] | None = None,
     filter_config: dict[str, bool] | None = None,
+    use_vol_profile: bool = False,
 ) -> AssetScanResult:
-    """Full optimization pipeline for one asset."""
+    """Full optimization pipeline for one asset.
+    
+    Args:
+        use_vol_profile: If True and atr_search_space is None, automatically
+                         use volatility-profiled ATR ranges based on asset type.
+                         HIGH_VOL (meme coins) -> tighter stops
+                         LOW_VOL (majors) -> wider stops
+    """
     # Create unique seed per asset to avoid sampler conflicts in parallel execution
     # Use hashlib instead of hash() to ensure deterministic results (hash() is randomized in Python 3.3+)
     import hashlib
@@ -826,6 +836,12 @@ def optimize_single_asset(
     # Set global seed for Optuna sampler and other components
     global _CURRENT_ASSET_SEED
     _CURRENT_ASSET_SEED = unique_seed
+
+    # Auto-select volatility-profiled ATR ranges if requested and not already specified
+    if use_vol_profile and atr_search_space is None and not conservative:
+        atr_search_space = get_atr_search_space_for_asset(asset)
+        vol_profile = get_volatility_profile(asset)
+        print(f"[{asset}] Using {vol_profile} ATR ranges: {atr_search_space}")
 
     default_atr = OPTIM_CONFIG["n_trials_atr"]
     default_ichi = OPTIM_CONFIG["n_trials_ichi"]
@@ -1045,8 +1061,13 @@ def run_parallel_scan(
     fixed_displacement: int | None = None,
     optimization_mode: str | None = None,
     output_prefix: str | None = None,
+    use_vol_profile: bool = False,
 ) -> tuple[pd.DataFrame, str]:
-    """Run optimization for all assets in parallel."""
+    """Run optimization for all assets in parallel.
+    
+    Args:
+        use_vol_profile: If True, use volatility-profiled ATR ranges per asset.
+    """
     from joblib import Parallel, delayed
     import multiprocessing
 
@@ -1079,6 +1100,7 @@ def run_parallel_scan(
     print(f"Conservative: {conservative}")
     print(f"Optimization mode: {mode}")
     print(f"Enforce TP progression: {enforce_tp_progression}")
+    print(f"Volatility-profiled ATR: {use_vol_profile}")
     if fixed_displacement is not None:
         print(f"Fixed displacement: {fixed_displacement}")
     print("=" * 60)
@@ -1096,6 +1118,7 @@ def run_parallel_scan(
             fixed_displacement,
             atr_search_space,
             filter_config,
+            use_vol_profile,
         )
         for asset in assets
     )
@@ -1183,6 +1206,11 @@ def main():
         default=None,
         help="Fix Ichimoku displacement (and 5in1) to this value",
     )
+    parser.add_argument(
+        "--use-vol-profile",
+        action="store_true",
+        help="Use volatility-profiled ATR ranges (HIGH/MED/LOW_VOL per asset)",
+    )
     parser.set_defaults(enforce_tp_progression=True)
     args = parser.parse_args()
 
@@ -1200,6 +1228,7 @@ def main():
         enforce_tp_progression=args.enforce_tp_progression,
         fixed_displacement=args.fixed_displacement,
         optimization_mode=args.optimization_mode,
+        use_vol_profile=args.use_vol_profile,
     )
 
 

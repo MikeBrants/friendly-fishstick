@@ -158,10 +158,23 @@ EXCHANGE_MAP = {
 # OPTIMIZATION PARAMETERS
 # =============================================================================
 
+# Optimization config
+# NOTE: Trial count reduced from 100 to 60 based on R&D findings
+# More trials -> more overfitting (BTC: 50 trials WFE=0.45 vs 100 trials WFE=0.18)
+# See: outputs/trial_count_experiment_BTC_*.csv
 OPTIM_CONFIG = {
-    "n_trials_atr": 100,
-    "n_trials_ichi": 100,
+    "n_trials_atr": 60,      # Reduced from 100 to avoid overfitting
+    "n_trials_ichi": 60,     # Reduced from 100 to avoid overfitting
     "validation_split": (0.6, 0.2, 0.2),  # IS/VAL/OOS
+    "warmup_bars": 200,
+    "min_trades": 50,
+}
+
+# Legacy high-trial config (use for final validation only)
+OPTIM_CONFIG_HIGH_TRIALS = {
+    "n_trials_atr": 150,
+    "n_trials_ichi": 150,
+    "validation_split": (0.6, 0.2, 0.2),
     "warmup_bars": 200,
     "min_trades": 50,
 }
