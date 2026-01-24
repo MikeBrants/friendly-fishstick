@@ -1,0 +1,95 @@
+---
+description: Skill d'execution des 7 guards de validation
+globs: ["crypto_backtest/validation/**", "scripts/run_guards*.py"]
+---
+
+# Quant Guards Runner
+
+## Execution
+```bash
+python scripts/run_guards_multiasset.py --assets ASSET_LIST
+```
+
+## 7 Guards Implementation
+
+### guard001: Monte Carlo p-value
+```python
+def monte_carlo_test(returns, n_iter=1000):
+    observed_sharpe = compute_sharpe(returns)
+    random_sharpes = []
+    for _ in range(n_iter):
+        shuffled = np.random.permutation(returns)
+        random_sharpes.append(compute_sharpe(shuffled))
+    p_value = np.mean(random_sharpes >= observed_sharpe)
+    return p_value < 0.05  # PASS if significant
+```
+
+### guard002: Sensitivity variance
+```python
+def sensitivity_test(params, objective_func, perturbation=0.02):
+    base_score = objective_func(params)
+    scores = []
+    for key in params:
+        for delta in [-perturbation, +perturbation]:
+            perturbed = params.copy()
+            perturbed[key] *= (1 + delta)
+            scores.append(objective_func(perturbed))
+    variance_pct = (np.std(scores) / base_score) * 100
+    return variance_pct < 10  # PASS if stable
+```
+
+### guard003: Bootstrap CI
+```python
+def bootstrap_ci(returns, n_samples=10000, ci=0.95):
+    sharpes = []
+    for _ in range(n_samples):
+        sample = np.random.choice(returns, size=len(returns), replace=True)
+        sharpes.append(compute_sharpe(sample))
+    lower = np.percentile(sharpes, (1-ci)/2 * 100)
+    return lower > 1.0  # PASS if CI lower bound > 1.0
+```
+
+### guard005: Top 10 trades
+```python
+def top10_check(trades_pnl):
+    sorted_pnl = sorted(trades_pnl, reverse=True)
+    top10_contribution = sum(sorted_pnl[:10]) / sum(sorted_pnl)
+    return top10_contribution < 0.40  # PASS if not outlier-dependent
+```
+
+### guard006: Stress test
+```python
+def stress_test(backtest_func, params, stress_scenarios):
+    # scenarios: {'fees_1.5x': {'fees': 7.5}, 'fees_2x': {'fees': 10}}
+    results = {}
+    for name, overrides in stress_scenarios.items():
+        stressed_params = {**params, **overrides}
+        metrics = backtest_func(stressed_params)
+        results[name] = metrics['sharpe'] > 1.0  # PASS if still profitable
+    return all(results.values())
+```
+
+### guard007: Regime mismatch
+```python
+def regime_check(trades_with_regime):
+    regime_sharpes = trades_with_regime.groupby('regime')['pnl'].apply(compute_sharpe)
+    negative_regimes = (regime_sharpes < 0).sum()
+    return negative_regimes <= 1  # PASS if max 1 negative regime
+```
+
+### WFE (Walk-Forward Efficiency)
+```python
+def wfe_check(is_sharpe, oos_sharpe):
+    wfe = oos_sharpe / is_sharpe
+    return wfe >= 0.6  # PASS if OOS retains 60% of IS
+```
+
+## Output Format
+```csv
+asset,all_pass,wfe,mc_pvalue,guard002_variance_pct,bootstrap_ci_lower,top10_pct,stress_pass,regime_mismatch
+BTC,True,1.23,0.003,4.98,1.84,22.6,True,0
+```
+
+## Standalone Audit Tool
+Pour auditer des resultats existants, utiliser le skill:
+`.cursor/skills/final-trigger/quant-guards-runner/`

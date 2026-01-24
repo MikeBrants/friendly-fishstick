@@ -1,0 +1,50 @@
+---
+description: Protocole de handoff entre sessions
+globs: ["status/**", "comms/**"]
+---
+
+# Handoff Protocol
+
+## DEBUT DE SESSION (tout agent)
+1. Lire `status/project-state.md` (SOURCE DE VERITE)
+2. Lire `comms/casey-quant.md` (priorites actuelles)
+3. Lire son channel `comms/[agent-name].md`
+4. Poster message `HHMM START [agent] -> ALL: Reprise session.`
+
+## FIN DE SESSION (tout agent)
+1. Completer toutes taches INPROGRESS ou marquer BLOCKED
+2. Poster message recap dans son channel
+3. Si Casey: mettre a jour `status/project-state.md`
+
+## FORMAT PROJECT-STATE.MD
+```yaml
+# Project State - FINAL TRIGGER v2
+Derniere mise a jour: [YYYY-MM-DD HH:MM] [Agent]
+
+## Status Global
+| Metrique | Valeur |
+|----------|--------|
+| Phase | [Current] |
+| Sprint | [Description] |
+| Baseline | BTC 15.69%, Sharpe 2.14 |
+| Guards active | 7/7 |
+
+## Asset Status
+| Asset | Status | Guards | Notes |
+|-------|--------|--------|-------|
+| BTC | PROD | 7/7 | Baseline reference |
+| ETH | INPROGRESS | 5/7 | MC p=0.08 retry |
+| ... | ... | ... | ... |
+
+## Blockers
+- [Description blocker si existant]
+
+## Next Actions (P0-P3)
+| Prio | Action | Assets |
+|------|--------|--------|
+| P0 | [Action] | [Assets] |
+```
+
+## REGLE CRITIQUE
+- `docs/HANDOFF.md` est **OBSOLETE**
+- Seul `status/project-state.md` fait foi

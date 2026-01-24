@@ -1,0 +1,64 @@
+---
+description: Skill d'analyse filter grid (Phase 4)
+globs: ["scripts/run_filter_grid.py", "outputs/filter_grid*.csv"]
+---
+
+# Filter Grid Analyzer
+
+## Commande
+```bash
+python scripts/run_filter_grid.py --assets PENDING_LIST
+```
+
+## 12 Combinaisons
+```python
+FILTER_MODES = [
+    'baseline',           # ichimoku only
+    'light_kama',         # ichimoku + kama_oscillator
+    'light_distance',     # ichimoku + distance_filter
+    'light_volume',       # ichimoku + volume_filter
+    'light_regression',   # ichimoku + regression_cloud
+    'medium_distance_volume',  # ichimoku + distance + volume (WINNER ETH)
+    'medium_kama_distance',    # ichimoku + kama + distance
+    'medium_kama_volume',      # ichimoku + kama + volume
+    'moderate',           # 5 filtres
+    'conservative',       # 7 filtres (tous + strict)
+]
+```
+
+## Analysis Logic
+```python
+def analyze_filter_grid(asset, base_params):
+    results = []
+    for mode in FILTER_MODES:
+        params = {**base_params, 'filter_mode': mode}
+        metrics = run_backtest_with_guards(asset, params)
+        results.append({
+            'asset': asset,
+            'filter_mode': mode,
+            'oos_sharpe': metrics['oos_sharpe'],
+            'wfe': metrics['wfe'],
+            'trades': metrics['oos_trades'],
+            'guards_pass': metrics['all_guards_pass'],
+        })
+    
+    # Trouver le meilleur mode qui passe les guards
+    valid = [r for r in results if r['guards_pass'] and r['trades'] >= 60]
+    if valid:
+        best = max(valid, key=lambda x: x['oos_sharpe'])
+        return best
+    return None
+```
+
+## Output Format
+```csv
+asset,filter_mode,oos_sharpe,wfe,oos_trades,guards_pass,selected
+AVAX,medium_distance_volume,2.34,0.71,87,True,True
+AVAX,baseline,1.89,0.52,124,False,False
+```
+
+## Criteres de selection
+1. `guards_pass == True`
+2. `oos_trades >= 60`
+3. Maximiser `oos_sharpe`
+4. En cas d'egalite, preferer mode plus simple (moins de filtres)

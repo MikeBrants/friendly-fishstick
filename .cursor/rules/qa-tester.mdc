@@ -20,13 +20,13 @@ globs: ["tests/**", "outputs/**", "crypto_backtest/validation/**"]
 ```
 | Guard | Seuil | Valeur | Status |
 |-------|-------|--------|--------|
-| WFE | >=0.6 | [X.XX] | pass/fail |
-| MC p-value | <0.05 | [X.XXX] | pass/fail |
-| Sensitivity | <10% | [X.X%] | pass/fail |
-| Bootstrap CI | >1.0 | [X.XX] | pass/fail |
-| Top10 trades | <40% | [XX%] | pass/fail |
-| Min trades OOS | >=60 | [XXX] | pass/fail |
-| Min bars IS | >=8000 | [XXXXX] | pass/fail |
+| WFE | >=0.6 | [X.XX] | PASS/FAIL |
+| MC p-value | <0.05 | [X.XXX] | PASS/FAIL |
+| Sensitivity | <10% | [X.X%] | PASS/FAIL |
+| Bootstrap CI | >1.0 | [X.XX] | PASS/FAIL |
+| Top10 trades | <40% | [XX%] | PASS/FAIL |
+| Min trades OOS | >=60 | [XXX] | PASS/FAIL |
+| Min bars IS | >=8000 | [XXXXX] | PASS/FAIL |
 ```
 
 ## Script de validation

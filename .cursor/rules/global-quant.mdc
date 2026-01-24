@@ -1,138 +1,64 @@
-***
-description: Règles quant obligatoires FINAL TRIGGER v2 (2026-01-22)
-globs: ["**/*.py", "**/*.md", "outputs/**/*"]
+---
+description: Regles quant obligatoires FINAL TRIGGER v2 - Applique a TOUS les agents
+globs: ["**/*.py", "**/*.md", "outputs/**"]
 alwaysApply: true
-***
+---
 
-# Protocole Quant Multi-Agent — FINAL TRIGGER v2
+# Protocole Quant Multi-Agent FINAL TRIGGER v2
 
-## ⚠️ ALERTE CRITIQUE
-**Tous les résultats datant d'AVANT 2026-01-22 12H00 sont INVALIDES.**
-Le bug TP progression est maintenant fixé (`--enforce-tp-progression`).
+## ALERTE CRITIQUE
+Tous les resultats datant d'AVANT 2026-01-22 12H00 sont INVALIDES.
+Le bug TP progression est maintenant fixe (--enforce-tp-progression).
 
-***
+## 7 GUARDS OBLIGATOIRES (validation avant merge)
+| Guard | Seuil | Critique |
+|-------|-------|----------|
+| WFE (Walk-Forward Efficiency) | >=0.6 | OUI |
+| Monte Carlo p-value | <0.05 | OUI |
+| Sensitivity variance | <10% | OUI |
+| Bootstrap CI lower bound | >1.0 | OUI |
+| Top 10 trades contribution | <40% | OUI |
+| Min trades OOS | >=60 | OUI |
+| Min bars IS | >=8000 | OUI |
 
-## ✅ ASSETS VALIDÉS (Production-Ready)
+**GATE: 7/7 PASS obligatoire avant tout merge.**
 
-| Asset | Mode | Disp | OOS Sharpe | WFE | Trades | Status |
-|:------|:-----|:-----|:-----------|:----|:-------|:-------|
-| BTC | baseline | 52 | 2.14 | >0.6 | 416 | ✅ PROD |
-| ETH | medium_distance_volume | 52 | 2.09 | 0.82 | 57 | ✅ PROD |
-| JOE | baseline | 26 | 5.03 | 1.44 | 63 | ✅ PROD |
-| OSMO | baseline | 65 | 3.18 | 0.77 | 57 | ✅ PROD |
-| MINA | baseline | 78 | 1.76 | 0.61 | 78 | ✅ PROD |
+## PATTERNS PYTHON OBLIGATOIRES
 
-***
-
-## ASSETS EXCLUS (Definitif)
-
-SEI, CAKE, AXS, RUNE, TON, SOL, AAVE, HYPE, ATOM, ARB, LINK, INJ, TIA,
-HOOK, ALICE, HMSTR, LOOM, APT, EIGEN, ONDO, ICP, ARKM, YGG, CELO
-
-***
-
-## 🔴 7 GUARDS OBLIGATOIRES
-
-| Guard | ID | Seuil | Critique |
-|:------|:---|:------|:---------|
-| MC p-value | guard001 | <0.05 | OUI |
-| Sensitivity variance | guard002 | <10% | OUI |
-| Bootstrap CI lower | guard003 | >1.0 | OUI |
-| Top10 trades % | guard005 | <40% | OUI |
-| Stress1 Sharpe | guard006 | >1.0 | OUI |
-| Regime mismatch | guard007 | <1% | OUI |
-| WFE | - | >0.6 | OUI |
-
-**Seuils additionnels:**
-- OOS Sharpe >1.0 (target >2.0)
-- OOS Trades >60
-- TP Progression: TP1 < TP2 < TP3, gap ≥0.5
-
-**GATE : 7/7 PASS obligatoire avant tout merge.**
-
-***
-
-## 🔴 ANTI-PATTERNS CRITIQUES
-
-### 1. Look-Ahead
+### Anti Look-Ahead
 ```python
-signal = indicator.shift(1)  # ✅ TOUJOURS
-signal = indicator           # ❌ INTERDIT
+# TOUJOURS utiliser .shift(1) pour les features rolling
+signal = indicator.shift(1)  # CORRECT
+# signal = indicator  # INTERDIT - look-ahead
 ```
 
-### 2. TP Progression
+### TP Progression
 ```python
+# TOUJOURS verifier la progression des TP
 assert tp1 < tp2 < tp3, "TP must be progressive"
-assert (tp2 - tp1) >= 0.5 and (tp3 - tp2) >= 0.5, "Gap minimum 0.5"
+# Gaps minimum recommandes: 0.5 entre niveaux
 ```
 
-### 3. Regime Attribution
+### Regime Attribution
 ```python
-regime = get_regime_at(entry_time)  # ✅ CORRECT
-regime = get_regime_at(exit_time)   # ❌ INTERDIT
+# Utiliser ENTRY time pour attribution regime, PAS exit
+regime = get_regime_at(entry_time)  # CORRECT
+# regime = get_regime_at(exit_time)  # INTERDIT
 ```
 
-### 4. SIDEWAYS
-**NE PAS filtrer le régime SIDEWAYS** — c'est 79.5% du profit.
-
-### 5. Résultats suspects
-**CHALLENGER** si Sharpe >4 ou WFE >2 → demander réconciliation.
-
-***
-
-## 📊 FILTER MODES
-
-| Mode | Usage |
-|:-----|:------|
-| baseline | Default, premier test |
-| medium_distance_volume | **WINNER ETH** ⭐ |
-| light_kama / light_distance / light_volume | Légers |
-| moderate / conservative | Dernier recours |
-
-***
-
-## 📊 DISPLACEMENT VARIANTS
-
+## DISPLACEMENT VARIANTS
 | Type | Valeur | Assets |
-|:-----|:-------|:-------|
+|------|--------|--------|
 | Fast (meme) | 26 | JOE, DOGE |
-| Standard | 52 | BTC, ETH |
+| Standard | 52 | BTC, ETH, majeurs |
 | Slow | 65-78 | OSMO, MINA, OP |
 
-***
+## PIEGES CRITIQUES
+- NE PAS filtrer SIDEWAYS -> c'est 79.5% du profit
+- Sharpe >4 ou WFE >2 = SUSPECT -> demander reconciliation
+- Min 100 trades IS, 60 OOS
+- Slippage fixe 2bps -> devrait etre f(volume) pour altcoins
 
-## 🔧 COMMANDES PIPELINE
-
-### Baseline avec TP enforced
-```bash
-python scripts/run_full_pipeline.py \
-  --assets <ASSET_LIST> \
-  --workers 6 \
-  --trials-atr 150 \
-  --trials-ichi 150 \
-  --enforce-tp-progression \
-  --skip-download \
-  --run-guards
-```
-
-### Avec filter mode
-```bash
---optimization-mode medium_distance_volume
-```
-
-### Avec displacement fixé
-```bash
---fixed-displacement 78
-```
-
-***
-
-## 📁 FICHIERS RÉFÉRENCE
-
-| Fichier | Description |
-|:--------|:------------|
-| docs/HANDOFF.md | Résumé exécutif |
-| docs/BACKTESTING.md | Résultats détaillés |
-| docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md | Workflow 3 phases |
-| outputs/multiasset_scan_*.csv | Résultats scans |
-| outputs/multiasset_guards_summary_*.csv | Résultats guards |
+## SOURCE DE VERITE
+Toujours lire `status/project-state.md` EN PREMIER.
+`docs/HANDOFF.md` est OBSOLETE.

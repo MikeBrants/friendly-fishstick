@@ -1,0 +1,54 @@
+---
+description: Workflow Pipeline 6 Phases
+globs: ["scripts/**", "outputs/**"]
+alwaysApply: true
+---
+
+# Pipeline FINAL TRIGGER v2 (6 Phases)
+
+| Phase | Nom | Criteres/Output |
+|-------|-----|-----------------|
+| 0 | Download | `data/*.parquet` |
+| 1 | Screening | 200 trials, guards OFF, WFE>0.5, Sharpe>0.8, Trades>50 |
+| 2 | Validation | 300 trials, 7 guards ON -> WINNERS + PENDING |
+| 3A | Rescue | PENDING: d26/d52/d78, 7/7 PASS -> WINNERS |
+| 3B | Optimization | WINNERS: d26/d52/d78, +10% ET 7/7 PASS -> remplace |
+| 4 | Filter Grid | PENDING: 12 combinaisons filtres |
+| 5 | Production | `asset_config.py` + `project-state.md` |
+
+## Critere remplacement Phase 3B
+```python
+if new_sharpe > old_sharpe * 1.10 and all_guards_pass:
+    use_new_displacement = True
+```
+
+## Filter Modes (Phase 4)
+| Mode | Filtres actifs |
+|------|----------------|
+| baseline | ichimoku_filter only |
+| light_kama | ichimoku + kama_oscillator |
+| light_distance | ichimoku + distance_filter |
+| light_volume | ichimoku + volume_filter |
+| medium_distance_volume | ichimoku + distance + volume (WINNER ETH) |
+| moderate | 5 filtres |
+| conservative | 7 filtres (tous + strict) |
+
+## Commandes par Phase
+```bash
+# Phase 1: Screening
+python scripts/run_full_pipeline.py --assets ALL --workers 6 \
+    --trials-atr 100 --trials-ichi 100 --skip-guards
+
+# Phase 2: Validation
+python scripts/run_full_pipeline.py --assets WINNERS --workers 6 \
+    --trials-atr 200 --trials-ichi 200 --enforce-tp-progression --run-guards
+
+# Phase 3A: Rescue (displacement grid)
+python scripts/run_displacement_grid.py --assets PENDING
+
+# Phase 3B: Optimization
+python scripts/run_phase3b_optimization.py --assets WINNERS
+
+# Phase 4: Filter Grid
+python scripts/run_filter_grid.py --assets PENDING
+```

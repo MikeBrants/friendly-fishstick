@@ -1,0 +1,48 @@
+---
+description: Protocole de communication inter-agents
+globs: ["comms/**/*.md", "status/**/*.md"]
+alwaysApply: true
+---
+
+# Communication Multi-Agent
+
+## FORMAT MESSAGES
+```
+HHMM STATUS FROM -> TO: Contenu du message
+```
+
+## STATUTS VALIDES
+- `TODO` - Tache assignee, non commencee
+- `INPROGRESS` - En cours d'execution
+- `DONE` - Terminee, en attente validation
+- `BLOCKED` - Bloque par dependance/erreur
+- `QUESTION` - Clarification requise
+- `DECISION` - Arbitrage necessaire (-> Casey)
+
+## EXEMPLES VALIDES
+```
+1432 DONE jordan-dev -> sam-qa: TP progression fix termine.
+Fichier: crypto_backtest/optimization/bayesian.py
+Contrainte: suggest_float(tp1) < suggest_float(tp2) < suggest_float(tp3)
+Test: python -c "from crypto_backtest.optimization.bayesian import *; print('OK')"
+
+0915 QUESTION sam-qa -> alex-lead: ETH guard002 variance 11.2% > 10%.
+Recommandation: FAIL strict ou WARN avec note?
+
+1030 DECISION casey-quant -> ALL: Variance seuil maintenu a 10% strict.
+Rationale: Coherence cross-asset, pas d'exception.
+```
+
+## CHANNELS
+| Fichier | Usage |
+|---------|-------|
+| `comms/casey-quant.md` | Orchestration, sync, decisions |
+| `comms/alex-lead.md` | Architecture, params, arbitrage IS/OOS |
+| `comms/jordan-dev.md` | Runs termines, bugs, implementation |
+| `comms/sam-qa.md` | Resultats guards, validations |
+| `comms/riley-ops.md` | Pine export, documentation, reporting |
+
+## REGLES CRITIQUES
+- Chaque message DOIT referencer un fichier ou une metrique
+- Jamais de message sans contexte actionnable
+- Si BLOCKED > 2h -> escalade a Casey
