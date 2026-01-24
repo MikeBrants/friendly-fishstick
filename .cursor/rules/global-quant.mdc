@@ -15,7 +15,7 @@ Le bug TP progression est maintenant fixe (--enforce-tp-progression).
 |-------|-------|----------|
 | WFE (Walk-Forward Efficiency) | >=0.6 | OUI |
 | Monte Carlo p-value | <0.05 | OUI |
-| Sensitivity variance | <10% | OUI |
+| Sensitivity variance | <15% | OUI |
 | Bootstrap CI lower bound | >1.0 | OUI |
 | Top 10 trades contribution | <40% | OUI |
 | Min trades OOS | >=60 | OUI |

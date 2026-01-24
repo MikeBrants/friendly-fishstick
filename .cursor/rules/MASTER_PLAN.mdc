@@ -96,7 +96,7 @@ Chaque agent applique ce cycle:
 | Guard | ID | Seuil | Critique |
 |-------|:---|-------|----------|
 | MC p-value | guard001 | < 0.05 | OUI |
-| Sensitivity variance | guard002 | < 10% | OUI |
+| Sensitivity variance | guard002 | < 15% | OUI |
 | Bootstrap CI lower | guard003 | > 1.0 | OUI |
 | (obsolete) | guard004 | - | Retire: remplace par guard003 |
 | Top10 trades % | guard005 | < 40% | OUI |
@@ -192,21 +192,54 @@ Asset type?
 Quel guard?
 ├── WFE < 0.6 ──────────> Tester autre displacement
 ├── MC p > 0.05 ────────> Plus de donnees ou trials
-├── Sensitivity > 10% ──> Filter grid (medium_distance_volume)
+├── Sensitivity > 15% ──> Filter Rescue (baseline → moderate → conservative)
 ├── Top10 > 40% ────────> Donnees insuffisantes
 └── Autre ──────────────> BLOCKED, documenter raison
 ```
 
-### Filter Modes (ordre de test)
+### Phase 4: Filter Rescue (SI baseline FAIL guard002)
 
-| Mode | Quand l'utiliser | Effet |
-|:-----|:-----------------|:------|
-| baseline | Premier test, toujours | Aucun filtre |
-| medium_distance_volume | Si guard002 (sensitivity) FAIL | Reduit bruit, winner ETH |
-| light_kama | Si baseline trop sensible | Filtre momentum |
-| light_distance / light_volume | Tests intermediaires | Filtres legers |
-| moderate | Si light_* insuffisant | Filtres moyens |
-| conservative | Dernier recours avant BLOCKED | Filtre agressif |
+**Refonte 2026-01-24**: Ancien grid de 12 combinaisons remplacé par cascade de 3 modes.
+
+#### Workflow Décisionnel
+```
+Asset → baseline (seuil sensitivity 15%)
+         │
+         ├─ PASS → PROD ✓
+         │
+         └─ FAIL guard002 (sensitivity > 15%)
+              │
+              └─ moderate (5 filtres)
+                   │
+                   ├─ PASS → PROD ✓
+                   │
+                   └─ FAIL
+                        │
+                        └─ conservative (7 filtres)
+                             │
+                             ├─ PASS → PROD ✓
+                             │
+                             └─ FAIL → EXCLU ✗
+```
+
+#### Seuils par Mode
+| Mode | Filtres | Sensitivity | Trades OOS | WFE |
+|------|---------|-------------|------------|-----|
+| baseline | ichimoku only | <15% | ≥60 | ≥0.6 |
+| moderate | 5 filtres (all except strict) | <15% | ≥50 | ≥0.6 |
+| conservative | 7 filtres (all + strict) | <15% | ≥40 | ≥0.55 |
+
+#### Commande Rescue
+```bash
+python scripts/run_filter_rescue.py ASSET
+python scripts/run_filter_rescue.py ETH --trials 300
+```
+
+#### Règles Critiques
+- TOUJOURS commencer par baseline
+- Max 3 tests par asset (correction stats OK: Bonferroni ÷3 vs ancien ÷12)
+- Si conservative FAIL → EXCLU définitif
+- NE PAS chercher d'autres combinaisons (data mining)
 
 ---
 

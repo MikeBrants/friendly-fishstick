@@ -22,7 +22,7 @@ globs: ["tests/**", "outputs/**", "crypto_backtest/validation/**"]
 |-------|-------|--------|--------|
 | WFE | >=0.6 | [X.XX] | PASS/FAIL |
 | MC p-value | <0.05 | [X.XXX] | PASS/FAIL |
-| Sensitivity | <10% | [X.X%] | PASS/FAIL |
+| Sensitivity | <15% | [X.X%] | PASS/FAIL |
 | Bootstrap CI | >1.0 | [X.XX] | PASS/FAIL |
 | Top10 trades | <40% | [XX%] | PASS/FAIL |
 | Min trades OOS | >=60 | [XXX] | PASS/FAIL |

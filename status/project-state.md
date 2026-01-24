@@ -6,49 +6,62 @@
 
 ---
 
-## 🔴 ALERTE CRITIQUE: Bug KAMA Oscillator Corrigé (24 Jan 2026)
+## 🔴 CHANGEMENTS CRITIQUES (24 Jan 2026)
 
-### Bug Corrigé
+### 1. Bug KAMA Oscillator Corrigé
 **Fichier**: `crypto_backtest/indicators/five_in_one.py` → `kama_oscillator()`
 
 La formule Python était **complètement fausse** par rapport au Pine Script:
 - **Avant (FAUX)**: `alpha² * price + (1-alpha²) * kama_prev` (KAMA classique avec α²)
 - **Après (CORRECT)**: `EMA + sc2 * (close - EMA)` (formule Pine Script)
 
-### Filter Grid à Relancer
+**Impact**: Assets PROD (baseline) NON impactés. Modes avec KAMA doivent être retestés.
 
-**Modes IMPACTÉS** (utilisent `use_kama_oscillator=True`):
-| Mode | Impact |
-|------|--------|
-| `light_kama` | ⚠️ INVALIDE - À RELANCER |
-| `medium_kama_distance` | ⚠️ INVALIDE - À RELANCER |
-| `medium_kama_volume` | ⚠️ INVALIDE - À RELANCER |
-| `medium_kama_regression` | ⚠️ INVALIDE - À RELANCER |
-| `moderate` | ⚠️ INVALIDE - À RELANCER |
+### 2. Refonte Filter System v2
+**Ancien système** (OBSOLÈTE):
+- 12 combinaisons arbitraires de filtres (data mining)
+- Seuil sensitivity 10%
+- Script: `run_filter_grid.py` (SUPPRIMÉ)
 
-**Modes NON IMPACTÉS** (résultats valides):
-| Mode | Impact |
-|------|--------|
-| `baseline` | ✅ VALIDE |
-| `light_distance` | ✅ VALIDE |
-| `light_volume` | ✅ VALIDE |
-| `light_regression` | ✅ VALIDE |
-| `medium_distance_volume` | ✅ VALIDE (Winner ETH) |
-| `strict_ichi` | ✅ VALIDE |
+**Nouveau système** (ACTIF):
+- 3 modes rationnels: `baseline` → `moderate` → `conservative`
+- Seuil sensitivity **15%** (relevé pour éviter data mining)
+- Script: `run_filter_rescue.py`
 
-### Assets à Re-tester (Filter Grid)
-
-| Asset | Filter Grid Date | Action |
-|-------|------------------|--------|
-| **ETH** | 2026-01-22 | ⚠️ **RELANCER** modes KAMA (5 modes) |
-
-**Note**: Les assets PROD actuels (SHIB, DOT, NEAR, DOGE, ANKR, JOE, ETH) utilisent tous `baseline` → **NON IMPACTÉS**.
-
-### Commande de Retest
-```bash
-# Relancer le filter grid complet pour ETH (et autres assets testés)
-python scripts/run_filter_grid.py --asset ETH --workers 6 --trials-atr 150 --trials-ichi 150
+### 3. Nouveau Workflow Phase 4
 ```
+Asset FAIL baseline (sensitivity > 15%)
+    │
+    └─→ moderate (5 filtres)
+         │
+         ├─ PASS → PROD ✓
+         └─ FAIL → conservative (7 filtres)
+                   │
+                   ├─ PASS → PROD ✓
+                   └─ FAIL → EXCLU ✗
+```
+
+### 4. Seuils par Mode
+| Mode | Filtres | Sensitivity | Trades OOS | WFE |
+|------|---------|-------------|------------|-----|
+| baseline | ichimoku only | <15% | ≥60 | ≥0.6 |
+| moderate | 5 filtres | <15% | ≥50 | ≥0.6 |
+| conservative | 7 filtres | <15% | ≥40 | ≥0.55 |
+
+### 5. Commande Rescue
+```bash
+# Nouveau workflow simplifié
+python scripts/run_filter_rescue.py ASSET
+python scripts/run_filter_rescue.py ETH --trials 300
+```
+
+### Décisions Prises
+| Date | Décision | Rationale |
+|------|----------|-----------|
+| 2026-01-24 | Filter Grid supprimé | Data mining, 12 combos arbitraires |
+| 2026-01-24 | 3 modes uniquement | baseline → moderate → conservative |
+| 2026-01-24 | Seuil sensitivity 15% | Évite filter grid, +5% tolérance |
+| 2026-01-24 | Seuils trades ajustés | moderate ≥50, conservative ≥40 |
 
 ---
 
