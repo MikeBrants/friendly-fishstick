@@ -1,200 +1,125 @@
-# CASEY - Orchestrator & Validation Lead
+# CASEY - Orchestrateur & Coordinateur
 
-**Role**: Strategy, Prioritization, Multi-Asset Validation  
-**Current Phase**: POST-PR7 INTEGRATION TESTING  
-**Last Updated**: 24 janvier 2026, 18:50 UTC
+**Role**: Strategy, Prioritization, Coordination (ne code pas, ne lance pas de commandes)  
+**Current Phase**: POST-OVERNIGHT VALIDATION - Coordination guards 8 pending  
+**Last Updated**: 24 janvier 2026, 19:30 UTC
 
 ---
 
-## 🎯 CURRENT ASSIGNMENT
+## 🎯 CURRENT DECISIONS NEEDED
 
-### Task C1: Execute Guards on 8 Pending Assets [🔴 URGENT]
+### Decision D1: Execute Guards on 8 Pending Assets 🔴 URGENT
 **Priority**: 🔴 CRITICAL  
-**Status**: ⏳ READY TO START
+**Context**: Jordan a complété l'overnight run avec **7 assets validés** (SHIB, DOT, NEAR, DOGE, ANKR, JOE, ETH) + **8 assets pending guards** (TIA, HBAR, CAKE, TON, RUNE, EGLD, CRV, SUSHI)
 
-**Context**: Jordan's overnight run validated **7 assets with 7/7 guards PASS** + **8 more assets pending guards**. TIA (5.16 Sharpe) could be our #2 asset if guards pass!
+**Decision Matrix**:
+| Asset | OOS Sharpe | WFE | Expected Guards | Priority |
+|:------|:-----------|:----|:----------------|:---------|
+| **TIA** 🚀 | **5.16** | **1.36** | **LIKELY PASS** | **P0** (could be #2!) |
+| **HBAR** | 2.32 | 1.03 | LIKELY PASS | P0 |
+| **TON** | 2.54 | 1.17 | LIKELY PASS | P0 |
+| **CAKE** | 2.46 | 0.81 | MARGINAL | P1 |
+| **RUNE** | 2.42 | 0.61 | MARGINAL | P1 |
+| **EGLD** | 2.04 | 0.66 | MARGINAL | P1 |
+| **SUSHI** | 1.90 | 0.63 | MARGINAL | P2 |
+| **CRV** | 1.01 | 0.88 | LIKELY FAIL | P2 |
 
-**Objective**: Complete guards validation for 8 assets that passed optimization but didn't get guards executed
+**Decision**: ✅ **PROCEED - Execute guards on all 8 assets**
 
-**Assets**: TIA, HBAR, CAKE, TON, RUNE, EGLD, CRV, SUSHI
+**Rationale**:
+- TIA (5.16 Sharpe) pourrait devenir notre #2 asset si guards passent
+- 3-5 assets devraient passer guards (estimation conservatrice)
+- Total PROD projection: 10-12 assets (excellent diversification)
 
-**Command**:
+**Task Assignment**: @Jordan → Execute guards pipeline (commande dans section ci-dessous)  
+**Validation Assignment**: @Sam → Validate guards results when complete
+
+---
+
+### Decision D2: PROD Portfolio Strategy ✅ RESOLVED
+**Question**: Garder 7 assets validés ou attendre les 8 pending?
+
+**Decision**: ✅ **ACCEPT 7 VALIDATED ASSETS AS NEW PROD BASELINE**
+
+**Rationale**:
+- 7 assets avec 7/7 guards PASS
+- Mean Sharpe 3.91 (excellent)
+- Tous WFE > 0.6, Trades > 60
+- Reproducibilité < 0.0001% confirmée
+- Sufficient pour portfolio construction test
+
+**Action**: 
+- Immediate: Use 7 assets for portfolio construction (@Jordan)
+- Parallel: Execute guards on 8 pending (@Jordan)
+- After guards: Final decision on 7 vs 10-12 vs 15 assets
+
+---
+
+### Decision D3: Old Frozen PROD Assets ✅ RESOLVED
+**Question**: Re-valider les 8 frozen PROD restants (BTC, OSMO, MINA, AVAX, AR, OP, METIS, YGG)?
+
+**Decision**: ⏸️ **LOWER PRIORITY** - Focus on completing 8 pending guards first
+
+**Rationale**:
+- 7/15 frozen PROD déjà re-validés (100% success rate)
+- 8 pending guards plus prometteurs (TIA = 5.16 Sharpe!)
+- Pas urgent de re-valider remaining 8 frozen
+
+**Action**: Defer validation of remaining 8 frozen assets until after guards complete
+
+---
+
+## 📊 VALIDATED ASSETS STATUS (7 PROD READY)
+
+| Rank | Asset | OOS Sharpe | WFE | OOS Trades | Guards | Status |
+|:----:|:------|:-----------|:----|:-----------|:-------|:-------|
+| 🥇 | **SHIB** | **5.67** | **2.27** | 93 | ✅ 7/7 | **PROD** |
+| 🥈 | **DOT** | **4.82** | **1.74** | 87 | ✅ 7/7 | **PROD** |
+| 🥉 | **NEAR** | **4.26** | **1.69** | 87 | ✅ 7/7 | **PROD** |
+| 4️⃣ | **DOGE** | **3.88** | **1.55** | 99 | ✅ 7/7 | **PROD** |
+| 5️⃣ | **ANKR** | **3.48** | **0.86** | 87 | ✅ 7/7 | **PROD** |
+| 6️⃣ | **JOE** | **3.16** | **0.73** | 78 | ✅ 7/7 | **PROD** |
+| 7️⃣ | **ETH** | **2.07** | **1.06** | 72 | ✅ 7/7 | **PROD** |
+
+**Portfolio Metrics**: Mean Sharpe 3.91, All WFE > 0.6, Reproducibility < 0.0001%
+
+---
+
+## 📋 TASK ASSIGNMENTS
+
+### Task J1: Execute Guards on 8 Pending [ASSIGNED to @Jordan]
+**Priority**: 🔴 P0 (CRITICAL)  
+**Status**: ⏳ WAITING FOR JORDAN TO EXECUTE
+
+**Command for @Jordan**:
 ```bash
 python scripts/run_guards_multiasset.py \
   --assets TIA HBAR CAKE TON RUNE EGLD CRV SUSHI \
   --workers 1 \
+  --mc-iterations 1000 \
+  --bootstrap-samples 10000 \
+  --sensitivity-range 5 \
   --output-prefix phase2_guards_backfill_20260124
 ```
 
-**Expected Duration**: 2-3 hours (8 assets × ~20 min guards execution)  
-**Output Files**: `outputs/phase2_guards_backfill_20260124_<asset>_guards_summary.csv` (one per asset)
+**Expected Duration**: 2-3 hours (8 assets × ~20 min guards)  
+**Output**: `outputs/phase2_guards_backfill_20260124_<asset>_guards_summary.csv`
 
 **Success Criteria**:
 - [ ] All 8 assets complete guards execution
-- [ ] At least 3-5 assets pass 7/7 guards (50-60% pass rate)
-- [ ] TIA passes guards (would become #2 PROD asset)
-- [ ] Results documented in this file
+- [ ] No errors or timeouts
+- [ ] Output files generated for all 8 assets
+- [ ] Jordan notifies Sam when complete
 
-**Expected Outcomes**:
-| Asset | OOS Sharpe | WFE | Expected Result |
-|-------|-----------|-----|-----------------|
-| TIA | 5.16 | 1.36 | ✅ **LIKELY PASS** (excellent metrics) |
-| HBAR | 2.32 | 1.03 | ✅ LIKELY PASS |
-| CAKE | 2.46 | 0.81 | ⚠️ MARGINAL (WFE close to threshold) |
-| TON | 2.54 | 1.17 | ✅ LIKELY PASS |
-| RUNE | 2.42 | 0.61 | ⚠️ MARGINAL (low WFE) |
-| EGLD | 2.04 | 0.66 | ⚠️ MARGINAL |
-| CRV | 1.01 | 0.88 | ❌ **LIKELY FAIL** (Sharpe too low) |
-| SUSHI | 1.90 | 0.63 | ⚠️ MARGINAL |
-
-**NOTE**: Original Task C1 (Tier 1 baseline) is **OBSOLETE** - we already have 7 validated assets!
+**Handoff**: When complete, @Jordan hands off to @Sam for validation
 
 ---
 
-### Task C2: Phase 1 Screening [⏸️ LOWER PRIORITY]
-**Priority**: 🟡 MEDIUM  
-**Status**: On hold (not urgent, we already have 7-15 candidates)
+### Task J2: Portfolio Construction Test [ASSIGNED to @Jordan]
+**Priority**: 🟡 P1 (MEDIUM)  
+**Status**: ⏳ CAN RUN IN PARALLEL with Task J1
 
-**Objective**: Fast parallel screening of candidate pool
-
-**Assets**: ATOM, ARB, LINK, INJ, TIA, HBAR, ICP, IMX, CELO, ARKM, W, STRK, AEVO  
-(~13 assets in candidate pool)
-
-**Command** (when C1 complete):
-```bash
-python scripts/run_full_pipeline.py \
-  --assets ATOM ARB LINK INJ TIA HBAR ICP IMX CELO ARKM W STRK AEVO \
-  --workers 10 \
-  --trials-atr 150 \
-  --trials-ichi 150 \
-  --phase screening \
-  --enforce-tp-progression \
-  --skip-download
-```
-
-**Expected Duration**: 30-45 minutes (parallel with workers=10)  
-**Output**: `outputs/SCREENING_multiasset_scan_<timestamp>.csv`
-
-**Success Criteria**:
-- [ ] At least 5-10 candidates show OOS Sharpe > 1.5
-- [ ] Identify top 20-30% for Phase 2 validation
-- [ ] No reproducibility issues detected
-- [ ] Constant_liar strategy works correctly in parallel
-
-**Unblock Trigger**: Decision made on frozen PROD strategy (after Task C1)
-
----
-
-## 📊 VALIDATION STATUS - OVERNIGHT RUN RESULTS
-
-### ✅ VALIDATED ASSETS (7 assets with 7/7 Guards PASS)
-**Status**: 🟢 **PROD READY**
-
-| Rank | Asset | OOS Sharpe | WFE | OOS Trades | Guards | Decision |
-|:----:|:------|:-----------|:----|:-----------|:-------|:---------|
-| 🥇 | **SHIB** | **5.67** | **2.27** | 93 | ✅ 7/7 | **PROD CONFIRMED** |
-| 🥈 | **DOT** | **4.82** | **1.74** | 87 | ✅ 7/7 | **PROD CONFIRMED** |
-| 🥉 | **NEAR** | **4.26** | **1.69** | 87 | ✅ 7/7 | **PROD CONFIRMED** |
-| 4️⃣ | **DOGE** | **3.88** | **1.55** | 99 | ✅ 7/7 | **PROD CONFIRMED** |
-| 5️⃣ | **ANKR** | **3.48** | **0.86** | 87 | ✅ 7/7 | **PROD CONFIRMED** |
-| 6️⃣ | **JOE** | **3.16** | **0.73** | 78 | ✅ 7/7 | **PROD CONFIRMED** |
-| 7️⃣ | **ETH** | **2.07** | **1.06** | 72 | ✅ 7/7 | **PROD CONFIRMED** |
-
-**Notes**:
-- All 7 assets exceed minimum thresholds (Sharpe > 1.0, WFE > 0.6, Trades > 60)
-- All guards PASS with excellent margins
-- Reproducibility confirmed (< 0.0001% variance across multiple runs)
-- **These 7 assets form our NEW PROD BASELINE**
-
----
-
-### ⏳ PENDING GUARDS VALIDATION (8 assets)
-**Status**: 🟡 **AWAITING GUARDS EXECUTION (Task C1)**
-
-| Rank | Asset | OOS Sharpe | WFE | OOS Trades | Guards | Expected |
-|:----:|:------|:-----------|:----|:-----------|:-------|:---------|
-| 🚀 | **TIA** | **5.16** | **1.36** | 75 | ⚠️ PENDING | **LIKELY PASS** (would be #2) |
-| ⭐ | **TON** | **2.54** | **1.17** | 69 | ⚠️ PENDING | **LIKELY PASS** |
-| ⭐ | **CAKE** | **2.46** | **0.81** | 90 | ⚠️ PENDING | **MARGINAL** (WFE close) |
-| ⭐ | **RUNE** | **2.42** | **0.61** | 102 | ⚠️ PENDING | **MARGINAL** (low WFE) |
-| ⭐ | **HBAR** | **2.32** | **1.03** | 114 | ⚠️ PENDING | **LIKELY PASS** |
-| ⭐ | **EGLD** | **2.04** | **0.66** | 90 | ⚠️ PENDING | **MARGINAL** |
-| ⚠️ | **SUSHI** | **1.90** | **0.63** | 105 | ⚠️ PENDING | **MARGINAL** |
-| ⚠️ | **CRV** | **1.01** | **0.88** | 111 | ⚠️ PENDING | **LIKELY FAIL** (Sharpe low) |
-
-**Action**: Execute guards (Task C1) to determine final count
-
----
-
-### 📋 OLD FROZEN PROD ASSETS (Not yet re-validated)
-**Status**: ⏸️ **LOWER PRIORITY** (we already have 7 confirmed)
-
-| Asset | Old Result | Overlap with New? | Re-Validation Status |
-|-------|-----------|-------------------|---------------------|
-| BTC | 2.14 Sharpe | NO | ⏳ Not yet tested |
-| ETH | 2.09 Sharpe | ✅ **YES (confirmed)** | ✅ DONE (2.07 Sharpe) |
-| JOE | 5.03 Sharpe | ✅ **YES (confirmed)** | ✅ DONE (3.16 Sharpe) |
-| OSMO | 3.18 Sharpe | NO | ⏳ Not yet tested |
-| MINA | 1.76 Sharpe | NO | ⏳ Not yet tested |
-| AVAX | ? Sharpe | NO | ⏳ Not yet tested |
-| AR | ? Sharpe | NO | ⏳ Not yet tested |
-| ANKR | ? Sharpe | ✅ **YES (confirmed)** | ✅ DONE (3.48 Sharpe) |
-| DOGE | ? Sharpe | ✅ **YES (confirmed)** | ✅ DONE (3.88 Sharpe) |
-| OP | ? Sharpe | NO | ⏳ Not yet tested |
-| DOT | ? Sharpe | ✅ **YES (confirmed)** | ✅ DONE (4.82 Sharpe) |
-| NEAR | ? Sharpe | ✅ **YES (confirmed)** | ✅ DONE (4.26 Sharpe) |
-| SHIB | ? Sharpe | ✅ **YES (confirmed)** | ✅ DONE (5.67 Sharpe) |
-| METIS | ? Sharpe | NO | ⏳ Not yet tested |
-| YGG | ? Sharpe | NO | ⏳ Not yet tested |
-
-**Summary**: 7/15 frozen PROD assets re-validated (all PASS). Remaining 8 can be tested later if needed.
-
----
-
-## 📋 COMPLETED TASKS
-
-### [2026-01-24 03:23-16:47 UTC] - Overnight Validation Run (Jordan) - COMPLETE ✅
-**Task**: Phase 2 validation of 15 assets from Phase 1 screening  
-**Duration**: 13h24  
-**Status**: **MAJOR SUCCESS**
-
-**Results Summary**:
-- **15 assets validated** (optimization complete)
-- **7 assets with 7/7 guards PASS** (ETH, JOE, ANKR, DOGE, DOT, NEAR, SHIB)
-- **8 assets pending guards** (TIA, HBAR, CAKE, TON, RUNE, EGLD, CRV, SUSHI)
-- **Reproducibility confirmed** (< 0.0001% variance)
-
-**Key Findings**:
-1. SHIB is top performer (5.67 Sharpe, 2.27 WFE)
-2. TIA (pending guards) could be #2 if guards pass (5.16 Sharpe)
-3. All 7 validated assets show excellent guard profiles
-4. Original frozen PROD assets partially confirmed (7/15 re-validated)
-
-**Outputs**:
-- 60 CSV scan files (15 assets × 4 runs due to pipeline loops)
-- 14 guards summary files (7 assets × Run1+Run2)
-- Main log: `outputs/overnight_log_20260124_032322.txt`
-
-**Decision**: ✅ **ACCEPT 7 VALIDATED ASSETS AS NEW PROD BASELINE**
-
-**Next Step**: Execute guards on 8 pending assets (Task C1)
-
----
-
-## 🔄 HANDOFFS
-
-### To Alex: Task A2 Now Unblocked ✅
-**What's Ready**:
-- 7 validated assets available for portfolio construction
-- All assets have complete metrics (Sharpe, WFE, trades, guards)
-- Can test all 4 portfolio optimization methods
-
-**Assets Available**:
-```
-SHIB DOT NEAR DOGE ANKR JOE ETH
-```
-
-**Command for Alex**:
+**Command for @Jordan**:
 ```bash
 python scripts/portfolio_construction.py \
   --assets SHIB DOT NEAR DOGE ANKR JOE ETH \
@@ -205,269 +130,207 @@ python scripts/portfolio_construction.py \
 ```
 
 **Expected Duration**: 10 minutes  
-**Can Run**: In parallel while Casey executes guards on 8 pending assets
+**Output**: Portfolio allocation CSVs + correlation matrix
+
+**Success Criteria**:
+- [ ] All 4 methods execute successfully
+- [ ] Weights sum to 1.0 for each method
+- [ ] Weights respect min/max bounds
+- [ ] Output files generated
+
+**Handoff**: When complete, @Jordan reports results to @Casey
 
 ---
 
-### From Jordan: Overnight Run Complete ✅
-**What Was Delivered**:
-- 7 assets with 7/7 guards PASS
-- 8 assets with optimization complete (guards pending)
-- Reproducibility confirmed across multiple runs
-- 60+ output files in `outputs/phase2_validation_*`
+### Task S1: Validate Guards Results [ASSIGNED to @Sam]
+**Priority**: 🔴 P0 (CRITICAL)  
+**Status**: ⏸️ BLOCKED (waiting for Task J1 completion)
 
-**Impact**: Original Task C1 (Tier 1 baseline) is obsolete - we already exceeded targets!
+**Scope**: Validate 7 guards for 8 pending assets
 
----
+**Assets to Validate**: TIA, HBAR, CAKE, TON, RUNE, EGLD, CRV, SUSHI
 
-### From User: PROD Strategy Decision (Optional)
-**Context**: After C1 completes, need decision on frozen PROD assets
+**Checklist per Asset**:
+- [ ] guard001: MC p-value < 0.05
+- [ ] guard002: Sensitivity < 10%
+- [ ] guard003: Bootstrap CI > 1.0
+- [ ] guard005: Top10 trades < 40%
+- [ ] guard006: Stress1 Sharpe > 1.0
+- [ ] guard007: Regime mismatch < 1%
+- [ ] WFE > 0.6
+- [ ] OOS Sharpe > 1.0
+- [ ] OOS Trades > 60
 
-**Question**: If 2-3 Tier 1 assets pass (marginal outcome):
-- A) Trust old validations, keep all 15 frozen
-- B) Re-validate suspicious assets only
-- C) Full re-validation of all 15
+**Expected Outcome**: 3-5 assets pass 7/7 guards (conservative estimate)
 
-**Recommendation**: Will provide after C1 results
-
----
-
-## 📋 COMMUNICATION PROTOCOL
-
-### When Task Completes (Template)
-```markdown
-## [TIMESTAMP UTC] - [Task Name] - COMPLETE ✅
-
-**Task**: [Task ID and description]
-**Assets**: [List]
-**Duration**: [Actual time]
-**Status**: [SUCCESS/PARTIAL/FAILED]
-
-**Results Summary**:
-| Asset | OOS Sharpe | WFE | Guards | PSR | Decision |
-|-------|-----------|-----|--------|-----|----------|
-| [Asset] | X.XX | X.XX | X/7 | 0.XX | [PASS/FAIL/MARGINAL] |
-
-**Decision**: [What strategy to pursue next]
-
-**Outputs**:
-- [File paths]
-
-**Handoff to Alex**:
-- [What's ready for Alex]
-- [Any tasks unblocked]
-
-**Next Step**: [What Casey does next]
-```
-
-### When Blocked (Template)
-```markdown
-## [TIMESTAMP UTC] - BLOCKED ⏸️
-
-**Task**: [Task ID]
-**Blocker**: [Waiting for Alex / User decision / etc.]
-**Impact**: [Cannot proceed with X until...]
-
-**Estimated Unblock**: [Time/condition]
-**Alternative Work**: [Can review Y / prepare Z / etc.]
-```
-
-### When Decision Needed (Template)
-```markdown
-## [TIMESTAMP UTC] - DECISION NEEDED ⁉️
-
-**Context**: [Current situation]
-**Question**: [Specific decision to make]
-
-**Options**:
-A. [Option A] - [Pros/cons]
-B. [Option B] - [Pros/cons]
-C. [Option C] - [Pros/cons]
-
-**Recommendation**: Option [X] because [reason]
-
-**Impact**: [How this affects timeline/strategy]
-
-**Urgency**: [Can wait / Need before next task / ASAP]
-```
+**Handoff**: When complete, @Sam reports verdict to @Casey for final decision
 
 ---
 
-## 🔧 COORDINATION RULES
+## 🔄 WORKFLOW STATUS
 
-### Before Starting Any Validation Run
-1. ✅ Read `comms/alex-dev.md` - Is Alex running integration tests?
-2. ✅ Check `status/project-state.md` - Any new blockers?
-3. ✅ Verify compute resources available (not overlapping with Alex)
-4. ✅ Update this file: "Task X - STARTED"
-5. ✅ Create output file with proper prefix (REVALIDATION_, SCREENING_, etc.)
+### Phase 1: Overnight Validation ✅ COMPLETE
+**Executor**: @Jordan  
+**Duration**: 13h24 (03:23-16:47 UTC)  
+**Result**: 7 assets 7/7 guards PASS + 8 assets pending guards
 
-### During Validation Run
-1. 🔄 Monitor progress (check log files every 30 min)
-2. 📊 Update tracking dashboard if milestones hit
-3. 🐛 If errors occur, document and notify Alex if code issue
-4. ⏱️ If running long, estimate remaining time
+### Phase 2: Guards on 8 Pending ⏳ IN PROGRESS
+**Coordinator**: @Casey (moi)  
+**Executor**: @Jordan  
+**Validator**: @Sam  
+**Status**: Task J1 assigned to @Jordan
 
-### After Validation Completes
-1. ✅ Analyze results (compare to thresholds)
-2. 📝 Update this file with results table
-3. 🎯 Make decision based on decision matrix
-4. 📊 Update `status/project-state.md` with new validated assets
-5. 🗂️ Organize outputs and create manifest if needed
+**Workflow**:
+1. @Casey → Decision to proceed (DONE)
+2. @Jordan → Execute guards pipeline (IN PROGRESS)
+3. @Sam → Validate results when complete (WAITING)
+4. @Casey → Final decision on PROD list (WAITING)
 
-### File Naming Convention
-```
-# Casey's validation outputs
-outputs/REVALIDATION_<asset>_guards_<timestamp>.csv
-outputs/SCREENING_multiasset_scan_<timestamp>.csv
-outputs/PHASE2_<asset>_guards_<timestamp>.csv
-
-# Casey's analysis outputs
-outputs/BASELINE_ANALYSIS_<timestamp>.txt
-outputs/DECISION_REPORT_<timestamp>.md
-```
+### Phase 3: Portfolio Construction ⏳ IN PROGRESS
+**Coordinator**: @Casey  
+**Executor**: @Jordan  
+**Status**: Task J2 can run in parallel
 
 ---
 
-## 🎯 DECISION FRAMEWORKS
+## 📊 STRATEGIC ANALYSIS
 
-### Framework 1: PROD Asset Strategy (After C1)
-```
-IF (3-4 assets PASS):
-  Decision: KEEP FROZEN PROD (trust old validations)
-  Action: Proceed to Phase 1 Screening
-  Confidence: HIGH
-  
-ELSE IF (2 assets PASS):
-  Decision: HYBRID (validate Tier 2 selectively)
-  Action: Test AR, ANKR, OP, DOT (4 more assets)
-  Confidence: MEDIUM
-  
-ELSE IF (0-1 assets PASS):
-  Decision: REBUILD (full re-validation)
-  Action: Re-validate all 15 frozen PROD assets
-  Confidence: LOW (old system was unreliable)
-```
+### Portfolio Size Projection
 
-### Framework 2: Phase 1 Candidate Selection
-```
-IF (OOS Sharpe > 2.0 AND WFE > 0.8):
-  Priority: TIER A (high confidence)
-  Phase 2: Immediate validation
-  
-ELSE IF (OOS Sharpe > 1.5 AND WFE > 0.6):
-  Priority: TIER B (medium confidence)
-  Phase 2: After Tier A validated
-  
-ELSE IF (OOS Sharpe > 1.0 AND WFE > 0.4):
-  Priority: TIER C (marginal)
-  Phase 2: Only if need more assets
-  
-ELSE:
-  Priority: EXCLUDED
-  Phase 2: Skip
-```
+**Current State**: 7 confirmed PROD assets
 
-### Framework 3: Overfitting Assessment
-```
-IF (PSR > 0.90 AND DSR > 0.80):
-  Confidence: EXCELLENT (low overfit risk)
-  
-ELSE IF (PSR > 0.85 AND DSR > 0.70):
-  Confidence: GOOD (acceptable overfit risk)
-  
-ELSE IF (PSR > 0.75 AND DSR > 0.60):
-  Confidence: MARGINAL (monitor closely)
-  
-ELSE:
-  Confidence: POOR (high overfit risk)
-  Recommendation: REJECT or try conservative filters
-```
+**After Guards (Scenarios)**:
+- **Conservative** (2-3 pass): 9-10 total PROD assets
+- **Medium** (4-5 pass): 11-12 total PROD assets
+- **Optimistic** (6-8 pass): 13-15 total PROD assets
+
+**Original Target**: 20+ assets  
+**Current Achievement**: 7 confirmed (35% of goal)  
+**Projected Achievement**: 10-12 assets (50-60% of goal)  
+**Status**: 🟢 **ON TRACK**
+
+### Key Observations
+
+**Observation 1: SHIB is Star Performer**
+- Highest Sharpe (5.67)
+- Highest WFE (2.27)
+- Excellent guards profile
+- **Recommendation**: Consider 15-20% weight in portfolio
+
+**Observation 2: TIA High Priority**
+- 5.16 Sharpe (would be #2 if guards pass)
+- Excellent WFE (1.36)
+- **Impact**: If TIA passes, significantly improves portfolio
+
+**Observation 3: CRV Marginal**
+- Lowest Sharpe (1.01, barely above threshold)
+- Good WFE (0.88) but performance weak
+- **Recommendation**: If guards fail, acceptable to drop
 
 ---
 
-## ⚠️ ESCALATION TRIGGERS
+## 📋 PENDING DECISIONS (After Guards Complete)
 
-### When to Notify Alex (Development Issues)
-- 🐛 Script crashes or hangs
-- 🔢 Metrics calculations return NaN/inf
-- 📁 Output files missing or corrupted
-- ⚡ Performance degradation (>2x expected time)
-- 🔁 Reproducibility issues (different results on re-run)
+### Decision D4: Final PROD Asset List
+**Trigger**: After @Sam validates guards results
 
-### When to Notify User (Strategic Decisions)
-- ⁉️ Baseline validation shows unexpected results (e.g., 0-1/4 PASS)
-- 🎯 Major strategy pivot needed (rebuild PROD from scratch)
-- ⏱️ Timeline at risk (blockers >4 hours)
-- 📊 Trade-offs require user input (quality vs speed)
-- 🚨 Critical assumption violated (e.g., frozen PROD all fail)
+**Question**: Use 7, 10-12, or 15 assets for PROD portfolio?
+
+**Decision Matrix**:
+| Scenario | Assets Passing | Total PROD | Action |
+|----------|---------------|-----------|---------|
+| Conservative | 0-2 pass | 7-9 assets | Use 7 only (high quality) |
+| Medium | 3-5 pass | 10-12 assets | Balanced portfolio |
+| Optimistic | 6-8 pass | 13-15 assets | Aggressive diversification |
+
+**Inputs Needed**:
+- @Sam validation results (how many pass 7/7?)
+- Portfolio construction results (@Jordan Task J2)
+- Risk/return trade-off analysis
 
 ---
 
-## 📚 QUICK REFERENCE
+### Decision D5: Phase 1 Screening
+**Trigger**: After Decision D4 resolved
 
-### Important Files
-- **This file**: `comms/casey-quant.md`
-- **Alex's status**: `comms/alex-dev.md`
-- **Coordination**: `comms/TESTING_COORDINATION.md`
-- **Project state**: `status/project-state.md`
-- **Quick memo**: `memo.md`
+**Question**: Proceed with Phase 1 screening of ~13 candidate assets?
 
-### Common Commands
+**Candidates**: ATOM, ARB, LINK, INJ, ICP, IMX, CELO, ARKM, W, STRK, AEVO
+
+**Decision Factors**:
+- If we have 13-15 PROD assets → ⏸️ **SKIP** (sufficient diversification)
+- If we have 7-9 PROD assets → ✅ **PROCEED** (need more assets)
+- If we have 10-12 PROD assets → ⚠️ **OPTIONAL** (user preference)
+
+**Command (if proceed)**:
 ```bash
-# Tier 1 baseline validation (C1)
-python scripts/run_full_pipeline.py --assets JOE OSMO MINA AVAX --workers 1 --run-guards --overfit-trials 150
-
-# Phase 1 screening (C2)
-python scripts/run_full_pipeline.py --assets <POOL> --workers 10 --phase screening
-
-# Check recent outputs
-ls -lt outputs/REVALIDATION_* | head -10
-
-# Analyze results quickly
-python scripts/analyze_scan_results.py outputs/REVALIDATION_*_guards_*.csv
-
-# Monitor running job
-tail -f outputs/overnight_log_<timestamp>.txt
+python scripts/run_full_pipeline.py \
+  --assets ATOM ARB LINK INJ ICP IMX CELO ARKM W STRK AEVO \
+  --workers 10 \
+  --trials-atr 150 \
+  --trials-ichi 150 \
+  --phase screening \
+  --enforce-tp-progression \
+  --skip-download
 ```
-
-### Key Thresholds
-- **Guards**: 7/7 PASS required (no exceptions)
-- **OOS Sharpe**: >1.0 minimum, >2.0 target
-- **WFE**: >0.6 required, >0.8 preferred
-- **PSR**: >0.85 informational (not enforced)
-- **DSR**: >0.70 informational (not enforced)
-- **Trades OOS**: >60 minimum
 
 ---
 
-## 🎯 SESSION GOALS
+## 🎯 COORDINATION CHECKPOINTS
 
-### Today (24 JAN)
-- [ ] Wait for Alex to complete Task A1 (ETH integration test)
-- [ ] Start Task C1 when unblocked (Tier 1 baseline)
-- [ ] Complete 4-asset validation (JOE, OSMO, MINA, AVAX)
-- [ ] Make decision on frozen PROD strategy
-- [ ] (If time) Prepare Phase 1 screening command
+### Checkpoint 1: After Task J1 Complete (2-3h)
+**Trigger**: @Jordan reports guards execution complete
 
-### This Week
-- [ ] Complete Tier 1 baseline validation
-- [ ] Execute Phase 1 screening on candidate pool
-- [ ] Identify 10-15 top candidates for Phase 2
-- [ ] Begin Phase 2 validation on top tier
-- [ ] Handoff 5+ validated assets to Alex for portfolio construction
+**Actions**:
+1. Acknowledge @Jordan completion
+2. Assign @Sam to validate results (Task S1)
+3. Estimate: How many assets likely to pass?
+
+---
+
+### Checkpoint 2: After Task S1 Complete (1-2h after Checkpoint 1)
+**Trigger**: @Sam reports validation verdict
+
+**Actions**:
+1. Review @Sam validation results
+2. Count assets with 7/7 guards PASS
+3. Make Decision D4 (Final PROD list)
+4. Update `status/project-state.md`
+
+---
+
+### Checkpoint 3: After Decision D4 (immediate)
+**Trigger**: Final PROD list decided
+
+**Actions**:
+1. Make Decision D5 (Phase 1 screening)
+2. If proceed, assign @Jordan to execute
+3. If skip, plan next validation cycle
+
+---
+
+## 📁 KEY REFERENCES
+
+**Source of Truth**: `status/project-state.md`  
+**Overnight Analysis**: `comms/OVERNIGHT_RESULTS_ANALYSIS.md`  
+**Jordan Tasks**: `comms/jordan-dev.md`  
+**Sam Validation**: `comms/sam-qa.md`  
+**Quick Reference**: `memo.md`
 
 ---
 
 ## 🔄 CURRENT STATUS
 
-**Active Task**: None (waiting for Alex A1)  
-**Blocked By**: Alex Task A1 (ETH integration test)  
-**Estimated Unblock**: ~45 minutes from now  
-**Ready to Start**: Task C1 (all dependencies met except Alex handoff)  
-**Compute Available**: Yes (can use workers=1 for sequential validation)
+**Active Decisions**: 3 resolved, 2 pending (D4, D5)  
+**Active Tasks**: 2 assigned (@Jordan J1, J2)  
+**Waiting For**: @Jordan to execute Task J1 (guards)  
+**Next Checkpoint**: After guards complete (2-3h)  
+**Coordination Status**: 🟢 **CLEAR WORKFLOW ESTABLISHED**
 
 ---
 
-**NEXT UPDATE**: When Alex completes Task A1 and hands off ETH results  
-**THEN START**: Task C1 (Tier 1 baseline validation)
+**NEXT UPDATE**: After @Jordan reports Task J1 completion  
+**THEN DECIDE**: Assign @Sam to validate results (Task S1)
+
+**Last Decision**: 24 janvier 2026, 19:30 UTC  
+**Coordinator**: @Casey
