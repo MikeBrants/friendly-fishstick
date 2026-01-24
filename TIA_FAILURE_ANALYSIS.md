@@ -68,39 +68,57 @@ Les excellentes performances de TIA (Sharpe 5.16) sont **trop dépendantes** des
 
 ## 🔧 OPTIONS POUR TIA
 
-### Option A: BLOCKED (Recommandé)
-**Action:** Accepter l'échec, exclure TIA du portfolio  
-**Raison:** Guard002 est critique (détecte overfit paramètres)  
-**Impact:** Portfolio reste à 10 assets (suffisant)
-
-### Option B: Re-optimization avec Filters (Risqué)
-**Action:** Réoptimiser TIA avec `medium_distance_volume` filter  
-**But:** Réduire overfit, améliorer stabilité paramètres  
-**Risque:** Peut dégrader Sharpe significativement  
-**Effort:** 2-3 heures compute
-
-### Option C: Manual Parameter Adjustment (Non recommandé)
-**Action:** Tester manuellement différents paramètres ATR  
-**Raison:** Viole le principe de walk-forward validation  
-**Verdict:** ❌ **NE PAS FAIRE** (cherry-picking)
+### ❌ OPTION INITIALE (INCORRECTE): BLOCKED Immédiat
+**Erreur:** Recommandation initiale violait le workflow rescue  
+**Problème:** Skip Phase 3A (displacement) et Phase 4 (filter grid)  
+**Corrigé:** Voir section "WORKFLOW RESCUE" ci-dessous
 
 ---
 
-## 📋 DÉCISION RECOMMANDÉE
+### ✅ OPTION CORRECTE: WORKFLOW RESCUE (Obligatoire)
 
-**Verdict:** ✅ **OPTION A - BLOCKED**
+Selon `docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md`:
+
+**Phase 3A: Displacement Rescue (OBLIGATOIRE)**
+```bash
+# Test d26
+python scripts/run_full_pipeline.py \
+  --assets TIA --fixed-displacement 26 \
+  --trials-atr 300 --trials-ichi 300 \
+  --enforce-tp-progression --run-guards --workers 1
+
+# Test d78  
+python scripts/run_full_pipeline.py \
+  --assets TIA --fixed-displacement 78 \
+  --trials-atr 300 --trials-ichi 300 \
+  --enforce-tp-progression --run-guards --workers 1
+```
+
+**Durée:** 4-6h (2-3h par displacement)  
+**Probabilité succès:** 40-50% (d26 ou d78 peuvent stabiliser paramètres)
+
+**Si Phase 3A échoue → Phase 4: Filter Grid (12 configs)**
+
+**SEULEMENT après Phase 3A + Phase 4 épuisées → EXCLU définitif**
+
+---
+
+## 📋 DÉCISION CORRIGÉE
+
+**Verdict:** ✅ **PHASE 3A RESCUE REQUIRED** (Workflow standard)
 
 **Rationale:**
-1. Guard002 est un garde critique contre l'overfit
-2. TIA montre clairement une sensibilité excessive aux paramètres
-3. Nous avons déjà 10 assets PROD (objectif 55% atteint)
-4. RUNE et EGLD sont passés → portefeuille s'agrandit quand même
+1. TIA a Sharpe exceptionnel (5.16) → Asset prioritaire
+2. Échec limité à guard002 (sensitivity) → Displacement peut résoudre
+3. Workflow rescue non épuisé → Tentatives obligatoires
+4. Never skip rescue pour asset haute performance
 
 **Action:**
-- Marquer TIA comme **BLOCKED** (guard002 FAIL)
-- Mettre à jour portfolio: 10 assets PROD (8 + RUNE + EGLD)
-- Documenter la raison de l'exclusion
-- NE PAS tenter de re-optimization (waste of compute)
+1. ✅ Assigner @Jordan Phase 3A (d26 + d78)
+2. ⏳ Si Phase 3A FAIL → Phase 4 (filter grid)
+3. ❌ Si Phase 4 FAIL → EXCLU définitif (workflow épuisé)
+
+**Plan détaillé:** Voir `TIA_RESCUE_PLAN.md`
 
 ---
 
