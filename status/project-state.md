@@ -93,6 +93,7 @@ Avec le nouveau seuil 15%, ETH baseline passe directement **sans filter grid**:
 | 2026-01-24 | Seuils trades ajustés | moderate ≥50, conservative ≥40 |
 | 2026-01-24 | **ETH → baseline** | Sharpe 3.87 vs 2.09, WFE 2.36 vs 0.82 |
 | 2026-01-24 | **CAKE éligible** | Sensitivity 10.76% < 15% |
+| 2026-01-24 | **Regime test requis** | Changements majeurs → distribution régimes inconnue |
 
 ---
 
@@ -394,11 +395,39 @@ C. **HYBRID** - Keep high-confidence (JOE, OSMO), re-validate questionable (BTC)
 - [ ] 10+ assets validated with new deterministic system
 - [ ] Portfolio construction tested with 5+ assets
 - [ ] Phase 1 screening complete on candidate pool
+- [ ] **REGIME TEST** — Refaire l'analyse des régimes (voir ci-dessous)
 
 ### Medium-Term (Next Week)
 - [ ] 20+ assets pass 7/7 guards + overfitting checks
 - [ ] Production portfolio constructed (3-4 methods compared)
 - [ ] Documentation updated with new validation protocols
+- [ ] Regime analysis completed for all PROD assets
+
+---
+
+## ⚠️ REGIME TEST REQUIS
+
+### Contexte
+Suite aux changements majeurs (bug KAMA corrigé, seuil sensitivity 15%, ETH baseline):
+- **Les anciens résultats de régime sont OBSOLÈTES**
+- On ne sait plus dans quel régime (BULL/BEAR/SIDEWAYS) les trades performent
+- Le ratio 79.5% SIDEWAYS profit doit être re-vérifié
+
+### Actions Requises
+1. **Re-run regime analysis** sur tous les assets PROD avec les nouveaux paramètres
+2. **Vérifier** la distribution des profits par régime
+3. **Confirmer** que SIDEWAYS reste dominant (ou documenter le changement)
+4. **Mettre à jour** `guard007` (regime mismatch) si nécessaire
+
+### Commande
+```bash
+python regime_analysis_v2.py --assets SHIB DOT NEAR DOGE ETH ANKR JOE
+```
+
+### Impact Potentiel
+- Si distribution régime change significativement → re-calibrer les filtres
+- Si SIDEWAYS n'est plus dominant → revoir la stratégie
+- Si mismatch augmente → certains assets pourraient être rétrogradés
 
 ---
 
