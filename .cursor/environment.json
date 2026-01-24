@@ -1,1 +1,10 @@
-{ "install": "python3 -m pip install -U pip && python3 -m pip install -r crypto_backtest/requirements.txt && python3 -m pip install -U pytest", "terminals": [{ "name": "Tests (smoke)", "command": "python3 -m pytest -q" }] }
+{
+  "snapshot": "snapshot-20260124-a99807d7-8ad9-4272-8bf5-b3d64380008a",
+  "install": "python3 -m pip install -U pip && python3 -m pip install -r crypto_backtest/requirements.txt && python3 -m pip install -U pytest",
+  "terminals": [
+    {
+      "name": "Tests (smoke)",
+      "command": "python3 -m pytest -q"
+    }
+  ]
+}
