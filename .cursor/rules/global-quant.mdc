@@ -59,6 +59,30 @@ regime = get_regime_at(entry_time)  # CORRECT
 - Min 100 trades IS, 60 OOS
 - Slippage fixe 2bps -> devrait etre f(volume) pour altcoins
 
+## WORKFLOW RESCUE (CRITICAL - Ne jamais skip)
+**Reference obligatoire:** `docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md`
+
+**Si guards FAIL (<7/7 PASS):**
+```
+Phase 2 (FAIL) → Phase 3A (displacement rescue d26/d52/d78)
+                     ↓ FAIL
+                 Phase 4 (filter grid 12 configs)
+                     ↓ FAIL
+                 EXCLU DEFINITIF
+```
+
+**JAMAIS bloquer sans tenter:**
+1. Phase 3A: Displacement grid (d26, d78 si d52 fail)
+2. Phase 4: Filter grid (medium_distance_volume, moderate, etc.)
+
+**Exceptions (skip rescue):**
+- Donnees < 50 trades OOS
+- Structural (WFE < 0.3, Sharpe < 0.8)
+- User demande explicitement
+
+**SINON: Rescue OBLIGATOIRE avant EXCLU**
+
 ## SOURCE DE VERITE
 Toujours lire `status/project-state.md` EN PREMIER.
 `docs/HANDOFF.md` est OBSOLETE.
+`docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md` pour workflow rescue.
