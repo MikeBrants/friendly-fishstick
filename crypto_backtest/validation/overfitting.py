@@ -15,6 +15,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+import math
 import numpy as np
 import pandas as pd
 
@@ -67,7 +68,7 @@ def _periods_per_year(index: pd.Index) -> float:
 def _norm_cdf(x: float) -> float:
     """Normal CDF without scipy dependency."""
     # Abramowitz-Stegun approximation via erf.
-    return 0.5 * (1.0 + float(np.math.erf(x / np.sqrt(2.0))))
+    return 0.5 * (1.0 + float(math.erf(x / np.sqrt(2.0))))
 
 
 def _norm_ppf(p: float) -> float:
