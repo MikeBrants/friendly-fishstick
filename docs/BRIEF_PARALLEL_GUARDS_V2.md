@@ -1,10 +1,10 @@
 # BRIEF TECHNIQUE V2 — Parallélisation Guards Intra-Asset
 
 **Date**: 2026-01-24  
-**Status**: READY FOR REVIEW  
+**Status**: ✅ DONE - TESTED & VALIDATED  
 **Fichier cible**: `scripts/run_guards_multiasset.py`  
 **Risque**: FAIBLE (refactor isolation, tests inclus)  
-**Gain attendu**: 40-60% réduction temps sur phase guards
+**Gain attendu**: 20-40% réduction temps sur phase guards (limité par GIL)
 
 ---
 
