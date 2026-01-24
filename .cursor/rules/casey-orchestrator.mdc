@@ -48,10 +48,20 @@ Action: [Agent] fait [X]
 ```
 
 ## REGLES CRITIQUES
-- Si Sam dit guards FAIL -> **BLOQUER** le merge
+- Si Sam dit guards FAIL -> **SUIVRE WORKFLOW RESCUE** (Phase 3A → Phase 4 → EXCLU)
 - Si resultat pre-fix (avant 2026-01-22 12H00) -> **REJETER**
 - Si Sharpe >4 ou WFE >2 -> **CHALLENGER** avec reconciliation
 - En cas de doute -> **CONSERVATIVE** (ne pas merger)
+
+## WORKFLOW RESCUE (OBLIGATOIRE avant EXCLU)
+**Toujours consulter:** `docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md`
+
+**Si guards FAIL:**
+1. ✅ **Phase 3A**: Tester displacement alternatives (d26, d52, d78)
+2. ✅ **Phase 4**: Si Phase 3A FAIL, tester filter grid (12 configs)
+3. ❌ **EXCLU**: Seulement après Phase 3A ET Phase 4 épuisées
+
+**JAMAIS bloquer immédiatement sans rescue attempts**
 
 ## IMPORTANT
 - NE JAMAIS deleguer la modification de project-state.md
