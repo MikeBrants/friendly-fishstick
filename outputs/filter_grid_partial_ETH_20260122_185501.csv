@@ -1,5 +1,0 @@
-mode,run_id,scan_file,guards_file,status,oos_sharpe,wfe,oos_trades,sens_var,guard002_pass,all_pass,base_sharpe
-baseline,20260122_155720,outputs\fgrid_ETH_baseline_20260122_155720_multiasset_scan_20260122_155955.csv,outputs\fgrid_ETH_baseline_20260122_155720_guards_summary_20260122_155955.csv,SUCCESS,2.03,1.43,84,23.52,False,False,1.15
-light,volume_20260122_170037,outputs\fgrid_ETH_light_volume_20260122_170037_multiasset_scan_20260122_170257.csv,outputs\fgrid_ETH_light_volume_20260122_170037_guards_summary_20260122_170257.csv,SUCCESS,3.15,1.06,78,16.04,False,False,1.16
-medium,kama_volume_20260122_175749,outputs\fgrid_ETH_medium_kama_volume_20260122_175749_multiasset_scan_20260122_180015.csv,outputs\fgrid_ETH_medium_kama_volume_20260122_175749_guards_summary_20260122_180015.csv,SUCCESS,1.7,0.63,78,14.74,False,False,1.45
-moderate,20260122_184710,outputs\fgrid_ETH_moderate_20260122_184710_multiasset_scan_20260122_185014.csv,,FAIL,0.69,0.22,66,,,,

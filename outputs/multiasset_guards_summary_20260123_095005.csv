@@ -1,6 +1,0 @@
-asset,guard001_pass,guard002_pass,guard003_pass,guard005_pass,guard006_pass,guard007_pass,all_pass,error
-STRK,False,False,False,False,False,False,False,"float() argument must be a string or a real number, not 'complex'"
-AEVO,False,False,False,False,False,False,False,"float() argument must be a string or a real number, not 'complex'"
-METIS,False,False,False,False,False,False,False,"float() argument must be a string or a real number, not 'complex'"
-YGG,False,False,False,False,False,False,False,"float() argument must be a string or a real number, not 'complex'"
-SHIB,False,False,False,False,False,False,False,"float() argument must be a string or a real number, not 'complex'"

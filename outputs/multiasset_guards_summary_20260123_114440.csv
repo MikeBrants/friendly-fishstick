@@ -1,5 +1,0 @@
-asset,base_sharpe,guard001_p_value,guard001_pass,guard002_variance_pct,guard002_pass,guard003_sharpe_ci_lower,guard003_pass,guard005_top10_pct,guard005_pass,guard006_stress1_sharpe,guard006_pass,guard007_mismatch_pct,guard007_pass,guard_wfe,guard_wfe_pass,all_pass,error
-METIS,2.692687256821779,0.0,True,,True,,True,,True,,True,,True,0.8536894760049025,True,True,
-AEVO,1.7556374960944017,0.0,True,,True,,True,,True,,True,,True,0.6237546984932829,True,True,
-STRK,1.5010381412377363,0.001,True,,True,,True,,True,,True,,True,0.8515231642002312,True,True,
-YGG,2.984008961192711,0.0,True,,True,,True,,True,,True,,True,0.776670357859411,True,True,
