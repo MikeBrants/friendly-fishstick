@@ -42,6 +42,126 @@ Ce fichier contient les validations des 7 guards par Sam.
 
 ---
 
+## [19:25] [TASK] @Casey -> @Sam — EXÉCUTER GUARDS SUR 8 ASSETS ⚡
+
+**Priority:** 🔴 **CRITIQUE - DERNIÈRE ÉTAPE AVANT PROD**  
+**Date:** 24 janvier 2026, 19:25 UTC  
+**Context:** Pipeline overnight a validé 7 assets (7/7 PASS) + 8 assets pending guards
+
+### 🎯 MISSION: Finaliser Validation Portfolio
+
+**Objectif:** Exécuter guards sur 8 assets pour atteindre **10-12 PROD assets**
+
+**Assets Cibles (8):**
+- **TIA** 🚀 (5.16 Sharpe, 1.36 WFE) — **HAUTE PRIORITÉ** (serait #2 si PASS!)
+- **HBAR** (2.32 Sharpe, 1.03 WFE) — PROBABLE PASS
+- **TON** (2.54 Sharpe, 1.17 WFE) — PROBABLE PASS
+- **CAKE** (2.46 Sharpe, 0.81 WFE) — MARGINAL
+- **RUNE** (2.42 Sharpe, 0.61 WFE) — MARGINAL
+- **EGLD** (2.04 Sharpe, 0.66 WFE) — MARGINAL
+- **SUSHI** (1.90 Sharpe, 0.63 WFE) — MARGINAL
+- **CRV** (1.01 Sharpe, 0.88 WFE) — PROBABLE FAIL
+
+### 📋 COMMANDE À EXÉCUTER
+
+```bash
+python scripts/run_guards_multiasset.py \
+  --assets TIA HBAR CAKE TON RUNE EGLD CRV SUSHI \
+  --workers 1 \
+  --mc-iterations 1000 \
+  --bootstrap-samples 10000 \
+  --sensitivity-range 5 \
+  --output-prefix phase2_guards_backfill_20260124
+```
+
+**Durée Estimée:** 2-3 heures (8 assets × ~20 min guards)  
+**Note:** Utilise parallélisation intra-asset (implémentée par Jordan 19:05)
+
+### 📊 RÉSULTATS ATTENDUS
+
+**Prédiction:**
+- ✅ **3-5 assets PASS** (TIA, HBAR, TON probables)
+- ⚠️ **2-3 assets MARGINAL** (CAKE, RUNE, EGLD)
+- ❌ **1-2 assets FAIL** (CRV, SUSHI)
+
+**Target Final:** 7 confirmés + 3-5 nouveaux = **10-12 PROD assets** ✅
+
+### 📁 OUTPUTS ATTENDUS
+
+**Fichiers générés (8):**
+```
+outputs/phase2_guards_backfill_20260124_TIA_guards_summary_*.csv
+outputs/phase2_guards_backfill_20260124_HBAR_guards_summary_*.csv
+outputs/phase2_guards_backfill_20260124_CAKE_guards_summary_*.csv
+outputs/phase2_guards_backfill_20260124_TON_guards_summary_*.csv
+outputs/phase2_guards_backfill_20260124_RUNE_guards_summary_*.csv
+outputs/phase2_guards_backfill_20260124_EGLD_guards_summary_*.csv
+outputs/phase2_guards_backfill_20260124_CRV_guards_summary_*.csv
+outputs/phase2_guards_backfill_20260124_SUSHI_guards_summary_*.csv
+```
+
+### ✅ CHECKLIST VALIDATION
+
+Pour chaque asset, vérifier:
+- [ ] Guard 001 (MC p-value) < 0.05
+- [ ] Guard 002 (Sensitivity) < 10%
+- [ ] Guard 003 (Bootstrap CI) > 1.0
+- [ ] Guard 005 (Top10 trades) < 40%
+- [ ] Guard 006 (Stress Sharpe) > 1.0
+- [ ] Guard 007 (Regime mismatch) < 1%
+- [ ] WFE > 0.6
+- [ ] **All Pass = TRUE**
+
+### 📝 DOCUMENTATION REQUISE
+
+Après exécution, documenter dans ce fichier:
+
+**Format:**
+```markdown
+## [HH:MM] [VALIDATION] @Sam — GUARDS BACKFILL RESULTS
+
+**Assets Tested:** TIA, HBAR, CAKE, TON, RUNE, EGLD, CRV, SUSHI  
+**Duration:** X hours Y minutes  
+**Status:** COMPLETE
+
+### Results Summary
+
+| Asset | Guards | Decision | Notes |
+|-------|--------|----------|-------|
+| TIA | 7/7 PASS | ✅ PROD | #2 performer! |
+| HBAR | 7/7 PASS | ✅ PROD | - |
+| TON | 7/7 PASS | ✅ PROD | - |
+| CAKE | X/7 FAIL | ❌ BLOCKED | [raison] |
+| ... | ... | ... | ... |
+
+### Final Count
+- **PROD Confirmed:** X assets (7 existing + Y new)
+- **BLOCKED:** Z assets
+- **Portfolio Status:** READY FOR CONSTRUCTION ✅
+```
+
+### 🚀 APRÈS VALIDATION
+
+**Si 3-5 assets PASS:**
+- Portfolio final: **10-12 assets PROD** ✅
+- Handoff à Casey pour décision finale
+- Portfolio construction peut démarrer
+
+**Si < 3 assets PASS:**
+- Conserver les 7 confirmés (suffisant pour portfolio)
+- Documenter les échecs
+- Recommandations pour amélioration
+
+### ⏰ DEADLINE
+
+**Lancer MAINTENANT** (19:30 UTC)  
+**Résultats attendus:** 21:30-22:30 UTC  
+**Verdict final Casey:** 23:00 UTC
+
+**Status:** 🔄 **PRÊT À EXÉCUTER** — Lancer la commande dès que possible!
+
+---
+
 ## [18:45] [RESULTS] @Jordan -> @Sam — PHASE 2 COMPLETE + GUARDS VALIDATION
 
 **Ref:** `comms/jordan-to-sam-phase2-results.md` (RAPPORT COMPLET)  
