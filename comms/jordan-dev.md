@@ -40,13 +40,14 @@ outputs/phase2_guards_backfill_20260124_CAKE_guards_summary.csv
 outputs/phase2_guards_backfill_20260124_TON_guards_summary.csv
 outputs/phase2_guards_backfill_20260124_RUNE_guards_summary.csv
 outputs/phase2_guards_backfill_20260124_EGLD_guards_summary.csv
+outputs/phase2_guards_backfill_20260124_CRV_guards_summary.csv
 outputs/phase2_guards_backfill_20260124_SUSHI_guards_summary.csv
 ```
 
 **Success Criteria**:
-- [ ] All 7 assets complete guards execution
+- [ ] All 8 assets complete guards execution
 - [ ] No errors or crashes
-- [ ] Output files generated for all 7 assets
+- [ ] Output files generated for all 8 assets
 - [ ] Report completion to @Sam for validation
 
 **Handoff to**: @Sam (when complete)
@@ -58,9 +59,9 @@ outputs/phase2_guards_backfill_20260124_SUSHI_guards_summary.csv
 **Priority**: 🟡 P1 (MEDIUM)  
 **Status**: ⏳ CAN RUN IN PARALLEL with Task J1
 
-**Context**: We have 7 validated PROD assets. Test all 4 portfolio optimization methods.
+**Context**: We have 8 validated PROD assets. Test all 4 portfolio optimization methods.
 
-**Assets**: SHIB, DOT, NEAR, DOGE, ANKR, JOE, ETH
+**Assets**: SHIB, DOT, NEAR, DOGE, ANKR, ETH, ONE, JOE
 
 **Command**:
 ```bash
