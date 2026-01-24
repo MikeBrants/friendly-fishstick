@@ -55,6 +55,27 @@ python scripts/run_filter_rescue.py ASSET
 python scripts/run_filter_rescue.py ETH --trials 300
 ```
 
+### 7. DSR (Deflated Sharpe Ratio) — NOUVEAU
+
+**Fichier**: `crypto_backtest/validation/deflated_sharpe.py`
+
+Corrige le **trial count paradox** identifié par Alex:
+- Plus de trials = WFE plus faible (overfitting)
+- DSR calcule la probabilité que le Sharpe soit statistiquement significatif
+
+**Seuils**:
+| DSR | Verdict |
+|-----|---------|
+| > 95% | STRONG — Edge significatif |
+| 85-95% | MARGINAL — Acceptable si autres guards OK |
+| < 85% | FAIL — Probablement overfitting |
+
+**Usage**:
+```python
+from crypto_backtest.validation.deflated_sharpe import guard_dsr
+result = guard_dsr(returns, sharpe_observed=2.14, n_trials=300, threshold=0.85)
+```
+
 ### 6. Impact du Changement de Seuil (10% → 15%)
 
 #### ETH BASELINE - AMÉLIORATION MAJEURE
@@ -94,6 +115,35 @@ Avec le nouveau seuil 15%, ETH baseline passe directement **sans filter grid**:
 | 2026-01-24 | **ETH → baseline** | Sharpe 3.87 vs 2.09, WFE 2.36 vs 0.82 |
 | 2026-01-24 | **CAKE éligible** | Sensitivity 10.76% < 15% |
 | 2026-01-24 | **Regime test requis** | Changements majeurs → distribution régimes inconnue |
+| 2026-01-24 | **DSR implémenté** | Corrige trial count paradox |
+
+---
+
+## 🔬 TASKS ALEX (Lead Quant) — Variance Reduction
+
+**Fichier comm**: `comms/alex-lead.md`
+
+### Task 1: DSR Integration — DONE ✅
+- Fichier: `crypto_backtest/validation/deflated_sharpe.py`
+- Seuil recommandé: 0.85 (combiné avec autres guards)
+
+### Task 2: Variance Reduction Research — TODO 🔴
+**Objectif**: Réduire variance sous 10% pour gros assets (ETH 12.96%, CAKE 10.76%)
+
+**Pistes à explorer**:
+1. **Regime-aware WF splits** — Splits stratifiés par régime (BULL/BEAR/SIDEWAYS)
+2. **Parameter averaging** — Moyenner top N trials (BMA)
+3. **Regularization Optuna** — Pénalité variance dans objective
+4. **Reduced trial count** — 50-75 trials au lieu de 300
+
+### Task 3: GitHub Quant Repos Research — TODO 🟡
+**Repos à scanner**:
+- `quantopian/zipline`, `polakowo/vectorbt`, `freqtrade/freqtrade`
+- Focus: Filtres volatilité, méthodes anti-overfitting, ensemble methods
+
+**Deliverables attendus**:
+- Rapport variance reduction avec résultats tests
+- Liste filtres/stratégies à intégrer
 
 ---
 
