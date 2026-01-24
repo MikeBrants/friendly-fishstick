@@ -1,0 +1,16 @@
+GUARDS VALIDATION REPORT: EGLD
+======================================================================
+GUARD-001 Monte Carlo p-value: 0.0000 -> PASS
+GUARD-002 Sensitivity variance: 5.04% -> PASS
+GUARD-003 Bootstrap Sharpe CI lower: 2.49 -> PASS
+GUARD-005 Trade distribution top10: 11.58% -> PASS
+GUARD-006 Stress1 Sharpe: 1.83 -> PASS
+GUARD-007 Regime reconciliation mismatch: 0.00% -> PASS
+GUARD-WFE: 0.66 -> PASS
+----------------------------------------------------------------------
+OVERFITTING (report-only):
+PSR (P[SR>0]): 0.9976
+DSR (deflated): n/a
+SR* (deflated threshold): n/a
+----------------------------------------------------------------------
+ALL PASS: YES

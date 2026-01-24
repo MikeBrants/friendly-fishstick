@@ -1,0 +1,16 @@
+GUARDS VALIDATION REPORT: HBAR
+======================================================================
+GUARD-001 Monte Carlo p-value: 0.0060 -> PASS
+GUARD-002 Sensitivity variance: 12.27% -> FAIL
+GUARD-003 Bootstrap Sharpe CI lower: 0.24 -> FAIL
+GUARD-005 Trade distribution top10: 41.47% -> FAIL
+GUARD-006 Stress1 Sharpe: 0.62 -> FAIL
+GUARD-007 Regime reconciliation mismatch: 0.00% -> PASS
+GUARD-WFE: 1.03 -> PASS
+----------------------------------------------------------------------
+OVERFITTING (report-only):
+PSR (P[SR>0]): 0.9693
+DSR (deflated): n/a
+SR* (deflated threshold): n/a
+----------------------------------------------------------------------
+ALL PASS: NO
