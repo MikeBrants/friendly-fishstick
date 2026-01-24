@@ -13,8 +13,9 @@ def _equity_from_returns(idx: pd.DatetimeIndex, returns: pd.Series, start: float
 def test_probabilistic_sharpe_ratio_basic_sanity():
     idx = pd.date_range("2024-01-01", periods=500, freq="h", tz="UTC")
     zero = pd.Series(0.0, index=idx)
-    pos = pd.Series(0.0002, index=idx)
-    neg = pd.Series(-0.0002, index=idx)
+    # Use small deterministic variance (avoid std=0 edge case).
+    pos = pd.Series((pd.Series(range(len(idx))) % 2).astype(float) * 0.0004, index=idx)
+    neg = -pos
 
     assert 0.0 <= probabilistic_sharpe_ratio(zero) <= 1.0
     assert probabilistic_sharpe_ratio(pos) > probabilistic_sharpe_ratio(zero)
