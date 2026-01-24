@@ -1,0 +1,56 @@
+{
+  "n_clusters": 2,
+  "clusters": {
+    "cluster_0": {
+      "assets": [
+        "TIA",
+        "CAKE",
+        "TON"
+      ],
+      "size": 3,
+      "params": {
+        "sl_mult": 3.25,
+        "tp1_mult": 2.75,
+        "tp2_mult": 8.5,
+        "tp3_mult": 9.5,
+        "tenkan": 17,
+        "kijun": 38,
+        "tenkan_5": 10,
+        "kijun_5": 21
+      },
+      "avg_oos_sharpe": 3.385959695616013,
+      "avg_oos_trades": 78.0,
+      "avg_wfe": 1.1135944993348172
+    },
+    "cluster_1": {
+      "assets": [
+        "CRV",
+        "SUSHI",
+        "RUNE"
+      ],
+      "size": 3,
+      "params": {
+        "sl_mult": 2.5,
+        "tp1_mult": 4.0,
+        "tp2_mult": 6.5,
+        "tp3_mult": 8.0,
+        "tenkan": 8,
+        "kijun": 36,
+        "tenkan_5": 12,
+        "kijun_5": 17
+      },
+      "avg_oos_sharpe": 1.7769049403710262,
+      "avg_oos_trades": 106.0,
+      "avg_wfe": 0.7050472661148155
+    }
+  },
+  "asset_assignments": {
+    "CRV": 1,
+    "SUSHI": 1,
+    "RUNE": 1,
+    "TIA": 0,
+    "CAKE": 0,
+    "TON": 0
+  },
+  "silhouette_score": 0.1630334096332586
+}

@@ -1,0 +1,194 @@
+[
+  {
+    "asset": "PEPE",
+    "status": "FAIL",
+    "displacement": 26,
+    "params": {
+      "sl_mult": 2.5,
+      "tp1_mult": 3.0,
+      "tp2_mult": 5.5,
+      "tp3_mult": 9.0,
+      "tenkan": 9,
+      "kijun": 40
+    },
+    "metrics": {
+      "is_sharpe": 3.8527630528577443,
+      "oos_sharpe": -0.9977319773553422,
+      "wfe": -0.2589653097444665,
+      "oos_trades": 108,
+      "mc_p_value": 0.488,
+      "sensitivity_cv": 445.97661567983425
+    },
+    "regime_analysis": {
+      "BULL": {
+        "n_trades": 21,
+        "pnl": 68.904206410164,
+        "pnl_pct": 37.58432550931004
+      },
+      "BEAR": {
+        "n_trades": 12,
+        "pnl": -81.55715027181397,
+        "pnl_pct": -44.48597035108462
+      },
+      "SIDEWAYS": {
+        "n_trades": 36,
+        "pnl": -170.53697310941305,
+        "pnl_pct": -93.02069412951212
+      },
+      "RECOVERY": {
+        "n_trades": 18,
+        "pnl": -69.2491534908759,
+        "pnl_pct": -37.7724795283519
+      },
+      "HIGH_VOL": {
+        "n_trades": 3,
+        "pnl": -51.63636213384304,
+        "pnl_pct": -28.165447998958378
+      },
+      "CRASH": {
+        "n_trades": 0,
+        "pnl": 0,
+        "pnl_pct": 0
+      },
+      "OTHER": {
+        "n_trades": 18,
+        "pnl": 120.74313787867794,
+        "pnl_pct": 65.86026649859699
+      }
+    },
+    "criteria_check": {
+      "high_trade_count": true,
+      "sideways_dominant": "False",
+      "wfe_strong": false,
+      "low_sensitivity": "False"
+    }
+  },
+  {
+    "asset": "BONK",
+    "status": "FAIL",
+    "displacement": 26,
+    "params": {
+      "sl_mult": 2.75,
+      "tp1_mult": 2.75,
+      "tp2_mult": 7.0,
+      "tp3_mult": 8.0,
+      "tenkan": 12,
+      "kijun": 34
+    },
+    "metrics": {
+      "is_sharpe": 3.6232093155790404,
+      "oos_sharpe": -0.6618435727505616,
+      "wfe": -0.18266777188521044,
+      "oos_trades": 78,
+      "mc_p_value": 0.248,
+      "sensitivity_cv": 114.74203896405317
+    },
+    "regime_analysis": {
+      "BULL": {
+        "n_trades": 12,
+        "pnl": 11.52730501583163,
+        "pnl_pct": 11.08593308482483
+      },
+      "BEAR": {
+        "n_trades": 3,
+        "pnl": -51.80111966025429,
+        "pnl_pct": -49.81769333629046
+      },
+      "SIDEWAYS": {
+        "n_trades": 18,
+        "pnl": -88.6932711187587,
+        "pnl_pct": -85.29727176876042
+      },
+      "RECOVERY": {
+        "n_trades": 9,
+        "pnl": -78.72340034632808,
+        "pnl_pct": -75.70913992912219
+      },
+      "HIGH_VOL": {
+        "n_trades": 0,
+        "pnl": 0,
+        "pnl_pct": 0
+      },
+      "CRASH": {
+        "n_trades": 0,
+        "pnl": 0,
+        "pnl_pct": 0
+      },
+      "OTHER": {
+        "n_trades": 36,
+        "pnl": 103.70911685867948,
+        "pnl_pct": 99.73817194934823
+      }
+    },
+    "criteria_check": {
+      "high_trade_count": false,
+      "sideways_dominant": "False",
+      "wfe_strong": false,
+      "low_sensitivity": "False"
+    }
+  },
+  {
+    "asset": "WIF",
+    "status": "FAIL",
+    "displacement": 26,
+    "params": {
+      "sl_mult": 1.75,
+      "tp1_mult": 3.0,
+      "tp2_mult": 7.0,
+      "tp3_mult": 9.5,
+      "tenkan": 12,
+      "kijun": 23
+    },
+    "metrics": {
+      "is_sharpe": 4.354764599427251,
+      "oos_sharpe": 0.27053715458023414,
+      "wfe": 0.06212440383478267,
+      "oos_trades": 117,
+      "mc_p_value": 0.178,
+      "sensitivity_cv": 61.551386906177704
+    },
+    "regime_analysis": {
+      "BULL": {
+        "n_trades": 15,
+        "pnl": -54.72773081681761,
+        "pnl_pct": -90.96338506965112
+      },
+      "BEAR": {
+        "n_trades": 24,
+        "pnl": 53.719626929163894,
+        "pnl_pct": 89.2878077936666
+      },
+      "SIDEWAYS": {
+        "n_trades": 24,
+        "pnl": 426.05905193153376,
+        "pnl_pct": 708.1560485849542
+      },
+      "RECOVERY": {
+        "n_trades": 15,
+        "pnl": -167.70835425816674,
+        "pnl_pct": -278.7493539398711
+      },
+      "HIGH_VOL": {
+        "n_trades": 0,
+        "pnl": 0,
+        "pnl_pct": 0
+      },
+      "CRASH": {
+        "n_trades": 3,
+        "pnl": -51.25055060346027,
+        "pnl_pct": -85.18393691816667
+      },
+      "OTHER": {
+        "n_trades": 36,
+        "pnl": -145.92747171768818,
+        "pnl_pct": -242.547180450932
+      }
+    },
+    "criteria_check": {
+      "high_trade_count": true,
+      "sideways_dominant": "True",
+      "wfe_strong": false,
+      "low_sensitivity": "False"
+    }
+  }
+]

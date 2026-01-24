@@ -1,0 +1,4 @@
+trial_count,is_sharpe_mean,is_sharpe_std,oos_sharpe_mean,oos_sharpe_std,wfe_mean,wfe_std,oos_trades_mean
+50,3.236,0.0,1.45,0.0,0.448,0.0,78.0
+100,3.589,0.0,0.649,0.0,0.181,0.0,72.0
+200,3.589,0.0,0.649,0.0,0.181,0.0,72.0

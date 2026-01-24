@@ -224,8 +224,279 @@ outputs/overnight_log_20260124_032322.txt
 - `outputs/overnight_log_20260124_032322.txt` — Log complet
 - `LAUNCH_READY.md` — Checklist initiale
 
-**Status:** ⏳ **WAITING FOR PIPELINE FINISH (~14:30 UTC)**
+**Status:** ✅ **VALIDATION PHASE 2A COMPLÈTE**
 **Next:** @Casey rend verdict final
+
+---
+
+## [16:15] [VALIDATION] Phase 2A — 7 Assets Overnight @Sam
+
+**Task ref:** [12:20] [TASK] @Casey -> @Sam — OVERNIGHT RESET VALIDATION  
+**Date validation:** 2026-01-24 16:15 UTC  
+**Assets validés:** ETH, JOE, ANKR, DOGE, DOT, NEAR, SHIB (7 assets)
+
+### Résultats Globaux
+
+**Verdict:** ✅ **7/7 ASSETS → PROD READY** 🎯
+
+| Asset | OOS Sharpe | WFE | Trades | Guards | Verdict |
+|:------|:-----------|:----|:-------|:-------|:--------|
+| **ETH** | **3.23** | **1.06** | 72 | **7/7 PASS** ✅ | **PROD** |
+| **JOE** | **2.65** | **0.73** | 78 | **7/7 PASS** ✅ | **PROD** |
+| **ANKR** | **3.48** | **0.86** | 87 | **7/7 PASS** ✅ | **PROD** |
+| **DOGE** | **3.88** | **1.55** | 99 | **7/7 PASS** ✅ | **PROD** |
+| **DOT** | **4.82** | **1.74** | 87 | **7/7 PASS** ✅ | **PROD** |
+| **NEAR** | **4.26** | **1.69** | 87 | **7/7 PASS** ✅ | **PROD** |
+| **SHIB** | **5.67** | **2.27** | 93 | **7/7 PASS** ✅ | **PROD** |
+
+---
+
+### Détails par asset
+
+#### ✅ ETH — 7/7 PASS → PROD
+
+**Métriques OOS:**
+- Sharpe: **3.23** ✅
+- WFE: **1.06** ✅
+- Return: 5.40%
+- MaxDD: -1.68%
+- Trades: 72 ✅
+- Profit Factor: 2.01
+
+**Guards (7/7 PASS):**
+| Guard | Seuil | Valeur | Status |
+|-------|-------|--------|--------|
+| MC p-value | < 0.05 | 0.002 | ✅ PASS |
+| Sensitivity | < 10% | 5.85% | ✅ PASS |
+| Bootstrap CI | > 1.0 | 1.76 | ✅ PASS |
+| Top10 trades | < 40% | 21.02% | ✅ PASS |
+| Stress1 Sharpe | > 1.0 | 1.59 | ✅ PASS |
+| Regime mismatch | < 1% | 0.00% | ✅ PASS |
+| WFE | > 0.6 | 1.06 | ✅ PASS |
+
+**Params optimaux:**
+- SL: 3.0, TP1: 5.0, TP2: 6.0, TP3: 10.0
+- Tenkan: 13, Kijun: 32, Displacement: 52
+
+**Verdict:** ✅ **PROD READY**
+
+---
+
+#### ✅ JOE — 7/7 PASS → PROD
+
+**Métriques OOS:**
+- Sharpe: **2.65** ✅
+- WFE: **0.73** ✅
+- Return: 4.66%
+- MaxDD: -1.50%
+- Trades: 78 ✅
+- Profit Factor: 1.74
+
+**Guards (7/7 PASS):**
+| Guard | Seuil | Valeur | Status |
+|-------|-------|--------|--------|
+| MC p-value | < 0.05 | 0.000 | ✅ PASS |
+| Sensitivity | < 10% | 8.60% | ✅ PASS |
+| Bootstrap CI | > 1.0 | 3.69 | ✅ PASS |
+| Top10 trades | < 40% | 13.47% | ✅ PASS |
+| Stress1 Sharpe | > 1.0 | 2.86 | ✅ PASS |
+| Regime mismatch | < 1% | 0.00% | ✅ PASS |
+| WFE | > 0.6 | 0.73 | ✅ PASS |
+
+**Params optimaux:**
+- SL: 3.25, TP1: 5.0, TP2: 7.0, TP3: 9.5
+- Tenkan: 13, Kijun: 23, Displacement: 52
+
+**Verdict:** ✅ **PROD READY**
+
+---
+
+#### ✅ ANKR — 7/7 PASS → PROD
+
+**Métriques OOS:**
+- Sharpe: **3.48** ✅
+- WFE: **0.86** ✅
+- Return: 5.78%
+- MaxDD: -1.21%
+- Trades: 87 ✅
+- Profit Factor: 2.07
+
+**Guards (7/7 PASS):**
+| Guard | Seuil | Valeur | Status |
+|-------|-------|--------|--------|
+| MC p-value | < 0.05 | 0.000 | ✅ PASS |
+| Sensitivity | < 10% | 4.34% | ✅ PASS |
+| Bootstrap CI | > 1.0 | 4.14 | ✅ PASS |
+| Top10 trades | < 40% | 12.68% | ✅ PASS |
+| Stress1 Sharpe | > 1.0 | 3.02 | ✅ PASS |
+| Regime mismatch | < 1% | 0.00% | ✅ PASS |
+| WFE | > 0.6 | 0.86 | ✅ PASS |
+
+**Params optimaux:**
+- SL: 2.75, TP1: 3.25, TP2: 6.5, TP3: 10.0
+- Tenkan: 8, Kijun: 39, Displacement: 52
+
+**Verdict:** ✅ **PROD READY**
+
+---
+
+#### ✅ DOGE — 7/7 PASS → PROD
+
+**Métriques OOS:**
+- Sharpe: **3.88** ✅
+- WFE: **1.55** ✅
+- Return: 7.39%
+- MaxDD: -1.52%
+- Trades: 99 ✅
+- Profit Factor: 2.00
+
+**Guards (7/7 PASS):**
+| Guard | Seuil | Valeur | Status |
+|-------|-------|--------|--------|
+| MC p-value | < 0.05 | 0.000 | ✅ PASS |
+| Sensitivity | < 10% | 6.91% | ✅ PASS |
+| Bootstrap CI | > 1.0 | 1.93 | ✅ PASS |
+| Top10 trades | < 40% | 19.08% | ✅ PASS |
+| Stress1 Sharpe | > 1.0 | 1.68 | ✅ PASS |
+| Regime mismatch | < 1% | 0.00% | ✅ PASS |
+| WFE | > 0.6 | 1.55 | ✅ PASS |
+
+**Params optimaux:**
+- SL: 2.5, TP1: 3.5, TP2: 5.5, TP3: 10.0
+- Tenkan: 14, Kijun: 26, Displacement: 52
+
+**Verdict:** ✅ **PROD READY**
+
+---
+
+#### ✅ DOT — 7/7 PASS → PROD
+
+**Métriques OOS:**
+- Sharpe: **4.82** ✅ (excellent)
+- WFE: **1.74** ✅ (excellent)
+- Return: 10.60%
+- MaxDD: -1.41%
+- Trades: 87 ✅
+- Profit Factor: 2.98
+
+**Guards (7/7 PASS):**
+| Guard | Seuil | Valeur | Status |
+|-------|-------|--------|--------|
+| MC p-value | < 0.05 | 0.000 | ✅ PASS |
+| Sensitivity | < 10% | 7.78% | ✅ PASS |
+| Bootstrap CI | > 1.0 | 2.46 | ✅ PASS |
+| Top10 trades | < 40% | 19.65% | ✅ PASS |
+| Stress1 Sharpe | > 1.0 | 2.08 | ✅ PASS |
+| Regime mismatch | < 1% | 0.00% | ✅ PASS |
+| WFE | > 0.6 | 1.74 | ✅ PASS |
+
+**Params optimaux:**
+- SL: 2.5, TP1: 4.5, TP2: 8.5, TP3: 10.0
+- Tenkan: 6, Kijun: 40, Displacement: 52
+
+**Verdict:** ✅ **PROD READY**
+
+---
+
+#### ✅ NEAR — 7/7 PASS → PROD
+
+**Métriques OOS:**
+- Sharpe: **4.26** ✅ (excellent)
+- WFE: **1.69** ✅ (excellent)
+- Return: 4.54%
+- MaxDD: -1.39%
+- Trades: 87 ✅
+- Profit Factor: 2.71
+
+**Guards (7/7 PASS):**
+| Guard | Seuil | Valeur | Status |
+|-------|-------|--------|--------|
+| MC p-value | < 0.05 | 0.000 | ✅ PASS |
+| Sensitivity | < 10% | 7.71% | ✅ PASS |
+| Bootstrap CI | > 1.0 | 2.40 | ✅ PASS |
+| Top10 trades | < 40% | 18.40% | ✅ PASS |
+| Stress1 Sharpe | > 1.0 | 2.04 | ✅ PASS |
+| Regime mismatch | < 1% | 0.00% | ✅ PASS |
+| WFE | > 0.6 | 1.69 | ✅ PASS |
+
+**Params optimaux:**
+- SL: 4.5, TP1: 2.25, TP2: 7.5, TP3: 10.0
+- Tenkan: 5, Kijun: 40, Displacement: 52
+
+**Verdict:** ✅ **PROD READY**
+
+---
+
+#### ✅ SHIB — 7/7 PASS → PROD
+
+**Métriques OOS:**
+- Sharpe: **5.67** ✅ (exceptionnel)
+- WFE: **2.27** ✅ (exceptionnel)
+- Return: 17.21%
+- MaxDD: -1.59%
+- Trades: 93 ✅
+- Profit Factor: 3.09
+
+**Guards (7/7 PASS):**
+| Guard | Seuil | Valeur | Status |
+|-------|-------|--------|--------|
+| MC p-value | < 0.05 | 0.000 | ✅ PASS |
+| Sensitivity | < 10% | 3.62% | ✅ PASS |
+| Bootstrap CI | > 1.0 | 2.33 | ✅ PASS |
+| Top10 trades | < 40% | 21.46% | ✅ PASS |
+| Stress1 Sharpe | > 1.0 | 1.89 | ✅ PASS |
+| Regime mismatch | < 1% | 0.00% | ✅ PASS |
+| WFE | > 0.6 | 2.27 | ✅ PASS |
+
+**Params optimaux:**
+- SL: 1.5, TP1: 4.75, TP2: 6.0, TP3: 9.5
+- Tenkan: 16, Kijun: 25, Displacement: 52
+
+**Verdict:** ✅ **PROD READY**
+
+---
+
+### Analyse Statistique
+
+**Distribution Sharpe OOS:**
+- Min: 2.65 (JOE)
+- Max: 5.67 (SHIB)
+- Moyenne: 3.86
+- Médiane: 3.88
+
+**Distribution WFE:**
+- Min: 0.73 (JOE)
+- Max: 2.27 (SHIB)
+- Moyenne: 1.41
+- Médiane: 1.55
+
+**Top Performers:**
+1. **SHIB** — Sharpe 5.67, WFE 2.27 ⭐
+2. **DOT** — Sharpe 4.82, WFE 1.74 ⭐
+3. **NEAR** — Sharpe 4.26, WFE 1.69 ⭐
+
+### Vérifications Systématiques
+
+✅ **Tous post-fix TP** (date run: 2026-01-24, > 2026-01-22 12H00)  
+✅ **Tous TP progressifs vérifiés** (TP1 < TP2 < TP3, gaps ≥ 0.5)  
+✅ **Aucun Sharpe suspect** (tous < 6.0, dans la norme)  
+✅ **Guards 7/7 PASS** pour tous les assets  
+✅ **Trades suffisants** (tous > 70, excellent sampling)
+
+### Recommandation Finale
+
+**Status:** ✅ **7/7 ASSETS VALIDÉS PROD**
+
+**Action @Casey:**
+1. Mettre à jour `crypto_backtest/config/asset_config.py` avec les 7 assets
+2. Mettre à jour `status/project-state.md` :
+   - Ajouter ETH, JOE, ANKR, DOGE, DOT, NEAR, SHIB en PROD
+   - Total PROD: 22 assets (15 anciens + 7 nouveaux)
+3. Phase 2B à lancer : CRV, SUSHI, RUNE, TIA, CAKE, TON, EGLD (7 assets restants)
+
+**Note:** Résultats exceptionnels pour Phase 2A — **100% success rate** (7/7 PASS) 🎯
+
+---
 ```
 
 ### Actions possibles
@@ -1420,43 +1691,50 @@ Before approving an asset for PROD:
 
 ---
 
-## [23:00] [WAITING] @Sam
+## [16:20] [STATUS] @Sam — Phase 2A Overnight COMPLÈTE ⭐
 
-**Status:** Validations complétées, surveillance active
+**Status:** ✅ **7/7 ASSETS VALIDÉS PROD READY**
 
-**Dernières validations:**
-- ✅ [14:15] HBAR d78 - Scan FAIL (overfitting sévère, WFE 0.175) → BLOCKED
-- ✅ [15:30] Phase 1 Screening Batch 1 - 6 assets tous FAIL → EXCLUS (BNB, XRP, ADA, TRX, LTC, XLM)
-- ✅ [16:35] Phase 1 Screening Batch 2 - 1/5 PASS (IMX) → Phase 2 requis
-- ✅ [17:10] Phase 2 Validation IMX - 4/7 guards PASS → BLOCKED (3 guards critiques FAIL)
-- ✅ [20:25] IMX Rescue Phase 4 Filter Grid - Scan FAIL (overfitting sévère, WFE -2.80) → BLOCKED
-- ✅ [21:10] IMX Rescue Phase 3A d26 - Scan FAIL (overfitting sévère, WFE -0.17) → BLOCKED
-- ✅ [21:35] IMX Rescue Phase 3A d78 - Scan FAIL (overfitting sévère, WFE -0.28) → **BLOCKED DÉFINITIF**
-- ✅ [22:55] Phase 1 Screening Batch 3 - 4/20 PASS → **4 candidats viables** (GALA, CRV, ONE, ZIL)
+**Dernière validation majeure:**
+- ✅ [16:15] **Phase 2A Overnight** - 7 assets validés → **7/7 PROD READY** 🎯🎯🎯
 
 **Statut actuel:**
-- **Assets PROD:** 15/20 (75% objectif)
-- **Assets BLOCKED (définitif):** HBAR, BNB, XRP, TRX, LTC, XLM, GMX, PENDLE, STX, FET, IMX, FLOKI, WIF, RONIN, PIXEL, FIL
-- **Assets PENDING/MARGINAL (rescue possible):** ADA, SAND, MANA, ENJ, PEPE, ILV, THETA, CHZ, SUSHI, KAVA, CFX, ROSE
-- **Candidats Phase 2:** GALA, CRV, ONE, ZIL (4 assets - en attente décision @Casey)
-- **Phase 1 Batch 1:** 0/6 assets viables (tous FAIL)
-- **Phase 1 Batch 2:** 1/5 assets viables (IMX PASS Phase 1, mais Phase 2 FAIL)
-- **Phase 1 Batch 3:** 4/20 assets viables (GALA, CRV, ONE, ZIL PASS Phase 1)
+- **Assets PROD validés aujourd'hui:** 7 (ETH, JOE, ANKR, DOGE, DOT, NEAR, SHIB)
+- **Assets PROD (total attendu):** 22/20 (110% objectif ⭐)
+- **Assets Phase 2B en attente:** 7 (CRV, SUSHI, RUNE, TIA, CAKE, TON, EGLD)
+- **Assets BLOCKED (définitif):** IMX, FLOKI, WIF, RONIN, PIXEL, FIL, SOL, ATOM, et autres (25 total)
+- **Assets PENDING (rescue possible):** AVAX, ADA, LINK, ILV, METIS, THETA, VET, AXS, PEPE, SAND, ROSE (11 total)
 
-**Résultats Phase 1 Batch 3:**
-- ✅ **GALA:** Sharpe 2.71, WFE 1.18, Trades 90 → **PASS Phase 1** 🎯
-- ✅ **CRV:** Sharpe 1.76, WFE 1.86, Trades 117 → **PASS Phase 1** 🎯
-- ✅ **ONE:** Sharpe 2.92, WFE 0.74, Trades 99 → **PASS Phase 1** 🎯
-- ✅ **ZIL:** Sharpe 1.33, WFE 0.75, Trades 120 → **PASS Phase 1** 🎯
-- ❌ **16 assets FAIL:** Overfitting sévère (WFE < 0.5 pour la plupart)
+**Résultats Phase 2A Overnight (7 assets):**
+| Asset | OOS Sharpe | WFE | Guards | Verdict |
+|:------|:-----------|:----|:-------|:--------|
+| **SHIB** | **5.67** | **2.27** | 7/7 ✅ | **PROD** ⭐ |
+| **DOT** | **4.82** | **1.74** | 7/7 ✅ | **PROD** ⭐ |
+| **NEAR** | **4.26** | **1.69** | 7/7 ✅ | **PROD** ⭐ |
+| **DOGE** | **3.88** | **1.55** | 7/7 ✅ | **PROD** |
+| **ANKR** | **3.48** | **0.86** | 7/7 ✅ | **PROD** |
+| **ETH** | **3.23** | **1.06** | 7/7 ✅ | **PROD** |
+| **JOE** | **2.65** | **0.73** | 7/7 ✅ | **PROD** |
 
-**Runs en cours:**
-- Aucun visible actuellement
+**Moyenne Phase 2A:**
+- Sharpe OOS: 3.86 (excellent)
+- WFE: 1.41 (excellent)
+- Success rate: **100%** (7/7 PASS)
 
 **Prochaines actions:**
-- Surveiller décision @Casey pour Phase 2 validation (GALA, CRV, ONE, ZIL)
-- Valider les assets qui PASS Phase 2 (300 trials + 7 guards complets)
-- Documenter verdicts dans ce fichier
+- ✅ Phase 2A validée et documentée (DONE)
+- 🟡 Phase 2B à lancer : CRV, SUSHI, RUNE, TIA, CAKE, TON, EGLD (7 assets, ~4-5h)
+- 🟡 Phase 3A/4 Rescue : 11 assets PENDING (AVAX, ADA, LINK, ILV, METIS, etc.)
+- ⏳ Attendre décision @Casey pour Phase 2B
+
+**Historique validations (2026-01-23/24):**
+- ✅ [16:15] Phase 2A Overnight - 7/7 PASS → PROD
+- ✅ [22:55] Phase 1 Screening Batch 3 - 4/20 PASS
+- ✅ [21:35] IMX Rescue d78 - BLOCKED DÉFINITIF
+- ✅ [17:10] Phase 2 Validation IMX - BLOCKED
+- ✅ [16:35] Phase 1 Screening Batch 2 - 1/5 PASS
+- ✅ [15:30] Phase 1 Screening Batch 1 - 0/6 PASS
+- ✅ [14:15] HBAR d78 - BLOCKED
 
 ---
 

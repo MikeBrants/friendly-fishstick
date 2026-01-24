@@ -1,0 +1,4 @@
+asset,status,oos_sharpe,wfe,oos_trades,sensitivity_cv,mc_p_value,high_trade_count,sideways_dominant,wfe_strong,low_sensitivity
+PEPE,FAIL,-0.9977319773553422,-0.2589653097444665,108,445.97661567983425,0.488,True,False,False,False
+BONK,FAIL,-0.6618435727505616,-0.18266777188521044,78,114.74203896405317,0.248,False,False,False,False
+WIF,FAIL,0.27053715458023414,0.06212440383478267,117,61.551386906177704,0.178,True,True,False,False

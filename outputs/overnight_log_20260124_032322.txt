@@ -347,3 +347,18 @@
 [15:50:09] ====================
 [15:50:09] Validating: TIA (Run 2 - Reproducibility)
 [15:50:09] ====================
+[15:56:55] ✅ TIA Run 2 COMPLETE - Check reproducibility manually
+[15:57:00] 
+[15:57:00] ====================
+[15:57:00] Validating: CAKE (Run 1)
+[15:57:00] ====================
+[16:03:37] ✅ CAKE Run 1 COMPLETE
+[16:03:37] 
+[16:03:37] ====================
+[16:03:37] Validating: CAKE (Run 2 - Reproducibility)
+[16:03:37] ====================
+[16:10:03] ✅ CAKE Run 2 COMPLETE - Check reproducibility manually
+[16:10:08] 
+[16:10:08] ====================
+[16:10:08] Validating: TON (Run 1)
+[16:10:08] ====================

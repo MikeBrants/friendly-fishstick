@@ -1,0 +1,49 @@
+[
+  {
+    "asset": "OP",
+    "displacements_tested": [
+      26,
+      52,
+      78
+    ],
+    "displacement_results": {
+      "26": {
+        "is_sharpe": 2.059547969283237,
+        "oos_sharpe": 0.4372283619910123,
+        "wfe": 0.21229336170459595,
+        "is_trades": 274,
+        "oos_trades": 105
+      },
+      "52": {
+        "is_sharpe": 2.86574889118034,
+        "oos_sharpe": 0.8996588027732261,
+        "wfe": 0.31393497369641343,
+        "is_trades": 210,
+        "oos_trades": 81
+      },
+      "78": {
+        "is_sharpe": 1.137246725704529,
+        "oos_sharpe": -0.48902889976262914,
+        "wfe": -0.4300112620325847,
+        "is_trades": 324,
+        "oos_trades": 96
+      }
+    },
+    "single_best": {
+      "displacement": 52,
+      "is_sharpe": 2.86574889118034,
+      "oos_sharpe": 0.8996588027732261,
+      "wfe": 0.31393497369641343
+    },
+    "ensemble_majority": {
+      "n_long": 12,
+      "n_short": 11,
+      "agreement_with_best": 0.9939376443418014
+    },
+    "ensemble_weighted": {
+      "n_long": 39,
+      "n_short": 39,
+      "agreement_with_best": 0.9896073903002309
+    }
+  }
+]

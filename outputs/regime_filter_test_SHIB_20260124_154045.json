@@ -1,0 +1,89 @@
+{
+  "asset": "SHIB",
+  "filter_config": "no_recovery",
+  "baseline": {
+    "is_sharpe": 2.150500609712666,
+    "oos_sharpe": 3.8066920868773098,
+    "wfe": 1.7701422960237763,
+    "is_trades": 318,
+    "oos_trades": 105
+  },
+  "regime_distribution": {
+    "CRASH": {
+      "count": 32,
+      "pct": 0.9237875288683602
+    },
+    "HIGH_VOL": {
+      "count": 70,
+      "pct": 2.020785219399538
+    },
+    "BEAR": {
+      "count": 589,
+      "pct": 17.003464203233257
+    },
+    "BULL": {
+      "count": 275,
+      "pct": 7.938799076212471
+    },
+    "SIDEWAYS": {
+      "count": 1673,
+      "pct": 48.29676674364896
+    },
+    "RECOVERY": {
+      "count": 77,
+      "pct": 2.222863741339492
+    },
+    "OTHER": {
+      "count": 748,
+      "pct": 21.593533487297922
+    }
+  },
+  "signal_counts_by_regime": {
+    "CRASH": {
+      "long": 0,
+      "short": 0,
+      "total": 0
+    },
+    "HIGH_VOL": {
+      "long": 0,
+      "short": 0,
+      "total": 0
+    },
+    "BEAR": {
+      "long": 0,
+      "short": 0,
+      "total": 0
+    },
+    "BULL": {
+      "long": 0,
+      "short": 0,
+      "total": 0
+    },
+    "SIDEWAYS": {
+      "long": 0,
+      "short": 0,
+      "total": 0
+    },
+    "RECOVERY": {
+      "long": 0,
+      "short": 0,
+      "total": 0
+    },
+    "OTHER": {
+      "long": 0,
+      "short": 0,
+      "total": 0
+    }
+  },
+  "filter_impact": {
+    "recovery_signals": 0,
+    "recovery_pct": 0.0
+  },
+  "params": {
+    "sl_mult": 1.75,
+    "tp1_mult": 4.0,
+    "tp2_mult": 6.5,
+    "tp3_mult": 10.0
+  },
+  "recommendation": "FILTER_RECOVERY"
+}

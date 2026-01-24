@@ -11,6 +11,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from joblib import Parallel, delayed
+
 import numpy as np
 import pandas as pd
 
@@ -480,6 +482,313 @@ def _regime_reconciliation(
 
     recon_df = pd.DataFrame(reconciliation)
     return recon_df, mismatch_pct
+
+
+# =============================================================================
+# GUARD WRAPPERS (pour parallélisation intra-asset)
+# =============================================================================
+
+def _guard_monte_carlo(
+    data: pd.DataFrame,
+    base_result,
+    mc_iterations: int,
+    seed: int,
+    outputs_path: Path,
+    asset: str,
+    run_id: str,
+) -> dict[str, Any]:
+    """Monte Carlo guard wrapper - returns standardized result dict."""
+    try:
+        mc_df, mc_p = _monte_carlo_permutation(
+            data, base_result, iterations=mc_iterations, seed=seed
+        )
+        mc_path = outputs_path / f"{asset}_montecarlo_{run_id}.csv"
+        mc_df.to_csv(mc_path, index=False)
+        return {
+            "guard": "mc",
+            "value": mc_p,
+            "pass": mc_p < 0.05,
+            "error": None,
+        }
+    except Exception as e:
+        return {
+            "guard": "mc",
+            "value": None,
+            "pass": False,
+            "error": str(e),
+        }
+
+
+def _guard_sensitivity(
+    data: pd.DataFrame,
+    base_params: dict[str, Any],
+    sensitivity_range: int,
+    outputs_path: Path,
+    asset: str,
+    run_id: str,
+) -> dict[str, Any]:
+    """Sensitivity guard wrapper - returns standardized result dict."""
+    try:
+        sens_df, variance_pct = _sensitivity_grid(
+            data, base_params, radius=sensitivity_range
+        )
+        variance_pct = _safe_float(variance_pct)
+        sens_path = outputs_path / f"{asset}_sensitivity_{run_id}.csv"
+        sens_df.to_csv(sens_path, index=False)
+        return {
+            "guard": "sensitivity",
+            "value": variance_pct,
+            "pass": variance_pct < 10.0,
+            "error": None,
+        }
+    except Exception as e:
+        return {
+            "guard": "sensitivity",
+            "value": None,
+            "pass": False,
+            "error": str(e),
+        }
+
+
+def _guard_bootstrap(
+    pnls: np.ndarray,
+    initial_capital: float,
+    bootstrap_samples: int,
+    seed: int,
+    outputs_path: Path,
+    asset: str,
+    run_id: str,
+) -> dict[str, Any]:
+    """Bootstrap guard wrapper - returns standardized result dict."""
+    try:
+        bootstrap_df, bootstrap_summary = _bootstrap_confidence(
+            pnls,
+            initial_capital=initial_capital,
+            iterations=bootstrap_samples,
+            seed=seed,
+        )
+        bootstrap_path = outputs_path / f"{asset}_bootstrap_{run_id}.csv"
+        bootstrap_df.to_csv(bootstrap_path, index=False)
+        sharpe_ci_lower = _safe_float(bootstrap_summary["sharpe"]["ci_lower_95"])
+        return {
+            "guard": "bootstrap",
+            "value": sharpe_ci_lower,
+            "pass": sharpe_ci_lower > 1.0,
+            "error": None,
+        }
+    except Exception as e:
+        return {
+            "guard": "bootstrap",
+            "value": None,
+            "pass": False,
+            "error": str(e),
+        }
+
+
+def _guard_trade_dist(
+    pnls: np.ndarray,
+    initial_capital: float,
+    outputs_path: Path,
+    asset: str,
+    run_id: str,
+) -> dict[str, Any]:
+    """Trade distribution guard wrapper - returns standardized result dict."""
+    try:
+        trade_dist = _trade_distribution(pnls)
+        trade_dist["total_return_pct"] = pnls.sum() / initial_capital * 100.0
+        trade_dist_path = outputs_path / f"{asset}_tradedist_{run_id}.csv"
+        pd.DataFrame([trade_dist]).to_csv(trade_dist_path, index=False)
+        top10_pct = trade_dist["pct_return_top_10"]
+        return {
+            "guard": "trade_dist",
+            "value": top10_pct,
+            "pass": top10_pct < 40.0,
+            "error": None,
+        }
+    except Exception as e:
+        return {
+            "guard": "trade_dist",
+            "value": None,
+            "pass": False,
+            "error": str(e),
+        }
+
+
+def _guard_stress(
+    data: pd.DataFrame,
+    full_params: dict[str, Any],
+    stress_scenarios: list[tuple[float, float]],
+    outputs_path: Path,
+    asset: str,
+    run_id: str,
+) -> dict[str, Any]:
+    """Stress test guard wrapper - returns standardized result dict."""
+    try:
+        scenarios = [("Base", 5, 2)]
+        if not stress_scenarios:
+            stress_scenarios = [(10.0, 5.0)]
+        for idx, (fees, slippage) in enumerate(stress_scenarios, start=1):
+            scenarios.append((f"Stress{idx}", fees, slippage))
+        
+        stress_rows = []
+        for label, fees, slippage in scenarios:
+            metrics = _run_scenario(data, full_params, fees_bps=fees, slippage_bps=slippage)
+            metrics["scenario"] = label
+            stress_rows.append(metrics)
+        
+        break_even_fees = _find_break_even_fees(data, full_params)
+        edge_buffer_bps = break_even_fees - 5
+        for row in stress_rows:
+            row["break_even_fees_bps"] = break_even_fees
+            row["edge_buffer_bps"] = edge_buffer_bps
+        
+        stress_df = pd.DataFrame(stress_rows)
+        stress_path = outputs_path / f"{asset}_stresstest_{run_id}.csv"
+        stress_df.to_csv(stress_path, index=False)
+        
+        stress1_row = stress_df[stress_df["scenario"] == "Stress1"].iloc[0]
+        stress1_sharpe = _safe_float(stress1_row["sharpe"])
+        
+        return {
+            "guard": "stress",
+            "value": stress1_sharpe,
+            "pass": stress1_sharpe > 1.0,
+            "break_even_fees": break_even_fees,
+            "edge_buffer_bps": edge_buffer_bps,
+            "error": None,
+        }
+    except Exception as e:
+        return {
+            "guard": "stress",
+            "value": None,
+            "pass": False,
+            "break_even_fees": None,
+            "edge_buffer_bps": None,
+            "error": str(e),
+        }
+
+
+def _guard_regime(
+    data: pd.DataFrame,
+    base_result,
+    outputs_path: Path,
+    asset: str,
+    run_id: str,
+) -> dict[str, Any]:
+    """Regime reconciliation guard wrapper - returns standardized result dict."""
+    try:
+        regime_df, mismatch_pct = _regime_reconciliation(data, base_result)
+        regime_path = outputs_path / f"{asset}_regime_{run_id}.csv"
+        regime_df.to_csv(regime_path, index=False)
+        return {
+            "guard": "regime",
+            "value": mismatch_pct,
+            "pass": mismatch_pct < 1.0,
+            "error": None,
+        }
+    except Exception as e:
+        return {
+            "guard": "regime",
+            "value": None,
+            "pass": False,
+            "error": str(e),
+        }
+
+
+def _run_guards_parallel(
+    data: pd.DataFrame,
+    params: dict[str, Any],
+    full_params: dict[str, Any],
+    base_result,
+    pnls: np.ndarray,
+    guards: set[str],
+    outputs_path: Path,
+    asset: str,
+    run_id: str,
+    mc_iterations: int,
+    bootstrap_samples: int,
+    sensitivity_range: int,
+    stress_scenarios: list[tuple[float, float]],
+    wfe_value: float | None,
+    n_jobs: int = 4,
+) -> dict[str, Any]:
+    """
+    Execute all requested guards in parallel using joblib.
+    
+    WARNING: Threading backend limited by GIL for compute-bound tasks.
+    Expected gain: 20-40% (not 40-60% as initially estimated).
+    
+    Args:
+        n_jobs: Number of parallel workers (default 4, max 6 guards)
+    
+    Returns:
+        Dict with all guard results in standardized format
+    """
+    tasks = []
+    guard_names = []
+    
+    # Build task list based on requested guards
+    if "mc" in guards:
+        tasks.append(delayed(_guard_monte_carlo)(
+            data, base_result, mc_iterations, SEED, outputs_path, asset, run_id
+        ))
+        guard_names.append("mc")
+    
+    if "sensitivity" in guards:
+        tasks.append(delayed(_guard_sensitivity)(
+            data, params, sensitivity_range, outputs_path, asset, run_id
+        ))
+        guard_names.append("sensitivity")
+    
+    if "bootstrap" in guards and len(pnls) > 0:
+        tasks.append(delayed(_guard_bootstrap)(
+            pnls, BASE_CONFIG.initial_capital, bootstrap_samples, SEED,
+            outputs_path, asset, run_id
+        ))
+        guard_names.append("bootstrap")
+    
+    if "trade_dist" in guards and len(pnls) > 0:
+        tasks.append(delayed(_guard_trade_dist)(
+            pnls, BASE_CONFIG.initial_capital, outputs_path, asset, run_id
+        ))
+        guard_names.append("trade_dist")
+    
+    if "stress" in guards:
+        tasks.append(delayed(_guard_stress)(
+            data, full_params, stress_scenarios, outputs_path, asset, run_id
+        ))
+        guard_names.append("stress")
+    
+    if "regime" in guards:
+        tasks.append(delayed(_guard_regime)(
+            data, base_result, outputs_path, asset, run_id
+        ))
+        guard_names.append("regime")
+    
+    # Execute in parallel
+    if tasks:
+        # Use threading backend for I/O bound tasks (CSV writes)
+        # Limit n_jobs to number of tasks
+        actual_jobs = min(n_jobs, len(tasks))
+        results = Parallel(n_jobs=actual_jobs, backend="threading")(tasks)
+    else:
+        results = []
+    
+    # Build result dict
+    guard_results = {}
+    for name, result in zip(guard_names, results):
+        guard_results[name] = result
+    
+    # Add WFE (instant, no parallel needed)
+    if "wfe" in guards:
+        guard_results["wfe"] = {
+            "guard": "wfe",
+            "value": wfe_value,
+            "pass": wfe_value is not None and _safe_float(wfe_value) >= 0.6,
+            "error": None,
+        }
+    
+    return guard_results
 
 
 def _write_report(

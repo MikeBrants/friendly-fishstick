@@ -1,0 +1,10 @@
+{
+  "asset": "BTC",
+  "trial_counts": [
+    50,
+    100,
+    200
+  ],
+  "correlation_trial_wfe": -0.7559289460184545,
+  "optimal_trial_count": 50,
+  "hypothesis_confirmed": 

@@ -31,6 +31,71 @@ Ce fichier contient les logs des runs executes par Jordan.
 
 ---
 
+## [15:55] [BUG_ANALYSIS] @Jordan — DOUBLONS PHASE 2 EXPLIQUÉS
+
+**Issue:** Chaque asset SUCCESS validé 2× en Phase 2 (28 runs au lieu de 14)  
+**Impact:** Pipeline overnight doublé (12h30 au lieu de 6h)  
+**Status:** 🟢 Root cause identifiée + fix prêt
+
+### Root Cause
+
+**Problème:** `run_full_pipeline.py` génère **2 fichiers CSV identiques:**
+```
+outputs/
+├── multiasset_scan_20260124_034427.csv      (4598 bytes)
+└── multi_asset_scan_20260124_034427.csv     (4598 bytes) ← Doublon
+                    ^^^^ underscore ajouté
+```
+
+**Conséquence:** `run_overnight_reset.ps1` lit tous les fichiers `*phase1_reset*.csv`:
+- 7 SUCCESS dans Batch 1 → lus 2× → **14 entrées** dans liste
+- Phase 2 valide 14 entrées → chaque asset **validé 2×**
+
+### Impact Réel
+
+✅ **Positif (inattendu):**
+- **4 runs** par asset au lieu de 2 → confiance statistique accrue
+- Détection précoce de non-déterminisme
+- Données enrichies pour reproducibilité
+
+❌ **Négatif:**
+- Temps d'exécution doublé (~6h → 12h)
+- Ressources CPU gaspillées (2× plus de trials)
+- Log pollué avec doublons
+
+### Fix Appliqué
+
+**Script corrigé:** `scripts/run_overnight_reset_fixed.ps1`
+
+**Changements clés:**
+1. **Filtrage des fichiers** (exclure `multi_asset_scan`):
+```powershell
+$scan_files = Get-ChildItem -Path "outputs" -Filter "*phase1_reset*multiasset_scan*.csv" | 
+    Where-Object { $_.Name -notmatch "multi_asset_scan" }
+```
+
+2. **Déduplication explicite:**
+```powershell
+$success_assets = $success_assets | Select-Object -Unique
+```
+
+### Recommandations
+
+**Immédiat:**
+- ✅ Laisser finir le pipeline actuel (TIA + EGLD restants, ~30 min)
+- Utiliser les 4 runs pour analyse de reproducibilité approfondie
+
+**Futur:**
+- 🔧 Fix permanent dans `parallel_optimizer.py` (éliminer doublon CSV)
+- 📋 Utiliser `run_overnight_reset_fixed.ps1` pour prochains runs
+- ⚠️ Ajouter monitoring de déduplication
+
+**Documentation:** `docs/OVERNIGHT_PIPELINE_POSTMORTEM.md` (créé)
+
+**Next:** @Sam validation guards + @Casey verdict final
+
+---
+
 ## [03:18] [TASK] @Casey -> @Jordan — OVERNIGHT RESET PIPELINE
 
 **Ref:** `comms/casey-quant.md` [02:58] RESET COMPLET OBLIGATOIRE  
