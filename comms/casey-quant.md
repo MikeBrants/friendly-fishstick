@@ -8,9 +8,9 @@
 
 ## 🎯 CURRENT DECISIONS NEEDED
 
-### Decision D1: Execute Guards on 8 Pending Assets 🔴 URGENT
+### Decision D1: Execute Guards on 7 Pending Assets 🔴 URGENT
 **Priority**: 🔴 CRITICAL  
-**Context**: Jordan a complété l'overnight run avec **7 assets validés** (SHIB, DOT, NEAR, DOGE, ANKR, JOE, ETH) + **8 assets pending guards** (TIA, HBAR, CAKE, TON, RUNE, EGLD, CRV, SUSHI)
+**Context**: Jordan a complété l'overnight run avec **8 assets validés** (SHIB, DOT, NEAR, DOGE, ANKR, JOE, ETH, ONE) + **7 assets pending guards** (TIA, HBAR, CAKE, TON, RUNE, EGLD, SUSHI)
 
 **Decision Matrix**:
 | Asset | OOS Sharpe | WFE | Expected Guards | Priority |
@@ -22,14 +22,15 @@
 | **RUNE** | 2.42 | 0.61 | MARGINAL | P1 |
 | **EGLD** | 2.04 | 0.66 | MARGINAL | P1 |
 | **SUSHI** | 1.90 | 0.63 | MARGINAL | P2 |
-| **CRV** | 1.01 | 0.88 | LIKELY FAIL | P2 |
 
-**Decision**: ✅ **PROCEED - Execute guards on all 8 assets**
+**Note**: CRV exclu (OOS Sharpe 1.01 < seuil minimum 1.0)
+
+**Decision**: ✅ **PROCEED - Execute guards on 7 assets** (CRV removed)
 
 **Rationale**:
 - TIA (5.16 Sharpe) pourrait devenir notre #2 asset si guards passent
 - 3-5 assets devraient passer guards (estimation conservatrice)
-- Total PROD projection: 10-12 assets (excellent diversification)
+- Total PROD projection: 11-13 assets (excellent diversification)
 
 **Task Assignment**: @Jordan → Execute guards pipeline (commande dans section ci-dessous)  
 **Validation Assignment**: @Sam → Validate guards results when complete
@@ -37,21 +38,21 @@
 ---
 
 ### Decision D2: PROD Portfolio Strategy ✅ RESOLVED
-**Question**: Garder 7 assets validés ou attendre les 8 pending?
+**Question**: Garder 8 assets validés ou attendre les 7 pending?
 
-**Decision**: ✅ **ACCEPT 7 VALIDATED ASSETS AS NEW PROD BASELINE**
+**Decision**: ✅ **ACCEPT 8 VALIDATED ASSETS AS NEW PROD BASELINE**
 
 **Rationale**:
-- 7 assets avec 7/7 guards PASS
-- Mean Sharpe 3.91 (excellent)
+- 8 assets avec 7/7 guards PASS (7 overnight + ONE backfill)
+- Mean Sharpe 3.75 (excellent)
 - Tous WFE > 0.6, Trades > 60
 - Reproducibilité < 0.0001% confirmée
 - Sufficient pour portfolio construction test
 
 **Action**: 
-- Immediate: Use 7 assets for portfolio construction (@Jordan)
-- Parallel: Execute guards on 8 pending (@Jordan)
-- After guards: Final decision on 7 vs 10-12 vs 15 assets
+- Immediate: Use 8 assets for portfolio construction (@Jordan)
+- Parallel: Execute guards on 7 pending (@Jordan)
+- After guards: Final decision on 8 vs 11-13 vs 15 assets
 
 ---
 
@@ -61,9 +62,9 @@
 **Decision**: ⏸️ **LOWER PRIORITY** - Focus on completing 8 pending guards first
 
 **Rationale**:
-- 7/15 frozen PROD déjà re-validés (100% success rate)
-- 8 pending guards plus prometteurs (TIA = 5.16 Sharpe!)
-- Pas urgent de re-valider remaining 8 frozen
+- 8/15 frozen PROD déjà re-validés (100% success rate)
+- 7 pending guards plus prometteurs (TIA = 5.16 Sharpe!)
+- Pas urgent de re-valider remaining 7 frozen
 
 **Action**: Defer validation of remaining 8 frozen assets until after guards complete
 
@@ -87,14 +88,14 @@
 
 ## 📋 TASK ASSIGNMENTS
 
-### Task J1: Execute Guards on 8 Pending [ASSIGNED to @Jordan]
+### Task J1: Execute Guards on 7 Pending [ASSIGNED to @Jordan]
 **Priority**: 🔴 P0 (CRITICAL)  
 **Status**: ⏳ WAITING FOR JORDAN TO EXECUTE
 
 **Command for @Jordan**:
 ```bash
 python scripts/run_guards_multiasset.py \
-  --assets TIA HBAR CAKE TON RUNE EGLD CRV SUSHI \
+  --assets TIA HBAR CAKE TON RUNE EGLD SUSHI \
   --workers 1 \
   --mc-iterations 1000 \
   --bootstrap-samples 10000 \
@@ -102,14 +103,16 @@ python scripts/run_guards_multiasset.py \
   --output-prefix phase2_guards_backfill_20260124
 ```
 
-**Expected Duration**: 2-3 hours (8 assets × ~20 min guards)  
+**Expected Duration**: 2-3 hours (7 assets × ~20 min guards)  
 **Output**: `outputs/phase2_guards_backfill_20260124_<asset>_guards_summary.csv`
 
 **Success Criteria**:
-- [ ] All 8 assets complete guards execution
+- [ ] All 7 assets complete guards execution
 - [ ] No errors or timeouts
-- [ ] Output files generated for all 8 assets
+- [ ] Output files generated for all 7 assets
 - [ ] Jordan notifies Sam when complete
+
+**Note**: CRV exclu (OOS Sharpe 1.01 < threshold 1.0, prediction: FAIL guards)
 
 **Handoff**: When complete, @Jordan hands off to @Sam for validation
 
@@ -146,9 +149,9 @@ python scripts/portfolio_construction.py \
 **Priority**: 🔴 P0 (CRITICAL)  
 **Status**: ⏸️ BLOCKED (waiting for Task J1 completion)
 
-**Scope**: Validate 7 guards for 8 pending assets
+**Scope**: Validate 7 guards for 7 pending assets
 
-**Assets to Validate**: TIA, HBAR, CAKE, TON, RUNE, EGLD, CRV, SUSHI
+**Assets to Validate**: TIA, HBAR, CAKE, TON, RUNE, EGLD, SUSHI
 
 **Checklist per Asset**:
 - [ ] guard001: MC p-value < 0.05
@@ -161,7 +164,7 @@ python scripts/portfolio_construction.py \
 - [ ] OOS Sharpe > 1.0
 - [ ] OOS Trades > 60
 
-**Expected Outcome**: 3-5 assets pass 7/7 guards (conservative estimate)
+**Expected Outcome**: 3-5 assets pass 7/7 guards (conservative estimate) → 11-13 total PROD
 
 **Handoff**: When complete, @Sam reports verdict to @Casey for final decision
 
@@ -172,13 +175,13 @@ python scripts/portfolio_construction.py \
 ### Phase 1: Overnight Validation ✅ COMPLETE
 **Executor**: @Jordan  
 **Duration**: 13h24 (03:23-16:47 UTC)  
-**Result**: 7 assets 7/7 guards PASS + 8 assets pending guards
+**Result**: 8 assets 7/7 guards PASS (7 overnight + ONE backfill) + 7 assets pending guards
 
-### Phase 2: Guards on 8 Pending ⏳ IN PROGRESS
+### Phase 2: Guards on 7 Pending ⏳ IN PROGRESS
 **Coordinator**: @Casey (moi)  
 **Executor**: @Jordan  
 **Validator**: @Sam  
-**Status**: Task J1 assigned to @Jordan
+**Status**: Task J1 assigned to @Jordan (CRV excluded, 7 assets remaining)
 
 **Workflow**:
 1. @Casey → Decision to proceed (DONE)
@@ -197,16 +200,16 @@ python scripts/portfolio_construction.py \
 
 ### Portfolio Size Projection
 
-**Current State**: 7 confirmed PROD assets
+**Current State**: 8 confirmed PROD assets
 
 **After Guards (Scenarios)**:
-- **Conservative** (2-3 pass): 9-10 total PROD assets
-- **Medium** (4-5 pass): 11-12 total PROD assets
-- **Optimistic** (6-8 pass): 13-15 total PROD assets
+- **Conservative** (2-3 pass): 10-11 total PROD assets
+- **Medium** (4-5 pass): 12-13 total PROD assets
+- **Optimistic** (6-7 pass): 14-15 total PROD assets
 
 **Original Target**: 20+ assets  
-**Current Achievement**: 7 confirmed (35% of goal)  
-**Projected Achievement**: 10-12 assets (50-60% of goal)  
+**Current Achievement**: 8 confirmed (40% of goal)  
+**Projected Achievement**: 11-13 assets (55-65% of goal)  
 **Status**: 🟢 **ON TRACK**
 
 ### Key Observations
@@ -222,10 +225,10 @@ python scripts/portfolio_construction.py \
 - Excellent WFE (1.36)
 - **Impact**: If TIA passes, significantly improves portfolio
 
-**Observation 3: CRV Marginal**
-- Lowest Sharpe (1.01, barely above threshold)
-- Good WFE (0.88) but performance weak
-- **Recommendation**: If guards fail, acceptable to drop
+**Observation 3: ONE Added to Portfolio**
+- Validated via Phase 1 Batch 3 + Guards backfill (19:35 UTC)
+- 3.00 Sharpe, 0.92 WFE, 7/7 guards PASS
+- **Recommendation**: 8th asset expands diversification options
 
 ---
 
@@ -234,14 +237,14 @@ python scripts/portfolio_construction.py \
 ### Decision D4: Final PROD Asset List
 **Trigger**: After @Sam validates guards results
 
-**Question**: Use 7, 10-12, or 15 assets for PROD portfolio?
+**Question**: Use 8, 11-13, or 15 assets for PROD portfolio?
 
 **Decision Matrix**:
 | Scenario | Assets Passing | Total PROD | Action |
 |----------|---------------|-----------|---------|
-| Conservative | 0-2 pass | 7-9 assets | Use 7 only (high quality) |
-| Medium | 3-5 pass | 10-12 assets | Balanced portfolio |
-| Optimistic | 6-8 pass | 13-15 assets | Aggressive diversification |
+| Conservative | 0-2 pass | 8-10 assets | Use 8 only (high quality) |
+| Medium | 3-5 pass | 11-13 assets | Balanced portfolio |
+| Optimistic | 6-7 pass | 14-15 assets | Aggressive diversification |
 
 **Inputs Needed**:
 - @Sam validation results (how many pass 7/7?)
