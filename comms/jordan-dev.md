@@ -8,10 +8,76 @@
 
 ## 🎯 CURRENT ASSIGNMENTS
 
-### Task J1: Execute Guards on 7 Pending Assets [🔴 ASSIGNED]
+### Task J3: Phase 3A Rescue - TIA Displacement Grid [🔴 ASSIGNED]
+**From**: @Casey  
+**Priority**: 🟡 P1 (MEDIUM - asset prioritaire, portfolio déjà à 10)  
+**Status**: ⏳ READY TO START
+
+**Context**: TIA a échoué Phase 2 avec d52 (guard002 FAIL: sensitivity 11.49%). Workflow rescue obligatoire avant EXCLU définitif.
+
+**Asset**: TIA  
+**Sharpe OOS (d52)**: 5.16 (exceptionnel, serait #2!)  
+**Failed Guard**: guard002 (paramètres ATR trop sensibles)
+
+**Commands**:
+
+**Test 1 - Displacement 26:**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets TIA \
+  --fixed-displacement 26 \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --overfit-trials 150 \
+  --workers 1 \
+  --output-prefix tia_rescue_d26_20260124
+```
+
+**Test 2 - Displacement 78:**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets TIA \
+  --fixed-displacement 78 \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --overfit-trials 150 \
+  --workers 1 \
+  --output-prefix tia_rescue_d78_20260124
+```
+
+**Expected Duration**: 4-6 hours total (2-3h per displacement)
+
+**Output Files** (expected):
+```
+outputs/tia_rescue_d26_20260124_TIA_guards_summary.csv
+outputs/tia_rescue_d78_20260124_TIA_guards_summary.csv
+```
+
+**Success Criteria**:
+- [ ] d26 executed with full guards
+- [ ] d78 executed with full guards
+- [ ] At least one displacement passes 7/7 guards (best case)
+- [ ] Report results to @Sam for validation
+
+**Possible Outcomes**:
+- ✅ d26 OR d78 passes 7/7 → TIA PROD (rescue success) → #2 asset!
+- ⚠️ Both fail → Phase 4 (filter grid) required
+- ❌ All fail Phase 4 → EXCLU définitif
+
+**Handoff to**: @Sam (when complete) → @Casey (final decision)
+
+**Reference**: `TIA_RESCUE_PLAN.md`
+
+---
+
+### Task J1: Execute Guards on 7 Pending Assets [✅ COMPLETE]
 **From**: @Casey  
 **Priority**: 🔴 P0 (CRITICAL)  
-**Status**: ⏳ READY TO START
+**Status**: 🔄 RUNNING (started 19:47 UTC)
 
 **Context**: Overnight run validated 8 assets (SHIB, DOT, NEAR, DOGE, ANKR, JOE, ETH, ONE) with 7/7 guards PASS. 7 additional assets completed optimization but need guards execution.
 
@@ -31,6 +97,20 @@ python scripts/run_guards_multiasset.py \
 **Expected Duration**: 2-3 hours (7 assets × ~20 min guards execution)
 
 **Note**: CRV exclu (OOS Sharpe 1.01 < threshold 1.0, prediction: FAIL guards)
+
+**START TIME**: 2026-01-24 19:47 UTC  
+**ETA COMPLETION**: 2026-01-24 21:47-22:47 UTC
+
+**Actual Command Executed**:
+```bash
+python scripts/run_guards_multiasset.py \
+  --assets TIA HBAR CAKE TON RUNE EGLD SUSHI \
+  --params-file outputs/phase2_guards_backfill_params_20260124.csv \
+  --workers 1 \
+  --summary-output outputs/phase2_guards_backfill_summary_20260124.csv
+```
+
+**Process Status**: ✅ RUNNING (PID 61416)
 
 **Output Files** (expected):
 ```
