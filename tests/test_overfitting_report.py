@@ -14,7 +14,7 @@ def test_probabilistic_sharpe_ratio_basic_sanity():
     idx = pd.date_range("2024-01-01", periods=500, freq="h", tz="UTC")
     zero = pd.Series(0.0, index=idx)
     # Use small deterministic variance (avoid std=0 edge case).
-    pos = pd.Series((pd.Series(range(len(idx))) % 2).astype(float) * 0.0004, index=idx)
+    pos = pd.Series(((pd.Series(range(len(idx)))).to_numpy() % 2) * 0.0004, index=idx)
     neg = -pos
 
     assert 0.0 <= probabilistic_sharpe_ratio(zero) <= 1.0
