@@ -1,11 +1,18 @@
 ---
-description: Skill d'execution des 7 guards de validation
-globs: ["crypto_backtest/validation/**", "scripts/run_guards*.py"]
+name: quant-guards-runner
+description: Exécute et valide les 7 guards statistiques obligatoires (Monte Carlo, sensitivity, bootstrap CI, top10, stress, regime, WFE) pour chaque asset.
 ---
 
 # Quant Guards Runner
 
-## Execution
+## Quand Utiliser
+- Utiliser cette skill pour exécuter les 7 guards sur un asset
+- Cette skill est utile après un run de backtest pour valider les résultats
+- Utiliser pour comprendre pourquoi un guard échoue
+- Utiliser pour auditer des résultats existants
+
+## Exécution
+
 ```bash
 python scripts/run_guards_multiasset.py --assets ASSET_LIST
 ```
@@ -13,6 +20,7 @@ python scripts/run_guards_multiasset.py --assets ASSET_LIST
 ## 7 Guards Implementation
 
 ### guard001: Monte Carlo p-value
+
 ```python
 def monte_carlo_test(returns, n_iter=1000):
     observed_sharpe = compute_sharpe(returns)
@@ -25,6 +33,7 @@ def monte_carlo_test(returns, n_iter=1000):
 ```
 
 ### guard002: Sensitivity variance
+
 ```python
 def sensitivity_test(params, objective_func, perturbation=0.02):
     base_score = objective_func(params)
@@ -39,6 +48,7 @@ def sensitivity_test(params, objective_func, perturbation=0.02):
 ```
 
 ### guard003: Bootstrap CI
+
 ```python
 def bootstrap_ci(returns, n_samples=10000, ci=0.95):
     sharpes = []
@@ -50,6 +60,7 @@ def bootstrap_ci(returns, n_samples=10000, ci=0.95):
 ```
 
 ### guard005: Top 10 trades
+
 ```python
 def top10_check(trades_pnl):
     sorted_pnl = sorted(trades_pnl, reverse=True)
@@ -58,6 +69,7 @@ def top10_check(trades_pnl):
 ```
 
 ### guard006: Stress test
+
 ```python
 def stress_test(backtest_func, params, stress_scenarios):
     # scenarios: {'fees_1.5x': {'fees': 7.5}, 'fees_2x': {'fees': 10}}
@@ -70,6 +82,7 @@ def stress_test(backtest_func, params, stress_scenarios):
 ```
 
 ### guard007: Regime mismatch
+
 ```python
 def regime_check(trades_with_regime):
     regime_sharpes = trades_with_regime.groupby('regime')['pnl'].apply(compute_sharpe)
@@ -78,6 +91,7 @@ def regime_check(trades_with_regime):
 ```
 
 ### WFE (Walk-Forward Efficiency)
+
 ```python
 def wfe_check(is_sharpe, oos_sharpe):
     wfe = oos_sharpe / is_sharpe
@@ -85,11 +99,20 @@ def wfe_check(is_sharpe, oos_sharpe):
 ```
 
 ## Output Format
+
 ```csv
 asset,all_pass,wfe,mc_pvalue,guard002_variance_pct,bootstrap_ci_lower,top10_pct,stress_pass,regime_mismatch
 BTC,True,1.23,0.003,4.98,1.84,22.6,True,0
 ```
 
-## Standalone Audit Tool
-Pour auditer des resultats existants, utiliser le skill:
-`.cursor/skills/final-trigger/quant-guards-runner/`
+## Seuils récapitulatifs
+
+| Guard | ID | Seuil | Critique |
+|-------|:---|-------|----------|
+| MC p-value | guard001 | < 0.05 | OUI |
+| Sensitivity variance | guard002 | < 10% | OUI |
+| Bootstrap CI lower | guard003 | > 1.0 | OUI |
+| Top10 trades % | guard005 | < 40% | OUI |
+| Stress1 Sharpe | guard006 | > 1.0 | OUI |
+| Regime mismatch | guard007 | < 1% | OUI |
+| WFE | - | >= 0.6 | OUI |

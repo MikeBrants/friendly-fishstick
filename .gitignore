@@ -17,6 +17,7 @@ status/*.json
 !status/README.md
 .cursor/*
 !.cursor/rules/
+!.cursor/skills/
 .cursor/rules/.DS_Store
 # Watcher seen tasks cache
 tools/.watcher_seen_tasks.txt

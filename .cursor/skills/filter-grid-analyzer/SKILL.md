@@ -1,16 +1,24 @@
 ---
-description: Skill d'analyse filter grid (Phase 4)
-globs: ["scripts/run_filter_grid.py", "outputs/filter_grid*.csv"]
+name: filter-grid-analyzer
+description: Analyse et teste la grille de 12 combinaisons de filtres (Phase 4) pour les assets PENDING après échec du displacement rescue.
 ---
 
 # Filter Grid Analyzer
 
+## Quand Utiliser
+- Utiliser cette skill pour Phase 4 quand Phase 3A (displacement rescue) a échoué
+- Cette skill est utile pour trouver la meilleure combinaison de filtres
+- Utiliser pour tester les 12 modes de filtrage
+- Utiliser pour déterminer si un asset peut être sauvé avec des filtres
+
 ## Commande
+
 ```bash
 python scripts/run_filter_grid.py --assets PENDING_LIST
 ```
 
 ## 12 Combinaisons
+
 ```python
 FILTER_MODES = [
     'baseline',           # ichimoku only
@@ -27,6 +35,7 @@ FILTER_MODES = [
 ```
 
 ## Analysis Logic
+
 ```python
 def analyze_filter_grid(asset, base_params):
     results = []
@@ -51,14 +60,28 @@ def analyze_filter_grid(asset, base_params):
 ```
 
 ## Output Format
+
 ```csv
 asset,filter_mode,oos_sharpe,wfe,oos_trades,guards_pass,selected
 AVAX,medium_distance_volume,2.34,0.71,87,True,True
 AVAX,baseline,1.89,0.52,124,False,False
 ```
 
-## Criteres de selection
+## Critères de sélection
 1. `guards_pass == True`
 2. `oos_trades >= 60`
 3. Maximiser `oos_sharpe`
-4. En cas d'egalite, preferer mode plus simple (moins de filtres)
+4. En cas d'égalité, préférer mode plus simple (moins de filtres)
+
+## Workflow complet
+
+```
+Phase 2 (guards FAIL)
+    ↓
+Phase 3A (displacement rescue) - FAIL
+    ↓
+Phase 4 (filter grid) ← UTILISER CETTE SKILL
+    ↓
+Si 1+ config PASS → PROD
+Si ALL FAIL → EXCLU DÉFINITIF
+```

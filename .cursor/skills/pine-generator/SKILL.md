@@ -1,11 +1,18 @@
 ---
-description: Skill de generation Pine Script
-globs: ["pine/**/*.pine", "docs/pine_*.md"]
+name: pine-generator
+description: Génère les scripts Pine Script v6 pour TradingView à partir des paramètres validés (7/7 PASS) pour déploiement live.
 ---
 
 # Pine Script Generator
 
+## Quand Utiliser
+- Utiliser cette skill après validation 7/7 PASS par Sam
+- Cette skill est utile pour créer le script TradingView déployable
+- Utiliser pour exporter les paramètres figés vers Pine
+- Utiliser pour préparer le paper trading
+
 ## Template Base
+
 ```pine
 //@version=6
 strategy("FT_[ASSET]", overlay=true,
@@ -82,12 +89,12 @@ alertcondition(finalSignal, "FT_[ASSET]_ENTRY",
     '{"asset":"[ASSET]","action":"LONG_ENTRY","price":{{close}},"sl":{{plot_0}},"tp1":{{plot_1}}}')
 ```
 
-## Params par Asset (a remplir)
+## Params par Asset (référence)
+
 | Asset | sl | tp1 | tp2 | tp3 | tenkan | kijun | tenkan5 | kijun5 | disp |
 |-------|-----|-----|-----|-----|--------|-------|---------|--------|------|
 | BTC | 3.75 | 3.75 | 9.0 | 7.0 | 13 | 34 | 12 | 21 | 52 |
 | ETH | 4.50 | 4.75 | 3.0 | 4.5 | 17 | 31 | 13 | 20 | 52 |
-| ... | ... | ... | ... | ... | ... | ... | ... | ... | ... |
 
 ## Validation Checklist
 - [ ] `[1]` shift sur TOUS les signaux (anti look-ahead)
@@ -96,3 +103,10 @@ alertcondition(finalSignal, "FT_[ASSET]_ENTRY",
 - [ ] process_orders_on_close = true
 - [ ] warmupBars = 200
 - [ ] Multi-TP: 50/30/20 split
+
+## Workflow
+1. Sam valide 7/7 PASS
+2. Extraire params de `outputs/multiasset_scan_*.csv`
+3. Remplacer placeholders `[ASSET]`, `[SL_VALUE]`, etc.
+4. Sauvegarder dans `pine/FT_[ASSET].pine`
+5. Tester sur TradingView avant paper trading

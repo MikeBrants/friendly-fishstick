@@ -1,11 +1,18 @@
 ---
-description: Skill d'analyse de regime de marche
-globs: ["crypto_backtest/analysis/regime.py", "outputs/*regime*.csv"]
+name: regime-analyzer
+description: Analyse les régimes de marché (BULL/BEAR/SIDEWAYS) et leur impact sur les performances de trading pour éviter le filtering de SIDEWAYS.
 ---
 
 # Regime Analyzer
 
-## Definition des Regimes
+## Quand Utiliser
+- Utiliser cette skill pour analyser la performance par régime de marché
+- Cette skill est utile pour comprendre d'où vient le profit
+- Utiliser pour vérifier guard007 (regime mismatch)
+- Utiliser pour éviter de filtrer SIDEWAYS (79.5% du profit)
+
+## Définition des Régimes
+
 ```python
 def compute_regime(close: pd.Series, lookback: int = 50) -> pd.Series:
     """
@@ -27,6 +34,7 @@ def compute_regime(close: pd.Series, lookback: int = 50) -> pd.Series:
 ```
 
 ## Attribution aux Trades
+
 ```python
 def assign_regime_to_trades(trades: pd.DataFrame, regime: pd.Series) -> pd.DataFrame:
     """
@@ -36,7 +44,8 @@ def assign_regime_to_trades(trades: pd.DataFrame, regime: pd.Series) -> pd.DataF
     return trades
 ```
 
-## Analyse par Regime
+## Analyse par Régime
+
 ```python
 def analyze_by_regime(trades: pd.DataFrame) -> pd.DataFrame:
     results = []
@@ -54,12 +63,14 @@ def analyze_by_regime(trades: pd.DataFrame) -> pd.DataFrame:
 ```
 
 ## ATTENTION CRITIQUE
+
 ```
-SIDEWAYS genere 79.5% du profit total dans BTC baseline.
+SIDEWAYS génère 79.5% du profit total dans BTC baseline.
 NE JAMAIS filtrer SIDEWAYS sans test empirique.
 ```
 
 ## Output Format
+
 ```csv
 regime,trades,total_pnl,sharpe,win_rate,contribution_pct
 BULL,89,2.34,1.42,0.58,14.9
@@ -68,8 +79,14 @@ SIDEWAYS,285,12.48,2.31,0.67,79.5
 ```
 
 ## Guard007: Regime Mismatch
+
 ```python
 def check_regime_mismatch(regime_analysis: pd.DataFrame) -> bool:
     negative_regimes = (regime_analysis['sharpe'] < 0).sum()
-    return negative_regimes <= 1  # PASS si max 1 regime negatif
+    return negative_regimes <= 1  # PASS si max 1 régime négatif
 ```
+
+## Règles importantes
+1. **Toujours utiliser `.shift(1)`** pour éviter look-ahead sur le régime
+2. **Utiliser ENTRY time** pour attribution, PAS exit time
+3. **Ne pas filtrer SIDEWAYS** sans validation empirique
