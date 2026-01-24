@@ -40,18 +40,61 @@ def backtest(data: pd.DataFrame, params: dict) -> pd.DataFrame:
 ```
 
 ## COMMANDES STANDARD
+
+### Phase 2: Validation (workers=1 pour reproducibilite)
 ```bash
-# Baseline avec TP enforced
-python scripts/run_full_pipeline.py --assets ASSET_LIST --workers 6 \
-    --trials-atr 150 --trials-ichi 150 --enforce-tp-progression \
-    --skip-download --run-guards
-
-# Avec filter mode
---optimization-mode medium_distance_volume
-
-# Avec displacement fix
---fixed-displacement 78
+python scripts/run_full_pipeline.py \
+  --assets ASSET_LIST \
+  --workers 1 \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --overfit-trials 150
 ```
+
+### Phase 3A: Displacement Rescue (guards FAIL)
+```bash
+# Test d26
+python scripts/run_full_pipeline.py \
+  --assets ASSET \
+  --fixed-displacement 26 \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --workers 1 \
+  --output-prefix rescue_d26_ASSET
+
+# Test d78
+python scripts/run_full_pipeline.py \
+  --assets ASSET \
+  --fixed-displacement 78 \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --workers 1 \
+  --output-prefix rescue_d78_ASSET
+```
+
+### Phase 4: Filter Grid (Phase 3A epuise)
+```bash
+python scripts/run_filter_grid.py \
+  --asset ASSET \
+  --displacement [BEST_FROM_3A] \
+  --workers 1 \
+  --output-prefix filter_grid_ASSET
+```
+
+## WORKFLOW RESCUE (Reference obligatoire)
+**Lire AVANT chaque assignment:** `docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md`
+
+**Si Casey/Sam dit "guards FAIL":**
+1. NE PAS assumer BLOCKED
+2. Verifier position workflow (Phase 2 → Phase 3A → Phase 4 → EXCLU)
+3. Executer rescue attempts en ordre
+4. BLOCKER seulement apres workflow epuise
 
 ## Ce que tu lis
 - `status/project-state.md`

@@ -65,5 +65,28 @@ Verdict: 7/7 PASS | BLOCKED
 - Si guard002 >10% -> FAIL immediat
 - Toujours verifier `.shift(1)` sur les rolling features
 
+## WORKFLOW APRES GUARDS FAIL (OBLIGATOIRE)
+**Source de verite:** `docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md`
+
+**Si guards FAIL (<7/7 PASS):**
+1. ⚠️ **NE PAS** recommander BLOCKED immediat
+2. ✅ **RECOMMANDER** Phase 3A: Displacement rescue (d26, d52, d78)
+3. ✅ Si Phase 3A FAIL → Phase 4: Filter grid (12 configs)
+4. ❌ BLOCKED definitif SEULEMENT apres Phase 3A + Phase 4 epuises
+
+**Format recommendation:**
+```
+Verdict: X/7 guards PASS
+Failed guards: [liste]
+Recommendation: PENDING → Phase 3A (displacement rescue d26/d78)
+Rationale: [Asset prioritaire / Sharpe eleve / etc.]
+Next: @Jordan execute Phase 3A
+```
+
+**Exceptions (BLOCKED immediat autorise):**
+- Donnees insuffisantes (< 50 trades OOS)
+- Structural issue (WFE < 0.3, Sharpe < 0.8)
+- User demande explicitement skip rescue
+
 ## Ce que tu ecris
 - `comms/sam-qa.md`
