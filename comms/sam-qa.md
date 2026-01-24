@@ -38,6 +38,193 @@ Ce fichier contient les validations des 7 guards par Sam.
 **Status:** 7/7 PASS | X/7 FAIL
 **Raison si FAIL:** ...
 **Recommendation:** PROD | BLOCKED | RETEST avec [variant]
+```
+
+---
+
+## [12:20] [TASK] @Casey -> @Sam — OVERNIGHT RESET VALIDATION
+
+**Ref:** Overnight Pipeline Progress Report  
+**Date:** 24 janvier 2026, 12:20 UTC  
+**Priority:** 🔥 **URGENT — Validation Multi-Asset**
+
+### Context
+Le pipeline overnight a fait **ÉNORME progrès:**
+- ✅ **Phase 1 COMPLÈTE** (04:40 UTC) — 60 assets testés, **15 SUCCESS (50%!)**
+- 🟡 **Phase 2 EN COURS** (depuis 04:40) — 13/15 assets validés, ETA 14:30-15:00
+
+### Assets SUCCESS Phase 1 (15 uniques)
+**Anciens "PROD" revalidés (7):**
+- ETH, JOE, ANKR, DOGE, DOT, NEAR, SHIB
+
+**Nouveaux SUCCESS (8):**
+- **HBAR** (ancien EXCLU, maintenant SUCCESS! ⭐)
+- CRV, SUSHI, RUNE (DeFi)
+- TIA, TON (L1)
+- CAKE (DeFi)
+- EGLD (L1)
+
+### Problème Détecté: Doublons
+Le script a parsé les fichiers CSV 2x (doublons), donc Phase 2 valide seulement **8 assets** au lieu de 15:
+- ✅ ETH, JOE, ANKR, DOGE, DOT, NEAR, SHIB, HBAR (validés)
+- ❌ **CRV, SUSHI, RUNE, TIA, CAKE, TON, EGLD** (SUCCESS mais PAS validés)
+
+### Task Sam — Phase 2A (8 assets validés overnight)
+
+**Attendre fin pipeline (~14:30-15:00 UTC), puis:**
+
+#### 1. Vérifier Reproducibilité (Run 1 vs Run 2)
+Pour chaque asset (ETH, JOE, ANKR, DOGE, DOT, NEAR, SHIB, HBAR):
+
+```bash
+# Comparer Run 1 vs Run 2
+python scripts/verify_reproducibility.py \
+  --asset [ASSET] \
+  --run1-file outputs/*_phase2_validation_[ASSET]_run1*.csv \
+  --run2-file outputs/*_phase2_validation_[ASSET]_run2*.csv
+```
+
+**Critère:** Params optimaux doivent être **100% identiques**
+
+#### 2. Analyser Guards (7/7 PASS requis)
+Pour chaque asset:
+
+```bash
+# Lire guards summary
+cat outputs/*_phase2_validation_[ASSET]_run1_guards_summary*.csv
+```
+
+**Checklist per asset:**
+- [ ] WFE > 0.6
+- [ ] MC p-value < 0.05
+- [ ] Sensitivity var < 10%
+- [ ] Bootstrap CI lower > 1.0
+- [ ] Top10 trades < 40%
+- [ ] Stress1 Sharpe > 1.0
+- [ ] Regime mismatch < 1%
+- [ ] OOS Sharpe > 1.0
+
+#### 3. Documenter Résultats
+Pour chaque asset, créer entry dans `comms/sam-qa.md`:
+
+```markdown
+## [HH:MM] [VALIDATION] @Sam — [ASSET] Phase 2A
+
+**Run ref:** Overnight Phase 2 Run 1 + Run 2  
+**Date run:** 2026-01-24
+
+### Reproducibilité
+- Run 1 params: [...]
+- Run 2 params: [...]
+- **Match:** ✅ 100% | ❌ FAIL
+
+### Guards (7/7)
+| Guard | Seuil | Valeur | Status |
+|-------|-------|--------|--------|
+| MC p | < 0.05 | X.XX | PASS/FAIL |
+| Sensitivity | < 10% | X.X% | PASS/FAIL |
+| Bootstrap CI | > 1.0 | X.XX | PASS/FAIL |
+| Top10 | < 40% | X.X% | PASS/FAIL |
+| Stress1 | > 1.0 | X.XX | PASS/FAIL |
+| Regime | < 1% | X.X% | PASS/FAIL |
+| WFE | > 0.6 | X.XX | PASS/FAIL |
+
+### Verdict
+**Status:** 7/7 PASS | X/7 FAIL  
+**Recommendation:** PROD | BLOCKED
+```
+
+### Task Sam — Phase 2B (7 assets NON validés)
+
+**Ces assets ont passé Phase 1 mais n'ont PAS été validés par le script overnight:**
+- CRV, SUSHI, RUNE, TIA, CAKE, TON, EGLD
+
+**Action requise:** Valider manuellement (après Phase 2A)
+
+Pour chaque asset:
+
+```bash
+# Run 1
+python scripts/run_full_pipeline.py \
+  --assets [ASSET] \
+  --workers 1 \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --output-prefix phase2_validation_[ASSET]_run1
+
+# Run 2 (reproducibility)
+python scripts/run_full_pipeline.py \
+  --assets [ASSET] \
+  --workers 1 \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --output-prefix phase2_validation_[ASSET]_run2
+```
+
+**Durée:** 7 assets x 40 min = ~4h40
+
+Puis répéter steps 1-3 (reproducibilité + guards + documentation).
+
+### Outputs à Analyser
+
+**Phase 2A (overnight):**
+```
+outputs/*_phase2_validation_ETH_run1_*.csv
+outputs/*_phase2_validation_ETH_run2_*.csv
+outputs/*_phase2_validation_ETH_run1_guards_*.csv
+outputs/*_phase2_validation_ETH_run2_guards_*.csv
+... (idem pour JOE, ANKR, DOGE, DOT, NEAR, SHIB, HBAR)
+```
+
+**Log Global:**
+```
+outputs/overnight_log_20260124_032322.txt
+```
+
+### Timeline
+
+| Phase | Assets | Durée | ETA |
+|-------|--------|-------|-----|
+| **Phase 2A** (overnight) | 8 | Done | ~14:30-15:00 |
+| **Sam Validation 2A** | 8 | 2h | 14:30-16:30 |
+| **Phase 2B** (manuel) | 7 | 4h40 | 16:30-21:10 |
+| **Sam Validation 2B** | 7 | 1h30 | 21:10-22:40 |
+| **Total** | 15 | **8h10** | Finish 22:40 |
+
+### Résultats Attendus
+
+**Scénario Optimiste (100% guards PASS):**
+- **15 assets PROD** ⭐
+
+**Scénario Réaliste (70% guards PASS):**
+- **10-12 assets PROD**
+
+**Scénario Conservateur (50% guards PASS):**
+- **7-8 assets PROD**
+
+### Critères Succès
+1. ✅ Reproducibilité 100% pour tous les assets (Run 1 = Run 2)
+2. ✅ Guards 7/7 PASS pour 10-15 assets
+3. ✅ Documentation complète dans `comms/sam-qa.md`
+4. ✅ Recommandations PROD vs BLOCKED pour chaque asset
+
+### Next
+1. **@Sam:** Attendre fin pipeline overnight (~14:30-15:00)
+2. **@Sam:** Valider Phase 2A (8 assets, 2h)
+3. **@Sam:** Lancer Phase 2B manuellement (7 assets, 4h40)
+4. **@Sam:** Valider Phase 2B (7 assets, 1h30)
+5. **@Casey:** Verdict final → Mettre à jour `status/project-state.md`
+
+### Documentation
+- `OVERNIGHT_PROGRESS_REPORT.md` — Rapport détaillé
+- `outputs/overnight_log_20260124_032322.txt` — Log complet
+- `LAUNCH_READY.md` — Checklist initiale
+
+**Status:** ⏳ **WAITING FOR PIPELINE FINISH (~14:30 UTC)**
 **Next:** @Casey rend verdict final
 ```
 
@@ -1112,7 +1299,13 @@ Before approving an asset for PROD:
 
 ### Résultats Phase 1 Screening Batch 3
 
-**Verdict global:** ✅ **4/20 PASS** - 4 candidats viables pour Phase 2
+**Verdict global:** ✅ **4/20 SUCCESS** - 4 candidats Phase 2
+
+**Terminologie Sam (alignée workflow) :**
+- **SUCCESS** = Phase 1 PASS → Phase 2 validation
+- **PENDING** = Phase 1 FAIL mais récupérable → Phase 3A/4
+- **MARGINAL** = Phase 1 FAIL, faible chance → Phase 4 conservative seulement
+- **BLOCKED** = Overfitting sévère → Définitivement exclu
 
 **Note:** Phase 1 utilise `--skip-guards` (critères souples), donc analyse Sam basée sur métriques scan uniquement.
 
@@ -1122,22 +1315,22 @@ Before approving an asset for PROD:
 | **CRV** | **1.76** ✅ | **1.86** ✅ | 117 ✅ | 0.036 | ✅ **SUCCESS** | **PASS Phase 1** 🎯 |
 | **ONE** | **2.92** ✅ | **0.74** ✅ | 99 ✅ | 0.002 | ✅ **SUCCESS** | **PASS Phase 1** 🎯 |
 | **ZIL** | **1.33** ✅ | **0.75** ✅ | 120 ✅ | 0.018 | ✅ **SUCCESS** | **PASS Phase 1** 🎯 |
-| SAND | 1.24 | 0.47 ❌ | 99 | 0.098 | ❌ FAIL | EXCLU (WFE < 0.5) |
-| MANA | 1.27 | 0.58 ✅ | 123 | 0.092 | ❌ FAIL | EXCLU (WFE < 0.6) |
-| ENJ | 0.88 | 0.27 ❌ | 120 | 0.068 | ❌ FAIL | EXCLU (WFE < 0.5) |
-| FLOKI | 0.00 | -0.19 ❌ | 96 | 0.39 | ❌ FAIL | EXCLU (WFE < 0.5) |
-| PEPE | 1.03 | 0.47 ❌ | 102 | 0.076 | ❌ FAIL | EXCLU (WFE < 0.5) |
-| WIF | -0.14 | -0.03 ❌ | 83 | 0.24 | ❌ FAIL | EXCLU (WFE < 0.5) |
-| RONIN | -1.17 | -0.38 ❌ | 99 | 0.17 | ❌ FAIL | EXCLU (WFE < 0.5) |
-| PIXEL | 6.02 | 1.73 ✅ | **47** ❌ | 0.0 | ❌ FAIL | EXCLU (Trades < 50) |
-| ILV | 1.97 | 0.57 ❌ | 85 | 0.024 | ❌ FAIL | EXCLU (WFE < 0.6) |
-| FIL | -0.30 | -0.08 ❌ | 56 | 0.456 | ❌ FAIL | EXCLU (WFE < 0.5) |
-| THETA | 0.18 | 0.09 ❌ | 102 | 0.118 | ❌ FAIL | EXCLU (WFE < 0.5) |
-| CHZ | 0.95 | 0.36 ❌ | 84 | 0.588 | ❌ FAIL | EXCLU (WFE < 0.5) |
-| SUSHI | 1.58 | 0.41 ❌ | 94 | 0.02 | ❌ FAIL | EXCLU (WFE < 0.5) |
-| KAVA | 0.45 | 0.16 ❌ | 105 | 0.04 | ❌ FAIL | EXCLU (WFE < 0.5) |
-| CFX | 0.54 | -0.28 ❌ | 112 | 0.342 | ❌ FAIL | EXCLU (WFE < 0.5) |
-| ROSE | 0.54 | 0.27 ❌ | 102 | 0.384 | ❌ FAIL | EXCLU (WFE < 0.5) |
+| SAND | 1.24 | 0.47 ❌ | 99 | 0.098 | ❌ FAIL | PENDING (WFE proche 0.5) |
+| MANA | 1.27 | 0.58 ✅ | 123 | 0.092 | ❌ FAIL | MARGINAL (WFE < 0.6) |
+| ENJ | 0.88 | 0.27 ❌ | 120 | 0.068 | ❌ FAIL | MARGINAL (WFE < 0.5) |
+| FLOKI | 0.00 | -0.19 ❌ | 96 | 0.39 | ❌ FAIL | BLOCKED (WFE négatif) |
+| PEPE | 1.03 | 0.47 ❌ | 102 | 0.076 | ❌ FAIL | PENDING (WFE proche 0.5) |
+| WIF | -0.14 | -0.03 ❌ | 83 | 0.24 | ❌ FAIL | BLOCKED (Sharpe négatif) |
+| RONIN | -1.17 | -0.38 ❌ | 99 | 0.17 | ❌ FAIL | BLOCKED (WFE négatif) |
+| PIXEL | 6.02 | 1.73 ✅ | **47** ❌ | 0.0 | ❌ FAIL | BLOCKED (Trades < 50) |
+| ILV | 1.97 | 0.57 ❌ | 85 | 0.024 | ❌ FAIL | MARGINAL (WFE < 0.6) |
+| FIL | -0.30 | -0.08 ❌ | 56 | 0.456 | ❌ FAIL | BLOCKED (WFE négatif) |
+| THETA | 0.18 | 0.09 ❌ | 102 | 0.118 | ❌ FAIL | MARGINAL (WFE très faible) |
+| CHZ | 0.95 | 0.36 ❌ | 84 | 0.588 | ❌ FAIL | MARGINAL (WFE < 0.5) |
+| SUSHI | 1.58 | 0.41 ❌ | 94 | 0.02 | ❌ FAIL | MARGINAL (WFE < 0.5) |
+| KAVA | 0.45 | 0.16 ❌ | 105 | 0.04 | ❌ FAIL | MARGINAL (WFE très faible) |
+| CFX | 0.54 | -0.28 ❌ | 112 | 0.342 | ❌ FAIL | BLOCKED (WFE négatif) |
+| ROSE | 0.54 | 0.27 ❌ | 102 | 0.384 | ❌ FAIL | MARGINAL (WFE < 0.5) |
 
 ### Critères Phase 1 (souples)
 
@@ -1243,7 +1436,8 @@ Before approving an asset for PROD:
 
 **Statut actuel:**
 - **Assets PROD:** 15/20 (75% objectif)
-- **Assets exclus récents:** HBAR, BNB, XRP, ADA, TRX, LTC, XLM, GMX, PENDLE, STX, FET, IMX, SAND, MANA, ENJ, FLOKI, PEPE, WIF, RONIN, PIXEL, ILV, FIL, THETA, CHZ, SUSHI, KAVA, CFX, ROSE
+- **Assets BLOCKED (définitif):** HBAR, BNB, XRP, TRX, LTC, XLM, GMX, PENDLE, STX, FET, IMX, FLOKI, WIF, RONIN, PIXEL, FIL
+- **Assets PENDING/MARGINAL (rescue possible):** ADA, SAND, MANA, ENJ, PEPE, ILV, THETA, CHZ, SUSHI, KAVA, CFX, ROSE
 - **Candidats Phase 2:** GALA, CRV, ONE, ZIL (4 assets - en attente décision @Casey)
 - **Phase 1 Batch 1:** 0/6 assets viables (tous FAIL)
 - **Phase 1 Batch 2:** 1/5 assets viables (IMX PASS Phase 1, mais Phase 2 FAIL)
@@ -1387,6 +1581,41 @@ Pour chaque asset (BTC, ETH, JOE) et chaque displacement (26, 52, 78):
 3. Considérer HBAR comme variant épuisé si aucun mode ne passe 7/7
 
 **Next:** @Casey rend verdict final (BLOCKED ou RETEST avec variant)
+
+---
+
+## Référence - Terminologie Sam (Alignée Workflow)
+
+### Catégories d'assets après Phase 1
+
+| Catégorie | Critères | Action | Workflow |
+|:----------|:---------|:-------|:---------|
+| **SUCCESS** | WFE > 0.5 ET Sharpe OOS > 0.8 ET Trades > 50 | Phase 2 validation (300 trials + 7 guards) | Phase 1 → Phase 2 |
+| **PENDING** | WFE 0.4-0.6 OU Sharpe OOS 0.8-1.5 | Rescue displacement + filter grid | Phase 1 → Phase 3A → Phase 4 |
+| **MARGINAL** | WFE 0.2-0.4 OU Sharpe OOS 0.3-0.8 | Filter conservative seulement (faible chance) | Phase 1 → Phase 4 (conservative) |
+| **BLOCKED** | WFE < 0.2 OU Sharpe OOS < 0.3 OU négatif | Définitivement exclu (overfitting sévère) | Phase 1 → STOP |
+
+### Exemples de classification
+
+**SUCCESS :**
+- GALA (Batch 3) : Sharpe 2.71, WFE 1.18 → Phase 2 ✅
+- CRV (Batch 3) : Sharpe 1.76, WFE 1.86 → Phase 2 ✅
+- ETH (Overnight) : Sharpe 3.23, WFE 1.11 → Phase 2 ✅
+
+**PENDING (récupérables) :**
+- SAND (Batch 3) : Sharpe 1.24, WFE 0.47 → Phase 3A/4 ⏳
+- PEPE (Batch 3) : Sharpe 1.03, WFE 0.47 → Phase 3A/4 ⏳
+- AVAX (Overnight) : Sharpe 1.93, WFE 0.46 → Phase 3A/4 ⏳
+
+**MARGINAL (faible chance) :**
+- CHZ (Batch 3) : Sharpe 0.95, WFE 0.36 → Phase 4 conservative ⚠️
+- THETA (Batch 3) : Sharpe 0.18, WFE 0.09 → Phase 4 conservative ⚠️
+- BTC (Overnight) : Sharpe 0.85, WFE 0.26 → Phase 4 conservative ⚠️
+
+**BLOCKED (définitivement exclu) :**
+- FLOKI (Batch 3) : Sharpe 0.00, WFE -0.19 → STOP ❌
+- RONIN (Batch 3) : Sharpe -1.17, WFE -0.38 → STOP ❌
+- SOL (Overnight) : Sharpe -0.61, WFE -0.21 → STOP ❌
 
 ---
 
