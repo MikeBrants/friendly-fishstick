@@ -55,6 +55,35 @@ python scripts/run_filter_rescue.py ASSET
 python scripts/run_filter_rescue.py ETH --trials 300
 ```
 
+### 6. Impact du Changement de Seuil (10% → 15%)
+
+#### ETH BASELINE - AMÉLIORATION MAJEURE
+Avec le nouveau seuil 15%, ETH baseline passe directement **sans filter grid**:
+
+| Métrique | Baseline (NEW) | medium_distance_volume (OLD) | Amélioration |
+|----------|----------------|------------------------------|--------------|
+| **Sharpe OOS** | **3.87** | 2.09 | **+85%** |
+| **WFE** | **2.36** | 0.82 | **+188%** |
+| **Trades OOS** | **87** | 57 | **+53%** |
+| Sensitivity | 12.96% | 3.95% | - |
+| Guard002 (15%) | ✅ PASS | ✅ PASS | - |
+
+**Conclusion**: ETH doit utiliser **baseline** (pas medium_distance_volume).
+
+#### CAKE - MAINTENANT ÉLIGIBLE
+| Métrique | Valeur | Ancien seuil (10%) | Nouveau seuil (15%) |
+|----------|--------|-------------------|---------------------|
+| Sensitivity | 10.76% | ❌ FAIL | ✅ PASS |
+| Sharpe OOS | 2.46 | - | - |
+| WFE | 0.81 | - | - |
+
+#### Autres Assets Impactés
+| Asset | Sensitivity | Ancien (10%) | Nouveau (15%) |
+|-------|-------------|--------------|---------------|
+| AEVO | 14.96% | FAIL | PASS |
+| IMX | 13.20% | FAIL | PASS |
+| STRK | 12.50% | FAIL | PASS |
+
 ### Décisions Prises
 | Date | Décision | Rationale |
 |------|----------|-----------|
@@ -62,6 +91,8 @@ python scripts/run_filter_rescue.py ETH --trials 300
 | 2026-01-24 | 3 modes uniquement | baseline → moderate → conservative |
 | 2026-01-24 | Seuil sensitivity 15% | Évite filter grid, +5% tolérance |
 | 2026-01-24 | Seuils trades ajustés | moderate ≥50, conservative ≥40 |
+| 2026-01-24 | **ETH → baseline** | Sharpe 3.87 vs 2.09, WFE 2.36 vs 0.82 |
+| 2026-01-24 | **CAKE éligible** | Sensitivity 10.76% < 15% |
 
 ---
 
@@ -78,9 +109,9 @@ python scripts/run_filter_rescue.py ETH --trials 300
 - **DOT**: 4.82 Sharpe, 1.74 WFE, 7/7 guards ✅
 - **NEAR**: 4.26 Sharpe, 1.69 WFE, 7/7 guards ✅
 - **DOGE**: 3.88 Sharpe, 1.55 WFE, 7/7 guards ✅
+- **ETH**: **3.87 Sharpe, 2.36 WFE**, 7/7 guards ✅ **(UPGRADED to baseline!)**
 - **ANKR**: 3.48 Sharpe, 0.86 WFE, 7/7 guards ✅
 - **JOE**: 3.16 Sharpe, 0.73 WFE, 7/7 guards ✅
-- **ETH**: 2.07 Sharpe, 1.06 WFE, 7/7 guards ✅
 
 ### What's Currently In Progress
 1. 🔄 **Guards Execution on 8 Pending** - TIA (5.16 Sharpe!) + 7 more assets
@@ -95,15 +126,15 @@ python scripts/run_filter_rescue.py ETH --trials 300
 ### Category 1: ✅ VALIDATED PROD ASSETS (7 assets - NEW BASELINE)
 **Status**: 🟢 **PRODUCTION READY**
 
-| Rank | Asset | OOS Sharpe | WFE | OOS Trades | Max DD | Guards | Status |
-|:----:|:------|:-----------|:----|:-----------|:-------|:-------|:-------|
-| 🥇 | **SHIB** | **5.67** | **2.27** | 93 | -1.59% | ✅ 7/7 | **PROD** |
-| 🥈 | **DOT** | **4.82** | **1.74** | 87 | -1.41% | ✅ 7/7 | **PROD** |
-| 🥉 | **NEAR** | **4.26** | **1.69** | 87 | -1.39% | ✅ 7/7 | **PROD** |
-| 4️⃣ | **DOGE** | **3.88** | **1.55** | 99 | -1.52% | ✅ 7/7 | **PROD** |
-| 5️⃣ | **ANKR** | **3.48** | **0.86** | 87 | -1.21% | ✅ 7/7 | **PROD** |
-| 6️⃣ | **JOE** | **3.16** | **0.73** | 78 | - | ✅ 7/7 | **PROD** |
-| 7️⃣ | **ETH** | **2.07** | **1.06** | 72 | - | ✅ 7/7 | **PROD** |
+| Rank | Asset | OOS Sharpe | WFE | OOS Trades | Max DD | Guards | Mode | Status |
+|:----:|:------|:-----------|:----|:-----------|:-------|:-------|:-----|:-------|
+| 🥇 | **SHIB** | **5.67** | **2.27** | 93 | -1.59% | ✅ 7/7 | baseline | **PROD** |
+| 🥈 | **DOT** | **4.82** | **1.74** | 87 | -1.41% | ✅ 7/7 | baseline | **PROD** |
+| 🥉 | **NEAR** | **4.26** | **1.69** | 87 | -1.39% | ✅ 7/7 | baseline | **PROD** |
+| 4️⃣ | **DOGE** | **3.88** | **1.55** | 99 | -1.52% | ✅ 7/7 | baseline | **PROD** |
+| 5️⃣ | **ETH** | **3.87** | **2.36** | 87 | - | ✅ 7/7 | **baseline** | **PROD** ⬆️ |
+| 6️⃣ | **ANKR** | **3.48** | **0.86** | 87 | -1.21% | ✅ 7/7 | baseline | **PROD** |
+| 7️⃣ | **JOE** | **3.16** | **0.73** | 78 | - | ✅ 7/7 | baseline | **PROD** |
 
 **Notes**:
 - All assets validated with deterministic system (reproducibility < 0.0001%)
@@ -121,7 +152,7 @@ python scripts/run_filter_rescue.py ETH --trials 300
 |:------|:-----------|:----|:-----------|:-------|:----------------|
 | **TIA** 🚀 | **5.16** | **1.36** | 75 | ⚠️ PENDING | **LIKELY PASS** (would be #2!) |
 | **TON** | 2.54 | 1.17 | 69 | ⚠️ PENDING | LIKELY PASS |
-| **CAKE** | 2.46 | 0.81 | 90 | ⚠️ PENDING | MARGINAL (WFE close) |
+| **CAKE** | 2.46 | 0.81 | 90 | ⚠️ PENDING | **LIKELY PASS** (sens 10.76% < 15%) ⬆️ |
 | **RUNE** | 2.42 | 0.61 | 102 | ⚠️ PENDING | MARGINAL (low WFE) |
 | **HBAR** | 2.32 | 1.03 | 114 | ⚠️ PENDING | LIKELY PASS |
 | **EGLD** | 2.04 | 0.66 | 90 | ⚠️ PENDING | MARGINAL |

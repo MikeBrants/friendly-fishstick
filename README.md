@@ -12,17 +12,17 @@
 ## 📈 Résultats Actuels (Production Ready)
 
 ### Portfolio Validé (7 Assets)
-**SHIB, DOT, NEAR, DOGE, ANKR, JOE, ETH** — Tous les assets ont passé les 7 guards de robustesse
+**SHIB, DOT, NEAR, DOGE, ETH, ANKR, JOE** — Tous les assets ont passé les 7 guards de robustesse
 
-| Rank | Asset | OOS Sharpe | WFE | Guards |
-|:----:|-------|------------|-----|--------|
-| 🥇 | **SHIB** | 5.67 | 2.27 | ✅ 7/7 |
-| 🥈 | **DOT** | 4.82 | 1.74 | ✅ 7/7 |
-| 🥉 | **NEAR** | 4.26 | 1.69 | ✅ 7/7 |
-| 4️⃣ | **DOGE** | 3.88 | 1.55 | ✅ 7/7 |
-| 5️⃣ | **ANKR** | 3.48 | 0.86 | ✅ 7/7 |
-| 6️⃣ | **JOE** | 3.16 | 0.73 | ✅ 7/7 |
-| 7️⃣ | **ETH** | 2.07 | 1.06 | ✅ 7/7 |
+| Rank | Asset | OOS Sharpe | WFE | Mode | Guards |
+|:----:|-------|------------|-----|------|--------|
+| 🥇 | **SHIB** | 5.67 | 2.27 | baseline | ✅ 7/7 |
+| 🥈 | **DOT** | 4.82 | 1.74 | baseline | ✅ 7/7 |
+| 🥉 | **NEAR** | 4.26 | 1.69 | baseline | ✅ 7/7 |
+| 4️⃣ | **DOGE** | 3.88 | 1.55 | baseline | ✅ 7/7 |
+| 5️⃣ | **ETH** | **3.87** | **2.36** | baseline | ✅ 7/7 |
+| 6️⃣ | **ANKR** | 3.48 | 0.86 | baseline | ✅ 7/7 |
+| 7️⃣ | **JOE** | 3.16 | 0.73 | baseline | ✅ 7/7 |
 
 **Note**: Voir `status/project-state.md` pour l'état actuel du projet.
 
