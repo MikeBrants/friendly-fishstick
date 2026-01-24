@@ -31,6 +31,83 @@ Ce fichier contient les logs des runs executes par Jordan.
 
 ---
 
+## [18:45] [COMPLETE] @Jordan → @Sam — OVERNIGHT PIPELINE RESULTS DELIVERED
+
+**Pipeline:** Overnight Reset ✅ **TERMINÉ** (16:47:24 UTC)  
+**Durée totale:** 13h24 (03:23 → 16:47)  
+**Status:** 🟢 **PHASE 1 + PHASE 2 COMPLETE**
+
+### Résultats Finaux
+
+**Phase 1 (Re-screening):**
+- 60 assets testés → **15 SUCCESS** (25%)
+- Batches: 5/5 complétés
+- Fichiers: `outputs/phase1_reset_batch{1-5}_*_multiasset_scan_*.csv`
+
+**Phase 2 (Validation):**
+- 15 assets validés × 2-4 runs (doublons) = **60 fichiers scan**
+- **7 assets avec guards:** ETH, JOE, ANKR, DOGE, DOT, NEAR, SHIB ✅
+- **8 assets SANS guards:** HBAR, CRV, SUSHI, RUNE, TIA, CAKE, TON, EGLD ⚠️
+- Fichiers: `outputs/phase2_validation_*_multiasset_scan_*.csv`
+
+### Assets à Fort Potentiel (Top 5)
+
+| Rank | Asset | OOS Sharpe | WFE | Trades | Guards |
+|:----:|:------|:-----------|:----|:-------|:-------|
+| 🥇 | SHIB | 5.44 | 2.24 | 93 | ✅ |
+| 🥈 | TIA | 5.16 | 1.36 | 75 | ⚠️ Manquant |
+| 🥉 | DOT | 3.92 | 1.68 | 78 | ✅ |
+| 4️⃣ | DOGE | 3.88 | 1.50 | 99 | ✅ |
+| 5️⃣ | ANKR | 3.48 | 0.86 | 87 | ✅ |
+
+### Deliverables @Sam
+
+**Rapport Complet:** `comms/jordan-to-sam-phase2-results.md` ✅
+
+**Contenu:**
+1. ✅ Liste 15 assets validés avec métriques (OOS Sharpe, WFE, Trades)
+2. ✅ Reproducibilité Run1 vs Run2 (exemple TIA: variance < 0.0001%)
+3. ✅ Guards summary (7 assets avec 14 fichiers guards)
+4. ✅ Fichiers manquants (8 assets sans guards)
+5. ✅ Actions requises (validation + exécution guards restants)
+6. ✅ Checklist complète pour @Sam
+
+**Fichiers Transmis:**
+- 5 scans Phase 1 (batches 1-5)
+- 60 scans Phase 2 (15 assets × 4 runs)
+- 14 guards summaries (7 assets × 2 runs)
+- 1 log principal (`outputs/overnight_log_20260124_032322.txt`)
+
+### État Actuel
+
+**Processus Python:** 1 seul (PID 32412) — orchestrateur idle  
+**Runs actifs:** Aucun ✅  
+**Pipeline:** Complété à 16:47:24 UTC
+
+### Next Steps
+
+**@Sam (24-48h):**
+1. Valider guards existants (7 assets, 14 fichiers)
+2. Exécuter guards manquants (8 assets)
+3. Vérifier reproducibilité (15 assets, variance < 1%)
+4. Rapport final avec recommandations PROD/BLOCKED
+
+**@Casey (après Sam):**
+- Décision finale PROD pour 10-12 assets (sur 15 validés)
+- Update `status/project-state.md`
+- Portfolio target: 15-17 assets PROD (actuels + nouveaux)
+
+### Documentation
+
+**Postmortem:** `docs/OVERNIGHT_PIPELINE_POSTMORTEM.md` ✅  
+**Script fixé:** `scripts/run_overnight_reset_fixed.ps1` ✅  
+**Communication:** `comms/sam-qa.md` (mis à jour avec [18:45] entrée) ✅
+
+**Status:** ⏳ **EN ATTENTE VALIDATION @Sam**  
+**ETA Final:** 26-27 janvier (après guards + décision Casey)
+
+---
+
 ## [15:55] [BUG_ANALYSIS] @Jordan — DOUBLONS PHASE 2 EXPLIQUÉS
 
 **Issue:** Chaque asset SUCCESS validé 2× en Phase 2 (28 runs au lieu de 14)  

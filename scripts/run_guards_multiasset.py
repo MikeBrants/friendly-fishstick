@@ -911,111 +911,68 @@ def _asset_guard_worker(
     outputs_path.mkdir(exist_ok=True)
 
     wfe_value = params.get("wfe")
-    guard_wfe_pass = True
-    if "wfe" in guards:
-        guard_wfe_pass = wfe_value is not None and _safe_float(wfe_value) >= 0.6
-
-    mc_p = None
-    guard001_pass = True
-    if "mc" in guards:
-        try:
-            mc_df, mc_p = _monte_carlo_permutation(
-                data, base_result, iterations=mc_iterations, seed=SEED
-            )
-            mc_path = outputs_path / f"{asset}_montecarlo_{run_id}.csv"
-            mc_df.to_csv(mc_path, index=False)
-            guard001_pass = mc_p < 0.05
-        except Exception as e:
-            raise RuntimeError(f"[DEBUG] Monte Carlo failed for {asset}: {type(e).__name__}: {e}") from e
-
-    variance_pct = None
-    guard002_pass = True
-    if "sensitivity" in guards:
-        try:
-            sens_df, variance_pct = _sensitivity_grid(
-                data, params, radius=sensitivity_range
-            )
-            variance_pct = _safe_float(variance_pct)
-            sens_path = outputs_path / f"{asset}_sensitivity_{run_id}.csv"
-            sens_df.to_csv(sens_path, index=False)
-            guard002_pass = variance_pct < 10.0
-        except Exception as e:
-            raise RuntimeError(f"[DEBUG] Sensitivity grid failed for {asset}: {type(e).__name__}: {e}") from e
-
+    
+    # Get pnls for guards that need trades
     pnls = _pnl_series(base_result.trades).to_numpy()
     needs_trades = any(g in guards for g in ["bootstrap", "trade_dist", "stress", "regime"])
     if needs_trades and len(pnls) == 0:
         raise RuntimeError("No trades for guard calculations.")
 
-    sharpe_ci_lower = None
-    guard003_pass = True
-    if "bootstrap" in guards:
-        try:
-            bootstrap_df, bootstrap_summary = _bootstrap_confidence(
-                pnls,
-                initial_capital=BASE_CONFIG.initial_capital,
-                iterations=bootstrap_samples,
-                seed=SEED,
-            )
-            bootstrap_path = outputs_path / f"{asset}_bootstrap_{run_id}.csv"
-            bootstrap_df.to_csv(bootstrap_path, index=False)
-            
-            # FIX: Protection contre complexes dans conversion float
-            sharpe_ci_lower = _safe_float(bootstrap_summary["sharpe"]["ci_lower_95"])
-            guard003_pass = sharpe_ci_lower > 1.0
-        except Exception as e:
-            raise RuntimeError(f"[DEBUG] Bootstrap failed for {asset}: {type(e).__name__}: {e}") from e
+    # ===== PARALLEL EXECUTION OF GUARDS =====
+    guard_results = _run_guards_parallel(
+        data=data,
+        params=params,
+        full_params=full_params,
+        base_result=base_result,
+        pnls=pnls,
+        guards=guards,
+        outputs_path=outputs_path,
+        asset=asset,
+        run_id=run_id,
+        mc_iterations=mc_iterations,
+        bootstrap_samples=bootstrap_samples,
+        sensitivity_range=sensitivity_range,
+        stress_scenarios=stress_scenarios,
+        wfe_value=wfe_value,
+        n_jobs=4,
+    )
 
-    trade_dist = {}
-    guard005_pass = True
-    if "trade_dist" in guards:
-        try:
-            trade_dist = _trade_distribution(pnls)
-            trade_dist["total_return_pct"] = pnls.sum() / BASE_CONFIG.initial_capital * 100.0
-            trade_dist_path = outputs_path / f"{asset}_tradedist_{run_id}.csv"
-            pd.DataFrame([trade_dist]).to_csv(trade_dist_path, index=False)
-            guard005_pass = trade_dist["pct_return_top_10"] < 40.0
-        except Exception as e:
-            raise RuntimeError(f"[DEBUG] Trade distribution failed for {asset}: {type(e).__name__}: {e}") from e
+    # ===== Extract results from parallel execution =====
+    mc_result = guard_results.get("mc", {"value": None, "pass": True, "error": None})
+    sens_result = guard_results.get("sensitivity", {"value": None, "pass": True, "error": None})
+    boot_result = guard_results.get("bootstrap", {"value": None, "pass": True, "error": None})
+    trade_result = guard_results.get("trade_dist", {"value": None, "pass": True, "error": None})
+    stress_result = guard_results.get("stress", {"value": None, "pass": True, "error": None})
+    regime_result = guard_results.get("regime", {"value": None, "pass": True, "error": None})
+    wfe_result = guard_results.get("wfe", {"value": wfe_value, "pass": True, "error": None})
 
-    stress1_sharpe = None
-    guard006_pass = True
-    if "stress" in guards:
-        try:
-            scenarios = [("Base", 5, 2)]
-            if not stress_scenarios:
-                stress_scenarios = [(10.0, 5.0)]
-            for idx, (fees, slippage) in enumerate(stress_scenarios, start=1):
-                scenarios.append((f"Stress{idx}", fees, slippage))
-            stress_rows = []
-            for label, fees, slippage in scenarios:
-                metrics = _run_scenario(data, full_params, fees_bps=fees, slippage_bps=slippage)
-                metrics["scenario"] = label
-                stress_rows.append(metrics)
-            break_even_fees = _find_break_even_fees(data, full_params)
-            edge_buffer_bps = break_even_fees - 5
-            for row in stress_rows:
-                row["break_even_fees_bps"] = break_even_fees
-                row["edge_buffer_bps"] = edge_buffer_bps
-            stress_df = pd.DataFrame(stress_rows)
-            stress_path = outputs_path / f"{asset}_stresstest_{run_id}.csv"
-            stress_df.to_csv(stress_path, index=False)
-            stress1_row = stress_df[stress_df["scenario"] == "Stress1"].iloc[0]
-            
-            # FIX: Protection contre complexes dans conversion float
-            stress1_sharpe = _safe_float(stress1_row["sharpe"])
-            guard006_pass = stress1_sharpe > 1.0
-        except Exception as e:
-            raise RuntimeError(f"[DEBUG] Stress test failed for {asset}: {type(e).__name__}: {e}") from e
+    # Check for errors in any guard
+    errors = [r.get("error") for r in guard_results.values() if r.get("error")]
+    if errors:
+        raise RuntimeError(f"Guard errors: {'; '.join(errors)}")
 
-    mismatch_pct = None
-    guard007_pass = True
-    if "regime" in guards:
-        regime_df, mismatch_pct = _regime_reconciliation(data, base_result)
-        regime_path = outputs_path / f"{asset}_regime_{run_id}.csv"
-        regime_df.to_csv(regime_path, index=False)
-        guard007_pass = mismatch_pct < 1.0
+    # Extract individual values for backward compatibility
+    mc_p = mc_result["value"]
+    guard001_pass = mc_result["pass"]
 
+    variance_pct = sens_result["value"]
+    guard002_pass = sens_result["pass"]
+
+    sharpe_ci_lower = boot_result["value"]
+    guard003_pass = boot_result["pass"]
+
+    trade_dist = {"pct_return_top_10": trade_result["value"]}
+    guard005_pass = trade_result["pass"]
+
+    stress1_sharpe = stress_result["value"]
+    guard006_pass = stress_result["pass"]
+
+    mismatch_pct = regime_result["value"]
+    guard007_pass = regime_result["pass"]
+
+    guard_wfe_pass = wfe_result["pass"]
+
+    # Build pass checklist
     guard_checks = []
     if "mc" in guards:
         guard_checks.append(guard001_pass)

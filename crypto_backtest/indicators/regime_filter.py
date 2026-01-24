@@ -25,7 +25,8 @@ import pandas as pd
 import numpy as np
 from typing import List, Optional
 
-from crypto_backtest.analysis.regime import classify_regimes_v2, REGIMES_V2
+# Lazy import to avoid circular dependency
+# classify_regimes_v2 and REGIMES_V2 are imported inside functions that use them
 
 
 def filter_recovery_regime(
@@ -50,6 +51,7 @@ def filter_recovery_regime(
     Returns:
         Filtered signals with RECOVERY regime trades removed
     """
+    from crypto_backtest.analysis.regime import classify_regimes_v2
     regimes = classify_regimes_v2(data)
     is_recovery = (regimes == "RECOVERY").shift(1)  # Shift to avoid look-ahead
     
@@ -84,6 +86,7 @@ def filter_regimes(
     Returns:
         Filtered signals
     """
+    from crypto_backtest.analysis.regime import classify_regimes_v2
     regimes = classify_regimes_v2(data)
     regimes_shifted = regimes.shift(1)  # Avoid look-ahead
     
@@ -170,6 +173,8 @@ def get_regime_performance(
     Returns:
         DataFrame with regime performance metrics
     """
+    from crypto_backtest.analysis.regime import classify_regimes_v2, REGIMES_V2
+    
     if trades.empty:
         return pd.DataFrame()
     

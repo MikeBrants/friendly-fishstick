@@ -1,6 +1,8 @@
 # Pipeline Multi-Asset — 6 Phases (Screen → Validate → Prod)
 
-**Derniere mise a jour:** 2026-01-24 (CRITICAL: Reproducibility Strategy Option B Implemented)
+**Derniere mise a jour:** 2026-01-24 19:00 UTC  
+**Status**: 🟡 POST-PR7 INTEGRATION & RE-VALIDATION TESTING  
+**Version**: v2.1 (with overfitting diagnostics + portfolio construction)
 
 **⚠️ BREAKING CHANGE**: Parallel screening (workers > 1) is non-deterministic by Optuna design. Phase 2 MUST use workers=1 for scientific validity.
 
@@ -9,25 +11,80 @@ Ce document decrit le workflow **scalable** pour executer le pipeline FINAL TRIG
 **SEE ALSO**: 
 - [REPRODUCIBILITY_STRATEGY.md](../REPRODUCIBILITY_STRATEGY.md) — Scientific foundation for Option B workflow
 - [REVALIDATION_BRIEF.md](./REVALIDATION_BRIEF.md) — Complete re-validation brief with commands
+- [../status/project-state.md](../status/project-state.md) — **CURRENT PROJECT STATUS** (single source of truth)
+- [../comms/TESTING_COORDINATION.md](../comms/TESTING_COORDINATION.md) — Agent coordination protocol
+
+**RECENT UPDATES (2026-01-24):**
+- ✅ **PR #7 MERGED**: Overfitting diagnostics (PSR/DSR) + portfolio construction
+- ✅ **Reproducibility Fix**: Deterministic seeds deployed and verified
+- 🔄 **Testing Phase**: Re-validating baseline assets with new system
+- 🔄 **Coordination System**: Multi-agent workflow active (Casey + Alex)
 
 **GUARDS CONFIG VERIFIED (2026-01-24):**
 - Monte Carlo iterations: **1000** ✅ (minimum standard)
 - Bootstrap samples: **10000** ✅ (5x minimum, excellent)
 - Confidence level: **0.95** ✅
+- **NEW**: Overfitting metrics (PSR/DSR) — Report-only (informational)
+- **NEW**: Guards parallélisation intra-asset (joblib threading) — 20-40% speedup
 
 ---
 
-## Pipeline Actuel (6 Phases)
+## 🧪 CURRENT PHASE: Post-PR7 Integration & Re-Validation Testing
 
-| Phase | Nom | Input | Output |
-|-------|-----|-------|--------|
-| 0 | Download | - | `data/*.parquet` |
-| 1 | Screening | 97 assets | `outputs/multiasset_scan_*.csv` |
-| 2 | Validation | Screening winners | WINNERS + PENDING |
-| 3A | Rescue (PENDING) | PENDING | `displacement_rescue_*.csv` |
-| 3B | Optimization (WINNERS) | WINNERS | `displacement_optimization_*.csv` |
-| 4 | Filter Grid | PENDING restants | `ANALYSIS_FILTER_GRID_*.md` |
-| 5 | Production | Tous valides | `asset_config.py` |
+**What's Happening Now** (24 janvier 2026, 19:00 UTC):
+
+We are in a **testing and re-validation phase** following two major updates:
+
+1. **PR #7 Merged** (commit `b7f73ff`):
+   - Added overfitting diagnostics (PSR/DSR) to validation pipeline
+   - Added portfolio construction with 4 optimization methods
+   - Added optional empyrical metrics cross-check
+
+2. **Reproducibility Fix Deployed**:
+   - Deterministic seeds implemented (hashlib-based)
+   - Verified with 5+ consecutive identical runs
+   - System ready for scientific validation
+
+**Active Workstreams**:
+- 🔄 **Alex** (Development): Testing PR #7 features (ETH integration test)
+- ⏸️ **Casey** (Orchestration): Waiting to re-validate baseline PROD assets
+
+**Why Re-Validation?**:
+- Old results (before fix) were non-deterministic → scientifically unreliable
+- New system produces reproducible results → scientifically valid
+- Need to confirm 15 frozen PROD assets still pass with deterministic system
+
+**Coordination System**:
+- Clear task assignments prevent agent conflicts
+- File naming conventions (`PR7_TEST_*`, `REVALIDATION_*`) track purpose
+- See [Testing Coordination](../comms/TESTING_COORDINATION.md) for details
+
+**Timeline**: 1-2 days to complete testing, then proceed to Phase 1 screening
+
+**Status Files**:
+- [../status/project-state.md](../status/project-state.md) — Master project status
+- [../comms/alex-dev.md](../comms/alex-dev.md) — Alex's current tasks
+- [../comms/casey-quant.md](../comms/casey-quant.md) — Casey's validation queue
+- [../memo.md](../memo.md) — Quick one-page snapshot
+
+---
+
+## Pipeline Actuel (7 Phases)
+
+**🔄 CURRENT PHASE**: Post-PR7 Integration Testing (see [Testing Coordination](../comms/TESTING_COORDINATION.md))
+
+| Phase | Nom | Input | Output | Status |
+|-------|-----|-------|--------|--------|
+| 0 | Download | - | `data/*.parquet` | ✅ READY |
+| 1 | Screening | 97 assets | `outputs/multiasset_scan_*.csv` | ✅ READY |
+| 2 | Validation | Screening winners | WINNERS + PENDING | 🧪 TESTING |
+| 3A | Rescue (PENDING) | PENDING | `displacement_rescue_*.csv` | ✅ READY |
+| 3B | Optimization (WINNERS) | WINNERS | `displacement_optimization_*.csv` | ✅ READY |
+| 4 | Filter Grid | PENDING restants | `ANALYSIS_FILTER_GRID_*.md` | ✅ READY |
+| 5 | Production | Tous valides | `asset_config.py` | ✅ READY |
+| 6 | **Portfolio Construction** | 5+ assets PROD | `portfolio_weights_*.csv` | ✅ NEW |
+
+**NEW in v2.1**: Phase 6 enables multi-asset portfolio optimization with 4 methods (equal, max_sharpe, risk_parity, min_cvar)
 
 ---
 
@@ -36,13 +93,13 @@ Ce document decrit le workflow **scalable** pour executer le pipeline FINAL TRIG
 ```
 Phase 0: Download
     |
-Phase 1: Screening (200 trials, guards OFF par défaut)
+Phase 1: Screening (200 trials, workers=10, guards OFF)
     |
     +---> FAIL --> Stop ou Phase 3A (si asset important)
     |
-Phase 2: Validation (300 trials, --run-guards)
+Phase 2: Validation (300 trials, workers=1, --run-guards, --overfit-trials 150)
     |
-    +---> WINNERS (7/7) --> Phase 3B --> Phase 5
+    +---> WINNERS (7/7 + PSR/DSR OK) --> Phase 3B (optional) --> Phase 5
     |
     +---> PENDING (<7/7) --> Phase 3A
                                |
@@ -53,7 +110,19 @@ Phase 2: Validation (300 trials, --run-guards)
                                               +---> PASS --> Phase 5
                                               |
                                               +---> FAIL --> EXCLU
+
+Phase 5: Production Config (asset_config.py updated)
+    |
+    v
+Phase 6: Portfolio Construction (5+ assets PROD)
+    |
+    +---> Equal weights (baseline)
+    +---> Max Sharpe (performance)
+    +---> Risk Parity (risk-balanced)
+    +---> Min CVaR (downside protection)
 ```
+
+**NEW (v2.1)**: Phase 2 now includes overfitting diagnostics (PSR/DSR), Phase 6 enables portfolio optimization
 
 ---
 
@@ -160,6 +229,13 @@ python scripts/export_screening_results.py \
 - OOS Trades > 60
 - **Reproducible across 2 identical runs**
 
+**NEW — Overfitting Metrics (Report-Only, v2.1):**
+- **PSR** (Probabilistic Sharpe Ratio): P(SR > 0) — Expected > 0.85
+- **DSR** (Deflated Sharpe Ratio): After multiple testing adjustment — Expected > 0.70
+- **SR*** (Deflated threshold): Adjusted benchmark based on n_trials
+- **Status**: Informational only (does NOT affect all_pass status)
+- **Purpose**: Detect overfitting risk before production deployment
+
 ### Commande — Run 1 (Validation)
 
 ```bash
@@ -171,10 +247,13 @@ python scripts/run_full_pipeline.py \
   --trials-ichi 300 \
   --enforce-tp-progression \
   --run-guards \
+  --overfit-trials 150 \
   --workers-validation 1 \
   --skip-download \
   --output-prefix validated_run1
 ```
+
+**NEW (v2.1)**: `--overfit-trials 150` enables PSR/DSR calculations for overfitting assessment
 
 ### Commande — Run 2 (Reproducibility Check)
 
@@ -187,6 +266,7 @@ python scripts/run_full_pipeline.py \
   --trials-ichi 300 \
   --enforce-tp-progression \
   --run-guards \
+  --overfit-trials 150 \
   --workers-validation 1 \
   --skip-download \
   --output-prefix validated_run2
@@ -241,8 +321,11 @@ python scripts/run_full_pipeline.py \
   --trials-ichi 300 \
   --enforce-tp-progression \
   --run-guards \
-  --workers 4
+  --overfit-trials 150 \
+  --workers 1
 ```
+
+**Note (v2.1)**: Use `workers=1` for reproducibility. Add `--overfit-trials 150` for PSR/DSR metrics.
 
 Repeter pour d52, d78.
 
@@ -273,19 +356,23 @@ if new_sharpe > old_sharpe * 1.10 and all_guards_pass:
 
 ```bash
 python scripts/run_phase3b_optimization.py \
-  --workers 4 \
+  --workers 1 \
   --trials-atr 300 \
-  --trials-ichi 300
+  --trials-ichi 300 \
+  --overfit-trials 150
 ```
+
+**Note (v2.1)**: Changed to `workers=1` for reproducibility, added overfitting metrics.
 
 **Pour des assets spécifiques :**
 
 ```bash
 python scripts/run_phase3b_optimization.py \
   --assets BTC ETH \
-  --workers 4 \
+  --workers 1 \
   --trials-atr 300 \
-  --trials-ichi 300
+  --trials-ichi 300 \
+  --overfit-trials 150
 ```
 
 **Outputs :**
@@ -325,8 +412,11 @@ python scripts/run_full_pipeline.py \
   --trials-ichi 300 \
   --enforce-tp-progression \
   --run-guards \
-  --workers 4
+  --overfit-trials 150 \
+  --workers 1
 ```
+
+**Note (v2.1)**: Use `workers=1` for reproducibility, added overfitting diagnostics.
 
 **Output :** `outputs/ANALYSIS_FILTER_GRID_{ASSET}_*.md`
 
@@ -353,6 +443,94 @@ python scripts/run_full_pipeline.py \
 
 ---
 
+## Phase 6 : Portfolio Construction (NEW in v2.1)
+
+**Objectif** : Construire des portfolios optimises a partir des assets PROD valides.
+
+**Prerequisites** : Au moins 5 assets valides en PROD (7/7 guards PASS + overfitting OK)
+
+### Methodes d'Optimisation
+
+| Methode | Description | Use Case |
+|---------|-------------|----------|
+| `equal` | Poids egaux (baseline) | Benchmark simple |
+| `max_sharpe` | Maximise Sharpe ratio | Performance focus |
+| `risk_parity` | Equalise contribution au risque | Risk-balanced |
+| `min_cvar` | Minimise CVaR (expected shortfall) | Downside protection |
+
+### Contraintes de Poids
+
+- **Min weight**: 5-10% (eviter positions negligeables)
+- **Max weight**: 20-30% (eviter concentration)
+- **Sum**: 100% (fully invested)
+- **Correlation max**: < 0.70-0.75 (diversification)
+
+### Commande
+
+```bash
+# Construire portfolio avec methode Max Sharpe
+python scripts/portfolio_construction.py \
+  --input-validated outputs/multiasset_guards_summary_<timestamp>.csv \
+  --method max_sharpe \
+  --min-weight 0.05 \
+  --max-weight 0.20 \
+  --max-correlation 0.75 \
+  --output-prefix production_portfolio
+
+# Repeter pour toutes les methodes
+for method in equal risk_parity min_cvar; do
+  python scripts/portfolio_construction.py \
+    --input-validated outputs/multiasset_guards_summary_<timestamp>.csv \
+    --method $method \
+    --min-weight 0.05 \
+    --max-weight 0.20 \
+    --output-prefix production_portfolio
+done
+```
+
+### Outputs
+
+- `outputs/production_portfolio_weights_<method>_<timestamp>.csv` — Poids optimaux par asset
+- `outputs/production_portfolio_correlation_matrix_<timestamp>.csv` — Matrice de correlation
+- `outputs/production_portfolio_metrics_<timestamp>.csv` — Comparaison des methodes
+- `outputs/production_portfolio_high_correlation_<timestamp>.csv` — Paires correlees (si > max)
+
+### Analyse des Resultats
+
+**Comparer les 4 methodes** :
+- Sharpe ratio (rendement ajuste du risque)
+- Sortino ratio (rendement ajuste du downside)
+- Max drawdown (pire perte)
+- Diversification ratio (benefice de diversification)
+- Max pairwise correlation (risque de concentration)
+
+**Choisir le portfolio** :
+- `max_sharpe` si objectif = performance
+- `risk_parity` si objectif = balance risque
+- `min_cvar` si objectif = protection downside
+- `equal` comme benchmark (toujours calculer)
+
+### Validation du Portfolio
+
+**Verifier** :
+- [ ] Tous les poids entre min/max bounds
+- [ ] Sum des poids = 1.0
+- [ ] Aucune paire > max correlation threshold
+- [ ] Diversification ratio > 1.0 (sinon pas de benefice)
+- [ ] Sharpe portfolio >= moyenne des Sharpe individuels
+
+**Backtest du portfolio** (optionnel mais recommande) :
+```bash
+# Simuler le portfolio avec les poids optimaux
+python scripts/backtest_portfolio.py \
+  --weights outputs/production_portfolio_weights_max_sharpe_<timestamp>.csv \
+  --start-date 2022-01-01 \
+  --end-date 2025-12-31 \
+  --rebalance-frequency monthly
+```
+
+---
+
 ## NE PAS FAIRE
 
 - Ne jamais utiliser `docs/HANDOFF.md` comme reference
@@ -363,12 +541,25 @@ python scripts/run_full_pipeline.py \
 
 ---
 
-## IMPORTANT
+## IMPORTANT — Fichiers de Reference
 
-- **`status/project-state.md`** = source de verite actuelle
-- **`docs/HANDOFF.md`** = obsolete, ne pas utiliser
-- **`docs/BACKTESTING.md`** = historique seulement, pas l'etat actuel
-- **`.cursor/rules/*.mdc`** = regles generales (lues automatiquement)
+**Source de Verite (TOUJOURS A JOUR)**:
+- **`status/project-state.md`** = Master project status (asset matrix, workstreams, decisions)
+- **`memo.md`** = Quick one-page snapshot
+- **`comms/TESTING_COORDINATION.md`** = Agent coordination protocol
+- **`comms/alex-dev.md`** = Alex's current tasks
+- **`comms/casey-quant.md`** = Casey's validation queue
+
+**Documentation Technique**:
+- **`docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md`** = This file (workflow reference)
+- **`docs/BRIEF_PARALLEL_GUARDS_V2.md`** = Guards system details
+- **`CLAUDE.md`** = System architecture
+- **`.cursor/rules/*.mdc`** = Agent roles (lues automatiquement)
+
+**OBSOLETE (Ne Pas Utiliser)**:
+- ❌ **`docs/HANDOFF.md`** = Obsolete, ne plus utiliser
+- ❌ **`docs/BACKTESTING.md`** = Historique seulement, pas l'etat actuel
+- ❌ **`NEXT_STEPS_SUMMARY.md`** = Remplace par coordination system
 
 ---
 

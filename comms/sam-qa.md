@@ -42,6 +42,133 @@ Ce fichier contient les validations des 7 guards par Sam.
 
 ---
 
+## [18:45] [RESULTS] @Jordan -> @Sam — PHASE 2 COMPLETE + GUARDS VALIDATION
+
+**Ref:** `comms/jordan-to-sam-phase2-results.md` (RAPPORT COMPLET)  
+**Date:** 24 janvier 2026, 18:45 UTC  
+**Priority:** 🔥 **URGENT — Validation Guards + Reproducibilité**
+
+### 🎉 Pipeline Status: COMPLETE
+
+**Phase 1:** 60 assets → **15 SUCCESS** (25%)  
+**Phase 2:** 15 assets × 2-4 runs → **60 validations COMPLETE** (16:47 UTC)  
+**Durée totale:** 13h24 (03:23 → 16:47)
+
+### 📊 Assets Validés (15 total)
+
+**Avec guards (7 assets):**
+- ETH, JOE, ANKR, DOGE, DOT, NEAR, SHIB ✅
+
+**SANS guards (8 assets):**
+- HBAR, CRV, SUSHI, RUNE, TIA, CAKE, TON, EGLD ⚠️
+
+### 🎯 Actions Requises @Sam
+
+#### **1. URGENT - Valider Guards Existants (7 assets)**
+
+**Fichiers à vérifier:**
+```
+outputs/phase2_validation_ETH_run1_guards_summary_20260124_093036.csv
+outputs/phase2_validation_ETH_run2_guards_summary_20260124_095104.csv
+outputs/phase2_validation_JOE_run1_guards_summary_20260124_101129.csv
+outputs/phase2_validation_JOE_run2_guards_summary_20260124_103141.csv
+outputs/phase2_validation_ANKR_run1_guards_summary_20260124_105249.csv
+outputs/phase2_validation_ANKR_run2_guards_summary_20260124_111312.csv
+outputs/phase2_validation_DOGE_run1_guards_summary_20260124_113354.csv
+outputs/phase2_validation_DOGE_run2_guards_summary_20260124_115425.csv
+outputs/phase2_validation_DOT_run1_guards_summary_20260124_121430.csv
+outputs/phase2_validation_DOT_run2_guards_summary_20260124_123420.csv
+outputs/phase2_validation_NEAR_run1_guards_summary_20260124_081036.csv
+outputs/phase2_validation_NEAR_run2_guards_summary_20260124_083043.csv
+outputs/phase2_validation_SHIB_run1_guards_summary_20260124_085105.csv
+outputs/phase2_validation_SHIB_run2_guards_summary_20260124_091044.csv
+```
+
+**Checklist par asset (14 fichiers = 7 assets × 2 runs):**
+- [ ] Guard 001 (MC p-value) < 0.05
+- [ ] Guard 002 (Sensitivity) < 10%
+- [ ] Guard 003 (Bootstrap CI) > 1.0
+- [ ] Guard 005 (Top10 trades) < 40%
+- [ ] Guard 006 (Stress Sharpe) > 1.0
+- [ ] Guard 007 (Regime mismatch) < 1%
+- [ ] WFE > 0.6
+- [ ] **All Pass = TRUE**
+
+**Verdict attendu:** PASS (7/7) ou FAIL avec détails
+
+---
+
+#### **2. HIGH PRIORITY - Exécuter Guards Manquants (8 assets)**
+
+**Assets sans guards:** HBAR, CRV, SUSHI, RUNE, TIA, CAKE, TON, EGLD
+
+**Option A: Guards seuls (rapide, ~2h):**
+```bash
+python scripts/run_guards_multiasset.py \
+  --scan-results outputs/phase2_validation_*_run1_multiasset_scan_*.csv \
+  --assets HBAR CRV SUSHI RUNE TIA CAKE TON EGLD \
+  --output-prefix phase2_guards_backfill
+```
+
+**Option B: Full pipeline avec guards (complet, ~8h):**
+```bash
+python scripts/run_full_pipeline.py \
+  --assets HBAR CRV SUSHI RUNE TIA CAKE TON EGLD \
+  --workers 1 \
+  --trials-atr 300 \
+  --trials-ichi 300 \
+  --enforce-tp-progression \
+  --run-guards \
+  --output-prefix phase2_guards_full
+```
+
+**Recommandation:** Option A (guards seuls) si les scans Phase 2 sont valides
+
+---
+
+#### **3. MEDIUM - Vérifier Reproducibilité (15 assets)**
+
+**Tolérance:** Variance < 1% entre Run1 et Run2
+
+**Métriques à comparer:**
+- OOS Sharpe
+- WFE
+- OOS Trades (identique requis)
+- Params (sl_mult, tp1/2/3_mult, tenkan, kijun, displacement)
+
+**Exemple TIA (reproductibilité parfaite):**
+- Run 1a: OOS Sharpe **5.157141046850353**
+- Run 2a: OOS Sharpe **5.157141046850353** ✅ IDENTIQUE
+- Run 1b: OOS Sharpe **5.157140789485458** (variance < 0.0001%)
+
+**Verdict attendu:**
+- ✅ REPRODUCIBLE (variance < 1%)
+- ⚠️ INVESTIGATE (variance 1-5%)
+- ❌ FAIL (variance > 5%)
+
+---
+
+### 📁 Fichiers Clés
+
+**Rapport complet:** `comms/jordan-to-sam-phase2-results.md`  
+**Log pipeline:** `outputs/overnight_log_20260124_032322.txt`  
+**Phase 1 scans:** `outputs/phase1_reset_batch{1-5}_*_multiasset_scan_*.csv`  
+**Phase 2 scans:** `outputs/phase2_validation_*_multiasset_scan_*.csv` (60 fichiers)
+
+---
+
+### 🎯 Deliverables @Sam
+
+1. **Tableau Guards (7 assets)** — Status PASS/FAIL par guard
+2. **Rapport Reproducibilité (15 assets)** — Variance Run1 vs Run2
+3. **Guards 8 assets restants** — Exécution + validation
+4. **Recommendation finale** — Liste assets PROD vs BLOCKED
+
+**ETA:** 24-48h  
+**Next:** @Casey décision finale PROD + update `status/project-state.md`
+
+---
+
 ## [12:20] [TASK] @Casey -> @Sam — OVERNIGHT RESET VALIDATION
 
 **Ref:** Overnight Pipeline Progress Report  
