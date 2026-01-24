@@ -1,0 +1,2 @@
+asset,base_sharpe,guard001_p_value,guard001_pass,guard002_variance_pct,guard002_pass,guard003_sharpe_ci_lower,guard003_pass,guard005_top10_pct,guard005_pass,guard006_stress1_sharpe,guard006_pass,guard007_mismatch_pct,guard007_pass,guard_wfe,guard_wfe_pass,all_pass,error
+SHIB,2.438929798564511,0.0,True,3.6216169669961196,True,2.330165502158855,True,21.455552919555167,True,1.89258843756308,True,1.25195737949039e-14,True,2.2727178719188093,True,True,

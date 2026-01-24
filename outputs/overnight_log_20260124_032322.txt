@@ -1,0 +1,349 @@
+[03:23:22] === OVERNIGHT RESET PIPELINE START ===
+[03:23:22] Timestamp: 20260124_032322
+[03:23:22] Total assets: 60 (5 batches)
+[03:23:22] Estimated duration: 3-4h
+[03:23:22] 
+[03:23:22] ==========================================
+[03:23:22] BATCH 1: Anciens PROD (15 assets) - PRIORITAIRE
+[03:23:22] ==========================================
+[03:44:31] ❌ Batch 1 FAILED (exit code: 1)
+[03:44:41] 
+[03:44:41] ==========================================
+[03:44:41] BATCH 2: High Cap (15 assets)
+[03:44:41] ==========================================
+[04:04:06] ✅ Batch 2 COMPLETE
+[04:04:16] 
+[04:04:16] ==========================================
+[04:04:16] BATCH 3: DeFi + L2 (10 assets)
+[04:04:16] ==========================================
+[04:16:11] ❌ Batch 3 FAILED (exit code: 1)
+[04:16:21] 
+[04:16:21] ==========================================
+[04:16:21] BATCH 4: Gaming + Meme (10 assets)
+[04:16:21] ==========================================
+[04:28:14] ✅ Batch 4 COMPLETE
+[04:28:24] 
+[04:28:24] ==========================================
+[04:28:24] BATCH 5: Infra + Storage (10 assets)
+[04:28:24] ==========================================
+[04:40:38] ✅ Batch 5 COMPLETE
+[04:40:38] 
+[04:40:38] ==========================================
+[04:40:38] PHASE 1 RE-SCREENING COMPLETE
+[04:40:38] ==========================================
+[04:40:38] 
+[04:40:38] Phase 1 Result Files:
+[04:40:38]   - phase1_reset_batch1_prod_multiasset_scan_20260124_034427.csv (4598 bytes)
+[04:40:38]   - phase1_reset_batch1_prod_multi_asset_scan_20260124_034427.csv (4598 bytes)
+[04:40:38]   - phase1_reset_batch2_highcap_multiasset_scan_20260124_040404.csv (4793 bytes)
+[04:40:38]   - phase1_reset_batch2_highcap_multi_asset_scan_20260124_040404.csv (4793 bytes)
+[04:40:38]   - phase1_reset_batch3_defi_multiasset_scan_20260124_041607.csv (3185 bytes)
+[04:40:38]   - phase1_reset_batch3_defi_multi_asset_scan_20260124_041607.csv (3185 bytes)
+[04:40:38]   - phase1_reset_batch4_gaming_multiasset_scan_20260124_042812.csv (3308 bytes)
+[04:40:38]   - phase1_reset_batch4_gaming_multi_asset_scan_20260124_042812.csv (3308 bytes)
+[04:40:38]   - phase1_reset_batch5_infra_multiasset_scan_20260124_044036.csv (3289 bytes)
+[04:40:38]   - phase1_reset_batch5_infra_multi_asset_scan_20260124_044036.csv (3289 bytes)
+[04:40:38] 
+[04:40:38] Analyzing Phase 1 SUCCESS assets...
+[04:40:38]   ✅ SUCCESS: ETH
+[04:40:38]   ✅ SUCCESS: JOE
+[04:40:38]   ✅ SUCCESS: ANKR
+[04:40:38]   ✅ SUCCESS: DOGE
+[04:40:38]   ✅ SUCCESS: DOT
+[04:40:38]   ✅ SUCCESS: NEAR
+[04:40:38]   ✅ SUCCESS: SHIB
+[04:40:38]   ✅ SUCCESS: ETH
+[04:40:38]   ✅ SUCCESS: JOE
+[04:40:38]   ✅ SUCCESS: ANKR
+[04:40:38]   ✅ SUCCESS: DOGE
+[04:40:38]   ✅ SUCCESS: DOT
+[04:40:38]   ✅ SUCCESS: NEAR
+[04:40:38]   ✅ SUCCESS: SHIB
+[04:40:38]   ✅ SUCCESS: HBAR
+[04:40:38]   ✅ SUCCESS: HBAR
+[04:40:38]   ✅ SUCCESS: CRV
+[04:40:38]   ✅ SUCCESS: SUSHI
+[04:40:38]   ✅ SUCCESS: RUNE
+[04:40:38]   ✅ SUCCESS: TIA
+[04:40:38]   ✅ SUCCESS: CAKE
+[04:40:38]   ✅ SUCCESS: TON
+[04:40:38]   ✅ SUCCESS: CRV
+[04:40:38]   ✅ SUCCESS: SUSHI
+[04:40:38]   ✅ SUCCESS: RUNE
+[04:40:38]   ✅ SUCCESS: TIA
+[04:40:38]   ✅ SUCCESS: CAKE
+[04:40:38]   ✅ SUCCESS: TON
+[04:40:38]   ✅ SUCCESS: EGLD
+[04:40:38]   ✅ SUCCESS: EGLD
+[04:40:38] 
+[04:40:38] ==========================================
+[04:40:38] PHASE 1 SUMMARY
+[04:40:38] ==========================================
+[04:40:38] Total assets tested: 60
+[04:40:38] SUCCESS: 30 assets
+[04:40:38] SUCCESS rate: 50%
+[04:40:38] 
+[04:40:38] ==========================================
+[04:40:38] PHASE 2: AUTO-VALIDATION START
+[04:40:38] ==========================================
+[04:40:38] Assets to validate: 30
+[04:40:38] 
+[04:40:38] 
+[04:40:38] ====================
+[04:40:38] Validating: ETH (Run 1)
+[04:40:38] ====================
+[05:00:51] ✅ ETH Run 1 COMPLETE
+[05:00:51] 
+[05:00:51] ====================
+[05:00:51] Validating: ETH (Run 2 - Reproducibility)
+[05:00:51] ====================
+[05:20:55] ✅ ETH Run 2 COMPLETE - Check reproducibility manually
+[05:21:00] 
+[05:21:00] ====================
+[05:21:00] Validating: JOE (Run 1)
+[05:21:00] ====================
+[05:41:21] ✅ JOE Run 1 COMPLETE
+[05:41:21] 
+[05:41:21] ====================
+[05:41:21] Validating: JOE (Run 2 - Reproducibility)
+[05:41:21] ====================
+[06:01:34] ✅ JOE Run 2 COMPLETE - Check reproducibility manually
+[06:01:40] 
+[06:01:40] ====================
+[06:01:40] Validating: ANKR (Run 1)
+[06:01:40] ====================
+[06:21:54] ✅ ANKR Run 1 COMPLETE
+[06:21:54] 
+[06:21:54] ====================
+[06:21:54] Validating: ANKR (Run 2 - Reproducibility)
+[06:21:54] ====================
+[06:42:19] ✅ ANKR Run 2 COMPLETE - Check reproducibility manually
+[06:42:24] 
+[06:42:24] ====================
+[06:42:24] Validating: DOGE (Run 1)
+[06:42:24] ====================
+[07:02:45] ✅ DOGE Run 1 COMPLETE
+[07:02:45] 
+[07:02:45] ====================
+[07:02:45] Validating: DOGE (Run 2 - Reproducibility)
+[07:02:45] ====================
+[07:23:16] ✅ DOGE Run 2 COMPLETE - Check reproducibility manually
+[07:23:21] 
+[07:23:21] ====================
+[07:23:21] Validating: DOT (Run 1)
+[07:23:21] ====================
+[07:43:50] ✅ DOT Run 1 COMPLETE
+[07:43:50] 
+[07:43:50] ====================
+[07:43:50] Validating: DOT (Run 2 - Reproducibility)
+[07:43:50] ====================
+[08:04:11] ✅ DOT Run 2 COMPLETE - Check reproducibility manually
+[08:04:16] 
+[08:04:16] ====================
+[08:04:16] Validating: NEAR (Run 1)
+[08:04:16] ====================
+[08:24:21] ✅ NEAR Run 1 COMPLETE
+[08:24:21] 
+[08:24:21] ====================
+[08:24:21] Validating: NEAR (Run 2 - Reproducibility)
+[08:24:21] ====================
+[08:44:38] ✅ NEAR Run 2 COMPLETE - Check reproducibility manually
+[08:44:43] 
+[08:44:43] ====================
+[08:44:43] Validating: SHIB (Run 1)
+[08:44:43] ====================
+[09:04:29] ✅ SHIB Run 1 COMPLETE
+[09:04:29] 
+[09:04:29] ====================
+[09:04:29] Validating: SHIB (Run 2 - Reproducibility)
+[09:04:29] ====================
+[09:24:04] ✅ SHIB Run 2 COMPLETE - Check reproducibility manually
+[09:24:09] 
+[09:24:09] ====================
+[09:24:09] Validating: ETH (Run 1)
+[09:24:09] ====================
+[09:44:31] ✅ ETH Run 1 COMPLETE
+[09:44:31] 
+[09:44:31] ====================
+[09:44:31] Validating: ETH (Run 2 - Reproducibility)
+[09:44:31] ====================
+[10:04:50] ✅ ETH Run 2 COMPLETE - Check reproducibility manually
+[10:04:55] 
+[10:04:55] ====================
+[10:04:55] Validating: JOE (Run 1)
+[10:04:55] ====================
+[10:25:14] ✅ JOE Run 1 COMPLETE
+[10:25:14] 
+[10:25:14] ====================
+[10:25:14] Validating: JOE (Run 2 - Reproducibility)
+[10:25:14] ====================
+[10:45:58] ✅ JOE Run 2 COMPLETE - Check reproducibility manually
+[10:46:03] 
+[10:46:03] ====================
+[10:46:03] Validating: ANKR (Run 1)
+[10:46:03] ====================
+[11:06:29] ✅ ANKR Run 1 COMPLETE
+[11:06:29] 
+[11:06:29] ====================
+[11:06:29] Validating: ANKR (Run 2 - Reproducibility)
+[11:06:29] ====================
+[11:26:59] ✅ ANKR Run 2 COMPLETE - Check reproducibility manually
+[11:27:04] 
+[11:27:04] ====================
+[11:27:04] Validating: DOGE (Run 1)
+[11:27:04] ====================
+[11:47:41] ✅ DOGE Run 1 COMPLETE
+[11:47:41] 
+[11:47:41] ====================
+[11:47:41] Validating: DOGE (Run 2 - Reproducibility)
+[11:47:41] ====================
+[12:08:02] ✅ DOGE Run 2 COMPLETE - Check reproducibility manually
+[12:08:07] 
+[12:08:07] ====================
+[12:08:07] Validating: DOT (Run 1)
+[12:08:07] ====================
+[12:28:19] ✅ DOT Run 1 COMPLETE
+[12:28:19] 
+[12:28:19] ====================
+[12:28:19] Validating: DOT (Run 2 - Reproducibility)
+[12:28:19] ====================
+[12:48:06] ✅ DOT Run 2 COMPLETE - Check reproducibility manually
+[12:48:11] 
+[12:48:11] ====================
+[12:48:11] Validating: NEAR (Run 1)
+[12:48:11] ====================
+[12:56:18] ✅ NEAR Run 1 COMPLETE
+[12:56:18] 
+[12:56:18] ====================
+[12:56:18] Validating: NEAR (Run 2 - Reproducibility)
+[12:56:18] ====================
+[13:04:07] ✅ NEAR Run 2 COMPLETE - Check reproducibility manually
+[13:04:12] 
+[13:04:12] ====================
+[13:04:12] Validating: SHIB (Run 1)
+[13:04:12] ====================
+[13:12:02] ✅ SHIB Run 1 COMPLETE
+[13:12:02] 
+[13:12:02] ====================
+[13:12:02] Validating: SHIB (Run 2 - Reproducibility)
+[13:12:02] ====================
+[13:20:25] ✅ SHIB Run 2 COMPLETE - Check reproducibility manually
+[13:20:30] 
+[13:20:30] ====================
+[13:20:30] Validating: HBAR (Run 1)
+[13:20:30] ====================
+[13:27:47] ✅ HBAR Run 1 COMPLETE
+[13:27:47] 
+[13:27:47] ====================
+[13:27:47] Validating: HBAR (Run 2 - Reproducibility)
+[13:27:47] ====================
+[13:34:33] ✅ HBAR Run 2 COMPLETE - Check reproducibility manually
+[13:34:38] 
+[13:34:38] ====================
+[13:34:38] Validating: HBAR (Run 1)
+[13:34:38] ====================
+[13:41:28] ✅ HBAR Run 1 COMPLETE
+[13:41:28] 
+[13:41:28] ====================
+[13:41:28] Validating: HBAR (Run 2 - Reproducibility)
+[13:41:28] ====================
+[13:48:12] ✅ HBAR Run 2 COMPLETE - Check reproducibility manually
+[13:48:17] 
+[13:48:17] ====================
+[13:48:17] Validating: CRV (Run 1)
+[13:48:17] ====================
+[13:54:29] ✅ CRV Run 1 COMPLETE
+[13:54:29] 
+[13:54:29] ====================
+[13:54:29] Validating: CRV (Run 2 - Reproducibility)
+[13:54:29] ====================
+[14:00:41] ✅ CRV Run 2 COMPLETE - Check reproducibility manually
+[14:00:46] 
+[14:00:46] ====================
+[14:00:46] Validating: SUSHI (Run 1)
+[14:00:46] ====================
+[14:07:37] ✅ SUSHI Run 1 COMPLETE
+[14:07:37] 
+[14:07:37] ====================
+[14:07:37] Validating: SUSHI (Run 2 - Reproducibility)
+[14:07:38] ====================
+[14:14:30] ✅ SUSHI Run 2 COMPLETE - Check reproducibility manually
+[14:14:35] 
+[14:14:35] ====================
+[14:14:35] Validating: RUNE (Run 1)
+[14:14:35] ====================
+[14:21:01] ✅ RUNE Run 1 COMPLETE
+[14:21:01] 
+[14:21:01] ====================
+[14:21:01] Validating: RUNE (Run 2 - Reproducibility)
+[14:21:01] ====================
+[14:27:31] ✅ RUNE Run 2 COMPLETE - Check reproducibility manually
+[14:27:36] 
+[14:27:36] ====================
+[14:27:36] Validating: TIA (Run 1)
+[14:27:37] ====================
+[14:33:40] ✅ TIA Run 1 COMPLETE
+[14:33:40] 
+[14:33:40] ====================
+[14:33:40] Validating: TIA (Run 2 - Reproducibility)
+[14:33:40] ====================
+[14:39:46] ✅ TIA Run 2 COMPLETE - Check reproducibility manually
+[14:39:51] 
+[14:39:51] ====================
+[14:39:51] Validating: CAKE (Run 1)
+[14:39:51] ====================
+[14:46:07] ✅ CAKE Run 1 COMPLETE
+[14:46:07] 
+[14:46:07] ====================
+[14:46:07] Validating: CAKE (Run 2 - Reproducibility)
+[14:46:07] ====================
+[14:52:21] ✅ CAKE Run 2 COMPLETE - Check reproducibility manually
+[14:52:26] 
+[14:52:26] ====================
+[14:52:26] Validating: TON (Run 1)
+[14:52:26] ====================
+[14:57:13] ✅ TON Run 1 COMPLETE
+[14:57:13] 
+[14:57:13] ====================
+[14:57:13] Validating: TON (Run 2 - Reproducibility)
+[14:57:13] ====================
+[15:02:01] ✅ TON Run 2 COMPLETE - Check reproducibility manually
+[15:02:06] 
+[15:02:06] ====================
+[15:02:06] Validating: CRV (Run 1)
+[15:02:06] ====================
+[15:08:17] ✅ CRV Run 1 COMPLETE
+[15:08:17] 
+[15:08:17] ====================
+[15:08:17] Validating: CRV (Run 2 - Reproducibility)
+[15:08:17] ====================
+[15:14:28] ✅ CRV Run 2 COMPLETE - Check reproducibility manually
+[15:14:34] 
+[15:14:34] ====================
+[15:14:34] Validating: SUSHI (Run 1)
+[15:14:34] ====================
+[15:21:34] ✅ SUSHI Run 1 COMPLETE
+[15:21:34] 
+[15:21:34] ====================
+[15:21:34] Validating: SUSHI (Run 2 - Reproducibility)
+[15:21:34] ====================
+[15:28:54] ✅ SUSHI Run 2 COMPLETE - Check reproducibility manually
+[15:28:59] 
+[15:28:59] ====================
+[15:28:59] Validating: RUNE (Run 1)
+[15:28:59] ====================
+[15:35:43] ✅ RUNE Run 1 COMPLETE
+[15:35:43] 
+[15:35:43] ====================
+[15:35:43] Validating: RUNE (Run 2 - Reproducibility)
+[15:35:43] ====================
+[15:43:10] ✅ RUNE Run 2 COMPLETE - Check reproducibility manually
+[15:43:15] 
+[15:43:15] ====================
+[15:43:15] Validating: TIA (Run 1)
+[15:43:15] ====================
+[15:50:09] ✅ TIA Run 1 COMPLETE
+[15:50:09] 
+[15:50:09] ====================
+[15:50:09] Validating: TIA (Run 2 - Reproducibility)
+[15:50:09] ====================

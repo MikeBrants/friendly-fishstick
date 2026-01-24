@@ -1,0 +1,2 @@
+asset,base_sharpe,guard001_p_value,guard001_pass,guard002_variance_pct,guard002_pass,guard003_sharpe_ci_lower,guard003_pass,guard005_top10_pct,guard005_pass,guard006_stress1_sharpe,guard006_pass,guard007_mismatch_pct,guard007_pass,guard_wfe,guard_wfe_pass,all_pass,error
+JOE,3.158431650900638,0.0,True,8.596830944612961,True,3.692635381375346,True,13.469397148707479,True,2.863813545893875,True,1.6121335674306577e-14,True,0.7294006592694771,True,True,

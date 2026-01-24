@@ -1,0 +1,2 @@
+asset,base_sharpe,guard001_p_value,guard001_pass,guard002_variance_pct,guard002_pass,guard003_sharpe_ci_lower,guard003_pass,guard005_top10_pct,guard005_pass,guard006_stress1_sharpe,guard006_pass,guard007_mismatch_pct,guard007_pass,guard_wfe,guard_wfe_pass,all_pass,error
+ANKR,3.4849925872659866,0.0,True,4.344449833971978,True,4.136658545268871,True,12.684519240044075,True,3.02330635626565,True,1.5962622861429126e-14,True,0.8573326232907699,True,True,
