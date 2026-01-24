@@ -204,3 +204,122 @@ PASS_CRITERIA = {
     "oos_trades_min": 50,
     "max_dd_max": 0.15,
 }
+
+# =============================================================================
+# VOLATILITY-BASED PARAMETER RANGES (Alex R&D Plan - Track 1: RESCUE)
+# =============================================================================
+# 
+# Hypothesis: Tighter, asset-specific ranges reduce overfitting.
+# Assets are clustered by volatility profile into 3 categories.
+#
+# HIGH_VOL: Meme coins, small caps (high ATR, fast moves)
+#   -> Tighter stops (lower sl_mult), quicker profits
+# MED_VOL: Mid-cap alts (standard volatility)
+#   -> Balanced ranges
+# LOW_VOL: Majors like BTC, ETH (lower ATR relative to price)
+#   -> Wider stops to avoid noise, larger profit targets
+
+# Asset classification by volatility profile
+VOLATILITY_PROFILES = {
+    # HIGH_VOL - Meme coins and small caps
+    "HIGH_VOL": [
+        "SHIB", "DOGE", "PEPE", "BONK", "WIF", "FLOKI",  # Meme coins
+        "GALA", "SAND", "MANA", "AXS", "IMX",  # Gaming/Metaverse
+        "JOE", "OSMO",  # DeFi small caps
+    ],
+    # MED_VOL - Mid-cap altcoins
+    "MED_VOL": [
+        "SOL", "AVAX", "DOT", "ATOM", "NEAR", "FTM", "ALGO",  # L1s
+        "LINK", "UNI", "AAVE", "MKR", "INJ",  # DeFi
+        "ARB", "OP", "MATIC", "IMX", "STRK",  # L2s
+        "APT", "SUI", "SEI", "TIA",  # New L1s
+    ],
+    # LOW_VOL - Major cryptocurrencies (blue chips)
+    "LOW_VOL": [
+        "BTC", "ETH", "BNB", "XRP",  # Top 4
+        "ADA", "TRX", "LTC", "BCH",  # Established large caps
+    ],
+}
+
+# ATR search spaces by volatility profile
+ATR_SEARCH_SPACE_HIGH_VOL = {
+    # Tighter stops for high volatility assets
+    "sl_mult": (1.5, 3.5),      # Tighter SL (was 1.5-5.0)
+    "tp1_mult": (1.5, 3.0),     # Quick first profit
+    "tp2_mult": (2.5, 7.0),     # Moderate second target
+    "tp3_mult": (4.0, 10.0),    # Runner target
+}
+
+ATR_SEARCH_SPACE_MED_VOL = {
+    # Standard ranges for medium volatility
+    "sl_mult": (2.0, 4.5),
+    "tp1_mult": (2.0, 4.0),
+    "tp2_mult": (3.5, 10.0),
+    "tp3_mult": (5.0, 12.0),
+}
+
+ATR_SEARCH_SPACE_LOW_VOL = {
+    # Wider stops for low volatility majors
+    "sl_mult": (3.0, 5.5),      # Wider SL to avoid noise
+    "tp1_mult": (3.0, 5.5),     # Larger first target
+    "tp2_mult": (5.0, 12.0),    # Larger second target
+    "tp3_mult": (7.0, 15.0),    # Extended runner
+}
+
+# Map of search spaces by profile
+ATR_SEARCH_SPACES_BY_VOL = {
+    "HIGH_VOL": ATR_SEARCH_SPACE_HIGH_VOL,
+    "MED_VOL": ATR_SEARCH_SPACE_MED_VOL,
+    "LOW_VOL": ATR_SEARCH_SPACE_LOW_VOL,
+}
+
+
+def get_volatility_profile(asset: str) -> str:
+    """
+    Get the volatility profile for an asset.
+    
+    Returns:
+        One of "HIGH_VOL", "MED_VOL", "LOW_VOL"
+        Defaults to "MED_VOL" if asset not classified.
+    """
+    for profile, assets in VOLATILITY_PROFILES.items():
+        if asset.upper() in assets:
+            return profile
+    return "MED_VOL"  # Default to medium if not classified
+
+
+def get_atr_search_space_for_asset(asset: str) -> dict:
+    """
+    Get the appropriate ATR search space based on asset's volatility profile.
+    
+    Args:
+        asset: Asset ticker (e.g., "BTC", "SHIB")
+    
+    Returns:
+        ATR search space dict suitable for the asset
+    """
+    profile = get_volatility_profile(asset)
+    return ATR_SEARCH_SPACES_BY_VOL[profile]
+
+
+# =============================================================================
+# MEME COIN CLUSTER (from SHIB investigation)
+# =============================================================================
+# These assets showed similar patterns in validation:
+# - High trade frequency (400+ trades)
+# - SIDEWAYS dominance (>50% of PnL)
+# - WFE > 1.0 (OOS better than IS)
+# - Low sensitivity variance (<10%)
+
+MEME_COINS = ["SHIB", "DOGE", "PEPE", "BONK", "WIF", "FLOKI"]
+
+# Recommended displacement for meme coins (faster price action)
+MEME_COIN_DISPLACEMENT = 26
+
+# Recommended filter mode for meme coins
+MEME_COIN_FILTER_MODE = "baseline"  # Minimal filters work best
+
+
+def is_meme_coin(asset: str) -> bool:
+    """Check if an asset is classified as a meme coin."""
+    return asset.upper() in MEME_COINS
