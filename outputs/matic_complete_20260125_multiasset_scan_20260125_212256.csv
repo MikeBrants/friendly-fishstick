@@ -1,0 +1,2 @@
+asset,status,exchange,timeframe,start_date,end_date,total_bars,seed,fail_reason,sl_mult,tp1_mult,tp2_mult,tp3_mult,tenkan,kijun,tenkan_5,kijun_5,displacement,is_sharpe,is_return,is_trades,val_sharpe,val_return,val_trades,oos_sharpe,oos_return,oos_trades,oos_max_dd,oos_pf,wfe,mc_p,error
+MATIC,FAIL,binance,1H,2024-01-26,2024-09-10,5457,42,TRADES<50,5.0,1.5,5.5,6.5,12,40,9,30,52,9.234858742145015,3.8719779721412273,87,-1.9779642035547151,-0.642988275152856,39,6.8388430635175705,0.6058508121863593,13,-0.010526340586591854,0.0,0.7405465805673046,0.0,
