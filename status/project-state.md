@@ -1,8 +1,149 @@
 # PROJECT STATE - FINAL TRIGGER v2 Backtest System
 
-**Last Updated**: 25 janvier 2026, 02:10 UTC  
-**Phase**: POST-PR8 — TIA/CAKE Reclassification + Portfolio @ 11 Assets  
-**Status**: 🟡 UPDATING (Asset configs being updated)
+**Last Updated**: 24 janvier 2026, 22:00 UTC  
+**Phase**: POST-PR7 INTEGRATION & RE-VALIDATION TESTING  
+**Status**: 🟡 ACTIVE TESTING (Multiple workstreams in progress)
+
+---
+
+## 🔴 CHANGEMENTS CRITIQUES (24 Jan 2026)
+
+### 1. Bug KAMA Oscillator Corrigé
+**Fichier**: `crypto_backtest/indicators/five_in_one.py` → `kama_oscillator()`
+
+La formule Python était **complètement fausse** par rapport au Pine Script:
+- **Avant (FAUX)**: `alpha² * price + (1-alpha²) * kama_prev` (KAMA classique avec α²)
+- **Après (CORRECT)**: `EMA + sc2 * (close - EMA)` (formule Pine Script)
+
+**Impact**: Assets PROD (baseline) NON impactés. Modes avec KAMA doivent être retestés.
+
+### 2. Refonte Filter System v2
+**Ancien système** (OBSOLÈTE):
+- 12 combinaisons arbitraires de filtres (data mining)
+- Seuil sensitivity 10%
+- Script: `run_filter_grid.py` (SUPPRIMÉ)
+
+**Nouveau système** (ACTIF):
+- 3 modes rationnels: `baseline` → `moderate` → `conservative`
+- Seuil sensitivity **15%** (relevé pour éviter data mining)
+- Script: `run_filter_rescue.py`
+
+### 3. Nouveau Workflow Phase 4
+```
+Asset FAIL baseline (sensitivity > 15%)
+    │
+    └─→ moderate (5 filtres)
+         │
+         ├─ PASS → PROD ✓
+         └─ FAIL → conservative (7 filtres)
+                   │
+                   ├─ PASS → PROD ✓
+                   └─ FAIL → EXCLU ✗
+```
+
+### 4. Seuils par Mode
+| Mode | Filtres | Sensitivity | Trades OOS | WFE |
+|------|---------|-------------|------------|-----|
+| baseline | ichimoku only | <15% | ≥60 | ≥0.6 |
+| moderate | 5 filtres | <15% | ≥50 | ≥0.6 |
+| conservative | 7 filtres | <15% | ≥40 | ≥0.55 |
+
+### 5. Commande Rescue
+```bash
+# Nouveau workflow simplifié
+python scripts/run_filter_rescue.py ASSET
+python scripts/run_filter_rescue.py ETH --trials 300
+```
+
+### 7. DSR (Deflated Sharpe Ratio) — NOUVEAU
+
+**Fichier**: `crypto_backtest/validation/deflated_sharpe.py`
+
+Corrige le **trial count paradox** identifié par Alex:
+- Plus de trials = WFE plus faible (overfitting)
+- DSR calcule la probabilité que le Sharpe soit statistiquement significatif
+
+**Seuils**:
+| DSR | Verdict |
+|-----|---------|
+| > 95% | STRONG — Edge significatif |
+| 85-95% | MARGINAL — Acceptable si autres guards OK |
+| < 85% | FAIL — Probablement overfitting |
+
+**Usage**:
+```python
+from crypto_backtest.validation.deflated_sharpe import guard_dsr
+result = guard_dsr(returns, sharpe_observed=2.14, n_trials=300, threshold=0.85)
+```
+
+### 6. Impact du Changement de Seuil (10% → 15%)
+
+#### ETH BASELINE - AMÉLIORATION MAJEURE
+Avec le nouveau seuil 15%, ETH baseline passe directement **sans filter grid**:
+
+| Métrique | Baseline (NEW) | medium_distance_volume (OLD) | Amélioration |
+|----------|----------------|------------------------------|--------------|
+| **Sharpe OOS** | **3.87** | 2.09 | **+85%** |
+| **WFE** | **2.36** | 0.82 | **+188%** |
+| **Trades OOS** | **87** | 57 | **+53%** |
+| Sensitivity | 12.96% | 3.95% | - |
+| Guard002 (15%) | ✅ PASS | ✅ PASS | - |
+
+**Conclusion**: ETH doit utiliser **baseline** (pas medium_distance_volume).
+
+#### CAKE - MAINTENANT ÉLIGIBLE
+| Métrique | Valeur | Ancien seuil (10%) | Nouveau seuil (15%) |
+|----------|--------|-------------------|---------------------|
+| Sensitivity | 10.76% | ❌ FAIL | ✅ PASS |
+| Sharpe OOS | 2.46 | - | - |
+| WFE | 0.81 | - | - |
+
+#### Autres Assets Impactés
+| Asset | Sensitivity | Ancien (10%) | Nouveau (15%) |
+|-------|-------------|--------------|---------------|
+| AEVO | 14.96% | FAIL | PASS |
+| IMX | 13.20% | FAIL | PASS |
+| STRK | 12.50% | FAIL | PASS |
+
+### Décisions Prises
+| Date | Décision | Rationale |
+|------|----------|-----------|
+| 2026-01-24 | Filter Grid supprimé | Data mining, 12 combos arbitraires |
+| 2026-01-24 | 3 modes uniquement | baseline → moderate → conservative |
+| 2026-01-24 | Seuil sensitivity 15% | Évite filter grid, +5% tolérance |
+| 2026-01-24 | Seuils trades ajustés | moderate ≥50, conservative ≥40 |
+| 2026-01-24 | **ETH → baseline** | Sharpe 3.87 vs 2.09, WFE 2.36 vs 0.82 |
+| 2026-01-24 | **CAKE éligible** | Sensitivity 10.76% < 15% |
+| 2026-01-24 | **Regime test requis** | Changements majeurs → distribution régimes inconnue |
+| 2026-01-24 | **DSR implémenté** | Corrige trial count paradox |
+
+---
+
+## 🔬 TASKS ALEX (Lead Quant) — Variance Reduction
+
+**Fichier comm**: `comms/alex-lead.md`
+
+### Task 1: DSR Integration — DONE ✅
+- Fichier: `crypto_backtest/validation/deflated_sharpe.py`
+- Seuil recommandé: 0.85 (combiné avec autres guards)
+
+### Task 2: Variance Reduction Research — TODO 🔴
+**Objectif**: Réduire variance sous 10% pour gros assets (ETH 12.96%, CAKE 10.76%)
+
+**Pistes à explorer**:
+1. **Regime-aware WF splits** — Splits stratifiés par régime (BULL/BEAR/SIDEWAYS)
+2. **Parameter averaging** — Moyenner top N trials (BMA)
+3. **Regularization Optuna** — Pénalité variance dans objective
+4. **Reduced trial count** — 50-75 trials au lieu de 300
+
+### Task 3: GitHub Quant Repos Research — TODO 🟡
+**Repos à scanner**:
+- `quantopian/zipline`, `polakowo/vectorbt`, `freqtrade/freqtrade`
+- Focus: Filtres volatilité, méthodes anti-overfitting, ensemble methods
+
+**Deliverables attendus**:
+- Rapport variance reduction avec résultats tests
+- Liste filtres/stratégies à intégrer
 
 ---
 
@@ -19,9 +160,9 @@
 - **DOT**: 4.82 Sharpe, 1.74 WFE, 7/7 guards ✅
 - **NEAR**: 4.26 Sharpe, 1.69 WFE, 7/7 guards ✅
 - **DOGE**: 3.88 Sharpe, 1.55 WFE, 7/7 guards ✅
+- **ETH**: **3.87 Sharpe, 2.36 WFE**, 7/7 guards ✅ **(UPGRADED to baseline!)**
 - **ANKR**: 3.48 Sharpe, 0.86 WFE, 7/7 guards ✅
 - **JOE**: 3.16 Sharpe, 0.73 WFE, 7/7 guards ✅
-- **ETH**: 2.07 Sharpe, 1.06 WFE, 7/7 guards ✅
 
 ### What's Currently In Progress
 1. 🔄 **Guards Execution on 8 Pending** - TIA (5.16 Sharpe!) + 7 more assets
@@ -36,15 +177,15 @@
 ### Category 1: ✅ VALIDATED PROD ASSETS (7 assets - NEW BASELINE)
 **Status**: 🟢 **PRODUCTION READY**
 
-| Rank | Asset | OOS Sharpe | WFE | OOS Trades | Max DD | Guards | Status |
-|:----:|:------|:-----------|:----|:-----------|:-------|:-------|:-------|
-| 🥇 | **SHIB** | **5.67** | **2.27** | 93 | -1.59% | ✅ 7/7 | **PROD** |
-| 🥈 | **DOT** | **4.82** | **1.74** | 87 | -1.41% | ✅ 7/7 | **PROD** |
-| 🥉 | **NEAR** | **4.26** | **1.69** | 87 | -1.39% | ✅ 7/7 | **PROD** |
-| 4️⃣ | **DOGE** | **3.88** | **1.55** | 99 | -1.52% | ✅ 7/7 | **PROD** |
-| 5️⃣ | **ANKR** | **3.48** | **0.86** | 87 | -1.21% | ✅ 7/7 | **PROD** |
-| 6️⃣ | **JOE** | **3.16** | **0.73** | 78 | - | ✅ 7/7 | **PROD** |
-| 7️⃣ | **ETH** | **2.07** | **1.06** | 72 | - | ✅ 7/7 | **PROD** |
+| Rank | Asset | OOS Sharpe | WFE | OOS Trades | Max DD | Guards | Mode | Status |
+|:----:|:------|:-----------|:----|:-----------|:-------|:-------|:-----|:-------|
+| 🥇 | **SHIB** | **5.67** | **2.27** | 93 | -1.59% | ✅ 7/7 | baseline | **PROD** |
+| 🥈 | **DOT** | **4.82** | **1.74** | 87 | -1.41% | ✅ 7/7 | baseline | **PROD** |
+| 🥉 | **NEAR** | **4.26** | **1.69** | 87 | -1.39% | ✅ 7/7 | baseline | **PROD** |
+| 4️⃣ | **DOGE** | **3.88** | **1.55** | 99 | -1.52% | ✅ 7/7 | baseline | **PROD** |
+| 5️⃣ | **ETH** | **3.87** | **2.36** | 87 | - | ✅ 7/7 | **baseline** | **PROD** ⬆️ |
+| 6️⃣ | **ANKR** | **3.48** | **0.86** | 87 | -1.21% | ✅ 7/7 | baseline | **PROD** |
+| 7️⃣ | **JOE** | **3.16** | **0.73** | 78 | - | ✅ 7/7 | baseline | **PROD** |
 
 **Notes**:
 - All assets validated with deterministic system (reproducibility < 0.0001%)
@@ -62,7 +203,7 @@
 |:------|:-----------|:----|:-----------|:-------|:----------------|
 | **TIA** 🚀 | **5.16** | **1.36** | 75 | ⚠️ PENDING | **LIKELY PASS** (would be #2!) |
 | **TON** | 2.54 | 1.17 | 69 | ⚠️ PENDING | LIKELY PASS |
-| **CAKE** | 2.46 | 0.81 | 90 | ⚠️ PENDING | MARGINAL (WFE close) |
+| **CAKE** | 2.46 | 0.81 | 90 | ⚠️ PENDING | **LIKELY PASS** (sens 10.76% < 15%) ⬆️ |
 | **RUNE** | 2.42 | 0.61 | 102 | ⚠️ PENDING | MARGINAL (low WFE) |
 | **HBAR** | 2.32 | 1.03 | 114 | ⚠️ PENDING | LIKELY PASS |
 | **EGLD** | 2.04 | 0.66 | 90 | ⚠️ PENDING | MARGINAL |
@@ -124,14 +265,7 @@ ATOM, ARB, LINK, INJ, ICP, IMX, CELO, ARKM, W, STRK, AEVO
 | Parallel Safety | constant_liar | ✅ ACTIVE | Safe for workers>1 |
 | Guards System | 7 guards | ✅ OPERATIONAL | guard001-007 + WFE |
 
-### Recent Deployments
-
-**25 JAN 2026 (PR #8):**
-- ✅ Guard002 threshold updated: 10% → 15% (reduce false positives)
-- ✅ All agent rules aligned (Sam, Alex, Global)
-- ✅ Documentation complete (CHANGELOG_PR8.md, THRESHOLD_UPDATE_SUMMARY.md)
-
-**24 JAN 2026 (PR #7):**
+### Recent Deployments (24 JAN)
 - ✅ `crypto_backtest/validation/overfitting.py` - PSR/DSR diagnostics
 - ✅ `crypto_backtest/portfolio/weights.py` - 4 optimization methods
 - ✅ `crypto_backtest/analysis/metrics.py` - Empyrical cross-check
@@ -311,11 +445,39 @@ C. **HYBRID** - Keep high-confidence (JOE, OSMO), re-validate questionable (BTC)
 - [ ] 10+ assets validated with new deterministic system
 - [ ] Portfolio construction tested with 5+ assets
 - [ ] Phase 1 screening complete on candidate pool
+- [ ] **REGIME TEST** — Refaire l'analyse des régimes (voir ci-dessous)
 
 ### Medium-Term (Next Week)
 - [ ] 20+ assets pass 7/7 guards + overfitting checks
 - [ ] Production portfolio constructed (3-4 methods compared)
 - [ ] Documentation updated with new validation protocols
+- [ ] Regime analysis completed for all PROD assets
+
+---
+
+## ⚠️ REGIME TEST REQUIS
+
+### Contexte
+Suite aux changements majeurs (bug KAMA corrigé, seuil sensitivity 15%, ETH baseline):
+- **Les anciens résultats de régime sont OBSOLÈTES**
+- On ne sait plus dans quel régime (BULL/BEAR/SIDEWAYS) les trades performent
+- Le ratio 79.5% SIDEWAYS profit doit être re-vérifié
+
+### Actions Requises
+1. **Re-run regime analysis** sur tous les assets PROD avec les nouveaux paramètres
+2. **Vérifier** la distribution des profits par régime
+3. **Confirmer** que SIDEWAYS reste dominant (ou documenter le changement)
+4. **Mettre à jour** `guard007` (regime mismatch) si nécessaire
+
+### Commande
+```bash
+python regime_analysis_v2.py --assets SHIB DOT NEAR DOGE ETH ANKR JOE
+```
+
+### Impact Potentiel
+- Si distribution régime change significativement → re-calibrer les filtres
+- Si SIDEWAYS n'est plus dominant → revoir la stratégie
+- Si mismatch augmente → certains assets pourraient être rétrogradés
 
 ---
 

@@ -120,7 +120,15 @@ class FiveInOneFilter:
         )
 
     def kama_oscillator(self, close: pd.Series) -> pd.Series:
-        """KAMA oscillator normalized to [-0.5, 0.5]."""
+        """KAMA oscillator normalized to [-0.5, 0.5].
+        
+        Pine Script formula (CORRECT):
+            ch = math.abs(close - close[er_period])
+            volatility = math.sum(math.abs(close - close[1]), er_period)
+            erVal2 = volatility != 0 ? ch / volatility : 0
+            sc2 = erVal2 * (2/(fast_period+1) - 2/(slow_period+1)) + 2/(slow_period+1)
+            kamaVal = ta.ema(close, fast_period) + sc2 * (close - ta.ema(close, fast_period))
+        """
         price = close.to_numpy(dtype=float)
         n = len(price)
         if n == 0:
@@ -128,26 +136,33 @@ class FiveInOneFilter:
         if self.config.er_period < 1:
             raise ValueError("er_period must be >= 1")
 
-        change = np.abs(price - np.roll(price, self.config.er_period))
-        change[: min(self.config.er_period, n)] = 0.0
-        volatility = np.abs(np.diff(price, prepend=price[0]))
-        noise = (
-            pd.Series(volatility, index=close.index)
+        # ch = |close - close[er_period]|
+        ch = np.abs(price - np.roll(price, self.config.er_period))
+        ch[: min(self.config.er_period, n)] = 0.0
+
+        # volatility = sum(|close - close[1]|, er_period)
+        volatility_raw = np.abs(np.diff(price, prepend=price[0]))
+        volatility = (
+            pd.Series(volatility_raw, index=close.index)
             .rolling(self.config.er_period)
             .sum()
             .fillna(0.0)
             .to_numpy()
         )
-        er = np.divide(change, noise, out=np.zeros_like(change), where=noise != 0)
 
-        fast = 2 / (self.config.fast_period + 1)
-        slow = 2 / (self.config.slow_period + 1)
-        alpha = (er * (fast - slow) + slow) ** 2
+        # erVal2 = ch / volatility (efficiency ratio)
+        erVal2 = np.divide(ch, volatility, out=np.zeros_like(ch), where=volatility != 0)
 
-        kama_val = np.zeros(n, dtype=float)
-        kama_val[0] = price[0]
-        for i in range(1, n):
-            kama_val[i] = alpha[i] * price[i] + (1 - alpha[i]) * kama_val[i - 1]
+        # sc2 = erVal2 * (fast_sc - slow_sc) + slow_sc  (NO squaring!)
+        fast_sc = 2.0 / (self.config.fast_period + 1)
+        slow_sc = 2.0 / (self.config.slow_period + 1)
+        sc2 = erVal2 * (fast_sc - slow_sc) + slow_sc
+
+        # ta.ema(close, fast_period)
+        ema_fast = close.ewm(span=self.config.fast_period, adjust=False).mean().to_numpy()
+
+        # kamaVal = EMA + sc2 * (close - EMA)
+        kama_val = ema_fast + sc2 * (price - ema_fast)
         kama_series = pd.Series(kama_val, index=close.index)
 
         lowest = kama_series.rolling(self.config.norm_period).min()

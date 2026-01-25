@@ -192,21 +192,54 @@ Asset type?
 Quel guard?
 ├── WFE < 0.6 ──────────> Tester autre displacement
 ├── MC p > 0.05 ────────> Plus de donnees ou trials
-├── Sensitivity > 10% ──> Filter grid (medium_distance_volume)
+├── Sensitivity > 15% ──> Filter Rescue (baseline → moderate → conservative)
 ├── Top10 > 40% ────────> Donnees insuffisantes
 └── Autre ──────────────> BLOCKED, documenter raison
 ```
 
-### Filter Modes (ordre de test)
+### Phase 4: Filter Rescue (SI baseline FAIL guard002)
 
-| Mode | Quand l'utiliser | Effet |
-|:-----|:-----------------|:------|
-| baseline | Premier test, toujours | Aucun filtre |
-| medium_distance_volume | Si guard002 (sensitivity >15%) FAIL | Reduit bruit, winner ETH |
-| light_kama | Si baseline trop sensible | Filtre momentum |
-| light_distance / light_volume | Tests intermediaires | Filtres legers |
-| moderate | Si light_* insuffisant | Filtres moyens |
-| conservative | Dernier recours avant BLOCKED | Filtre agressif |
+**Refonte 2026-01-24**: Ancien grid de 12 combinaisons remplacé par cascade de 3 modes.
+
+#### Workflow Décisionnel
+```
+Asset → baseline (seuil sensitivity 15%)
+         │
+         ├─ PASS → PROD ✓
+         │
+         └─ FAIL guard002 (sensitivity > 15%)
+              │
+              └─ moderate (5 filtres)
+                   │
+                   ├─ PASS → PROD ✓
+                   │
+                   └─ FAIL
+                        │
+                        └─ conservative (7 filtres)
+                             │
+                             ├─ PASS → PROD ✓
+                             │
+                             └─ FAIL → EXCLU ✗
+```
+
+#### Seuils par Mode
+| Mode | Filtres | Sensitivity | Trades OOS | WFE |
+|------|---------|-------------|------------|-----|
+| baseline | ichimoku only | <15% | ≥60 | ≥0.6 |
+| moderate | 5 filtres (all except strict) | <15% | ≥50 | ≥0.6 |
+| conservative | 7 filtres (all + strict) | <15% | ≥40 | ≥0.55 |
+
+#### Commande Rescue
+```bash
+python scripts/run_filter_rescue.py ASSET
+python scripts/run_filter_rescue.py ETH --trials 300
+```
+
+#### Règles Critiques
+- TOUJOURS commencer par baseline
+- Max 3 tests par asset (correction stats OK: Bonferroni ÷3 vs ancien ÷12)
+- Si conservative FAIL → EXCLU définitif
+- NE PAS chercher d'autres combinaisons (data mining)
 
 ---
 
@@ -318,50 +351,6 @@ python scripts/download_data.py --assets [ASSET_LIST]
 | outputs/multiasset_scan_*.csv | Resultats scans |
 | outputs/multiasset_guards_summary_*.csv | Resultats guards |
 | .cursor/rules/global-quant.mdc | Regles quant detaillees |
-| .cursor/rules/agents/*.mdc | Roles agents (Casey, Jordan, Sam, Alex, Riley) |
-| skills/*/SKILL.md | Procedures how-to (guards, rescue, filter, pine) |
-
----
-
-## ⚠️ MAINTENANCE SKILLS & RULES
-
-### Verification OBLIGATOIRE a chaque changement pipeline
-
-**Apres chaque commit qui modifie la strategie ou le pipeline:**
-
-1. **Changement de seuils** → Mettre a jour :
-   - `skills/guards-runner/SKILL.md`
-   - `.cursor/rules/agents/sam-qa.mdc`
-   - `.cursor/rules/agents/alex-lead.mdc`
-   - `.cursor/rules/global-quant.mdc`
-
-2. **Nouvelle commande/script** → Mettre a jour :
-   - Le skill correspondant
-   - `.cursor/rules/agents/jordan-dev.mdc`
-
-3. **Nouveau filter mode** → Mettre a jour :
-   - `skills/filter-grid/SKILL.md`
-
-4. **Changement workflow** → Mettre a jour :
-   - `.cursor/rules/workflow.mdc`
-   - `.cursor/rules/WORKFLOW_ENFORCEMENT.mdc`
-   - Skills concernes
-
-5. **Nouveau guard** → Mettre a jour :
-   - `skills/guards-runner/SKILL.md`
-   - `.cursor/rules/global-quant.mdc`
-   - Ce fichier (MASTER_PLAN)
-
-### Checklist post-commit strategie
-
-```
-[ ] Seuils changes? → maj skills + rules
-[ ] Commandes changes? → maj skills + jordan-dev.mdc
-[ ] Workflow change? → maj workflow.mdc + skills
-[ ] Guards changes? → maj guards-runner + global-quant + MASTER_PLAN
-[ ] Descriptions skills toujours pertinentes?
-```
-
-**Regle:** Tout changement pipeline = verification skills/rules dans le meme PR.
-
-Les skills et rules sont la **documentation executable** — si elles divergent du code, l'agent donnera des instructions obsoletes.
+| .cursor/rules/casey-orchestrator.mdc | Role Casey |
+| .cursor/rules/jordan-backtest.mdc | Role Jordan |
+| .cursor/rules/sam-guards.mdc | Role Sam |

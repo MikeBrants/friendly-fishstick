@@ -13,7 +13,7 @@ alwaysApply: true
 | 2 | Validation | 300 trials, 7 guards ON -> WINNERS + PENDING |
 | 3A | Rescue | PENDING: d26/d52/d78, 7/7 PASS -> WINNERS |
 | 3B | Optimization | WINNERS: d26/d52/d78, +10% ET 7/7 PASS -> remplace |
-| 4 | Filter Grid | PENDING: 12 combinaisons filtres |
+| 4 | Filter Rescue | PENDING: baseline → moderate → conservative |
 | 5 | Production | `asset_config.py` + `project-state.md` |
 
 ## Critere remplacement Phase 3B
@@ -22,30 +22,41 @@ if new_sharpe > old_sharpe * 1.10 and all_guards_pass:
     use_new_displacement = True
 ```
 
-## Filter Modes (Phase 4) - 12 modes
+## Phase 4: Filter Rescue (Refonte 2026-01-24)
 
-| Mode | Filtres actifs |
-|------|----------------|
-| baseline | ichimoku only |
-| light_kama | ichimoku + kama_oscillator |
-| light_distance | ichimoku + distance_filter |
-| light_volume | ichimoku + volume_filter |
-| light_regression | ichimoku + regression_cloud |
-| medium_kama_distance | ichimoku + kama + distance |
-| medium_kama_volume | ichimoku + kama + volume |
-| medium_kama_regression | ichimoku + kama + regression |
-| medium_distance_volume | ichimoku + distance + volume (WINNER ETH) |
-| moderate | 5 filtres (tous sauf strict) |
-| strict_ichi | ichimoku strict (17 cond) |
-| conservative | 6 filtres + strict (dernier recours) |
+### Workflow Cascade
+```
+Asset FAIL baseline (sensitivity > 15%)
+    │
+    └─→ moderate (5 filtres)
+         │
+         ├─ PASS → PROD ✓
+         └─ FAIL → conservative (7 filtres)
+                   │
+                   ├─ PASS → PROD ✓
+                   └─ FAIL → EXCLU ✗
+```
+
+### Filter Modes (3 modes rationnels)
+| Mode | Filtres | Sensitivity | Trades OOS | WFE |
+|------|---------|-------------|------------|-----|
+| baseline | ichimoku only | <15% | ≥60 | ≥0.6 |
+| moderate | 5 filtres | <15% | ≥50 | ≥0.6 |
+| conservative | 7 filtres (+ strict) | <15% | ≥40 | ≥0.55 |
+
+### Règles Critiques
+- TOUJOURS commencer par baseline
+- Max 3 tests par asset (Bonferroni ÷3)
+- Si conservative FAIL → EXCLU définitif
+- NE PAS chercher d'autres combinaisons (data mining)
 
 ## Commandes par Phase
 ```bash
-# Phase 1: Screening (workers=6 OK)
+# Phase 1: Screening
 python scripts/run_full_pipeline.py --assets ALL --workers 6 \
-    --trials-atr 150 --trials-ichi 150 --skip-guards
+    --trials-atr 100 --trials-ichi 100 --skip-guards
 
-# Phase 2: Validation (workers=1 OBLIGATOIRE pour reproductibilité)
+# Phase 2: Validation
 python scripts/run_full_pipeline.py --assets WINNERS --workers 1 \
     --trials-atr 300 --trials-ichi 300 --enforce-tp-progression --run-guards
 
@@ -53,8 +64,9 @@ python scripts/run_full_pipeline.py --assets WINNERS --workers 1 \
 python scripts/run_displacement_grid.py --assets PENDING
 
 # Phase 3B: Optimization
-python scripts/run_phase3b_optimization.py --assets WINNERS --workers 1
+python scripts/run_phase3b_optimization.py --assets WINNERS
 
-# Phase 4: Filter Grid
-python scripts/run_filter_grid.py --assets PENDING --workers 1
+# Phase 4: Filter Rescue (NOUVEAU)
+python scripts/run_filter_rescue.py ASSET
+python scripts/run_filter_rescue.py ETH --trials 300 --workers 1
 ```

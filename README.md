@@ -1,9 +1,9 @@
 # FINAL TRIGGER v2 — Backtest System
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Status](https://img.shields.io/badge/status-Production%20Ready-green.svg)](docs/HANDOFF.md)
-[![Portfolio](https://img.shields.io/badge/Portfolio%20Sharpe-4.35-brightgreen.svg)](docs/HANDOFF.md)
-[![Assets](https://img.shields.io/badge/Validated%20Assets-5-blue.svg)](outputs/pine_plan_fullguards.csv)
+[![Status](https://img.shields.io/badge/status-Production%20Ready-green.svg)](status/project-state.md)
+[![Portfolio](https://img.shields.io/badge/Validated%20Assets-7+-blue.svg)](status/project-state.md)
+[![Sensitivity](https://img.shields.io/badge/Sensitivity%20Threshold-15%25-yellow.svg)]()
 
 > Système de backtest professionnel pour **FINAL TRIGGER v2** — Implémentation Python de l'indicateur TradingView avec walk-forward analysis et optimisation bayésienne.
 
@@ -11,21 +11,20 @@
 
 ## 📈 Résultats Actuels (Production Ready)
 
-### Portfolio Validé (5 Assets)
-**BTC, ETH, AVAX, UNI, SEI** — Tous les assets ont passé les 7 guards de robustesse
+### Portfolio Validé (7 Assets)
+**SHIB, DOT, NEAR, DOGE, ETH, ANKR, JOE** — Tous les assets ont passé les 7 guards de robustesse
 
-| Asset | OOS Sharpe | WFE | Max DD | Trades |
-|-------|------------|-----|--------|--------|
-| **BTC** | 2.63 | 1.23 | -2.85% | 416 |
-| **ETH** | 7.12 | 2.46 | -2.61% | 450 |
-| **AVAX** | 4.22 | 1.10 | -3.14% | 402 |
-| **UNI** | 3.83 | 1.78 | -2.89% | 389 |
-| **SEI** | 3.88 | 1.02 | -3.21% | 371 |
+| Rank | Asset | OOS Sharpe | WFE | Mode | Guards |
+|:----:|-------|------------|-----|------|--------|
+| 🥇 | **SHIB** | 5.67 | 2.27 | baseline | ✅ 7/7 |
+| 🥈 | **DOT** | 4.82 | 1.74 | baseline | ✅ 7/7 |
+| 🥉 | **NEAR** | 4.26 | 1.69 | baseline | ✅ 7/7 |
+| 4️⃣ | **DOGE** | 3.88 | 1.55 | baseline | ✅ 7/7 |
+| 5️⃣ | **ETH** | **3.87** | **2.36** | baseline | ✅ 7/7 |
+| 6️⃣ | **ANKR** | 3.48 | 0.86 | baseline | ✅ 7/7 |
+| 7️⃣ | **JOE** | 3.16 | 0.73 | baseline | ✅ 7/7 |
 
-**Portfolio Global** (equal-weight):
-- Sharpe: **~4.35**
-- Max DD: **-0.63%**
-- Corrélation moyenne: **0.086** (faible corrélation = bonne diversification)
+**Note**: Voir `status/project-state.md` pour l'état actuel du projet.
 
 ---
 
@@ -360,11 +359,11 @@ print(f"SL: {params['sl_atr_mult']}, TP: {params['tp_atr_mult']}")
 
 Les 7 guards testés:
 - `GUARD-001` — Monte Carlo (p-value < 0.05)
-- `GUARD-002` — Regime Analysis (acceptable loss < 30%)
+- `GUARD-002` — Sensitivity variance (< 15%)
 - `GUARD-003` — Bootstrap CI (Sharpe lower > 1.0)
 - `GUARD-005` — Trade Distribution (top 10 < 40%)
-- `GUARD-006` — Stress Test (edge buffer > 0)
-- `GUARD-007` — Sensitivity (variance < 15%)
+- `GUARD-006` — Stress Test (Sharpe > 1.0)
+- `GUARD-007` — Regime Mismatch (< 1%)
 - `WFE` — Walk-Forward Efficiency (> 0.6)
 
 ```python

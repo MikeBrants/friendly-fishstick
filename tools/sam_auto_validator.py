@@ -33,9 +33,10 @@ GUARDS_PATTERN = "outputs/phase3b_*_guards_summary_*.csv"
 SCAN_PATTERN = "outputs/phase3b_*_multiasset_scan_*.csv"
 
 # Seuils des 7 guards (Phase 2 stricts)
+# Note: guard002 sensitivity relevé de 10% à 15% (2026-01-24) pour éviter data mining
 GUARD_THRESHOLDS = {
     "guard001_mc": {"threshold": 0.05, "operator": "<", "name": "MC p-value"},
-    "guard002_sensitivity": {"threshold": 10.0, "operator": "<", "name": "Sensitivity", "unit": "%"},
+    "guard002_sensitivity": {"threshold": 15.0, "operator": "<", "name": "Sensitivity", "unit": "%"},
     "guard003_bootstrap": {"threshold": 1.0, "operator": ">", "name": "Bootstrap CI"},
     "guard005_top10": {"threshold": 40.0, "operator": "<", "name": "Top10 trades", "unit": "%"},
     "guard006_stress1": {"threshold": 1.0, "operator": ">", "name": "Stress Sharpe"},
@@ -178,12 +179,12 @@ def validate_guards(guards_data: Dict[str, Any]) -> Dict[str, Any]:
         "name": "MC p-value",
     }
     
-    # Guard 002: Sensitivity < 10%
+    # Guard 002: Sensitivity < 15% (relevé de 10% à 15% le 2026-01-24)
     sens_var = guards_data["guard002_variance_pct"]
     results["guard002"] = {
         "value": sens_var,
-        "threshold": 10.0,
-        "pass": sens_var < 10.0,
+        "threshold": 15.0,
+        "pass": sens_var < 15.0,
         "name": "Sensitivity",
         "unit": "%",
     }

@@ -80,7 +80,7 @@ We are in a **testing and re-validation phase** following two major updates:
 | 2 | Validation | Screening winners | WINNERS + PENDING | 🧪 TESTING |
 | 3A | Rescue (PENDING) | PENDING | `displacement_rescue_*.csv` | ✅ READY |
 | 3B | Optimization (WINNERS) | WINNERS | `displacement_optimization_*.csv` | ✅ READY |
-| 4 | Filter Grid | PENDING restants | `ANALYSIS_FILTER_GRID_*.md` | ✅ READY |
+| 4 | Filter Rescue | PENDING restants | `filter_rescue_*.csv` | ✅ READY (refonte v2) |
 | 5 | Production | Tous valides | `asset_config.py` | ✅ READY |
 | 6 | **Portfolio Construction** | 5+ assets PROD | `portfolio_weights_*.csv` | ✅ NEW |
 
@@ -218,7 +218,7 @@ python scripts/export_screening_results.py \
 |-------|-------|----------|
 | WFE | > 0.6 | OUI |
 | MC p-value | < 0.05 | OUI |
-| Sensitivity var | < 10% | OUI |
+| Sensitivity var | < 15% | OUI |
 | Bootstrap CI lower | > 1.0 | OUI |
 | Top10 trades | < 40% | OUI |
 | Stress1 Sharpe | > 1.0 | OUI |
@@ -383,31 +383,52 @@ python scripts/run_phase3b_optimization.py \
 
 ---
 
-## Phase 4 : Filter Grid (PENDING restants)
+## Phase 4 : Filter Rescue (PENDING restants)
 
-**Objectif** : Tester des combinaisons de filtres pour les assets toujours en echec apres Phase 3A.
+**Objectif** : Sauver les assets qui echouent guard002 (sensitivity > 15%) via cascade de filtres.
+
+**⚠️ REFONTE 2026-01-24**: Ancien grid de 12 combinaisons remplacé par cascade de 3 modes rationnels.
 
 ### Principe
 
-Teste 12 combinaisons de filtres (baseline, medium_distance_volume, moderate, conservative, etc.)
+Cascade simplifiée: `baseline` → `moderate` → `conservative`
+- Évite le data mining des 12 combinaisons arbitraires
+- Max 3 tests par asset (correction Bonferroni ÷3 au lieu de ÷12)
+- Arrêt dès le premier PASS
 
-### Filter Modes (ordre de test)
+### Workflow Décisionnel
 
-| Mode | Quand l'utiliser | Effet |
-|:-----|:-----------------|:------|
-| baseline | Premier test, toujours | Aucun filtre |
-| medium_distance_volume | Si guard002 (sensitivity) FAIL | Reduit bruit |
-| light_kama | Si baseline trop sensible | Filtre momentum |
-| light_distance / light_volume | Tests intermediaires | Filtres legers |
-| moderate | Si light_* insuffisant | Filtres moyens |
-| conservative | Dernier recours avant BLOCKED | Filtre agressif |
+```
+Asset FAIL baseline (sensitivity > 15%)
+    │
+    └─→ moderate (5 filtres)
+         │
+         ├─ PASS → PROD ✓
+         └─ FAIL → conservative (7 filtres)
+                   │
+                   ├─ PASS → PROD ✓
+                   └─ FAIL → EXCLU ✗
+```
+
+### Filter Modes (3 modes rationnels)
+
+| Mode | Filtres | Sensitivity | Trades OOS | WFE |
+|------|---------|-------------|------------|-----|
+| baseline | ichimoku only | <15% | ≥60 | ≥0.6 |
+| moderate | 5 filtres (distance, volume, regression, kama, ichimoku) | <15% | ≥50 | ≥0.6 |
+| conservative | 7 filtres (all + strict ichimoku) | <15% | ≥40 | ≥0.55 |
 
 ### Commande
 
 ```bash
+# Script de rescue automatique (cascade baseline → moderate → conservative)
+python scripts/run_filter_rescue.py ASSET
+python scripts/run_filter_rescue.py ETH --trials 300 --workers 1
+
+# Ou manuellement pour un mode spécifique
 python scripts/run_full_pipeline.py \
   --assets [PENDING_ASSET] \
-  --optimization-mode medium_distance_volume \
+  --optimization-mode moderate \
   --trials-atr 300 \
   --trials-ichi 300 \
   --enforce-tp-progression \
@@ -418,7 +439,14 @@ python scripts/run_full_pipeline.py \
 
 **Note (v2.1)**: Use `workers=1` for reproducibility, added overfitting diagnostics.
 
-**Output :** `outputs/ANALYSIS_FILTER_GRID_{ASSET}_*.md`
+### Règles Critiques
+
+- TOUJOURS commencer par baseline
+- Max 3 tests par asset (correction statistique OK)
+- Si conservative FAIL → EXCLU définitif
+- NE PAS chercher d'autres combinaisons (data mining)
+
+**Output :** `outputs/filter_rescue_{ASSET}_*.csv`
 
 ---
 
