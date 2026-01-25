@@ -94,24 +94,26 @@ Priority: P1 (après validation Sam)
 
 ---
 
-## 📊 PORTFOLIO STATUS UPDATE
+## 📊 PORTFOLIO STATUS UPDATE (13:45 UTC)
 
-**11 Assets PROD (composition mise à jour):**
+**11 Assets PROD CONFIRMED:**
 
 ### Phase 2 Baseline (10 assets)
-1. SHIB (d26, variance <15%)
-2. DOT (d52, variance <15%)
-3. NEAR (d52, variance <15%)
-4. DOGE (d26, variance <15%)
-5. ANKR (d52, variance <15%)
-6. JOE (d26, variance <15%)
-7. RUNE (d52, variance 3.23%)
-8. EGLD (d52, variance 5.04%)
-9. **TIA (d52, variance 11.49%)** ← RECLASSIFIÉ
-10. **CAKE (d52, variance 10.76%)** ← RECLASSIFIÉ
+1. SHIB (d26, variance <15%, Sharpe 5.67)
+2. DOT (d52, variance <15%, Sharpe 4.82)
+3. NEAR (d52, variance <15%, Sharpe 4.26)
+4. DOGE (d26, variance <15%, Sharpe 3.88)
+5. ANKR (d52, variance <15%, Sharpe 3.48)
+6. **TIA (d52, variance 11.49%, Sharpe 5.16)** ← ✅ RECLASSIFIÉ PR#8
+7. JOE (d26, variance <15%, Sharpe 3.16)
+8. RUNE (d52, variance 3.23%, Sharpe 2.42) ← Already PROD
+9. EGLD (d52, variance 5.04%, Sharpe 2.04) ← Already PROD
+10. **CAKE (d52, variance 10.76%, Sharpe 2.46)** ← ✅ RECLASSIFIÉ PR#8
 
 ### Phase 4 Filter Mode (1 asset)
-1. ETH (d52, medium_distance_volume) — Autre raison, pas guard002
+1. ETH (d52, medium_distance_volume, Sharpe 3.23) — Autre raison, pas guard002
+
+**Note:** RUNE et EGLD étaient déjà PROD (variance < 10%). Seuls TIA et CAKE sont nouvellement reclassifiés.
 
 ---
 
@@ -120,9 +122,15 @@ Priority: P1 (après validation Sam)
 ### Immédiat (P0)
 - [x] Create TIA_CAKE_RECLASSIFICATION.md
 - [x] Communicate to all agents
-- [ ] Jordan: Update asset_config.py
-- [ ] Sam: Validate baseline params
+- [x] Jordan: Update asset_config.py ✅ DONE (13:45 UTC)
+- [x] Jordan: Guards analysis complete ✅ DONE (13:45 UTC)
+- [ ] Sam: Validate baseline params ⏳ NOTIFIED (13:45 UTC)
 - [ ] Update project-state.md
+
+**Clarification (13:45 UTC):**
+- Only TIA and CAKE reclassified (variance now PASS with 15%)
+- RUNE and EGLD already PROD (variance < 10%)
+- HBAR, TON, SUSHI still FAIL (other guards)
 
 ### Court Terme (P1)
 - [ ] Riley: Generate Pine Scripts
@@ -177,3 +185,31 @@ Priority: P1 (après validation Sam)
 **Next Update:** After Jordan/Sam completion  
 **Priority:** P0 (blocking portfolio construction)  
 **Status:** 🟢 ON TRACK
+
+---
+
+## 📋 TODO LIST ASSIGNÉE À JORDAN (25 Jan 2026, 14:05 UTC)
+
+**Status:** ✅ 18 tâches assignées avec ordre d'exécution recommandé
+
+### Tâches Prioritaires (Séquence recommandée):
+
+1. **jordan-1** → TON guards (30-60 min) — Décision immédiate sur 12e asset PROD
+2. **jordan-2** → Analyse régimes (1-2h) — CRITIQUE: Validation scientifique post-KAMA fix
+3. **jordan-16** → Update project-state.md (15 min) — Documentation intermédiaire
+4. **jordan-3 à jordan-9** → Re-validation 7 anciens PROD (4-6h) — Background
+5. **jordan-10 + jordan-11** → Screening nouveaux (1h) — Expansion portfolio
+6. **WAIT SAM** → Validation TIA/CAKE → Débloque portfolio construction
+7. **jordan-12 à jordan-15** → Portfolio 4 méthodes (30 min) — Livrable final
+8. **jordan-17 + jordan-18** → Documentation finale (30 min) — Clôture
+
+**Total:** 18 tâches, 8-12h estimé (parallélisation possible)
+
+**Tracking:** TODO list créée dans interface Cursor + comms/jordan-dev.md
+
+**Next Checkpoint:** Après jordan-1 (TON guards) + jordan-2 (Régimes)
+
+---
+
+**Casey Sign-Off:** Instructions complètes transmises à Jordan 🚀  
+**Date:** 25 janvier 2026, 14:05 UTC

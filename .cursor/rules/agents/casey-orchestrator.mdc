@@ -51,7 +51,6 @@ Blocked: [asset] [reason]
 Alex: [question/directive]?
 Jordan: [question/directive]?
 Sam: [question/directive]?
-Riley: [question/directive]?
 ```
 
 ### Decision Format
@@ -130,4 +129,3 @@ EXCLU DÉFINITIF (documenté)
 - Si résultat suspect (Sharpe >4) → @Sam réconciliation
 - Si question architecture → @Alex
 - Si bug technique → @Jordan
-- Si documentation/Pine → @Riley

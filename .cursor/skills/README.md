@@ -10,8 +10,7 @@ Ce dossier contient les **Skills** (procédures how-to) pour le pipeline quant.
 |-------|-------------|-------|------------------|
 | `guards-runner` | Exécute les 7 guards de validation | Phase 2 | Après backtest, avant PROD |
 | `displacement-rescue` | Teste d26/d52/d65/d78 variants | Phase 3A | Quand guards FAIL |
-| `filter-grid` | Teste 12 combinaisons filtres | Phase 4 | Après échec Phase 3A |
-| `pine-generator` | Génère Pine Script TradingView | Phase 5 | Après validation 7/7 PASS |
+| `filter-grid` | Teste 3 modes filtres (baseline/moderate/conservative) | Phase 4 | Après échec Phase 3A |
 | `regime-analyzer` | Analyse BULL/BEAR/SIDEWAYS | Debug | Pour comprendre la performance |
 
 ## Workflow Rescue (OBLIGATOIRE)
@@ -61,7 +60,6 @@ Tu peux aussi demander explicitement:
 | Seuils guards | `guards-runner`, `.cursor/rules/agents/sam-qa.mdc` |
 | Nouvelle commande/script | Skill correspondant, `jordan-dev.mdc` |
 | Nouveau filter mode | `filter-grid` |
-| Changement Pine | `pine-generator` |
 | Nouveau guard | `guards-runner`, `global-quant.mdc`, `MASTER_PLAN.mdc` |
 | Changement workflow | `workflow.mdc`, `WORKFLOW_ENFORCEMENT.mdc`, skills concernés |
 

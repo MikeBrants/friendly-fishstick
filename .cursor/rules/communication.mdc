@@ -40,7 +40,6 @@ Rationale: Coherence cross-asset, pas d'exception.
 | `comms/alex-lead.md` | Architecture, params, arbitrage IS/OOS |
 | `comms/jordan-dev.md` | Runs termines, bugs, implementation |
 | `comms/sam-qa.md` | Resultats guards, validations |
-| `comms/riley-ops.md` | Pine export, documentation, reporting |
 
 ## REGLES CRITIQUES
 - Chaque message DOIT referencer un fichier ou une metrique

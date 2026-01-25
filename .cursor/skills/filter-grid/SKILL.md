@@ -200,7 +200,6 @@ Reason: Workflow rescue complet épuisé
         Phase 4: filter grid épuisé
 
 Action: @Casey update project-state.md → EXCLU
-        @Riley documenter dans VALIDATION_LOG.md
 ```
 
 ## ⚠️ BLOCAGE JUSTIFIÉ
@@ -249,4 +248,3 @@ AVAX,conservative,52,1.45,0.58,45,False,False
 - Si tous modes FAIL → @Casey verdict EXCLU DÉFINITIF (justifié)
 - Si doute entre modes → @Alex arbitrage
 - Si filter grid PASS → @Sam validation guards finale
-- Après EXCLU → @Riley documentation dans VALIDATION_LOG.md

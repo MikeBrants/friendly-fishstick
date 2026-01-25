@@ -109,34 +109,6 @@
 
 ---
 
-## 5. Production Agent
-
-**Responsabilités** :
-- Validation finale avant production
-- Génération des scripts Pine Script TradingView
-- Mise à jour de `crypto_backtest/config/asset_config.py`
-- Monitoring et alertes
-- Gestion des mises à jour de paramètres
-
-**Fichiers clés** :
-- `crypto_backtest/config/asset_config.py`
-- `scripts/generate_final_report.py`
-- Templates Pine Script dans `FT_*.pine`
-
-**Outputs** :
-- `outputs/pine_plan.csv`
-- `outputs/all_validated_assets.csv`
-- `outputs/FINAL_VALIDATION_REPORT.md`
-- Statut dans `status/production_agent.json`
-
-**Critères production** :
-- Tous guards PASS
-- WFE > 0.6
-- Sharpe OOS > 1.0 (target > 2.0)
-- Variance < 15%
-
----
-
 ## Coordination
 
 Les agents communiquent via :
