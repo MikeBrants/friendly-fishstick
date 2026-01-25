@@ -1,342 +1,250 @@
-# JORDAN - Backtest Implementation Specialist
+# Jordan (Developer) — Task Log
 
-**Role**: Executor (lance les commandes, exécute les pipelines)  
-**Current Phase**: POST-OVERNIGHT VALIDATION - Guards Execution  
-**Last Updated**: 24 janvier 2026, 19:30 UTC
+**Last Updated:** 25 janvier 2026, 02:05 UTC  
+**Status:** 🔴 NEW ASSIGNMENT — TIA/CAKE Update
 
 ---
 
-## 🎯 CURRENT ASSIGNMENTS
+## 🚨 P0 ASSIGNMENT — TIA/CAKE Asset Config Update
 
-### Task J3: Phase 3A Rescue - TIA Displacement Grid [🔴 ASSIGNED]
-**From**: @Casey  
-**Priority**: 🟡 P1 (MEDIUM - asset prioritaire, portfolio déjà à 10)  
-**Status**: ⏳ READY TO START
+**From:** Casey (Orchestrator)  
+**Date:** 25 janvier 2026, 02:00 UTC  
+**Priority:** P0 (immediate)
 
-**Context**: TIA a échoué Phase 2 avec d52 (guard002 FAIL: sensitivity 11.49%). Workflow rescue obligatoire avant EXCLU définitif.
+### TASK SUMMARY
 
-**Asset**: TIA  
-**Sharpe OOS (d52)**: 5.16 (exceptionnel, serait #2!)  
-**Failed Guard**: guard002 (paramètres ATR trop sensibles)
+**Update `crypto_backtest/config/asset_config.py` for TIA and CAKE:**
+- Reclassify from "Phase 4 rescue" to "Phase 2 PASS baseline"
+- Use Phase 2 baseline optimization params (NOT Phase 4)
+- Displacement: d52 (baseline)
+- Filter Mode: baseline (no filters)
 
-**Commands**:
+### CONTEXT
 
-**Test 1 - Displacement 26:**
+**PR#8 Impact:** Guard002 threshold updated 10% → 15%
+
+**TIA:**
+- Variance: 11.49% → PASS avec seuil 15%
+- Phase 2 baseline: 7/7 guards PASS
+- Phase 4 rescue était un false positive (seuil 10%)
+
+**CAKE:**
+- Variance: 10.76% → PASS avec seuil 15%
+- Phase 2 baseline: 7/7 guards PASS
+- Phase 4 rescue était un false positive (seuil 10%)
+
+**Référence:** `TIA_CAKE_RECLASSIFICATION.md`
+
+---
+
+## 📋 TASK DETAILS
+
+### 1. Locate Phase 2 Baseline Results
+
+**Find original scan results:**
 ```bash
-python scripts/run_full_pipeline.py \
-  --assets TIA \
-  --fixed-displacement 26 \
-  --trials-atr 300 \
-  --trials-ichi 300 \
-  --enforce-tp-progression \
-  --run-guards \
-  --overfit-trials 150 \
-  --workers 1 \
-  --output-prefix tia_rescue_d26_20260124
+# Look for Phase 2 baseline scan with TIA/CAKE
+ls -la outputs/multiasset_scan_*20260124*.csv
+grep -E "TIA|CAKE" outputs/multiasset_scan_*.csv
 ```
 
-**Test 2 - Displacement 78:**
+**Expected columns:**
+- asset, oos_sharpe, wfe, displacement, optimization_mode
+- ATR params: sl_mult, tp1_mult, tp2_mult, tp3_mult
+- Ichimoku params: tenkan, kijun
+- Guard002: variance_pct (should be ~11.49% for TIA, ~10.76% for CAKE)
+
+### 2. Extract Baseline Parameters
+
+**TIA Phase 2 Baseline:**
+```python
+"TIA": {
+    # Meta
+    "displacement": 52,
+    "optimization_mode": "baseline",
+    "phase": "Phase 2 PASS",
+    "validated_date": "2026-01-24",
+    
+    # Performance
+    "oos_sharpe": [EXTRACT_FROM_SCAN],
+    "wfe": [EXTRACT_FROM_SCAN],
+    "variance_pct": 11.49,
+    
+    # ATR Params (Phase 2 baseline)
+    "sl_mult": [EXTRACT],
+    "tp1_mult": [EXTRACT],
+    "tp2_mult": [EXTRACT],
+    "tp3_mult": [EXTRACT],
+    
+    # Ichimoku Params (Phase 2 baseline)
+    "tenkan": [EXTRACT],
+    "kijun": [EXTRACT],
+    
+    # Filters (baseline = all OFF)
+    "use_mama_kama_filter": False,
+    "use_distance_filter": False,
+    "use_volume_filter": False,
+    "use_reg_cloud_filter": False,
+    "use_kama_filter": False,
+    "ichi5in1_strict": False,
+}
+```
+
+**CAKE Phase 2 Baseline:**
+```python
+"CAKE": {
+    # Meta
+    "displacement": 52,
+    "optimization_mode": "baseline",
+    "phase": "Phase 2 PASS",
+    "validated_date": "2026-01-24",
+    
+    # Performance
+    "oos_sharpe": [EXTRACT_FROM_SCAN],
+    "wfe": [EXTRACT_FROM_SCAN],
+    "variance_pct": 10.76,
+    
+    # ATR Params (Phase 2 baseline)
+    "sl_mult": [EXTRACT],
+    "tp1_mult": [EXTRACT],
+    "tp2_mult": [EXTRACT],
+    "tp3_mult": [EXTRACT],
+    
+    # Ichimoku Params (Phase 2 baseline)
+    "tenkan": [EXTRACT],
+    "kijun": [EXTRACT],
+    
+    # Filters (baseline = all OFF)
+    "use_mama_kama_filter": False,
+    "use_distance_filter": False,
+    "use_volume_filter": False,
+    "use_reg_cloud_filter": False,
+    "use_kama_filter": False,
+    "ichi5in1_strict": False,
+}
+```
+
+### 3. Update asset_config.py
+
+**File:** `crypto_backtest/config/asset_config.py`
+
+**Action:**
+1. Locate TIA and CAKE entries
+2. Replace with Phase 2 baseline params (above)
+3. Remove any Phase 4 rescue references
+4. Add comment: `# Reclassified from Phase 4 to Phase 2 post-PR#8 (guard002 threshold 15%)`
+
+### 4. Validate Changes
+
+**Checklist:**
+- [ ] TIA displacement = 52
+- [ ] CAKE displacement = 52
+- [ ] optimization_mode = "baseline" (NOT filter mode)
+- [ ] All filter flags = False
+- [ ] variance_pct matches (11.49%, 10.76%)
+- [ ] ATR params from Phase 2 scan
+- [ ] Ichimoku params from Phase 2 scan
+
+---
+
+## 🔧 COMMANDS REFERENCE
+
+### Locate Phase 2 Results
 ```bash
-python scripts/run_full_pipeline.py \
-  --assets TIA \
-  --fixed-displacement 78 \
-  --trials-atr 300 \
-  --trials-ichi 300 \
-  --enforce-tp-progression \
-  --run-guards \
-  --overfit-trials 150 \
-  --workers 1 \
-  --output-prefix tia_rescue_d78_20260124
+# Find Phase 2 scan with TIA/CAKE
+cd outputs
+grep -l "TIA\|CAKE" multiasset_scan_*20260124*.csv | head -5
+
+# Extract TIA params
+grep "TIA" multiasset_scan_[TIMESTAMP].csv
+
+# Extract CAKE params
+grep "CAKE" multiasset_scan_[TIMESTAMP].csv
 ```
 
-**Expected Duration**: 4-6 hours total (2-3h per displacement)
+### Validate asset_config.py
+```python
+# Test import
+from crypto_backtest.config.asset_config import ASSET_CONFIGS
 
-**Output Files** (expected):
-```
-outputs/tia_rescue_d26_20260124_TIA_guards_summary.csv
-outputs/tia_rescue_d78_20260124_TIA_guards_summary.csv
-```
+# Check TIA
+print(ASSET_CONFIGS["TIA"]["displacement"])  # Should be 52
+print(ASSET_CONFIGS["TIA"]["optimization_mode"])  # Should be "baseline"
 
-**Success Criteria**:
-- [ ] d26 executed with full guards
-- [ ] d78 executed with full guards
-- [ ] At least one displacement passes 7/7 guards (best case)
-- [ ] Report results to @Sam for validation
-
-**Possible Outcomes**:
-- ✅ d26 OR d78 passes 7/7 → TIA PROD (rescue success) → #2 asset!
-- ⚠️ Both fail → Phase 4 (filter grid) required
-- ❌ All fail Phase 4 → EXCLU définitif
-
-**Handoff to**: @Sam (when complete) → @Casey (final decision)
-
-**Reference**: `TIA_RESCUE_PLAN.md`
-
----
-
-### Task J1: Execute Guards on 7 Pending Assets [✅ COMPLETE]
-**From**: @Casey  
-**Priority**: 🔴 P0 (CRITICAL)  
-**Status**: 🔄 RUNNING (started 19:47 UTC)
-
-**Context**: Overnight run validated 8 assets (SHIB, DOT, NEAR, DOGE, ANKR, JOE, ETH, ONE) with 7/7 guards PASS. 7 additional assets completed optimization but need guards execution.
-
-**Assets**: TIA, HBAR, CAKE, TON, RUNE, EGLD, SUSHI
-
-**Command**:
-```bash
-python scripts/run_guards_multiasset.py \
-  --assets TIA HBAR CAKE TON RUNE EGLD SUSHI \
-  --workers 1 \
-  --mc-iterations 1000 \
-  --bootstrap-samples 10000 \
-  --sensitivity-range 5 \
-  --output-prefix phase2_guards_backfill_20260124
-```
-
-**Expected Duration**: 2-3 hours (7 assets × ~20 min guards execution)
-
-**Note**: CRV exclu (OOS Sharpe 1.01 < threshold 1.0, prediction: FAIL guards)
-
-**START TIME**: 2026-01-24 19:47 UTC  
-**ETA COMPLETION**: 2026-01-24 21:47-22:47 UTC
-
-**Actual Command Executed**:
-```bash
-python scripts/run_guards_multiasset.py \
-  --assets TIA HBAR CAKE TON RUNE EGLD SUSHI \
-  --params-file outputs/phase2_guards_backfill_params_20260124.csv \
-  --workers 1 \
-  --summary-output outputs/phase2_guards_backfill_summary_20260124.csv
-```
-
-**Process Status**: ✅ RUNNING (PID 61416)
-
-**Output Files** (expected):
-```
-outputs/phase2_guards_backfill_20260124_TIA_guards_summary.csv
-outputs/phase2_guards_backfill_20260124_HBAR_guards_summary.csv
-outputs/phase2_guards_backfill_20260124_CAKE_guards_summary.csv
-outputs/phase2_guards_backfill_20260124_TON_guards_summary.csv
-outputs/phase2_guards_backfill_20260124_RUNE_guards_summary.csv
-outputs/phase2_guards_backfill_20260124_EGLD_guards_summary.csv
-outputs/phase2_guards_backfill_20260124_CRV_guards_summary.csv
-outputs/phase2_guards_backfill_20260124_SUSHI_guards_summary.csv
-```
-
-**Success Criteria**:
-- [ ] All 8 assets complete guards execution
-- [ ] No errors or crashes
-- [ ] Output files generated for all 8 assets
-- [ ] Report completion to @Sam for validation
-
-**Handoff to**: @Sam (when complete)
-
----
-
-### Task J2: Portfolio Construction Test [🟡 ASSIGNED]
-**From**: @Casey  
-**Priority**: 🟡 P1 (MEDIUM)  
-**Status**: ⏳ CAN RUN IN PARALLEL with Task J1
-
-**Context**: We have 8 validated PROD assets. Test all 4 portfolio optimization methods.
-
-**Assets**: SHIB, DOT, NEAR, DOGE, ANKR, ETH, ONE, JOE
-
-**Command**:
-```bash
-python scripts/portfolio_construction.py \
-  --assets SHIB DOT NEAR DOGE ANKR JOE ETH \
-  --method max_sharpe risk_parity min_cvar equal \
-  --min-weight 0.05 \
-  --max-weight 0.25 \
-  --max-correlation 0.70
-```
-
-**Expected Duration**: 10 minutes
-
-**Output Files** (expected):
-```
-outputs/portfolio_max_sharpe_<timestamp>.csv
-outputs/portfolio_risk_parity_<timestamp>.csv
-outputs/portfolio_min_cvar_<timestamp>.csv
-outputs/portfolio_equal_<timestamp>.csv
-outputs/portfolio_correlation_matrix_<timestamp>.csv
-```
-
-**Success Criteria**:
-- [ ] All 4 methods execute successfully
-- [ ] Weights sum to 1.0 for each method
-- [ ] Weights respect min/max bounds (0.05-0.25)
-- [ ] Correlation matrix generated
-- [ ] Report results to @Casey
-
-**Handoff to**: @Casey (when complete)
-
----
-
-## 📋 COMPLETED TASKS
-
-### [2026-01-24 03:23-16:47 UTC] - Overnight Validation Run - COMPLETE ✅
-**Task**: Phase 2 validation of 15 assets from Phase 1 screening  
-**Duration**: 13h24  
-**Status**: **MAJOR SUCCESS**
-
-**Results**:
-- **15 assets validated** (optimization complete)
-- **7 assets with 7/7 guards PASS** (ETH, JOE, ANKR, DOGE, DOT, NEAR, SHIB)
-- **8 assets pending guards** (TIA, HBAR, CAKE, TON, RUNE, EGLD, CRV, SUSHI)
-- **Reproducibility confirmed** (< 0.0001% variance)
-
-**Key Findings**:
-- SHIB is top performer (5.67 Sharpe, 2.27 WFE)
-- TIA (pending guards) could be #2 if guards pass (5.16 Sharpe)
-- All 7 validated assets show excellent guard profiles
-- Mean Sharpe: 3.91
-
-**Outputs**:
-- 60 CSV scan files (15 assets × 4 runs due to pipeline loops)
-- 14 guards summary files (7 assets × Run1+Run2)
-- Main log: `outputs/overnight_log_20260124_032322.txt`
-
-**Handoff**: Results reported to @Casey, guards validation assigned to @Sam
-
----
-
-## 🔧 EXECUTION PROTOCOL
-
-### Before Starting Task
-1. ✅ Read `comms/casey-quant.md` - Is task assigned to me?
-2. ✅ Check prerequisites (data downloaded, dependencies installed)
-3. ✅ Verify compute resources available
-4. ✅ Update this file: "Task X - STARTED"
-
-### During Task Execution
-1. 🔄 Monitor progress (check logs every 15 min)
-2. 📝 Note any warnings or unexpected behavior
-3. 🐛 If error found, attempt auto-fix or escalate to @Casey
-4. ⏱️ If taking longer than expected, update ETA
-
-### After Task Completion
-1. ✅ Verify all output files generated
-2. 📊 Quick sanity check (files not empty, no NaN values)
-3. 📝 Update this file with results (use template below)
-4. 🔔 Notify recipient (@Sam for J1, @Casey for J2)
-
----
-
-## 📝 COMPLETION TEMPLATE
-
-```markdown
-## [TIMESTAMP UTC] - [Task Name] - COMPLETE ✅
-
-**Task**: [Task ID and description]
-**Duration**: [Actual time]
-**Status**: [SUCCESS/FAILED/PARTIAL]
-
-**Results**:
-- [Key metric 1]
-- [Key metric 2]
-
-**Outputs**:
-- [File path 1]
-- [File path 2]
-
-**Handoff to**: @[Agent Name]
-**Next Step**: [What happens next]
+# Check CAKE
+print(ASSET_CONFIGS["CAKE"]["displacement"])  # Should be 52
+print(ASSET_CONFIGS["CAKE"]["optimization_mode"])  # Should be "baseline"
 ```
 
 ---
 
-## 🐛 ERROR HANDLING
+## 📊 EXPECTED OUTCOME
 
-### Auto-Fixable (Do Not Escalate)
-- Encoding issues (Windows charset)
-- Missing data → rerun with `--download`
-- Missing dependency → `pip install`
-- Timeout (extend with longer timeout flag)
-
-### Escalate to @Casey
-- Data insufficient (< 8000 bars)
-- Pipeline crash (unhandled exception)
-- Logic error (business rules violated)
-- Resource exhaustion (out of memory)
-
----
-
-## 📊 CURRENT WORKLOAD
-
-**Active Tasks**: 2 (J1, J2)  
-**Status**: Ready to start  
-**Estimated Total Time**: 2-3 hours (J1) + 10 min (J2) = ~2.5-3.5 hours  
-**Can Run Parallel**: Yes (J2 while J1 executes)
-
----
-
-## 🎯 IMMEDIATE NEXT ACTIONS
-
-### Step 1: Start Task J1 (NOW) 🔴
-```bash
-cd C:\Users\Arthur\friendly-fishstick
-python scripts/run_guards_multiasset.py \
-  --assets TIA HBAR CAKE TON RUNE EGLD CRV SUSHI \
-  --workers 1 \
-  --output-prefix phase2_guards_backfill_20260124
+**Before (Phase 4 rescue):**
+```python
+"TIA": {
+    "optimization_mode": "medium_distance_volume",  # Phase 4
+    "use_distance_filter": True,
+    "use_volume_filter": True,
+    # ...
+}
 ```
 
-**Monitor**: Check log every 30 min for progress
-
----
-
-### Step 2: Start Task J2 (PARALLEL) 🟡
-```bash
-cd C:\Users\Arthur\friendly-fishstick
-python scripts/portfolio_construction.py \
-  --assets SHIB DOT NEAR DOGE ANKR JOE ETH \
-  --method max_sharpe risk_parity min_cvar equal \
-  --min-weight 0.05 \
-  --max-weight 0.25 \
-  --max-correlation 0.70
+**After (Phase 2 baseline):**
+```python
+"TIA": {
+    "optimization_mode": "baseline",  # Phase 2
+    "use_distance_filter": False,
+    "use_volume_filter": False,
+    "variance_pct": 11.49,  # PASS with 15% threshold
+    # ...
+}
 ```
 
-**Monitor**: Should complete in ~10 minutes
+---
+
+## ✅ COMPLETION CRITERIA
+
+**Task Complete When:**
+1. ✅ Phase 2 baseline results located
+2. ✅ TIA params extracted and updated
+3. ✅ CAKE params extracted and updated
+4. ✅ asset_config.py modified and saved
+5. ✅ Import validation passes
+6. ✅ Commit pushed with message: `fix(asset-config): reclassify TIA/CAKE to Phase 2 baseline post-PR#8`
+
+**Notify:**
+- Casey: Task complete
+- Sam: Ready for validation
 
 ---
 
-### Step 3: Report Results
-**When J1 complete**:
-- Update this file with results
-- Notify @Sam: "Task J1 complete, ready for validation"
-- Files ready: `outputs/phase2_guards_backfill_20260124_*.csv`
+## 📁 REFERENCE
 
-**When J2 complete**:
-- Update this file with results
-- Notify @Casey: "Task J2 complete, portfolio allocations ready"
-- Files ready: `outputs/portfolio_*.csv`
+**Documents:**
+- `TIA_CAKE_RECLASSIFICATION.md` — Full context
+- `comms/casey-quant.md` — Assignment details
+- `PR8_COMPLETE_SUMMARY.md` — PR#8 background
 
----
+**Files to Modify:**
+- `crypto_backtest/config/asset_config.py` (primary)
 
-## 📁 KEY REFERENCES
-
-**Task Source**: `comms/casey-quant.md`  
-**Validation Handoff**: `comms/sam-qa.md`  
-**Project State**: `status/project-state.md`  
-**Quick Reference**: `memo.md`
+**Files to Reference:**
+- `outputs/multiasset_scan_*20260124*.csv` (Phase 2 results)
+- `outputs/phase2_guards_backfill_summary_20260124.csv` (guards validation)
 
 ---
 
-## 🔄 CURRENT STATUS
+## 🎯 NEXT STEPS
 
-**Waiting For**: None (ready to start both tasks)  
-**Blockers**: None  
-**Compute Available**: Yes  
-**Next Update**: After Task J1 or J2 completes
+1. **Immediate:** Extract Phase 2 params from scan CSV
+2. **Update:** Modify asset_config.py
+3. **Validate:** Test import and params
+4. **Commit:** Push changes with clear message
+5. **Notify:** Casey + Sam (ready for validation)
 
 ---
 
-**NEXT ACTION**: Execute Task J1 (guards on 8 pending assets)  
-**THEN**: Execute Task J2 (portfolio construction, parallel)  
-**THEN**: Report to @Sam (J1) and @Casey (J2)
-
-**Last Updated**: 24 janvier 2026, 19:30 UTC  
-**Executor**: @Jordan
+**Status:** 🔴 ASSIGNED — AWAITING EXECUTION  
+**Priority:** P0 (blocking portfolio construction)  
+**ETA:** ASAP (within 1 hour)

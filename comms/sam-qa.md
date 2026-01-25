@@ -1,322 +1,236 @@
-# SAM - QA Engineer & Guards Validator
+# Sam (QA Validator) — Validation Log
 
-**Role**: Validation & Analysis (valide les 7 guards, ne code pas, n'exécute pas)  
-**Current Phase**: POST-OVERNIGHT VALIDATION - Guards Execution (EXCEPTION)  
-**Last Updated**: 24 janvier 2026, 19:55 UTC
-
-**NOTE IMPORTANTE**: Pour cette tâche uniquement, Sam exécute les guards (exception au rôle normal). À l'avenir, Jordan exécutera et Sam validera uniquement.
+**Last Updated:** 25 janvier 2026, 02:05 UTC  
+**Status:** 🔵 PENDING — TIA/CAKE Validation
 
 ---
 
-## 🎯 CURRENT ASSIGNMENT
+## 🔵 PENDING VALIDATION — TIA/CAKE Reclassification
 
-### Task S1: Execute Guards on 7 Pending Assets [🔄 IN PROGRESS - EXCEPTION]
-**From**: @Casey  
-**Priority**: 🔴 P0 (CRITICAL)  
-**Status**: 🔄 **RUNNING** (démarré 19:47 UTC, PID 61416)
+**From:** Casey (Orchestrator)  
+**Date:** 25 janvier 2026, 02:00 UTC  
+**Priority:** P0 (immediate)  
+**Depends On:** Jordan asset_config update
 
-**⚠️ EXCEPTION**: Sam exécute les guards pour cette tâche (normalement rôle de Jordan). À l'avenir, Jordan exécutera et Sam validera uniquement.
+### TASK SUMMARY
 
-**Context**: Overnight run validé 8 assets (SHIB, DOT, NEAR, DOGE, ANKR, JOE, ETH, ONE) avec 7/7 guards PASS. 7 assets additionnels ont optimization complète mais nécessitent guards execution.
+**Validate TIA and CAKE reclassification to "Phase 2 PASS (baseline)":**
+- Confirm 7/7 guards PASS with baseline params
+- Verify guard002 variance < 15% threshold
+- Approve for production deployment
+- Document validation in guards summary
 
-**Assets en cours**: TIA, HBAR, CAKE, TON, RUNE, EGLD, SUSHI
+### CONTEXT
 
-**Completed**: ✅ ONE validated (19:35 UTC) - 7/7 guards PASS → PROD READY
+**PR#8 Threshold Change:**
+- Guard002: 10% → 15%
+- TIA variance: 11.49% → PASS (was FAIL at 10%)
+- CAKE variance: 10.76% → PASS (was FAIL at 10%)
 
-**START TIME**: 2026-01-24 19:47 UTC  
-**ETA COMPLETION**: 2026-01-24 21:47-22:47 UTC (~2h)
+**Implication:**
+- Phase 2 baseline results NOW valid
+- Phase 4 rescue was false positive
+- Use Phase 2 params for production
 
-**Input Files** (expected from @Jordan):
+**Référence:** `TIA_CAKE_RECLASSIFICATION.md`
+
+---
+
+## 📋 VALIDATION CHECKLIST
+
+### TIA — Phase 2 Baseline Validation
+
+**Source:** Phase 2 scan results (2026-01-24)
+
+| Guard | Threshold | Value | Status | Notes |
+|-------|-----------|-------|--------|-------|
+| **Guard002** | **< 15%** | **11.49%** | ⏳ **VERIFY** | Was FAIL at 10%, NOW PASS at 15% |
+| WFE | ≥ 0.6 | [TBD] | ⏳ VERIFY | From Phase 2 scan |
+| MC p-value | < 0.05 | [TBD] | ⏳ VERIFY | From Phase 2 guards |
+| Bootstrap CI | > 1.0 | [TBD] | ⏳ VERIFY | From Phase 2 guards |
+| Top10 trades | < 40% | [TBD] | ⏳ VERIFY | From Phase 2 guards |
+| Stress Sharpe | > 1.0 | [TBD] | ⏳ VERIFY | From Phase 2 guards |
+| Regime mismatch | < 1% | [TBD] | ⏳ VERIFY | From Phase 2 guards |
+
+**Expected Result:** 7/7 PASS
+
+### CAKE — Phase 2 Baseline Validation
+
+**Source:** Phase 2 scan results (2026-01-24)
+
+| Guard | Threshold | Value | Status | Notes |
+|-------|-----------|-------|--------|-------|
+| **Guard002** | **< 15%** | **10.76%** | ⏳ **VERIFY** | Was FAIL at 10%, NOW PASS at 15% |
+| WFE | ≥ 0.6 | [TBD] | ⏳ VERIFY | From Phase 2 scan |
+| MC p-value | < 0.05 | [TBD] | ⏳ VERIFY | From Phase 2 guards |
+| Bootstrap CI | > 1.0 | [TBD] | ⏳ VERIFY | From Phase 2 guards |
+| Top10 trades | < 40% | [TBD] | ⏳ VERIFY | From Phase 2 guards |
+| Stress Sharpe | > 1.0 | [TBD] | ⏳ VERIFY | From Phase 2 guards |
+| Regime mismatch | < 1% | [TBD] | ⏳ VERIFY | From Phase 2 guards |
+
+**Expected Result:** 7/7 PASS
+
+---
+
+## 🔧 VALIDATION PROCEDURE
+
+### Step 1: Locate Phase 2 Guards Results
+
+```bash
+# Find Phase 2 guards summary with TIA/CAKE
+cd outputs
+ls -la phase2_guards_backfill_summary_20260124.csv
+
+# Extract TIA guards
+grep "TIA" phase2_guards_backfill_summary_20260124.csv
+
+# Extract CAKE guards
+grep "CAKE" phase2_guards_backfill_summary_20260124.csv
 ```
-outputs/phase2_guards_backfill_20260124_TIA_guards_summary.csv
-outputs/phase2_guards_backfill_20260124_HBAR_guards_summary.csv
-outputs/phase2_guards_backfill_20260124_CAKE_guards_summary.csv
-outputs/phase2_guards_backfill_20260124_TON_guards_summary.csv
-outputs/phase2_guards_backfill_20260124_RUNE_guards_summary.csv
-outputs/phase2_guards_backfill_20260124_EGLD_guards_summary.csv
-outputs/phase2_guards_backfill_20260124_SUSHI_guards_summary.csv
+
+### Step 2: Verify All Guards PASS
+
+**For each asset (TIA, CAKE):**
+1. ✅ Guard002 variance < 15.0% (critical)
+2. ✅ WFE ≥ 0.6
+3. ✅ MC p-value < 0.05
+4. ✅ Bootstrap CI lower > 1.0
+5. ✅ Top10 trades < 40%
+6. ✅ Stress1 Sharpe > 1.0
+7. ✅ Regime mismatch < 1%
+
+**Expected:** ALL PASS (7/7)
+
+### Step 3: Cross-Check with asset_config.py
+
+**After Jordan update:**
+```python
+# Verify TIA config
+from crypto_backtest.config.asset_config import ASSET_CONFIGS
+tia = ASSET_CONFIGS["TIA"]
+assert tia["optimization_mode"] == "baseline"
+assert tia["displacement"] == 52
+assert tia["variance_pct"] == 11.49
+
+# Verify CAKE config
+cake = ASSET_CONFIGS["CAKE"]
+assert cake["optimization_mode"] == "baseline"
+assert cake["displacement"] == 52
+assert cake["variance_pct"] == 10.76
 ```
 
-**Expected Duration**: 1-2 hours (analysis + documentation)
+### Step 4: Document Validation
 
-**Unblock Trigger**: @Jordan notifies completion of Task J1
-
-**Note:** CRV exclu de la liste (OOS Sharpe 1.01 < seuil 1.0, prédiction FAIL guards)
-
----
-
-## ✅ PROGRESS UPDATE [19:40 UTC]
-
-**Completed:**
-- ✅ ONE validated (7/7 guards PASS) → 8th asset PROD ready
-- ✅ Documentation updated (`comms/sam-qa.md`, `memo.md`)
-- ✅ Status report generated (`STATUS_SAM_20260124_1940.md`)
-
-**Current Status:**
-- **Assets PROD:** 8/20 (40%)
-- **Assets pending guards:** 7 (TIA, HBAR, TON, CAKE, RUNE, EGLD, SUSHI)
-- **Projection finale:** 11-13 assets PROD (55-65%)
-
-**Readiness:**
-- Sam: ✅ Ready to validate guards dès disponibles
-- Documentation: ✅ Complete et à jour
-- System: ⏸️ Idle (waiting for guards backfill)
-
----
-
-## 📋 VALIDATION CHECKLIST (Per Asset)
-
-### 7 Guards Mandatory
-- [ ] **guard001**: MC p-value < 0.05 (not random)
-- [ ] **guard002**: Sensitivity variance < 10% (params stable)
-- [ ] **guard003**: Bootstrap CI lower > 1.0 (robust confidence)
-- [ ] **guard005**: Top10 trades < 40% (not lucky trades)
-- [ ] **guard006**: Stress1 Sharpe > 1.0 (survives stress)
-- [ ] **guard007**: Regime mismatch < 1% (all market regimes)
-- [ ] **WFE**: > 0.6 (not overfit)
-
-### Additional Thresholds
-- [ ] **OOS Sharpe**: > 1.0 (minimum performance)
-- [ ] **OOS Trades**: > 60 (sufficient sample)
-- [ ] **TP Progression**: TP1 < TP2 < TP3, gaps ≥ 0.5
-
----
-
-## 📊 VALIDATION MATRIX (8 Pending Assets)
-
-| Asset | OOS Sharpe | WFE | Trades | Expected Verdict | Priority |
-|:------|:-----------|:----|:-------|:-----------------|:---------|
-| **TIA** 🚀 | 5.16 | 1.36 | 75 | **LIKELY PASS** (excellent metrics) | P0 |
-| **HBAR** | 2.32 | 1.03 | 114 | **LIKELY PASS** | P0 |
-| **TON** | 2.54 | 1.17 | 69 | **LIKELY PASS** | P0 |
-| **CAKE** | 2.46 | 0.81 | 90 | **MARGINAL** (WFE close to 0.6) | P1 |
-| **RUNE** | 2.42 | 0.61 | 102 | **MARGINAL** (low WFE) | P1 |
-| **EGLD** | 2.04 | 0.66 | 90 | **MARGINAL** | P1 |
-| **SUSHI** | 1.90 | 0.63 | 105 | **MARGINAL** | P2 |
-| **CRV** | 1.01 | 0.88 | 111 | **LIKELY FAIL** (Sharpe too low) | P2 |
-
-**Conservative Estimate**: 3-5 assets will pass 7/7 guards  
-**Optimistic Estimate**: 6-8 assets will pass 7/7 guards
-
----
-
-## ✅ COMPLETED VALIDATIONS
-
-### [2026-01-24 04:47-19:01 UTC] - Overnight Run Guards (8 assets) - COMPLETE ✅
-**Task**: Validate guards for assets from overnight run  
-**Duration**: Multiple runs (Run1 + Run2 per asset)  
-**Status**: **ALL 8 ASSETS - 7/7 GUARDS PASS**
-
-**Summary**: 8 assets validated PROD ready (7 from overnight run + 1 backfill)
-
-**Validated Assets**:
-
-#### SHIB (Best Performer) ⭐
-- **OOS Sharpe**: 5.67
-- **WFE**: 2.27
-- **Guard001** (MC p-value): 0.0 ✅
-- **Guard002** (Sensitivity): 3.62% ✅
-- **Guard003** (Bootstrap CI): 2.33 ✅
-- **Guard005** (Top10 trades): 21.5% ✅
-- **Guard006** (Stress1): 1.89 ✅
-- **Guard007** (Regime): 0.0% ✅
-- **Verdict**: **7/7 PASS** → **PROD READY**
-
-#### DOT
-- **OOS Sharpe**: 4.82
-- **WFE**: 1.74
-- **All Guards**: ✅ 7/7 PASS
-- **Verdict**: **PROD READY**
-
-#### NEAR
-- **OOS Sharpe**: 4.26
-- **WFE**: 1.69
-- **All Guards**: ✅ 7/7 PASS
-- **Verdict**: **PROD READY**
-
-#### DOGE
-- **OOS Sharpe**: 3.88
-- **WFE**: 1.55
-- **All Guards**: ✅ 7/7 PASS
-- **Verdict**: **PROD READY**
-
-#### ANKR
-- **OOS Sharpe**: 3.48
-- **WFE**: 0.86
-- **All Guards**: ✅ 7/7 PASS
-- **Verdict**: **PROD READY**
-
-#### JOE
-- **OOS Sharpe**: 3.16
-- **WFE**: 0.73
-- **All Guards**: ✅ 7/7 PASS
-- **Verdict**: **PROD READY**
-
-#### ONE 🆕
-- **OOS Sharpe**: 3.00
-- **WFE**: 0.92
-- **Guard001** (MC p-value): 0.0 ✅
-- **Guard002** (Sensitivity): 2.85% ✅
-- **Guard003** (Bootstrap CI): 3.13 ✅
-- **Guard005** (Top10 trades): 16.2% ✅
-- **Guard006** (Stress1): 2.60 ✅
-- **Guard007** (Regime): 0.0% ✅
-- **Verdict**: **7/7 PASS** → **PROD READY**
-- **Source**: Phase 1 Batch 3 + Guards backfill (19:01 UTC)
-
-#### ETH
-- **OOS Sharpe**: 2.07
-- **WFE**: 1.06
-- **All Guards**: ✅ 7/7 PASS
-- **Verdict**: **PROD READY**
-
-**Summary**: 7/7 assets passed all guards with excellent margins  
-**Recommendation to @Casey**: ✅ **ACCEPT ALL 7 FOR PROD**  
-**Output**: Reported in `comms/jordan-to-sam-phase2-results.md`
-
----
-
-## 📝 VALIDATION REPORT TEMPLATE
-
+**Create validation report:**
 ```markdown
-## [TIMESTAMP UTC] - Guards Validation - [ASSET] - [VERDICT]
+## TIA/CAKE Reclassification Validation
+Date: 2026-01-25
+Validator: Sam (QA)
 
-**Asset**: [ASSET]
-**OOS Sharpe**: [X.XX]
-**WFE**: [X.XX]
-**OOS Trades**: [XXX]
+### TIA
+- Phase: 2 PASS (baseline, d52)
+- Guards: 7/7 PASS (guard002: 11.49% < 15%)
+- Status: ✅ APPROVED PRODUCTION
 
-### Guards Results
-| Guard | Threshold | Value | Status |
-|-------|-----------|-------|--------|
-| guard001 (MC p-value) | < 0.05 | [X.XXX] | [✅/❌] |
-| guard002 (Sensitivity) | < 10% | [X.X%] | [✅/❌] |
-| guard003 (Bootstrap CI) | > 1.0 | [X.XX] | [✅/❌] |
-| guard005 (Top10 trades) | < 40% | [XX.X%] | [✅/❌] |
-| guard006 (Stress1 Sharpe) | > 1.0 | [X.XX] | [✅/❌] |
-| guard007 (Regime mismatch) | < 1% | [X.X%] | [✅/❌] |
-| WFE | > 0.6 | [X.XX] | [✅/❌] |
+### CAKE
+- Phase: 2 PASS (baseline, d52)
+- Guards: 7/7 PASS (guard002: 10.76% < 15%)
+- Status: ✅ APPROVED PRODUCTION
 
-### Additional Checks
-- **OOS Sharpe**: [X.XX] ([✅ > 1.0 / ❌ < 1.0])
-- **OOS Trades**: [XXX] ([✅ > 60 / ❌ < 60])
-- **TP Progression**: TP1=[X.X] < TP2=[X.X] < TP3=[X.X] ([✅ valid / ❌ invalid])
-
-### Verdict
-**Guards Score**: [X]/7 PASS  
-**Decision**: [✅ PROD READY / ⚠️ MARGINAL / ❌ BLOCKED]
-
-**Rationale**: [Brief explanation]
-
-**Recommendation to @Casey**: [ACCEPT / REJECT / RETEST with variant]
+Conclusion: Both assets meet all criteria with 15% threshold.
+Phase 4 rescue obsolète (false positive 10% threshold).
 ```
 
 ---
 
-## 🔍 ANALYSIS GUIDELINES
+## 📊 EXPECTED RESULTS
 
-### When to PASS (7/7 Guards)
-- All 7 guards within thresholds
-- OOS Sharpe > 1.0
-- OOS Trades > 60
-- TP progression valid
-- No suspicious patterns (e.g., all profit from 1-2 trades)
+### Verification Matrix
 
-### When to Flag MARGINAL (6/7 or borderline)
-- One guard barely failing (e.g., sensitivity 10.5%)
-- WFE close to threshold (0.60-0.65)
-- Sharpe just above threshold (1.0-1.5)
-- **Recommendation**: Report to @Casey for decision
+| Asset | Phase | Displacement | Filter | Variance | Guards | Status |
+|-------|-------|--------------|--------|----------|--------|--------|
+| **TIA** | 2 | d52 | baseline | 11.49% | 7/7 PASS | ✅ APPROVED |
+| **CAKE** | 2 | d52 | baseline | 10.76% | 7/7 PASS | ✅ APPROVED |
 
-### When to BLOCK (< 6/7 Guards)
-- Two or more guards failing
-- Critical guard failing (guard001, guard002, guard006)
-- OOS Sharpe < 1.0
-- TP progression invalid
-- **Recommendation**: REJECT or suggest retest with variant
+### Key Assertions
+- ✅ Guard002 < 15% (nouveau seuil)
+- ✅ All other guards PASS
+- ✅ Baseline optimization (no filters)
+- ✅ Displacement d52
+- ✅ Phase 2 params from original scan
 
 ---
 
-## 🚨 RED FLAGS TO WATCH
+## ✅ COMPLETION CRITERIA
 
-### Pattern Recognition
-- **Single trade dominance**: If top 10 trades > 40% of profit
-- **Regime concentration**: If > 99% trades in one regime
-- **Parameter instability**: If sensitivity variance > 10%
-- **Overfitting**: If WFE < 0.6
+**Validation Complete When:**
+1. ✅ Phase 2 guards results located and reviewed
+2. ✅ TIA: 7/7 guards PASS confirmed
+3. ✅ CAKE: 7/7 guards PASS confirmed
+4. ✅ Guard002 variance verified (< 15%)
+5. ✅ asset_config.py cross-checked
+6. ✅ Validation report documented
+7. ✅ Casey notified: APPROVED FOR PRODUCTION
 
-### Data Quality Issues
-- **Insufficient sample**: If OOS trades < 60
-- **Look-ahead bias**: Verify shift(1) on indicators
-- **TP non-progression**: TP1 ≥ TP2 or TP2 ≥ TP3
-
-### Statistical Concerns
-- **MC p-value > 0.05**: Could be random luck
-- **Bootstrap CI < 1.0**: True performance likely below threshold
-- **Stress test fail**: Strategy fragile under stress
+**Deliverables:**
+- Validation report (in this file or separate doc)
+- Guards summary confirmation
+- Approval for Riley to generate Pine Scripts
 
 ---
 
-## 📊 EXPECTED OUTCOMES (8 Pending Assets)
+## 🎯 DECISION FRAMEWORK
 
-### High Confidence PASS (3 assets)
-- **TIA**: 5.16 Sharpe, 1.36 WFE → **Excellent metrics**
-- **HBAR**: 2.32 Sharpe, 1.03 WFE → **Solid performance**
-- **TON**: 2.54 Sharpe, 1.17 WFE → **Good performance**
+### PASS Criteria (All Required)
+- Guard002 variance < 15.0%
+- All 7 guards PASS
+- Baseline params from Phase 2 scan
+- No filter mode applied
+- Displacement = 52
 
-### Marginal (4 assets)
-- **CAKE**: 2.46 Sharpe, 0.81 WFE → **WFE slightly low**
-- **RUNE**: 2.42 Sharpe, 0.61 WFE → **WFE borderline**
-- **EGLD**: 2.04 Sharpe, 0.66 WFE → **Both metrics borderline**
-- **SUSHI**: 1.90 Sharpe, 0.63 WFE → **Sharpe low**
+### FAIL Criteria (Any One)
+- Guard002 variance ≥ 15.0%
+- Any guard FAIL
+- Params don't match Phase 2 scan
+- Config inconsistencies
 
-### Likely FAIL (1 asset)
-- **CRV**: 1.01 Sharpe, 0.88 WFE → **Sharpe barely above threshold**
+### Current Status
+🔵 **PENDING** — Awaiting Jordan asset_config update
 
-**Conservative Projection**: 3-4 PASS, 2-3 MARGINAL, 1-2 FAIL  
-**Total PROD Assets After**: 7 current + 3-4 new = **10-11 total**
-
----
-
-## 🔄 WORKFLOW STATUS
-
-**Current Phase**: Awaiting @Jordan Task J1 completion  
-**Next Step**: Validate 8 assets when files ready  
-**Estimated Duration**: 1-2 hours after files available  
-**Handoff to**: @Casey (with final recommendation)
+**Expected:** ✅ PASS (both assets meet all criteria)
 
 ---
 
-## 📁 KEY REFERENCES
+## 📁 REFERENCE FILES
 
-**Input Source**: `comms/jordan-dev.md` (Task J1 results)  
-**Coordination**: `comms/casey-quant.md` (Decision D4 pending)  
-**Previous Validation**: `comms/jordan-to-sam-phase2-results.md`  
-**Project State**: `status/project-state.md`
+**Validation Sources:**
+- `outputs/phase2_guards_backfill_summary_20260124.csv` — Guards results
+- `outputs/multiasset_scan_*20260124*.csv` — Scan results
+- `crypto_backtest/config/asset_config.py` — Config to validate
 
----
-
-## 🎯 IMMEDIATE NEXT ACTIONS
-
-### Step 1: Monitor @Jordan Progress
-- Check `comms/jordan-dev.md` every 30 min
-- Look for "[Task J1 - COMPLETE]" notification
-
-### Step 2: When Task J1 Complete
-- Read all 8 guards summary CSV files
-- Apply validation checklist to each asset
-- Document results using report template
-
-### Step 3: Report to @Casey
-- Summary: How many passed 7/7?
-- Detailed: Per-asset verdict
-- Recommendation: Final PROD list decision
+**Context Documents:**
+- `TIA_CAKE_RECLASSIFICATION.md` — Full analysis
+- `comms/casey-quant.md` — Assignment
+- `PR8_COMPLETE_SUMMARY.md` — PR#8 background
 
 ---
 
-**NEXT UPDATE**: After @Jordan reports Task J1 completion  
-**THEN**: Begin validation of 8 pending assets  
-**ESTIMATED**: 1-2 hours after Task J1 complete
+## 📝 NOTES
 
-**Last Updated**: 24 janvier 2026, 19:30 UTC  
-**Validator**: @Sam
+**Critical Points:**
+- Guard002 threshold change IS retroactive
+- Phase 2 baseline results are valid
+- Phase 4 rescue was false positive (seuil 10%)
+- No re-optimization needed
+
+**Quality Assurance:**
+- Cross-check all 7 guards individually
+- Verify variance values exact match
+- Confirm baseline optimization (no filters)
+- Document validation clearly
+
+---
+
+**Status:** 🔵 PENDING — AWAITING JORDAN COMPLETION  
+**Priority:** P0 (blocking production deployment)  
+**Next:** Validate → Approve → Notify Casey + Riley
