@@ -1,0 +1,16 @@
+GUARDS VALIDATION REPORT: AVAX
+======================================================================
+GUARD-001 Monte Carlo p-value: 0.0000 -> PASS
+GUARD-002 Sensitivity variance: 2.77% -> PASS
+GUARD-003 Bootstrap Sharpe CI lower: 2.11 -> PASS
+GUARD-005 Trade distribution top10: 18.63% -> PASS
+GUARD-006 Stress1 Sharpe: 1.94 -> PASS
+GUARD-007 Regime reconciliation mismatch: 0.00% -> PASS
+GUARD-WFE: 0.66 -> PASS
+----------------------------------------------------------------------
+OVERFITTING (report-only):
+PSR (P[SR>0]): 0.9994
+DSR (deflated): n/a
+SR* (deflated threshold): n/a
+----------------------------------------------------------------------
+ALL PASS: YES

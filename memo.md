@@ -190,8 +190,9 @@ python scripts/portfolio_construction.py \
 
 ### Next Actions
 1. ⏳ Sam validation (TIA/CAKE) - administrative confirmation
-2. 🔜 Paper trading setup
-3. 🔜 Phase 1 screening (expand to 20+ assets)
+2. 🔄 **Phase 1 Screening RUNNING** — 15 assets (Tier 1/2/3, ETA: 1-2h)
+3. 🔜 Riley Pine Scripts (11 assets, after Sam validation)
+4. 🔜 Paper trading setup
 
 ---
 

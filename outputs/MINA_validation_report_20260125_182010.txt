@@ -1,0 +1,16 @@
+GUARDS VALIDATION REPORT: MINA
+======================================================================
+GUARD-001 Monte Carlo p-value: 0.0000 -> PASS
+GUARD-002 Sensitivity variance: 7.60% -> PASS
+GUARD-003 Bootstrap Sharpe CI lower: 2.04 -> PASS
+GUARD-005 Trade distribution top10: 20.24% -> PASS
+GUARD-006 Stress1 Sharpe: 1.89 -> PASS
+GUARD-007 Regime reconciliation mismatch: 0.00% -> PASS
+GUARD-WFE: 1.13 -> PASS
+----------------------------------------------------------------------
+OVERFITTING (report-only):
+PSR (P[SR>0]): 0.9980
+DSR (deflated): n/a
+SR* (deflated threshold): n/a
+----------------------------------------------------------------------
+ALL PASS: YES
