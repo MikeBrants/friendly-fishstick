@@ -28,6 +28,9 @@ def main():
     print("FOCUSED OPTIMIZATION - Only Active Parameters")
     print("=" * 70)
 
+    include_displacement = False
+    displacement_choices = [26, 39, 52, 65, 78]
+
     # Load data
     print("\nLoading data...")
     data = load_binance_data(warmup=200)
@@ -92,6 +95,20 @@ def main():
         "grace_bars": {"type": "categorical", "choices": [0, 1]},
     }
 
+    if include_displacement:
+        SEARCH_SPACE.update(
+            {
+                "ichimoku.displacement": {
+                    "type": "categorical",
+                    "choices": displacement_choices,
+                },
+                "five_in_one.displacement_5": {
+                    "type": "categorical",
+                    "choices": displacement_choices,
+                },
+            }
+        )
+
     param_space = {
         "base_params": BASE_PARAMS,
         "search_space": SEARCH_SPACE,
@@ -113,7 +130,10 @@ def main():
         print(f"  - {key}")
 
     print("\nParameters FIXED (not optimized):")
-    print("  - Ichimoku: tenkan=9, kijun=26, displacement=52")
+    if include_displacement:
+        print("  - Ichimoku displacement included in Bayesian search")
+    else:
+        print("  - Ichimoku: tenkan=9, kijun=26, displacement=52")
     print("  - MAMA/KAMA: ignored (use_mama_kama_filter=False)")
 
     # Run optimization
@@ -167,7 +187,10 @@ def main():
         for key, value in sorted(result.best_params.items()):
             f.write(f"  {key}: {value}\n")
         f.write("\nFixed parameters (not optimized):\n")
-        f.write("  Ichimoku: tenkan=9, kijun=26, displacement=52\n")
+        if include_displacement:
+            f.write("  Ichimoku displacement: optimized (Bayesian search)\n")
+        else:
+            f.write("  Ichimoku: tenkan=9, kijun=26, displacement=52\n")
         f.write("  MAMA/KAMA: ignored (use_mama_kama_filter=False)\n")
 
     print(f"\nResults saved to: {output_file}")

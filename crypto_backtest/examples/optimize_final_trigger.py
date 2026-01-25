@@ -61,6 +61,8 @@ BASE_PARAMS = {
 # =============================================================================
 # SEARCH SPACE: Ranges and toggles for optimization
 # =============================================================================
+DISPLACEMENT_CHOICES = [26, 39, 52, 65, 78]
+
 SEARCH_SPACE_FULL = {
     # --- ATR SL/TP (most impactful) ---
     "sl_mult": {"type": "float", "low": 1.5, "high": 5.0, "step": 0.25},
@@ -74,7 +76,6 @@ SEARCH_SPACE_FULL = {
     # --- Ichimoku external ---
     "ichimoku.tenkan": {"type": "int", "low": 5, "high": 15},
     "ichimoku.kijun": {"type": "int", "low": 20, "high": 35},
-    "ichimoku.displacement": {"type": "int", "low": 40, "high": 65},
     # --- Five-in-One numeric params ---
     "five_in_one.fast_period": {"type": "int", "low": 5, "high": 15},
     "five_in_one.slow_period": {"type": "int", "low": 15, "high": 30},
@@ -109,6 +110,7 @@ def get_param_space(
     initial_capital: float = 10000.0,
     fees_bps: float = 4.0,
     slippage_bps: float = 1.0,
+    include_displacement: bool = False,
 ) -> dict:
     """Get a ready-to-use param_space dict for BayesianOptimizer.
 
@@ -118,6 +120,7 @@ def get_param_space(
         initial_capital: starting capital for backtest
         fees_bps: trading fee in basis points (4.0 = 0.04% taker)
         slippage_bps: slippage in basis points (1.0 = 0.01%)
+        include_displacement: whether to optimize Ichimoku displacement values
 
     Returns:
         dict with base_params, search_space, objective, backtest_config
@@ -130,6 +133,19 @@ def get_param_space(
         search_space = {**SEARCH_SPACE_FULL, **SEARCH_SPACE_TOGGLES}
     else:
         raise ValueError(f"Unknown mode: {mode}")
+
+    if include_displacement:
+        search_space = {
+            **search_space,
+            "ichimoku.displacement": {
+                "type": "categorical",
+                "choices": DISPLACEMENT_CHOICES,
+            },
+            "five_in_one.displacement_5": {
+                "type": "categorical",
+                "choices": DISPLACEMENT_CHOICES,
+            },
+        }
 
     return {
         "base_params": BASE_PARAMS,

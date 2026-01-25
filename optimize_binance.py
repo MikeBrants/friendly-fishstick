@@ -33,6 +33,8 @@ def main():
     print("BAYESIAN OPTIMIZATION - Binance BTCUSDT 1h")
     print("=" * 70)
 
+    include_displacement = False
+
     # Load data
     print("\nLoading data...")
     data = load_binance_data(warmup=200)
@@ -47,10 +49,13 @@ def main():
         initial_capital=10000.0,
         fees_bps=5.0,  # 0.05% fees
         slippage_bps=2.0,  # 0.02% slippage
+        include_displacement=include_displacement,
     )
 
     print(f"Optimizing: {param_space['objective']}")
     print(f"Search space: {len(param_space['search_space'])} parameters")
+    if include_displacement:
+        print("Displacement included: [26, 39, 52, 65, 78]")
 
     # Run optimization
     n_trials = 50
