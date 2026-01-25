@@ -1,8 +1,8 @@
 # PROJECT STATE - FINAL TRIGGER v2 Backtest System
 
-**Last Updated**: 24 janvier 2026, 18:50 UTC  
-**Phase**: POST-PR7 INTEGRATION & RE-VALIDATION TESTING  
-**Status**: 🟡 ACTIVE TESTING (Multiple workstreams in progress)
+**Last Updated**: 25 janvier 2026, 01:45 UTC  
+**Phase**: POST-PR8 — Guard Threshold Update + Portfolio @ 11 Assets  
+**Status**: 🟢 STABLE (Validation complete, ready for next phase)
 
 ---
 
@@ -124,7 +124,14 @@ ATOM, ARB, LINK, INJ, ICP, IMX, CELO, ARKM, W, STRK, AEVO
 | Parallel Safety | constant_liar | ✅ ACTIVE | Safe for workers>1 |
 | Guards System | 7 guards | ✅ OPERATIONAL | guard001-007 + WFE |
 
-### Recent Deployments (24 JAN)
+### Recent Deployments
+
+**25 JAN 2026 (PR #8):**
+- ✅ Guard002 threshold updated: 10% → 15% (reduce false positives)
+- ✅ All agent rules aligned (Sam, Alex, Global)
+- ✅ Documentation complete (CHANGELOG_PR8.md, THRESHOLD_UPDATE_SUMMARY.md)
+
+**24 JAN 2026 (PR #7):**
 - ✅ `crypto_backtest/validation/overfitting.py` - PSR/DSR diagnostics
 - ✅ `crypto_backtest/portfolio/weights.py` - 4 optimization methods
 - ✅ `crypto_backtest/analysis/metrics.py` - Empyrical cross-check
