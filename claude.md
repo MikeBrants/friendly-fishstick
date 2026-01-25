@@ -1,17 +1,18 @@
 # Plan: Système de Backtest Pro pour "FINAL TRIGGER v2"
 
-**Derniere MAJ**: 24 janvier 2026
+**Derniere MAJ**: 25 janvier 2026, 15:45 UTC
 
 ## Objectif
 Convertir l'indicateur TradingView "FINAL TRIGGER v2 - State/Transition + A/D Line + Ichi Light" en Python et créer un système de backtest professionnel avec walk-forward analysis et optimisation bayésienne.
 
-## Etat Actuel: 24 janvier 2026 02:50 UTC - Reproducibility VERIFIED, Ready for Phase 1
+## Etat Actuel: 25 janvier 2026 15:45 UTC - RESET COMPLETE, 14 Assets PROD
 
 **Tests**: 17 tests passent (`pytest -v`)
 **Validation**: 100% match FINAL LONG/SHORT vs Pine Script (apres warmup)
-**Reproducibility**: ✅ VERIFIED (5+ consecutive identical runs)
-**Production Assets**: 15 assets PROD (FROZEN as historical baseline)
-**Strategy**: Option C (FREEZE & MOVE FORWARD) — validate new assets only
+**Reproducibility**: ✅ VERIFIED (workers=1 for all Phase 2 validation)
+**Production Assets**: **14 assets PROD** (re-validated 25 Jan with deterministic system)
+**Filter System**: v2 (3 modes: baseline/moderate/conservative)
+**Obsolete Modes**: medium_distance_volume, light_*, medium_* — DO NOT USE
 
 ---
 
@@ -62,23 +63,34 @@ unique_seed = SEED + asset_hash
 
 ---
 
-### 📊 Production Status Update
+### 📊 Production Status Update (25 Jan 2026)
 
-**Previously PROD Assets (15 frozen as-is):**
-- BTC, ETH, JOE, OSMO, MINA, AVAX, AR, ANKR, DOGE, OP, DOT, NEAR, SHIB, METIS, YGG
-- Decision: Keep as references (guards already 7/7 PASS)
-- Re-validation: Not required (science wasn't wrong, process was)
+**PROD Assets (14 validated with workers=1):**
 
-**Newly Validated (Post-Fix):**
-- ✅ **ETH**: OOS Sharpe 3.22, WFE 1.17 (PASS) - Reproducible across 2+ runs
+| Asset | Sharpe | WFE | Mode | Validation |
+|-------|--------|-----|------|------------|
+| SHIB | 5.67 | 2.27 | baseline | Pre-reset |
+| TIA | 5.16 | 1.36 | baseline | PR#8 |
+| DOT | 4.82 | 1.74 | baseline | Pre-reset |
+| NEAR | 4.26 | 1.69 | baseline | Pre-reset |
+| DOGE | 3.88 | 1.55 | baseline | Pre-reset |
+| ANKR | 3.48 | 0.86 | baseline | Pre-reset |
+| ETH | 3.22 | 1.22 | baseline | **25 Jan** |
+| JOE | 3.16 | 0.73 | baseline | Pre-reset |
+| YGG | 3.11 | 0.78 | baseline | **25 Jan** |
+| MINA | 2.58 | 1.13 | baseline | **25 Jan** |
+| CAKE | 2.46 | 0.81 | baseline | PR#8 |
+| RUNE | 2.42 | 0.61 | baseline | **25 Jan** |
+| EGLD | 2.13 | 0.69 | baseline | **25 Jan** |
+| AVAX | 2.00 | 0.66 | **moderate** | **25 Jan rescue** |
 
-**Failed Validation (Post-Fix):**
-- ❌ **BTC**: OOS Sharpe 1.21, WFE 0.42 (FAIL - overfit) - Reproducible across 2+ runs
-- ❌ **ONE**: OOS Sharpe 1.56, WFE 0.41 (FAIL - overfit)
-- ❌ **GALA**: OOS Sharpe -0.55, WFE -0.18 (FAIL - negative)
-- ❌ **ZIL**: OOS Sharpe 0.53, WFE 0.30 (FAIL - overfit)
+**Pending Rescue (3 assets):**
+- OSMO, AR, METIS — baseline failed, need Phase 3A displacement rescue
 
-**Note**: Old results (Runs 1-2) showed different values due to non-deterministic computation. New results (Runs 3+) are scientifically valid.
+**Excluded (25 Jan re-validation):**
+- OP: Sharpe 0.03, WFE 0.01 — severe fail, rescue unlikely
+
+**Note**: All 25 Jan validations used workers=1 for full reproducibility.
 
 ---
 

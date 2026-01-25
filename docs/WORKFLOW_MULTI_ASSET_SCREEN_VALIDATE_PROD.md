@@ -1,8 +1,8 @@
 # Pipeline Multi-Asset — 6 Phases (Screen → Validate → Prod)
 
-**Derniere mise a jour:** 2026-01-24 19:00 UTC  
-**Status**: 🟡 POST-PR7 INTEGRATION & RE-VALIDATION TESTING  
-**Version**: v2.1 (with overfitting diagnostics + portfolio construction)
+**Derniere mise a jour:** 2026-01-25 15:45 UTC  
+**Status**: 🟢 RESET COMPLETE — 14 Assets PROD  
+**Version**: v2.2 (filter system v2, deterministic validation)
 
 **⚠️ BREAKING CHANGE**: Parallel screening (workers > 1) is non-deterministic by Optuna design. Phase 2 MUST use workers=1 for scientific validity.
 
@@ -171,13 +171,14 @@ python scripts/download_data.py --assets [ASSET_LIST]
 
 ```bash
 # Phase 1: SCREENING with parallel workers (fast)
+# NOTE: --phase and --workers-screening don't exist, use --workers instead
 python scripts/run_full_pipeline.py \
   --assets BNB ADA DOGE TRX DOT ... \
-  --phase screening \
   --trials-atr 200 \
   --trials-ichi 200 \
   --enforce-tp-progression \
-  --workers-screening 10 \
+  --workers 10 \
+  --skip-guards \
   --skip-download \
   --output-prefix screening_batch1
 ```
@@ -236,41 +237,26 @@ python scripts/export_screening_results.py \
 - **Status**: Informational only (does NOT affect all_pass status)
 - **Purpose**: Detect overfitting risk before production deployment
 
-### Commande — Run 1 (Validation)
+### Commande — Validation
 
 ```bash
 # Phase 2: VALIDATION with sequential workers (reproducible)
+# CRITICAL: workers=1 is REQUIRED for reproducibility
 python scripts/run_full_pipeline.py \
-  --assets $(cat candidates_for_validation.txt) \
-  --phase validation \
+  --assets ETH AVAX MINA YGG \
   --trials-atr 300 \
   --trials-ichi 300 \
   --enforce-tp-progression \
   --run-guards \
-  --overfit-trials 150 \
-  --workers-validation 1 \
+  --workers 1 \
   --skip-download \
-  --output-prefix validated_run1
+  --output-prefix validated_batch1
 ```
 
-**NEW (v2.1)**: `--overfit-trials 150` enables PSR/DSR calculations for overfitting assessment
-
-### Commande — Run 2 (Reproducibility Check)
-
-```bash
-# Phase 2: VALIDATION Run 2 — IDENTICAL for reproducibility verification
-python scripts/run_full_pipeline.py \
-  --assets $(cat candidates_for_validation.txt) \
-  --phase validation \
-  --trials-atr 300 \
-  --trials-ichi 300 \
-  --enforce-tp-progression \
-  --run-guards \
-  --overfit-trials 150 \
-  --workers-validation 1 \
-  --skip-download \
-  --output-prefix validated_run2
-```
+**IMPORTANT**: 
+- `--workers 1` is MANDATORY for Phase 2 (Optuna reproducibility)
+- `--phase` and `--workers-validation` arguments DO NOT EXIST
+- Use `--workers` instead (applies to optimization parallelism)
 
 ### Reproducibility Verification
 

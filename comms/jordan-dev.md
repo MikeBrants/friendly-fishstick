@@ -968,3 +968,60 @@ python scripts/portfolio_construction.py \
 3. ✅ Portfolio construction - 4 methods (15:17 UTC)
 
 **Ready For:** Sam validation, Phase 1 screening, or next assignment
+
+---
+
+## 🚀 TASK IN PROGRESS: Phase 1 Screening Batch 1 (17:45 UTC)
+
+**Command:** Phase 1 screening on 15 high-priority candidates  
+**Status:** ⏳ **RUNNING** (background, workers=10)  
+**Duration:** ~1-2 hours estimated
+
+### Assets Being Screened (15)
+
+**Tier 1 - Blue Chips (5):**
+1. XRP (Ripple)
+2. BNB (Binance Coin)
+3. ADA (Cardano)
+4. AVAX (Avalanche)
+5. TRX (Tron)
+
+**Tier 2 - Large Caps (5):**
+6. MATIC (Polygon)
+7. UNI (Uniswap)
+8. ICP (Internet Computer)
+9. FIL (Filecoin)
+10. OP (Optimism)
+
+**Tier 2/3 - Mid Caps (5):**
+11. XLM (Stellar)
+12. LTC (Litecoin)
+13. GRT (The Graph)
+14. IMX (Immutable X)
+15. STX (Stacks)
+
+### Parameters
+- trials-atr: 150 (screening level)
+- trials-ichi: 150
+- workers: 10 (parallel, safe with constant_liar)
+- skip-guards: YES (Phase 1 only)
+- displacement: auto-optimized per asset
+
+### Expected Results
+- **Pass Rate:** ~25-30% (4-5 assets expected)
+- **Thresholds:** Sharpe > 0.8, WFE > 0.5, Trades > 50
+- **Output:** `outputs/phase1_batch1_20260125_multiasset_scan_*.csv`
+
+### Next Steps After Completion
+1. **If 4+ PASS:** Phase 2 validation (guards ON, 300 trials, workers=1)
+2. **If 2-3 PASS:** Phase 2 on PASS + Batch 2 screening
+3. **If 0-1 PASS:** Adjust strategy + Batch 2 different assets
+
+### Documentation
+- `PHASE1_SCREENING_BATCH1.md` — Full plan and expected outcomes
+
+---
+
+**Status:** ✅ LAUNCHED  
+**Monitor:** Terminal output in background  
+**ETA:** 1-2 hours (check status periodically)

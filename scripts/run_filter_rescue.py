@@ -135,7 +135,7 @@ def main():
             continue
         
         # Afficher résumé
-        print(f"\n{'─'*40}")
+        print(f"\n{'-'*40}")
         print(f"Mode: {mode.upper()}")
         print(f"  Sharpe OOS: {result.get('oos_sharpe', 'N/A')}")
         print(f"  WFE: {result.get('wfe', 'N/A')}")

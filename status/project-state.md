@@ -1,55 +1,72 @@
 # PROJECT STATE - FINAL TRIGGER v2 Backtest System
 
-**Last Updated**: 25 janvier 2026, 14:35 UTC  
-**Phase**: RESET OLD PROD ASSETS (Filter System v2 Migration)  
-**Status**: 🟡 RESET IN PROGRESS (8 anciens PROD en re-validation)
+**Last Updated**: 25 janvier 2026, 15:45 UTC  
+**Phase**: POST-RESET — DOCUMENTATION FINALIZATION  
+**Status**: 🟢 RESET COMPLETE (6 assets re-validated, 4 failed → need rescue)
 
 ---
 
-## 🔴 RESET EN COURS — Migration Systeme Filtres v2 (25 Jan 2026, 14:30 UTC)
+## ✅ RESET COMPLETE — Migration Systeme Filtres v2 (25 Jan 2026, 15:30 UTC)
 
 ### Objectif
 Migrer tous les assets utilisant des modes de filtres obsoletes (`medium_distance_volume`) vers le nouveau systeme (3 modes: baseline/moderate/conservative).
 
-### Assets en Reset
+### Resultats Finaux
 
-| Batch | Assets | Mode Actuel | Action | Status | Resultat |
-|-------|--------|-------------|--------|--------|----------|
-| **1** | ETH | `medium_distance_volume` (OBSOLETE) | Reset → baseline | ✅ **DONE** | **Sharpe 3.22, WFE 1.22, 72 trades** |
-| **1** | AVAX | `medium_distance_volume` (OBSOLETE) | Reset → baseline | 🔄 RUNNING | ~2h restant |
-| **2** | OSMO | `baseline` | Re-valider deterministe | 🔄 RUNNING | ~4-6h restant |
-| **2** | MINA | `baseline` | Re-valider deterministe | 🔄 RUNNING | ~4-6h restant |
-| **2** | AR | `baseline` | Re-valider deterministe | 🔄 RUNNING | ~4-6h restant |
-| **2** | OP | `baseline` | Re-valider deterministe | 🔄 RUNNING | ~4-6h restant |
-| **2** | METIS | `baseline` | Re-valider deterministe | 🔄 RUNNING | ~4-6h restant |
-| **2** | YGG | `baseline` | Re-valider deterministe | 🔄 RUNNING | ~4-6h restant |
-| **3** | RUNE | params=0.0 (incomplet) | Completer params | 🔄 RUNNING | ~1-2h restant |
-| **3** | EGLD | params=0.0 (incomplet) | Completer params | 🔄 RUNNING | ~1-2h restant |
+| Batch | Asset | Action | Status | Sharpe | WFE | Mode Final |
+|-------|-------|--------|--------|--------|-----|------------|
+| **1** | ETH | Reset obsolete | ✅ **PASS** | 3.22 | 1.22 | baseline |
+| **1** | AVAX | Reset → rescue | ✅ **PASS** | 2.00 | 0.66 | **moderate** |
+| **2** | MINA | Re-valider | ✅ **PASS** | 2.58 | 1.13 | baseline |
+| **2** | YGG | Re-valider | ✅ **PASS** | 3.11 | 0.78 | baseline |
+| **2** | OSMO | Re-valider | ❌ **FAIL** | 0.68 | 0.19 | NEEDS RESCUE |
+| **2** | AR | Re-valider | ❌ **FAIL** | 1.64 | 0.39 | NEEDS RESCUE |
+| **2** | OP | Re-valider | ❌ **FAIL** | 0.03 | 0.01 | **EXCLU** |
+| **2** | METIS | Re-valider | ❌ **FAIL** | 1.59 | 0.48 | NEEDS RESCUE |
+| **3** | RUNE | Completer params | ✅ **PASS** | 2.42 | 0.61 | baseline |
+| **3** | EGLD | Completer params | ✅ **PASS** | 2.13 | 0.69 | baseline |
 
-### Resultats Completes
+### Details des Validations
 
-**ETH (Batch 1a) - ✅ RESET COMPLETE (13:26 UTC)**
+**ETH — ✅ BASELINE PASS (13:26 UTC)**
 - Source: `outputs/reset_ETH_baseline_multiasset_scan_20260125_172644.csv`
-- Mode: `baseline` (was `medium_distance_volume`)
-- OOS Sharpe: **3.22** (excellent)
-- WFE: **1.22** (> 0.6 ✅)
-- Trades OOS: **72** (> 60 ✅)
-- MC p-value: **0.006** (< 0.05 ✅)
-- Bootstrap CI lower: **1.56** (> 1.0 ✅)
-- Nouveaux params: sl=3.0, tp1=5.0, tp2=6.0, tp3=7.5, tenkan=12, kijun=36
-- **Verdict: 7/7 GUARDS PASS → baseline mode validé**
+- Params: sl=3.0, tp1=5.0, tp2=6.0, tp3=7.5, tenkan=12, kijun=36
+- 7/7 guards PASS
 
-**AVAX (Batch 1b) - ❌ BASELINE FAIL → 🔄 RESCUE EN COURS (13:40 UTC)**
-- Source: `outputs/reset_AVAX_baseline_multiasset_scan_20260125_173950.csv`
-- Mode tentative: `baseline` (was `medium_distance_volume`)
-- OOS Sharpe: **2.12** (bon)
-- WFE: **0.51** (< 0.6 ❌ OVERFIT)
-- Trades OOS: **108** (> 60 ✅)
-- MC p-value: **0.008** (< 0.05 ✅)
-- Fail reason: WFE < 0.6 (overfit)
-- **Action: CASCADE RESCUE lancée** (moderate → conservative)
-- Command: `python scripts/run_filter_rescue.py AVAX --trials 300 --workers 1`
-- **Prochaine check: ~2h** (cascade peut prendre temps)
+**AVAX — ✅ MODERATE PASS (15:25 UTC)**
+- Source: `outputs/rescue_AVAX_moderate_20260125_190050_multiasset_scan_*.csv`
+- Baseline failed WFE 0.51, moderate rescued with WFE 0.66
+- Params: sl=3.0, tp1=4.75, tp2=8.5, tp3=9.0, tenkan=9, kijun=22
+- 7/7 guards PASS, sensitivity 2.77%
+
+**MINA — ✅ BASELINE PASS (15:20 UTC)**
+- Source: `outputs/revalidation_old_prod_multiasset_scan_20260125_182007.csv`
+- Params: sl=4.25, tp1=3.0, tp2=7.5, tp3=9.0, tenkan=9, kijun=26
+- 7/7 guards PASS
+
+**YGG — ✅ BASELINE PASS (15:20 UTC)**
+- Source: `outputs/revalidation_old_prod_multiasset_scan_20260125_182007.csv`
+- Params: sl=4.25, tp1=2.75, tp2=7.5, tp3=9.5, tenkan=10, kijun=20
+- 7/7 guards PASS
+
+**RUNE — ✅ BASELINE PASS (14:10 UTC)**
+- Source: `outputs/complete_params_multiasset_scan_20260125_175005.csv`
+- Params: sl=1.5, tp1=4.75, tp2=8.0, tp3=10.0, tenkan=5, kijun=38
+- 7/7 guards PASS
+
+**EGLD — ✅ BASELINE PASS (14:10 UTC)**
+- Source: `outputs/complete_params_multiasset_scan_20260125_175005.csv`
+- Params: sl=5.0, tp1=1.75, tp2=4.0, tp3=5.5, tenkan=5, kijun=28
+- 7/7 guards PASS
+
+### Assets en Echec — Actions Requises
+
+| Asset | Fail Reason | Recommended Action |
+|-------|-------------|-------------------|
+| **OSMO** | Sharpe 0.68, WFE 0.19 | Phase 3A displacement rescue (d26/d78) |
+| **AR** | WFE 0.39, Trades 41 | Phase 3A rescue, may need more data |
+| **OP** | Sharpe 0.03, WFE 0.01 | **EXCLU** — rescue unlikely to help |
+| **METIS** | WFE 0.48 | Phase 3A displacement rescue |
 
 ### Nouveau Systeme de Filtres (3 modes valides)
 
@@ -291,30 +308,32 @@ Avec le nouveau seuil 15%, ETH baseline passe directement **sans filter grid**:
 
 ## 📊 ASSET STATUS MATRIX
 
-### Category 1: ✅ VALIDATED PROD ASSETS (11 assets - POST-PR#8)
+### Category 1: ✅ VALIDATED PROD ASSETS (14 assets - POST-RESET 25 Jan)
 **Status**: 🟢 **PRODUCTION READY**
 
-| Rank | Asset | OOS Sharpe | WFE | Variance % | Guards | Mode | Status |
-|:----:|:------|:-----------|:----|:-----------|:-------|:-----|:-------|
-| 🥇 | **SHIB** | **5.67** | **2.27** | <15% | ✅ 7/7 | baseline | **PROD** |
-| 🥈 | **TIA** | **5.16** | **1.36** | **11.49%** | ✅ 7/7 | baseline | **PROD** ⬆️ PR#8 |
-| 🥉 | **DOT** | **4.82** | **1.74** | <15% | ✅ 7/7 | baseline | **PROD** |
-| 4️⃣ | **NEAR** | **4.26** | **1.69** | <15% | ✅ 7/7 | baseline | **PROD** |
-| 5️⃣ | **DOGE** | **3.88** | **1.55** | <15% | ✅ 7/7 | baseline | **PROD** |
-| 6️⃣ | **ANKR** | **3.48** | **0.86** | <15% | ✅ 7/7 | baseline | **PROD** |
-| 7️⃣ | **ETH** | **3.23** | **1.06** | <15% | ✅ 7/7 | medium_distance_volume | **PROD** |
-| 8️⃣ | **JOE** | **3.16** | **0.73** | <15% | ✅ 7/7 | baseline | **PROD** |
-| 9️⃣ | **CAKE** | **2.46** | **0.81** | **10.76%** | ✅ 7/7 | baseline | **PROD** ⬆️ PR#8 |
-| 🔟 | **RUNE** | **2.42** | **0.61** | **3.23%** | ✅ 7/7 | baseline | **PROD** |
-| 1️⃣1️⃣ | **EGLD** | **2.04** | **0.66** | **5.04%** | ✅ 7/7 | baseline | **PROD** |
+| Rank | Asset | OOS Sharpe | WFE | Guards | Mode | Validation Date |
+|:----:|:------|:-----------|:----|:-------|:-----|:----------------|
+| 🥇 | **SHIB** | **5.67** | **2.27** | ✅ 7/7 | baseline | Pre-reset |
+| 🥈 | **TIA** | **5.16** | **1.36** | ✅ 7/7 | baseline | PR#8 reclassified |
+| 🥉 | **DOT** | **4.82** | **1.74** | ✅ 7/7 | baseline | Pre-reset |
+| 4 | **NEAR** | **4.26** | **1.69** | ✅ 7/7 | baseline | Pre-reset |
+| 5 | **DOGE** | **3.88** | **1.55** | ✅ 7/7 | baseline | Pre-reset |
+| 6 | **ANKR** | **3.48** | **0.86** | ✅ 7/7 | baseline | Pre-reset |
+| 7 | **ETH** | **3.22** | **1.22** | ✅ 7/7 | baseline | **25 Jan reset** |
+| 8 | **JOE** | **3.16** | **0.73** | ✅ 7/7 | baseline | Pre-reset |
+| 9 | **YGG** | **3.11** | **0.78** | ✅ 7/7 | baseline | **25 Jan reset** |
+| 10 | **MINA** | **2.58** | **1.13** | ✅ 7/7 | baseline | **25 Jan reset** |
+| 11 | **CAKE** | **2.46** | **0.81** | ✅ 7/7 | baseline | PR#8 reclassified |
+| 12 | **RUNE** | **2.42** | **0.61** | ✅ 7/7 | baseline | **25 Jan reset** |
+| 13 | **EGLD** | **2.13** | **0.69** | ✅ 7/7 | baseline | **25 Jan reset** |
+| 14 | **AVAX** | **2.00** | **0.66** | ✅ 7/7 | **moderate** | **25 Jan rescue** |
 
 **Notes**:
-- All assets validated with deterministic system (reproducibility < 0.0001%)
-- **Mean Sharpe: 3.51** (excellent), Median: 3.48
-- All exceed minimum thresholds (Sharpe > 1.0, WFE > 0.6)
-- TIA and CAKE reclassified from Phase 4 → Phase 2 baseline (PR#8)
-- RUNE and EGLD confirmed (already passed with 10% threshold)
-- **Portfolio construction UNBLOCKED** (11 assets ready)
+- 6 assets re-validated with deterministic system (workers=1) on 25 Jan 2026
+- ETH migrated from OBSOLETE `medium_distance_volume` to `baseline`
+- AVAX required filter rescue: baseline FAIL → moderate PASS
+- **Mean Sharpe: 3.17**, all exceed minimum thresholds
+- **Portfolio construction READY** (14 assets)
 
 ---
 

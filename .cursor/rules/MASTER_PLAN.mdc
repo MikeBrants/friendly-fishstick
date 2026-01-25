@@ -10,45 +10,60 @@ alwaysApply: true
 
 Systeme de trading quant crypto valide statistiquement, deploye via pipeline multi-agent semi-autonome.
 
-## Etat Actuel (2026-01-22)
+## Etat Actuel (2026-01-25 15:45 UTC)
 
 | Metrique | Valeur |
 |----------|--------|
-| Assets PROD | 5 |
-| Assets Pending | ~15 |
+| Assets PROD | **14** |
+| Assets Pending Rescue | 3 (OSMO, AR, METIS) |
 | Assets Exclus | 20+ |
 | Bug TP | RESOLU |
+| Filter System | v2 (baseline/moderate/conservative) |
 
 ## CUTOFF DATE
 
 **2026-01-22 12:00 UTC** — Tout resultat anterieur est INVALIDE (bug TP non-progressif).
-Verifier timestamp fichier outputs avant validation.
+**2026-01-25** — Reset complet avec systeme deterministe (workers=1).
 
-### Assets PROD (7/7 Guards PASS)
+### Assets PROD (7/7 Guards PASS) — 14 assets
 
-| Asset | Mode | Disp | OOS Sharpe | WFE | Trades |
-|:------|:-----|:-----|:-----------|:----|:-------|
-| BTC | baseline | 52 | 2.14 | >0.6 | 416 |
-| ETH | medium_distance_volume | 52 | 2.09 | 0.82 | 57 |
-| JOE | baseline | 26 | 5.03 | 1.44 | 63 |
-| OSMO | baseline | 65 | 3.18 | 0.77 | 57 |
-| MINA | baseline | 78 | 1.76 | 0.61 | 78 |
+| Asset | Mode | Disp | OOS Sharpe | WFE | Validation |
+|:------|:-----|:-----|:-----------|:----|:-----------|
+| SHIB | baseline | 52 | 5.67 | 2.27 | Pre-reset |
+| TIA | baseline | 52 | 5.16 | 1.36 | PR#8 |
+| DOT | baseline | 52 | 4.82 | 1.74 | Pre-reset |
+| NEAR | baseline | 52 | 4.26 | 1.69 | Pre-reset |
+| DOGE | baseline | 26 | 3.88 | 1.55 | Pre-reset |
+| ANKR | baseline | 52 | 3.48 | 0.86 | Pre-reset |
+| ETH | baseline | 52 | 3.22 | 1.22 | **25 Jan reset** |
+| JOE | baseline | 26 | 3.16 | 0.73 | Pre-reset |
+| YGG | baseline | 52 | 3.11 | 0.78 | **25 Jan reset** |
+| MINA | baseline | 52 | 2.58 | 1.13 | **25 Jan reset** |
+| CAKE | baseline | 52 | 2.46 | 0.81 | PR#8 |
+| RUNE | baseline | 52 | 2.42 | 0.61 | **25 Jan reset** |
+| EGLD | baseline | 52 | 2.13 | 0.69 | **25 Jan reset** |
+| AVAX | **moderate** | 52 | 2.00 | 0.66 | **25 Jan rescue** |
 
-### Assets Exclus (Definitif — low sample/outlier)
+### Assets Pending Rescue (Phase 3A required)
 
-APT, EIGEN, ONDO, HMSTR, LOOM, ALICE, HOOK
+| Asset | Sharpe | WFE | Reason | Action |
+|:------|:-------|:----|:-------|:-------|
+| OSMO | 0.68 | 0.19 | Severe overfit | Try d26/d78 |
+| AR | 1.64 | 0.39 | WFE + low trades | Try d26/d78 |
+| METIS | 1.59 | 0.48 | WFE fail | Try d26/d78 |
 
-### Assets Exclus (FAIL guards, variant epuise)
+### Assets Exclus (Definitif)
 
-SEI, CAKE, AXS, RUNE, TON, SOL, AAVE, HYPE, ATOM, ARB, LINK, INJ, TIA
+**Low sample/outlier:** APT, EIGEN, ONDO, HMSTR, LOOM, ALICE, HOOK
 
-### Assets Guards Pending (rerun requis post-fix)
+**FAIL guards + variants epuises:** SEI, AXS, TON, SOL, AAVE, HYPE, ATOM, ARB, LINK, INJ
 
-ICP, HBAR, EGLD, IMX, YGG, CELO, ARKM, AR, ANKR, W, STRK, METIS, AEVO
+**Severe fail (25 Jan reset):** OP (Sharpe 0.03, WFE 0.01)
 
 ## Objectif Q1 2026
 
 Valider 20+ assets en PROD avec 7/7 guards, prets pour paper trading.
+**Progres: 14/20 (70%)**
 
 ---
 
@@ -243,27 +258,33 @@ python scripts/run_filter_rescue.py ETH --trials 300
 
 ---
 
-## PRIORITES ACTUELLES
+## PRIORITES ACTUELLES (25 Jan 2026)
 
-### P0 (cette semaine)
+### P0 — Phase 3A Rescue (Required)
 
-- [ ] HBAR — guards en cours (scan SUCCESS)
-- [ ] AVAX — download data + rerun medium_distance_volume
-- [ ] UNI — download data + rerun medium_distance_volume
+- [ ] OSMO — displacement rescue (try d26, d78)
+- [ ] AR — displacement rescue (try d26, d78)
+- [ ] METIS — displacement rescue (try d26, d78)
 
-### P1 (next)
+### P1 — Phase 1 Screening (In Progress)
 
-- [ ] DOT, SHIB, NEAR — baseline TP enforced
-- [ ] OP — disp=78
-- [ ] DOGE — disp=26
+- [x] Phase 1 Batch 1 lancé (15 assets: XRP, BNB, ADA, etc.)
+- [ ] Analyser résultats screening
+- [ ] Phase 2 validation des candidats
 
-### P2 (backlog)
+### P2 — Old PROD Re-validation (Optional)
 
-- [ ] AR, EGLD, CELO, ANKR — baseline
+- [ ] BTC — re-valider avec workers=1 (may fail like before)
+- [ ] DOT, SHIB, NEAR, ANKR, DOGE — re-valider si nécessaire
 
-### P3 (debug)
+### Completed (25 Jan)
 
-- [ ] YGG, ARKM, STRK, METIS, AEVO — guard errors
+- [x] ETH — baseline PASS (Sharpe 3.22)
+- [x] AVAX — moderate PASS (Sharpe 2.00)
+- [x] MINA — baseline PASS (Sharpe 2.58)
+- [x] YGG — baseline PASS (Sharpe 3.11)
+- [x] RUNE — baseline PASS (Sharpe 2.42)
+- [x] EGLD — baseline PASS (Sharpe 2.13)
 
 ---
 
@@ -284,9 +305,10 @@ python scripts/run_full_pipeline.py \
 ### Avec filter mode
 
 ```bash
+# Valid modes: baseline (default), moderate, conservative
 python scripts/run_full_pipeline.py \
   --assets [ASSET] \
-  --optimization-mode medium_distance_volume \
+  --optimization-mode moderate \
   --enforce-tp-progression \
   --run-guards
 ```

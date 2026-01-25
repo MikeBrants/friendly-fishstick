@@ -1,0 +1,2 @@
+asset,status,exchange,timeframe,start_date,end_date,total_bars,seed,fail_reason,sl_mult,tp1_mult,tp2_mult,tp3_mult,tenkan,kijun,tenkan_5,kijun_5,displacement,is_sharpe,is_return,is_trades,val_sharpe,val_return,val_trades,oos_sharpe,oos_return,oos_trades,oos_max_dd,oos_pf,wfe,mc_p,error
+AVAX,SUCCESS,binance,1H,2024-01-26,2026-01-25,17520,42,,3.0,4.75,8.5,9.0,9,22,8,17,52,3.0176196545045024,18.268337417831138,238,0.5225803067665249,0.9577077136402545,90,2.0002026165467557,3.9390695952316257,81,-2.5290546090642407,1.5044505780280988,0.6628411945690326,0.012,

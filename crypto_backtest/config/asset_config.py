@@ -1,14 +1,23 @@
 """Production asset configuration for the validated portfolio.
 
-Updated: 2026-01-25 14:35
+Updated: 2026-01-25 15:30 UTC
 All TP values are progressive: TP1 < TP2 < TP3 with min gap 0.5
 
 NOTE: TIA and CAKE reclassified from Phase 4 to Phase 2 post-PR#8 (guard002 threshold 15%)
 
-⚠️ RESET IN PROGRESS (25 Jan 2026):
-- ETH and AVAX: Being reset from OBSOLETE 'medium_distance_volume' to valid modes
-- OSMO, MINA, AR, OP, METIS, YGG: Being re-validated with deterministic system
-- RUNE, EGLD: Params being completed (currently 0.0)
+✅ RESET COMPLETE (25 Jan 2026, 15:30 UTC):
+- ETH: baseline PASS (Sharpe 3.22, WFE 1.22)
+- AVAX: moderate PASS (Sharpe 2.00, WFE 0.66) — baseline failed WFE
+- MINA: baseline PASS (Sharpe 2.58, WFE 1.13) — NEW params
+- YGG: baseline PASS (Sharpe 3.11, WFE 0.78) — NEW params
+- RUNE: baseline PASS (Sharpe 2.42, WFE 0.61) — params completed
+- EGLD: baseline PASS (Sharpe 2.13, WFE 0.69) — params completed
+
+❌ FAILED RE-VALIDATION (need Phase 3A rescue or EXCLU):
+- OSMO: Sharpe 0.68, WFE 0.19 — SEVERE OVERFIT
+- AR: WFE 0.39, Trades 41 — WFE + low trades
+- OP: Sharpe 0.03, WFE 0.01 — SEVERE FAIL (likely EXCLU)
+- METIS: WFE 0.48 — overfit
 
 VALID FILTER MODES (NEW SYSTEM):
 - baseline: Ichimoku only (default)
@@ -64,6 +73,9 @@ ASSET_CONFIG = {
         "filter_mode": "baseline",
     },
     "OSMO": {
+        # ❌ FAILED RE-VALIDATION (25 Jan 2026) — NEEDS RESCUE
+        # Sharpe 0.68 (< 1.0), WFE 0.19 (< 0.6) — SEVERE OVERFIT
+        # Old params kept for reference, Phase 3A rescue required
         "pair": "OSMO/USDT",
         "atr": {
             "sl_mult": 3.5,
@@ -75,37 +87,43 @@ ASSET_CONFIG = {
         "five_in_one": {"tenkan_5": 12, "kijun_5": 26},
         "displacement": 65,
         "filter_mode": "baseline",
+        # "status": "PENDING_RESCUE",
     },
     "MINA": {
+        # ✅ RE-VALIDATED (25 Jan 2026, 15:20 UTC)
+        # OOS Sharpe 2.58, WFE 1.13, Trades 60, 7/7 guards PASS
         "pair": "MINA/USDT",
         "atr": {
-            "sl_mult": 2.75,
+            "sl_mult": 4.25,
             "tp1_mult": 3.0,
-            "tp2_mult": 8.5,
-            "tp3_mult": 9.5,
+            "tp2_mult": 7.5,
+            "tp3_mult": 9.0,
         },
-        "ichimoku": {"tenkan": 5, "kijun": 29},
-        "five_in_one": {"tenkan_5": 14, "kijun_5": 29},
-        "displacement": 78,
+        "ichimoku": {"tenkan": 9, "kijun": 26},
+        "five_in_one": {"tenkan_5": 14, "kijun_5": 25},
+        "displacement": 52,
         "filter_mode": "baseline",
     },
     "AVAX": {
-        # ⚠️ RESET IN PROGRESS: Was using OBSOLETE mode 'medium_distance_volume'
-        # Re-testing with baseline mode cascade (baseline -> moderate -> conservative)
-        # Params below are STALE - will be updated after reset completes
+        # ✅ RESET COMPLETE (25 Jan 2026, 15:25 UTC)
+        # Baseline FAILED (WFE 0.51), MODERATE PASSED
+        # Results: OOS Sharpe 2.00, WFE 0.66, Trades 81, Sensitivity 2.77%
         "pair": "AVAX/USDT",
         "atr": {
-            "sl_mult": 2.75,
-            "tp1_mult": 1.5,
-            "tp2_mult": 7.5,
-            "tp3_mult": 9.5,
+            "sl_mult": 3.0,
+            "tp1_mult": 4.75,
+            "tp2_mult": 8.5,
+            "tp3_mult": 9.0,
         },
-        "ichimoku": {"tenkan": 7, "kijun": 32},
-        "five_in_one": {"tenkan_5": 15, "kijun_5": 27},
+        "ichimoku": {"tenkan": 9, "kijun": 22},
+        "five_in_one": {"tenkan_5": 8, "kijun_5": 17},
         "displacement": 52,
-        "filter_mode": "baseline",  # RESET: Was medium_distance_volume (OBSOLETE)
+        "filter_mode": "moderate",  # Baseline failed WFE, moderate PASS
     },
     "AR": {
+        # ❌ FAILED RE-VALIDATION (25 Jan 2026) — NEEDS RESCUE
+        # WFE 0.39 (< 0.6), Trades 41 (< 50) — overfit + low sample
+        # Old params kept for reference, Phase 3A rescue required
         "pair": "AR/USDT",
         "atr": {
             "sl_mult": 1.5,
@@ -117,6 +135,7 @@ ASSET_CONFIG = {
         "five_in_one": {"tenkan_5": 9, "kijun_5": 22},
         "displacement": 52,
         "filter_mode": "baseline",
+        # "status": "PENDING_RESCUE",
     },
     "ANKR": {
         "pair": "ANKR/USDT",
@@ -145,6 +164,9 @@ ASSET_CONFIG = {
         "filter_mode": "baseline",
     },
     "OP": {
+        # ❌ SEVERE FAIL RE-VALIDATION (25 Jan 2026) — LIKELY EXCLU
+        # Sharpe 0.03, WFE 0.01 — ALL CRITERIA FAIL
+        # Candidate for EXCLUSION, rescue unlikely to help
         "pair": "OP/USDT",
         "atr": {
             "sl_mult": 4.5,
@@ -156,6 +178,7 @@ ASSET_CONFIG = {
         "five_in_one": {"tenkan_5": 9, "kijun_5": 23},
         "displacement": 78,
         "filter_mode": "baseline",
+        # "status": "LIKELY_EXCLU",
     },
     "DOT": {
         "pair": "DOT/USDT",
@@ -231,38 +254,43 @@ ASSET_CONFIG = {
         "filter_mode": "baseline",
     },
     "RUNE": {
-        # Phase 2 validation: 2026-01-24
+        # ✅ RESET COMPLETE (25 Jan 2026, 14:10 UTC)
+        # Phase 2 validation: 7/7 guards PASS
         # Variance: 3.23% < 15% → PASS
-        # OOS Sharpe: TBD, WFE: 0.61, Trades: TBD
+        # OOS Sharpe: 2.42, WFE: 0.61, Trades: 102, MC p=0.0
         "pair": "RUNE/USDT",
         "atr": {
-            "sl_mult": 0.0,  # TBD from scan
-            "tp1_mult": 0.0,
-            "tp2_mult": 0.0,
-            "tp3_mult": 0.0,
+            "sl_mult": 1.5,
+            "tp1_mult": 4.75,
+            "tp2_mult": 8.0,
+            "tp3_mult": 10.0,
         },
-        "ichimoku": {"tenkan": 0, "kijun": 0},
-        "five_in_one": {"tenkan_5": 0, "kijun_5": 0},
+        "ichimoku": {"tenkan": 5, "kijun": 38},
+        "five_in_one": {"tenkan_5": 14, "kijun_5": 15},
         "displacement": 52,
         "filter_mode": "baseline",
     },
     "EGLD": {
-        # Phase 2 validation: 2026-01-24
-        # Variance: 5.04% < 15% → PASS
-        # OOS Sharpe: TBD, WFE: 0.66, Trades: TBD
+        # ✅ RESET COMPLETE (25 Jan 2026, 14:10 UTC)
+        # Phase 2 validation: 7/7 guards PASS
+        # Variance: 5.01% < 15% → PASS
+        # OOS Sharpe: 2.13, WFE: 0.69, Trades: 91, MC p=0.01
         "pair": "EGLD/USDT",
         "atr": {
-            "sl_mult": 0.0,  # TBD from scan
-            "tp1_mult": 0.0,
-            "tp2_mult": 0.0,
-            "tp3_mult": 0.0,
+            "sl_mult": 5.0,
+            "tp1_mult": 1.75,
+            "tp2_mult": 4.0,
+            "tp3_mult": 5.5,
         },
-        "ichimoku": {"tenkan": 0, "kijun": 0},
-        "five_in_one": {"tenkan_5": 0, "kijun_5": 0},
+        "ichimoku": {"tenkan": 5, "kijun": 28},
+        "five_in_one": {"tenkan_5": 8, "kijun_5": 19},
         "displacement": 52,
         "filter_mode": "baseline",
     },
     "METIS": {
+        # ❌ FAILED RE-VALIDATION (25 Jan 2026) — NEEDS RESCUE
+        # WFE 0.48 (< 0.6), Sharpe 1.59 — overfit detected
+        # Old params kept for reference, Phase 3A rescue required
         "pair": "METIS/USDT",
         "atr": {
             "sl_mult": 1.5,
@@ -274,17 +302,20 @@ ASSET_CONFIG = {
         "five_in_one": {"tenkan_5": 8, "kijun_5": 17},
         "displacement": 52,
         "filter_mode": "baseline",
+        # "status": "PENDING_RESCUE",
     },
     "YGG": {
+        # ✅ RE-VALIDATED (25 Jan 2026, 15:20 UTC)
+        # OOS Sharpe 3.11, WFE 0.78, Trades 78, 7/7 guards PASS
         "pair": "YGG/USDT",
         "atr": {
-            "sl_mult": 1.5,
-            "tp1_mult": 5.0,
+            "sl_mult": 4.25,
+            "tp1_mult": 2.75,
             "tp2_mult": 7.5,
-            "tp3_mult": 9.0,
+            "tp3_mult": 9.5,
         },
-        "ichimoku": {"tenkan": 11, "kijun": 39},
-        "five_in_one": {"tenkan_5": 12, "kijun_5": 24},
+        "ichimoku": {"tenkan": 10, "kijun": 20},
+        "five_in_one": {"tenkan_5": 8, "kijun_5": 17},
         "displacement": 52,
         "filter_mode": "baseline",
     },
