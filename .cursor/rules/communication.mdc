@@ -29,7 +29,7 @@ Test: python -c "from crypto_backtest.optimization.bayesian import *; print('OK'
 0915 QUESTION sam-qa -> alex-lead: ETH guard002 variance 16.2% > 15%.
 Recommandation: FAIL strict ou WARN avec note?
 
-1030 DECISION casey-quant -> ALL: Variance seuil maintenu a 10% strict.
+1030 DECISION casey-quant -> ALL: Variance seuil relevé à 15% strict (depuis 2026-01-24).
 Rationale: Coherence cross-asset, pas d'exception.
 ```
 

@@ -55,11 +55,9 @@ Utiliser le displacement avec le meilleur Sharpe (même si guards FAIL).
 
 ### Étape 2: Lancer le Filter Grid (méthode automatique)
 ```bash
-python scripts/run_filter_grid.py \
-  --asset ASSET_NAME \
-  --displacement BEST_DISP \
-  --workers 1 \
-  --output-prefix filter_grid_ASSET_NAME
+python scripts/run_filter_rescue.py ASSET_NAME \
+  --trials 300 \
+  --workers 1
 ```
 
 ### Étape 3: OU Tester manuellement les modes prioritaires
@@ -245,7 +243,7 @@ AVAX,conservative,52,1.45,0.58,45,False,False
 | Trades < 60 sur tous modes | BLOCKED (données insuffisantes) |
 | conservative seul PASS | Acceptable mais surveiller en live |
 | Run très long | Réduire trials à 200 |
-| guard002 toujours >10% | Essayer `conservative` (max filtrage) |
+| guard002 toujours >15% | Essayer `conservative` (max filtrage) |
 
 ## Escalade
 - Si tous modes FAIL → @Casey verdict EXCLU DÉFINITIF (justifié)

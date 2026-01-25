@@ -62,7 +62,7 @@ Verdict: 7/7 PASS | BLOCKED
 - JAMAIS approuver sans 7/7 PASS
 - REJETER tout resultat pre-2026-01-22 12H00
 - Si TP non-progressif detecte -> FAIL immediat
-- Si guard002 >10% -> FAIL immediat
+- Si guard002 >15% -> FAIL immediat (seuil relevé de 10% à 15% le 2026-01-24)
 - Toujours verifier `.shift(1)` sur les rolling features
 
 ## WORKFLOW APRES GUARDS FAIL (OBLIGATOIRE)

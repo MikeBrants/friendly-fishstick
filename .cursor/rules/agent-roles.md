@@ -33,7 +33,7 @@
 - `crypto_backtest/optimization/bayesian.py`
 - `scripts/run_full_pipeline.py`
 - `scripts/run_displacement_grid.py`
-- `scripts/run_filter_grid.py`
+- `scripts/run_filter_rescue.py`
 
 **Outputs** :
 - `outputs/multiasset_scan_*.csv`

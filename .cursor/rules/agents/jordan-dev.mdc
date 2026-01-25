@@ -115,13 +115,11 @@ python scripts/run_phase3b_optimization.py \
   --workers 1
 ```
 
-### Phase 4: Filter Grid (Phase 3A épuisé)
+### Phase 4: Filter Rescue (Phase 3A épuisé)
 ```bash
-python scripts/run_filter_grid.py \
-  --asset ASSET \
-  --displacement BEST_FROM_3A \
-  --workers 1 \
-  --output-prefix filter_grid_ASSET
+python scripts/run_filter_rescue.py ASSET \
+  --trials 300 \
+  --workers 1
 ```
 
 ### Download Data

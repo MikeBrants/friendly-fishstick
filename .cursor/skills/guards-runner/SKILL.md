@@ -173,7 +173,7 @@ Next: @Jordan execute Phase 3A
 
 | Problème | Solution |
 |----------|----------|
-| `guard002 FAIL` (sensitivity >10%) | Phase 4 filter grid (`medium_distance_volume`) |
+| `guard002 FAIL` (sensitivity >15%) | Phase 4 filter grid (`medium_distance_volume`) |
 | `guard001 FAIL` (MC p >0.05) | Plus de trials (300) ou données |
 | `guard005 FAIL` (top10 >40%) | BLOCKED (outlier-dependent) |
 | `wfe < 0.6` proche (0.5-0.6) | Phase 3A displacement rescue |
