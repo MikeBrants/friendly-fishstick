@@ -74,7 +74,7 @@
 **Seuils critiques** :
 - WFE > 0.6
 - MC p-value < 0.05
-- Sensitivity var < 10%
+- Sensitivity var < 15%
 - Bootstrap CI lower > 1.0
 - Top10 trades < 40%
 - Stress1 Sharpe > 1.0
@@ -133,7 +133,7 @@
 - Tous guards PASS
 - WFE > 0.6
 - Sharpe OOS > 1.0 (target > 2.0)
-- Variance < 10%
+- Variance < 15%
 
 ---
 

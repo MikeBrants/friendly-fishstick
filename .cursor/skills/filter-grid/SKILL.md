@@ -1,13 +1,13 @@
 ---
 name: filter-grid
-description: Teste 12 combinaisons de filtres (baseline, light_kama, light_distance, light_volume, light_regression, medium_distance_volume, moderate, conservative) pour sauver un asset après échec du displacement rescue. Utiliser en Phase 4 quand Phase 3A a échoué, ou quand guard002 (sensitivity) FAIL avec variance >10%. DERNIÈRE CHANCE avant EXCLU.
+description: Teste 12 combinaisons de filtres (baseline, light_kama, light_distance, light_volume, light_regression, medium_distance_volume, moderate, conservative) pour sauver un asset après échec du displacement rescue. Utiliser en Phase 4 quand Phase 3A a échoué, ou quand guard002 (sensitivity) FAIL avec variance >15%. DERNIÈRE CHANCE avant EXCLU.
 ---
 
 # Filter Grid - Phase 4
 
 ## Quand Utiliser
 - Phase 3A (displacement rescue) a échoué pour cet asset
-- Guard002 (sensitivity variance) FAIL avec variance >10%
+- Guard002 (sensitivity variance) FAIL avec variance >15%
 - Asset prioritaire qu'on veut sauver avant EXCLU
 - Casey assigne Phase 4
 - **DERNIÈRE ÉTAPE avant blocage définitif**

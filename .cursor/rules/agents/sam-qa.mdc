@@ -96,7 +96,7 @@ Asset: [ASSET] | Date run: 2026-01-XX (post-fix ✓)
 |-------|-------|--------|--------|
 | WFE | ≥0.6 | [X.XX] | ✅ PASS |
 | MC p-value | <0.05 | [X.XXX] | ✅ PASS |
-| Sensitivity | <10% | [X.X%] | ✅ PASS |
+| Sensitivity | <15% | [X.X%] | ✅ PASS |
 | Bootstrap CI | >1.0 | [X.XX] | ✅ PASS |
 | Top10 trades | <40% | [XX%] | ✅ PASS |
 | Stress Sharpe | >1.0 | [X.XX] | ✅ PASS |

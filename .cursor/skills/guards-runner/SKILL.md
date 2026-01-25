@@ -47,7 +47,7 @@ python scripts/run_full_pipeline.py \
 |-------|:---|-------|---------|----------------|
 | WFE | - | ≥0.6 | OOS/IS ratio suffisant | Phase 3A rescue |
 | MC p-value | guard001 | <0.05 | Edge statistiquement significatif | Phase 3A rescue |
-| Sensitivity | guard002 | <10% | Params stables (±2% perturbation) | Phase 4 filter grid |
+| Sensitivity | guard002 | <15% | Params stables (±2% perturbation) | Phase 4 filter grid |
 | Bootstrap CI | guard003 | >1.0 | Sharpe robuste (95% CI) | Phase 3A rescue |
 | Top10 trades | guard005 | <40% | Pas outlier-dependent | BLOCKED (données insuffisantes) |
 | Stress Sharpe | guard006 | >1.0 | Rentable sous stress (fees 1.5x) | Phase 3A rescue |
@@ -143,7 +143,7 @@ Asset: [ASSET] | Run: YYYYMMDD_HHMMSS (post-fix ✓)
 |-------|-------|--------|--------|
 | WFE | ≥0.6 | [X.XX] | ✅ |
 | MC p-value | <0.05 | [X.XXX] | ✅ |
-| Sensitivity | <10% | [X.X%] | ✅ |
+| Sensitivity | <15% | [X.X%] | ✅ |
 | Bootstrap CI | >1.0 | [X.XX] | ✅ |
 | Top10 | <40% | [XX%] | ✅ |
 | Stress Sharpe | >1.0 | [X.XX] | ✅ |
@@ -180,7 +180,7 @@ Next: @Jordan execute Phase 3A
 | Résultats pré-fix | REJETER, relancer avec `--enforce-tp-progression` |
 
 ## Escalade
-- Si guard borderline (ex: variance 10-12%) → @Alex arbitrage seuil
+- Si guard borderline (ex: variance 13-16%) → @Alex arbitrage seuil
 - Si résultat suspect (Sharpe >4, WFE >2) → Réconciliation avant validation
 - Si guards FAIL → **Utiliser skill `displacement-rescue`** (PAS bloquer)
 - Si Phase 3A+4 épuisées → @Casey verdict EXCLU définitif

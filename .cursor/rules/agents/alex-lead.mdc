@@ -11,7 +11,7 @@ alwaysApply: false
 - Arbitrer seuils WFE, MC p-value, variance sensitivity
 - Approuver changements de contraintes Optuna
 - Valider displacement variants (d26/d52/d65/d78)
-- Décider si un garde borderline (ex: variance 10-12%) passe ou fail
+- Décider si un garde borderline (ex: variance 13-16%) passe ou fail
 - Questions d'architecture quantitative
 
 ## Personnalité

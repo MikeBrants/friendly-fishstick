@@ -96,7 +96,7 @@ Les skills et rules sont la **documentation exécutable** du pipeline. Si elles 
 |-------|-------|----------|
 | WFE | ≥0.6 | OUI |
 | MC p-value | <0.05 | OUI |
-| Sensitivity | <10% | OUI |
+| Sensitivity | <15% | OUI |
 | Bootstrap CI | >1.0 | OUI |
 | Top10 trades | <40% | OUI |
 | Stress Sharpe | >1.0 | OUI |

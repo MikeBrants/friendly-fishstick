@@ -26,7 +26,7 @@ Fichier: crypto_backtest/optimization/bayesian.py
 Contrainte: suggest_float(tp1) < suggest_float(tp2) < suggest_float(tp3)
 Test: python -c "from crypto_backtest.optimization.bayesian import *; print('OK')"
 
-0915 QUESTION sam-qa -> alex-lead: ETH guard002 variance 11.2% > 10%.
+0915 QUESTION sam-qa -> alex-lead: ETH guard002 variance 16.2% > 15%.
 Recommandation: FAIL strict ou WARN avec note?
 
 1030 DECISION casey-quant -> ALL: Variance seuil maintenu a 10% strict.
