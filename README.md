@@ -409,19 +409,7 @@ critical = df[df['count'] >= 3]
 print(critical[['date', 'count', 'assets']])
 ```
 
-### 6. Plan Pine (Production)
-
-**Fichier**: `outputs/pine_plan_fullguards.csv`
-
-Paramètres validés pour implémentation TradingView:
-
-```python
-import pandas as pd
-df = pd.read_csv("outputs/pine_plan_fullguards.csv")
-print(df[['asset', 'sl_atr_mult', 'tp_atr_mult', 'tenkan', 'kijun', 'displacement']])
-```
-
-### 7. Validation Walk-Forward
+### 6. Validation Walk-Forward
 
 **Fichier**: `outputs/oos_validation_results.csv`
 
@@ -436,7 +424,7 @@ wfe = df.loc[df['segment'] == 'OOS', 'sharpe'].values[0] / df.loc[df['segment'] 
 print(f"WFE: {wfe:.2f}")
 ```
 
-### 8. Détails des Trades
+### 7. Détails des Trades
 
 **Fichiers**: `outputs/backtest_*.csv`
 

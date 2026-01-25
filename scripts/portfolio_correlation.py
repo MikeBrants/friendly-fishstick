@@ -196,8 +196,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Correlation & concurrent risk analysis.")
     parser.add_argument(
         "--params-file",
-        default="outputs/pine_plan_fullguards.csv",
-        help="CSV with per-asset params",
+        default="outputs/validated_params.csv",
+        help="CSV with per-asset validated params",
     )
     parser.add_argument("--data-dir", default="data")
     parser.add_argument(

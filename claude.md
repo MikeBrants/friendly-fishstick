@@ -781,8 +781,7 @@ python crypto_backtest/examples/run_backtest.py
 | [crypto_backtest/validation/conservative_reopt.py](crypto_backtest/validation/conservative_reopt.py) | Configs filtres (BASELINE/MODERATE/CONSERVATIVE) + reopt |
 | [scripts/run_full_pipeline.py](scripts/run_full_pipeline.py) | Pipeline complet (download → optimize → cluster) |
 | [scripts/portfolio_correlation.py](scripts/portfolio_correlation.py) | Analyse corrélations et drawdowns concurrents |
-| [tests/compare_signals.py](tests/compare_signals.py) | Pine vs Python signal validation |
-| [outputs/pine_plan_fullguards.csv](outputs/pine_plan_fullguards.csv) | Plan Pine pour assets validés (full guards) |
+| [tests/compare_signals.py](tests/compare_signals.py) | Validation signaux Python vs référence |
 
 ---
 

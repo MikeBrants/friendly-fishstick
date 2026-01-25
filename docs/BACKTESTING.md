@@ -413,7 +413,7 @@ Duration: ~10min
 
 ```bash
 python scripts/portfolio_correlation.py \
-  --params-file outputs/pine_plan.csv \
+  --params-file outputs/validated_params.csv \
   --min-weight 0.03 \
   --max-weight 0.15
 ```

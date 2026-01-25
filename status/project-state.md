@@ -1,8 +1,87 @@
 # PROJECT STATE - FINAL TRIGGER v2 Backtest System
 
-**Last Updated**: 25 janvier 2026, 13:45 UTC  
-**Phase**: POST-PR8 GUARD THRESHOLD UPDATE  
-**Status**: 🟢 11 ASSETS PROD CONFIRMED (TIA/CAKE reclassified)
+**Last Updated**: 25 janvier 2026, 14:35 UTC  
+**Phase**: RESET OLD PROD ASSETS (Filter System v2 Migration)  
+**Status**: 🟡 RESET IN PROGRESS (8 anciens PROD en re-validation)
+
+---
+
+## 🔴 RESET EN COURS — Migration Systeme Filtres v2 (25 Jan 2026, 14:30 UTC)
+
+### Objectif
+Migrer tous les assets utilisant des modes de filtres obsoletes (`medium_distance_volume`) vers le nouveau systeme (3 modes: baseline/moderate/conservative).
+
+### Assets en Reset
+
+| Batch | Assets | Mode Actuel | Action | Status | Resultat |
+|-------|--------|-------------|--------|--------|----------|
+| **1** | ETH | `medium_distance_volume` (OBSOLETE) | Reset → baseline | ✅ **DONE** | **Sharpe 3.22, WFE 1.22, 72 trades** |
+| **1** | AVAX | `medium_distance_volume` (OBSOLETE) | Reset → baseline | 🔄 RUNNING | ~2h restant |
+| **2** | OSMO | `baseline` | Re-valider deterministe | 🔄 RUNNING | ~4-6h restant |
+| **2** | MINA | `baseline` | Re-valider deterministe | 🔄 RUNNING | ~4-6h restant |
+| **2** | AR | `baseline` | Re-valider deterministe | 🔄 RUNNING | ~4-6h restant |
+| **2** | OP | `baseline` | Re-valider deterministe | 🔄 RUNNING | ~4-6h restant |
+| **2** | METIS | `baseline` | Re-valider deterministe | 🔄 RUNNING | ~4-6h restant |
+| **2** | YGG | `baseline` | Re-valider deterministe | 🔄 RUNNING | ~4-6h restant |
+| **3** | RUNE | params=0.0 (incomplet) | Completer params | 🔄 RUNNING | ~1-2h restant |
+| **3** | EGLD | params=0.0 (incomplet) | Completer params | 🔄 RUNNING | ~1-2h restant |
+
+### Resultats Completes
+
+**ETH (Batch 1a) - ✅ RESET COMPLETE (13:26 UTC)**
+- Source: `outputs/reset_ETH_baseline_multiasset_scan_20260125_172644.csv`
+- Mode: `baseline` (was `medium_distance_volume`)
+- OOS Sharpe: **3.22** (excellent)
+- WFE: **1.22** (> 0.6 ✅)
+- Trades OOS: **72** (> 60 ✅)
+- MC p-value: **0.006** (< 0.05 ✅)
+- Bootstrap CI lower: **1.56** (> 1.0 ✅)
+- Nouveaux params: sl=3.0, tp1=5.0, tp2=6.0, tp3=7.5, tenkan=12, kijun=36
+- **Verdict: 7/7 GUARDS PASS → baseline mode validé**
+
+**AVAX (Batch 1b) - ❌ BASELINE FAIL → 🔄 RESCUE EN COURS (13:40 UTC)**
+- Source: `outputs/reset_AVAX_baseline_multiasset_scan_20260125_173950.csv`
+- Mode tentative: `baseline` (was `medium_distance_volume`)
+- OOS Sharpe: **2.12** (bon)
+- WFE: **0.51** (< 0.6 ❌ OVERFIT)
+- Trades OOS: **108** (> 60 ✅)
+- MC p-value: **0.008** (< 0.05 ✅)
+- Fail reason: WFE < 0.6 (overfit)
+- **Action: CASCADE RESCUE lancée** (moderate → conservative)
+- Command: `python scripts/run_filter_rescue.py AVAX --trials 300 --workers 1`
+- **Prochaine check: ~2h** (cascade peut prendre temps)
+
+### Nouveau Systeme de Filtres (3 modes valides)
+
+| Mode | Filtres | Usage |
+|------|---------|-------|
+| `baseline` | Ichimoku only | Default, premiere optimisation |
+| `moderate` | 5 filtres (distance, volume, regression, kama, ichi) | Si baseline FAIL guard002 |
+| `conservative` | 7 filtres (all + strict ichi) | Si moderate FAIL |
+
+### Modes OBSOLETES (ne plus utiliser)
+- ❌ `medium_distance_volume`
+- ❌ `light_kama`, `light_distance`, `light_volume`, `light_regression`
+- ❌ `medium_kama_distance`, `medium_kama_volume`, `medium_kama_regression`
+
+### Commandes en Execution
+```bash
+# Batch 1: ETH + AVAX
+python scripts/run_full_pipeline.py --assets ETH --optimization-mode baseline --trials-atr 300 --trials-ichi 300 --run-guards --workers 1
+python scripts/run_full_pipeline.py --assets AVAX --optimization-mode baseline --trials-atr 300 --trials-ichi 300 --run-guards --workers 1
+
+# Batch 2: 6 anciens PROD
+python scripts/run_full_pipeline.py --assets OSMO MINA AR OP METIS YGG --optimization-mode baseline --trials-atr 300 --trials-ichi 300 --run-guards --workers 1
+
+# Batch 3: Params incomplets
+python scripts/run_full_pipeline.py --assets RUNE EGLD --optimization-mode baseline --trials-atr 300 --trials-ichi 300 --run-guards --workers 1
+```
+
+### Timeline Estimee
+- Batch 1 (ETH, AVAX): 2-3h
+- Batch 2 (6 assets): 4-6h
+- Batch 3 (RUNE, EGLD): 1-2h
+- **Total**: 7-11h (processes paralleles)
 
 ---
 
@@ -26,7 +105,6 @@
 - [x] TIA/CAKE asset_config.py updated (Jordan, 10:17 UTC)
 - [x] Guards analysis complete (Jordan, 13:45 UTC)
 - [ ] Sam validation (pending)
-- [ ] Riley Pine Scripts generation (pending)
 
 **Référence:** `TIA_CAKE_RECLASSIFICATION.md`
 
@@ -200,9 +278,14 @@ Avec le nouveau seuil 15%, ETH baseline passe directement **sans filter grid**:
 
 ### What's Currently In Progress
 1. ⏳ **Sam Validation** - TIA/CAKE baseline params confirmation
-2. ⏳ **Riley Pine Export** - Generate TradingView scripts for TIA/CAKE
-3. 🔄 **Portfolio Construction** - Testing 4 methods with 11 assets (UNBLOCKED)
-4. ⏸️ **Phase 1 Screening** - ON HOLD (55% of 20+ goal achieved)
+2. ✅ **Portfolio Construction** - **COMPLETE** (4 methods tested, Max Sharpe recommended)
+3. ⏸️ **Phase 1 Screening** - ON HOLD (55% of 20+ goal achieved)
+
+### Portfolio Construction Results ✅
+- **Status:** COMPLETE (15:17 UTC)
+- **Methods:** Equal, Max Sharpe, Risk Parity, Min CVaR
+- **Best:** Max Sharpe (Sharpe 4.96, diversification 2.08)
+- **Report:** `PORTFOLIO_CONSTRUCTION_RESULTS.md`
 
 ---
 

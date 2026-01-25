@@ -2,7 +2,7 @@
 """
 Filter Rescue Pipeline - FINAL TRIGGER v2
 
-Workflow simplifié: baseline → moderate → conservative
+Workflow simplifie: baseline -> moderate -> conservative
 - Évite le data mining des 12 combinaisons arbitraires
 - Max 3 tests par asset (correction statistique OK)
 - Seuil sensitivity relevé à 15%
@@ -107,7 +107,7 @@ def run_mode(asset: str, mode: str, workers: int, trials: int) -> dict:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Filter Rescue Pipeline - cascade baseline → moderate → conservative"
+        description="Filter Rescue Pipeline - cascade baseline -> moderate -> conservative"
     )
     parser.add_argument("asset", type=str, help="Asset symbol (e.g., ETH, AVAX)")
     parser.add_argument("--workers", type=int, default=1, help="Number of workers (default: 1 for reproducibility)")
@@ -120,7 +120,7 @@ def main():
     
     print("=" * 60)
     print(f"FILTER RESCUE PIPELINE - {asset}")
-    print(f"Modes: {' → '.join(MODES)}")
+    print(f"Modes: {' -> '.join(MODES)}")
     print(f"Workers: {args.workers}, Trials: {args.trials}")
     print("=" * 60)
     
@@ -129,9 +129,9 @@ def main():
         results.append(result)
         
         if result.get("error"):
-            print(f"\n⚠️  {asset} ERROR with mode {mode}: {result['error']}")
+            print(f"\n[!]  {asset} ERROR with mode {mode}: {result['error']}")
             if mode != 'conservative':
-                print(f"   → Trying next mode...")
+                print(f"   -> Trying next mode...")
             continue
         
         # Afficher résumé
@@ -148,7 +148,7 @@ def main():
         if result.get("all_pass"):
             winner_mode = mode
             print(f"\n{'='*60}")
-            print(f"✅ {asset} VALIDATED with mode: {mode.upper()}")
+            print(f"[SUCCESS] {asset} VALIDATED with mode: {mode.upper()}")
             print(f"{'='*60}")
             print(f"   Sharpe: {result['oos_sharpe']:.2f}")
             print(f"   WFE: {result['wfe']:.2f}")
@@ -156,14 +156,14 @@ def main():
             print(f"   Sensitivity: {result['sensitivity']:.1f}%")
             break
         else:
-            print(f"\n❌ {asset} FAILED with mode: {mode}")
+            print(f"\n[X] {asset} FAILED with mode: {mode}")
             if mode != 'conservative':
-                print(f"   → Trying next mode...")
+                print(f"   -> Trying next mode...")
     
     # Si aucun mode n'a passé
     if winner_mode is None:
         print(f"\n{'='*60}")
-        print(f"🚫 {asset} EXCLUDED — Failed all 3 modes")
+        print(f"[EXCLUDED] {asset} - Failed all 3 modes")
         print(f"{'='*60}")
         print("Recommendation: Asset should be EXCLUDED from PROD")
     
@@ -179,15 +179,15 @@ def main():
     print("SUMMARY")
     print(f"{'='*60}")
     for r in results:
-        status = "✅ PASS" if r.get("all_pass") else "❌ FAIL"
+        status = "[PASS]" if r.get("all_pass") else "[FAIL]"
         sens = f"{r.get('sensitivity', 'N/A')}%" if r.get('sensitivity') is not None else "ERROR"
         print(f"  {r['mode']:15} | {status} | Sensitivity: {sens}")
     
     if winner_mode:
-        print(f"\n🏆 Winner: {winner_mode.upper()}")
+        print(f"\n[WINNER] {winner_mode.upper()}")
         return 0
     else:
-        print(f"\n🚫 No winner - Asset EXCLUDED")
+        print(f"\n[EXCLUDED] No winner - Asset EXCLUDED")
         return 1
 
 

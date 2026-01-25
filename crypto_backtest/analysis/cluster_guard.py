@@ -88,10 +88,11 @@ def _run_oos_backtest(
     return run_backtest(df_oos, strategy_params)
 
 
-def _generate_pine_plan(
+def _export_validated_params(
     scan_df: pd.DataFrame,
     output_path: str,
 ) -> pd.DataFrame:
+    """Export validated parameters for successful assets."""
     pass_df = scan_df[scan_df["status"].str.startswith("SUCCESS", na=False)].copy()
     rows = []
     for _, row in pass_df.iterrows():
@@ -108,10 +109,10 @@ def _generate_pine_plan(
             "kijun_5": row["kijun_5"],
         })
 
-    pine_df = pd.DataFrame(rows)
+    params_df = pd.DataFrame(rows)
     Path(output_path).parent.mkdir(exist_ok=True)
-    pine_df.to_csv(output_path, index=False)
-    return pine_df
+    params_df.to_csv(output_path, index=False)
+    return params_df
 
 
 def run_cluster_guard(
@@ -121,7 +122,7 @@ def run_cluster_guard(
     param_source: str = "median",
     loss_threshold: float = 15.0,
     data_dir: str = "data",
-    pine_plan_path: str = "outputs/pine_plan.csv",
+    validated_params_path: str = "outputs/validated_params.csv",
 ) -> pd.DataFrame:
     scan_df = pd.read_csv(scan_results_path)
     with open(cluster_json_path, "r") as handle:
@@ -237,7 +238,7 @@ def run_cluster_guard(
     df.to_csv(output_path, index=False)
 
     if cluster_status == "CLUSTERFAIL":
-        _generate_pine_plan(scan_df, pine_plan_path)
+        _export_validated_params(scan_df, validated_params_path)
 
     return df
 
@@ -247,7 +248,7 @@ def main() -> None:
     parser.add_argument("--scan", required=True, help="Path to multiasset scan CSV")
     parser.add_argument("--cluster-json", required=True, help="Path to cluster analysis JSON")
     parser.add_argument("--output", default="outputs/cluster_paramloss.csv", help="Output CSV path")
-    parser.add_argument("--pine-plan", default="outputs/pine_plan.csv", help="Output Pine plan CSV path")
+    parser.add_argument("--validated-params", default="outputs/validated_params.csv", help="Output validated params CSV path")
     parser.add_argument("--param-source", choices=["median", "centroid", "mean"], default="median")
     parser.add_argument("--loss-threshold", type=float, default=15.0)
     parser.add_argument("--data-dir", default="data")
@@ -260,7 +261,7 @@ def main() -> None:
         param_source=args.param_source,
         loss_threshold=args.loss_threshold,
         data_dir=args.data_dir,
-        pine_plan_path=args.pine_plan,
+        validated_params_path=args.validated_params,
     )
 
 

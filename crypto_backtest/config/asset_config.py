@@ -1,9 +1,23 @@
 """Production asset configuration for the validated portfolio.
 
-Updated: 2026-01-25 10:15
+Updated: 2026-01-25 14:35
 All TP values are progressive: TP1 < TP2 < TP3 with min gap 0.5
 
 NOTE: TIA and CAKE reclassified from Phase 4 to Phase 2 post-PR#8 (guard002 threshold 15%)
+
+⚠️ RESET IN PROGRESS (25 Jan 2026):
+- ETH and AVAX: Being reset from OBSOLETE 'medium_distance_volume' to valid modes
+- OSMO, MINA, AR, OP, METIS, YGG: Being re-validated with deterministic system
+- RUNE, EGLD: Params being completed (currently 0.0)
+
+VALID FILTER MODES (NEW SYSTEM):
+- baseline: Ichimoku only (default)
+- moderate: 5 filters (distance, volume, regression, kama, ichimoku)
+- conservative: 7 filters (all + strict ichimoku)
+
+OBSOLETE MODES (DO NOT USE):
+- medium_distance_volume, light_kama, light_distance, light_volume,
+- light_regression, medium_kama_distance, medium_kama_volume, medium_kama_regression
 """
 
 ASSET_CONFIG = {
@@ -21,17 +35,20 @@ ASSET_CONFIG = {
         "filter_mode": "baseline",
     },
     "ETH": {
+        # ✅ RESET COMPLETE (25 Jan 2026, 14:40 UTC)
+        # Migrated from OBSOLETE 'medium_distance_volume' to 'baseline'
+        # Results: OOS Sharpe 3.22, WFE 1.22, Trades 72, MC p=0.006
         "pair": "ETH/USDT",
         "atr": {
-            "sl_mult": 4.5,
-            "tp1_mult": 4.75,
-            "tp2_mult": 7.0,
-            "tp3_mult": 10.0,
+            "sl_mult": 3.0,
+            "tp1_mult": 5.0,
+            "tp2_mult": 6.0,
+            "tp3_mult": 7.5,
         },
-        "ichimoku": {"tenkan": 15, "kijun": 20},
-        "five_in_one": {"tenkan_5": 13, "kijun_5": 22},
+        "ichimoku": {"tenkan": 12, "kijun": 36},
+        "five_in_one": {"tenkan_5": 8, "kijun_5": 17},
         "displacement": 52,
-        "filter_mode": "medium_distance_volume",  # Winner from filter grid
+        "filter_mode": "baseline",  # Valid mode (was medium_distance_volume)
     },
     "JOE": {
         "pair": "JOE/USDT",
@@ -73,6 +90,9 @@ ASSET_CONFIG = {
         "filter_mode": "baseline",
     },
     "AVAX": {
+        # ⚠️ RESET IN PROGRESS: Was using OBSOLETE mode 'medium_distance_volume'
+        # Re-testing with baseline mode cascade (baseline -> moderate -> conservative)
+        # Params below are STALE - will be updated after reset completes
         "pair": "AVAX/USDT",
         "atr": {
             "sl_mult": 2.75,
@@ -83,7 +103,7 @@ ASSET_CONFIG = {
         "ichimoku": {"tenkan": 7, "kijun": 32},
         "five_in_one": {"tenkan_5": 15, "kijun_5": 27},
         "displacement": 52,
-        "filter_mode": "medium_distance_volume",  # Winner from filter grid
+        "filter_mode": "baseline",  # RESET: Was medium_distance_volume (OBSOLETE)
     },
     "AR": {
         "pair": "AR/USDT",

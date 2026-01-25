@@ -1,9 +1,87 @@
 # Jordan (Developer) — Task Log
 
-**Last Updated:** 25 janvier 2026, 02:05 UTC  
-**Status:** 🔴 NEW ASSIGNMENT — TIA/CAKE Update
+**Last Updated:** 25 janvier 2026, 14:35 UTC  
+**Status:** 🟡 RESET IN PROGRESS — Migration Systeme Filtres v2
 
 ---
+
+## 🔴 RESET EN COURS — 8 Anciens PROD (25 Jan 2026, 14:30 UTC)
+
+**From:** Casey (Orchestrator)  
+**Priority:** P0 (blocking)
+
+### OBJECTIF
+Migrer tous les assets utilisant des modes de filtres obsoletes vers le nouveau systeme (3 modes: baseline/moderate/conservative).
+
+### PIPELINES EN EXECUTION — MAJ 13:40 UTC
+
+| Batch | Assets | PID | Status | Resultat |
+|-------|--------|-----|--------|----------|
+| **1a** | ETH | 37972 | ✅ **DONE** | Sharpe 3.22, WFE 1.22 → baseline validé |
+| **1b** | AVAX baseline | 41972 | ✅ **DONE** | Sharpe 2.12, WFE 0.51 ❌ → FAIL |
+| **1c** | AVAX rescue | 58780 | 🔄 **RUNNING** | Cascade moderate→conservative |
+| **2** | OSMO MINA AR OP METIS YGG | 68684 | 🔄 **RUNNING** | 10 min elapsed |
+| **3** | RUNE EGLD | 34952 | 🔄 **RUNNING** | 10 min elapsed |
+
+### COMMANDES LANCEES
+
+```bash
+# Batch 1: ETH
+python scripts/run_full_pipeline.py --assets ETH --optimization-mode baseline \
+  --trials-atr 300 --trials-ichi 300 --enforce-tp-progression --run-guards \
+  --workers 1 --output-prefix reset_ETH_baseline
+
+# Batch 1: AVAX
+python scripts/run_full_pipeline.py --assets AVAX --optimization-mode baseline \
+  --trials-atr 300 --trials-ichi 300 --enforce-tp-progression --run-guards \
+  --workers 1 --output-prefix reset_AVAX_baseline
+
+# Batch 2: 6 anciens PROD
+python scripts/run_full_pipeline.py --assets OSMO MINA AR OP METIS YGG \
+  --optimization-mode baseline --trials-atr 300 --trials-ichi 300 \
+  --enforce-tp-progression --run-guards --workers 1 --output-prefix revalidation_old_prod
+
+# Batch 3: Params incomplets
+python scripts/run_full_pipeline.py --assets RUNE EGLD --optimization-mode baseline \
+  --trials-atr 300 --trials-ichi 300 --enforce-tp-progression --run-guards \
+  --workers 1 --output-prefix complete_params
+```
+
+### ACTIONS POST-COMPLETION
+
+1. **Si baseline PASS (7/7 guards):**
+   - Extraire params du scan CSV
+   - Update asset_config.py avec nouveaux params
+   - Mode = `baseline`
+
+2. **Si baseline FAIL guard002 (variance > 15%):**
+   - Executer cascade: `python scripts/run_filter_rescue.py ASSET --trials 300 --workers 1`
+   - Tester moderate → conservative
+   - Update asset_config.py avec mode qui PASS
+
+3. **Si cascade FAIL:**
+   - Asset → EXCLU
+
+### FICHIERS MODIFIES
+
+- ✅ `crypto_backtest/config/asset_config.py` — ETH/AVAX marques comme RESET
+- ✅ `status/project-state.md` — Section RESET ajoutee
+- ✅ `comms/jordan-dev.md` — Ce fichier
+
+### RESULTATS ATTENDUS (outputs/)
+
+- `reset_ETH_baseline_multiasset_scan_*.csv`
+- `reset_ETH_baseline_guards_summary_*.csv`
+- `reset_AVAX_baseline_multiasset_scan_*.csv`
+- `reset_AVAX_baseline_guards_summary_*.csv`
+- `revalidation_old_prod_multiasset_scan_*.csv`
+- `revalidation_old_prod_guards_summary_*.csv`
+- `complete_params_multiasset_scan_*.csv`
+- `complete_params_guards_summary_*.csv`
+
+---
+
+## ✅ TACHE PRECEDENTE: TIA/CAKE Asset Config Update (COMPLETE)
 
 ## 🚨 P0 ASSIGNMENT — TIA/CAKE Asset Config Update
 
@@ -830,3 +908,63 @@ python scripts/portfolio_construction.py \
 ---
 
 **Ready to start:** jordan-1 (TON guards) dès maintenant 🚀
+
+---
+
+## ✅ TASK COMPLETE: Portfolio Construction (15:17 UTC)
+
+**Assignment:** Run portfolio construction with 11 PROD assets  
+**Status:** ✅ **COMPLETE**  
+**Duration:** ~2 minutes (4 optimization methods)
+
+### Methods Tested
+1. ✅ Equal Weight (baseline)
+2. ✅ Max Sharpe (recommended)
+3. ✅ Risk Parity (balanced risk)
+4. ✅ Min CVaR (downside protection)
+
+### Results Summary
+
+| Method | Sharpe | Max DD | Return | Status |
+|--------|--------|--------|--------|--------|
+| **Max Sharpe** | **4.96** | -2.00% | 21.02% | **BEST** |
+| Risk Parity | 4.86 | -1.79% | 20.32% | Good |
+| Min CVaR | 4.85 | **-1.64%** | 20.29% | **Best DD** |
+| Equal Weight | 4.50 | -2.01% | **24.10%** | **Best Return** |
+
+**Recommendation:** **Max Sharpe** (best risk-adjusted performance)
+
+### Key Findings
+- Portfolio Sharpe 4.96 vs individual mean 3.5 (+41% improvement)
+- Diversification ratio: 2.08 (excellent, >2.0)
+- Max correlation: 0.36 (low, good diversification)
+- All 11 assets contribute positively
+
+### Top Allocations (Max Sharpe)
+1. TIA: 19.63% (Sharpe 5.16)
+2. EGLD: 18.00% (Sharpe 2.04)
+3. ANKR: 11.24% (Sharpe 3.48)
+4. NEAR: 9.47% (Sharpe 4.26)
+5. Others: 5-9% each
+
+### Files Generated
+- `PORTFOLIO_CONSTRUCTION_RESULTS.md` — Full analysis report
+- `outputs/portfolio_11assets_*_metrics_*.csv` — 4 method metrics
+- `outputs/portfolio_11assets_*_weights_*.csv` — Optimized weights
+- `outputs/portfolio_11assets_*_correlation_matrix_*.csv` — Correlations
+
+### Next Steps
+1. **Approve:** Max Sharpe method for production
+2. **Riley:** Generate Pine Scripts for 11 assets
+3. **Backtest:** Portfolio walk-forward validation
+4. **Deploy:** Paper trading setup
+
+---
+
+**Jordan Status:** 🟢 **ALL P0 TASKS COMPLETE**  
+**Completed Today:**
+1. ✅ TIA/CAKE asset_config.py update (10:17 UTC)
+2. ✅ PR#8 guards analysis (13:45 UTC)
+3. ✅ Portfolio construction - 4 methods (15:17 UTC)
+
+**Ready For:** Sam validation, Phase 1 screening, or next assignment
