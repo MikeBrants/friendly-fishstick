@@ -14,7 +14,7 @@ description: Génère un script Pine Script v6 pour TradingView à partir des pa
 ## Prérequis
 - Asset validé 7/7 PASS par Sam
 - Paramètres figés dans `outputs/multiasset_scan*.csv`
-- Dossier `pine/` existe (ou le créer)
+- Asset listé dans `status/project-state.md` comme PROD
 
 ## Instructions
 
@@ -44,9 +44,20 @@ Displacement: {int(params['displacement'])}
 """)
 ```
 
-### Étape 2: Générer le Pine Script
+### Étape 2: Vérifier TP Progression
+```python
+tp1, tp2, tp3 = params['tp1_mult'], params['tp2_mult'], params['tp3_mult']
+gap1, gap2 = tp2 - tp1, tp3 - tp2
 
-Créer le fichier `pine/FT_ASSET.pine` avec le template suivant :
+assert tp1 < tp2 < tp3, f"TP non progressif: {tp1} < {tp2} < {tp3}"
+assert gap1 >= 0.5, f"Gap TP1-TP2 insuffisant: {gap1:.2f}"
+assert gap2 >= 0.5, f"Gap TP2-TP3 insuffisant: {gap2:.2f}"
+print("✅ TP progression valide")
+```
+
+### Étape 3: Générer le Pine Script
+
+Créer le fichier `FT_ASSET.pine` avec le template:
 
 ```pine
 //@version=6
@@ -64,6 +75,7 @@ strategy("FT_[ASSET]", overlay=true,
 // PARAMS FROZEN [ASSET] - DO NOT MODIFY
 // Generated: [DATE]
 // Validated: 7/7 PASS by Sam
+// Source: outputs/multiasset_scan_YYYYMMDD_HHMMSS.csv
 // ===============================================================
 float slMult = [SL_VALUE]
 float tp1Mult = [TP1_VALUE]
@@ -135,41 +147,49 @@ alertcondition(finalSignal, "FT_[ASSET]_ENTRY",
     '{"asset":"[ASSET]","action":"LONG_ENTRY","price":{{close}},"sl":{{plot_0}},"tp1":{{plot_1}}}')
 ```
 
-### Étape 3: Script Python de Génération Automatique
+### Étape 4: Script Python de Génération
 ```python
-import pandas as pd
-from glob import glob
 from datetime import datetime
 
-def generate_pine(asset: str) -> str:
-    scan = pd.read_csv(sorted(glob("outputs/multiasset_scan*.csv"))[-1])
-    p = scan[scan['asset'] == asset].iloc[0]
+def generate_pine(asset: str, params: dict) -> str:
+    """Génère le script Pine complet pour un asset."""
     
-    template = f'''// ... (template complet ci-dessus)
-float slMult = {p['sl_mult']:.2f}
-float tp1Mult = {p['tp1_mult']:.2f}
-float tp2Mult = {p['tp2_mult']:.2f}
-float tp3Mult = {p['tp3_mult']:.2f}
-int tenkanPeriod = {int(p['tenkan'])}
-int kijunPeriod = {int(p['kijun'])}
-int tenkan5Period = {int(p['tenkan5'])}
-int kijun5Period = {int(p['kijun5'])}
-int displacement = {int(p['displacement'])}
-// ...
+    template = f'''//@version=6
+strategy("FT_{asset}", overlay=true,
+    initial_capital=10000,
+    default_qty_type=strategy.percent_of_equity,
+    default_qty_value=100,
+    commission_type=strategy.commission.percent,
+    commission_value=0.05,
+    slippage=2,
+    process_orders_on_close=true,
+    calc_on_every_tick=false)
+
+// PARAMS FROZEN {asset} - DO NOT MODIFY
+// Generated: {datetime.now().strftime("%Y-%m-%d %H:%M")}
+float slMult = {params['sl_mult']:.2f}
+float tp1Mult = {params['tp1_mult']:.2f}
+float tp2Mult = {params['tp2_mult']:.2f}
+float tp3Mult = {params['tp3_mult']:.2f}
+int tenkanPeriod = {int(params['tenkan'])}
+int kijunPeriod = {int(params['kijun'])}
+int tenkan5Period = {int(params['tenkan5'])}
+int kijun5Period = {int(params['kijun5'])}
+int displacement = {int(params['displacement'])}
+// ... (rest of template)
 '''
     return template
 
-# Générer et sauvegarder
-asset = "BTC"
-pine_code = generate_pine(asset)
-with open(f"pine/FT_{asset}.pine", "w") as f:
+# Utilisation
+pine_code = generate_pine(asset, params.to_dict())
+with open(f"FT_{asset}.pine", "w") as f:
     f.write(pine_code)
-print(f"✅ Pine script généré: pine/FT_{asset}.pine")
+print(f"✅ Script généré: FT_{asset}.pine")
 ```
 
-### Étape 4: Checklist Validation Pine
+### Étape 5: Checklist Validation Pine
 
-Avant de déployer, vérifier :
+Avant de déployer, vérifier:
 
 - [ ] `[1]` shift sur TOUS les signaux (anti look-ahead)
 - [ ] Commission 0.05% (5 bps)
@@ -178,35 +198,50 @@ Avant de déployer, vérifier :
 - [ ] `warmupBars = 200`
 - [ ] Multi-TP: 50/30/20 split
 - [ ] Paramètres correspondent au scan validé
-- [ ] TP progression respectée (TP1 < TP2 < TP3)
+- [ ] TP progression respectée (TP1 < TP2 < TP3, gaps ≥ 0.5)
+- [ ] Asset 7/7 PASS confirmé par Sam
 
-### Étape 5: Documenter la Génération
+### Étape 6: Documenter la Génération
 
 ```markdown
-# Dans comms/riley-ops.md
 HHMM DONE riley-ops -> casey-quant:
 Asset: [ASSET]
-Action: Pine script généré
-File: pine/FT_[ASSET].pine
-Params: sl=[X.XX], tp1=[X.XX], tp2=[X.XX], tp3=[X.XX]
-Displacement: d[XX]
+Action: Pine script généré ✅
+File: FT_[ASSET].pine
+Source: outputs/multiasset_scan_YYYYMMDD_HHMMSS.csv
+Params:
+  - SL: [X.XX]
+  - TP1/TP2/TP3: [X.XX]/[X.XX]/[X.XX]
+  - Tenkan/Kijun: [XX]/[XX]
+  - Displacement: d[XX]
+Validation: 7/7 PASS by Sam
 Status: Ready for TradingView paper trading
 ```
 
+## Assets PROD Actuels (Référence)
+
+| Asset | Disp | Mode | OOS Sharpe | WFE |
+|-------|------|------|------------|-----|
+| BTC | 52 | baseline | 2.14 | >0.6 |
+| ETH | 52 | medium_distance_volume | 2.09 | 0.82 |
+| JOE | 26 | baseline | 5.03 | 1.44 |
+| OSMO | 65 | baseline | 3.18 | 0.77 |
+| MINA | 78 | baseline | 1.76 | 0.61 |
+
 ## Output Attendu
 
-Fichier `pine/FT_ASSET.pine` prêt à copier-coller dans TradingView.
+Fichier `FT_ASSET.pine` prêt à copier-coller dans TradingView.
 
 ## Troubleshooting
 
 | Problème | Solution |
 |----------|----------|
-| Params manquants dans scan | Vérifier que l'asset a bien été validé |
+| Params manquants dans scan | Vérifier que l'asset a 7/7 PASS |
 | Erreur syntax Pine | Vérifier les types (float vs int) |
-| Signaux différents de backtest | Vérifier [1] shift sur tous les indicateurs |
+| Signaux différents de backtest | Vérifier `[1]` shift sur tous les indicateurs |
 | Performance différente | Normal, slippage TradingView ≠ backtest |
 
 ## Escalade
-- Si paramètres manquants → @Jordan vérifier le run
-- Si doute sur params → @Sam revalider
+- Si params manquants → @Jordan vérifier le run
+- Si doute sur params → @Sam revalider guards
 - Après génération → @Casey mise à jour project-state.md
