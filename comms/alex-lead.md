@@ -1,168 +1,98 @@
-# Alex Lead — Communications
+# Alex Lead Quant — Communications
 
-## 2026-01-24 22:30 UTC — TASK: Variance Reduction Research
-
-### FROM: Casey (Orchestrator)
-### TO: Alex (Lead Quant)
-### STATUS: TODO
-### PRIORITY: 🔴 HIGH
+**Last Updated**: 26 janvier 2026, 02:45 UTC
 
 ---
 
-## Contexte
+## 🆕 NOUVELLE TÂCHE ASSIGNÉE (26 Jan 2026)
 
-Avec le nouveau seuil sensitivity à 15%, plusieurs assets passent maintenant guard002.
-Cependant, on veut **réduire la variance** même en dessous de 15%, surtout pour les gros assets comme ETH.
+### Task: Implémentation Regime-Aware Guards (Mode Indicatif)
 
-**ETH baseline actuel**:
-- Sensitivity: 12.96%
-- Sharpe: 3.87
-- WFE: 2.36
+**Priorité**: 🟡 MOYENNE  
+**Branche**: `feature/regime-aware-guards-indicative`  
+**Instructions complètes**: `docs/REGIME_AWARE_GUARDS_IMPLEMENTATION.md`
 
-**Objectif**: Trouver des solutions pour réduire la variance sous 10% si possible, sans sacrifier le Sharpe.
+#### Résumé
+
+Implémenter 2 nouveaux guards en **mode indicatif** (ne bloquent pas la validation 7/7):
+
+1. **Guard 008 - WFE Suspicious**
+   - Détecte WFE anormaux (< 0.4 ou > 2.0)
+   - Flag informatif, pas éliminatoire
+
+2. **Guard 009 - Regime Bias**
+   - Détecte mismatch favorable (IS=bear/sideways, OOS=bull)
+   - Calcule Sharpe ajusté avec haircut
+   - Flag informatif pour sizing/attentes
+
+#### Fichiers à créer
+
+- `crypto_backtest/analysis/regime_detector.py`
+- `crypto_backtest/validation/indicative_guards.py`
+- `tests/test_regime_detector.py`
+- `tests/test_indicative_guards.py`
+- `scripts/regime_analysis_v2.py`
+
+#### Contraintes importantes
+
+⚠️ **MODE INDICATIF**: Ces guards ne doivent PAS bloquer la validation  
+⚠️ `blocks_validation=False` TOUJOURS  
+⚠️ Apparaissent dans rapports avec flag ⚠️ mais n'affectent pas `all_pass`
+
+#### Timeline estimée
+
+- Jours 1-2: `regime_detector.py` + tests
+- Jour 3: `indicative_guards.py`
+- Jour 4: Intégration pipeline
+- Jour 5: Validation sur 7 assets WFE > 1.0
 
 ---
 
-## Tâches Assignées
+## 📋 TÂCHES ACTIVES
 
-### 1. Implémenter Deflated Sharpe Ratio (DSR) — PRIORITÉ 1
+| Task | Status | Description |
+|------|--------|-------------|
+| **Regime-Aware Guards** | 🆕 ASSIGNED | Guards 008/009 indicatifs |
+| DSR Integration | ✅ DONE | `validation/deflated_sharpe.py` |
+| Variance Reduction | 🔴 TODO | Réduire <10% (ETH 12.96%, CAKE 10.76%) |
+| GitHub Repos Scan | 🟡 TODO | zipline, vectorbt, freqtrade |
 
-Le DSR corrige directement pour le **trial count paradox** que tu as identifié.
+---
 
-**Fichier à créer**: `crypto_backtest/validation/deflated_sharpe.py`
+## 📊 VARIANCE REDUCTION RESEARCH (En attente)
 
-**Formule**:
-```
-SR₀ = σ(SR) × [(1-γ)Φ⁻¹(1-1/N) + γΦ⁻¹(1-1/Ne)]
-DSR = Φ((SR - SR₀) / σ(SR))
-```
-
-**Seuils recommandés**:
-| DSR | Verdict |
-|-----|---------|
-| > 95% | PASS |
-| 85-95% | MARGINAL |
-| < 85% | FAIL |
-
-**Intégration**: Ajouter comme `guard008` ou metric informative.
-
-### 2. Rechercher Solutions Variance Reduction — PRIORITÉ 2
-
-**Assets cibles**: ETH (12.96%), CAKE (10.76%), autres >10%
+**Objectif**: Réduire variance sous 10% pour gros assets
 
 **Pistes à explorer**:
-1. **Regime-aware WF splits** — Les splits actuels ignorent si on coupe en bull/bear/sideways
-2. **Parameter averaging** — Moyenner top N trials au lieu de prendre le best
-3. **Regularization Optuna** — Ajouter pénalité variance dans objective
-4. **Ensemble de paramètres** — Combiner plusieurs sets de params
-5. **Reduced trial count** — Tu as montré que 50 trials > 100 trials pour WFE
+1. Regime-aware WF splits — Splits stratifiés par régime
+2. Parameter averaging — Moyenner top N trials (BMA)
+3. Regularization Optuna — Pénalité variance dans objective
+4. Reduced trial count — 50-75 trials au lieu de 300
 
-### 3. Recherche GitHub Quant Repos — PRIORITÉ 3
-
-**Objectif**: Trouver des stratégies/filtres complémentaires sur les repos quant populaires.
-
-**Repos à explorer**:
-- `quantopian/zipline`
-- `pmorissette/bt`
-- `ranaroussi/quantstats`
-- `polakowo/vectorbt`
-- `kernc/backtesting.py`
-- `freqtrade/freqtrade`
-
-**Focus**:
-- Filtres de volatilité
-- Méthodes de réduction overfitting
-- Walk-forward robustes
-- Ensemble methods
+**Status**: En attente — prioriser Regime-Aware Guards d'abord
 
 ---
 
-## Deliverables Attendus
+## 📝 NOTES
 
-1. **Code DSR** (`crypto_backtest/validation/deflated_sharpe.py`)
-2. **Rapport variance reduction** (solutions testées, résultats)
-3. **Liste de filtres/stratégies** identifiés sur GitHub (à intégrer ou tester)
+### Haircuts par régime (Guard 009)
 
----
+| Régime OOS | Haircut | Rationale |
+|------------|---------|----------|
+| BULL | ×0.65 | Momentum gonfle performance |
+| SIDEWAYS | ×1.0 | Régime neutre |
+| BEAR | ×1.25 | Contexte difficile = bonus |
 
-## Timeline
+### Seuils WFE (Guard 008)
 
-| Task | Durée estimée |
-|------|---------------|
-| DSR implementation | 1-2h |
-| Variance reduction research | 2-4h |
-| GitHub repos scan | 1-2h |
-
----
-
-## Notes Techniques
-
-### DSR — Code de référence
-
-```python
-import numpy as np
-from scipy.stats import norm, skew, kurtosis
-
-def deflated_sharpe_ratio(returns, sharpe_observed, n_trials, annualization=1):
-    """
-    Calculate DSR - probability that observed Sharpe is statistically significant.
-    
-    Args:
-        returns: array of strategy returns (not annualized)
-        sharpe_observed: observed Sharpe ratio (not annualized)
-        n_trials: number of optimization trials tested
-        annualization: 1 for already annualized
-    
-    Returns:
-        dsr: probability [0,1] that Sharpe is significant
-        sr0: threshold Sharpe expected from random trials
-    """
-    T = len(returns)
-    sr = sharpe_observed / annualization
-    
-    # Higher moments
-    gamma3 = skew(returns)
-    gamma4 = kurtosis(returns, fisher=False)
-    
-    # Variance of Sharpe estimator
-    var_sr = (1 + 0.5 * sr**2 - gamma3 * sr + ((gamma4 - 3) / 4) * sr**2) / (T - 1)
-    std_sr = np.sqrt(var_sr)
-    
-    # Euler-Mascheroni constant
-    gamma = 0.5772156649
-    
-    # SR0: threshold expected by chance
-    sr0 = std_sr * ((1 - gamma) * norm.ppf(1 - 1/n_trials) + 
-                     gamma * norm.ppf(1 - 1/(n_trials * np.e)))
-    
-    # DSR
-    dsr = norm.cdf((sr - sr0) / std_sr)
-    
-    return dsr, sr0
-```
-
-### Regime-Aware Splits
-
-Problème actuel: Les splits WF (60/20/20) ignorent la distribution des régimes.
-- Si IS = 100% BULL et OOS = 100% BEAR → WFE biaisé
-- Solution: Stratified splits par régime
+- WFE < 0.4 → Probable overfitting
+- WFE 0.4-2.0 → Range acceptable
+- WFE > 2.0 → Suspect (investiguer régime)
 
 ---
 
-## Réponse Attendue
+## 📬 COMMUNICATION
 
-Format:
-```
-HHMM INPROGRESS alex-lead -> casey-quant: [Task] en cours
-Fichier: [path]
-Progress: [X/Y steps]
-ETA: [time]
-```
-
-Puis:
-```
-HHMM DONE alex-lead -> casey-quant: [Task] terminé
-Deliverable: [path to file/report]
-Summary: [key findings]
-Next: [recommended actions]
-```
+**Pour signaler complétion**: Mettre à jour ce fichier avec `[TASK COMPLETE]`  
+**Pour questions**: Ajouter section `## QUESTIONS` ci-dessous  
+**Pour blockers**: Ajouter section `## BLOCKERS` ci-dessous
