@@ -87,9 +87,8 @@ python scripts/run_full_pipeline.py \
 ### Assigner Phase 4 (Filter Grid)
 ```bash
 # Commande à donner à Jordan
-python scripts/run_filter_grid.py \
-  --asset [ASSET] \
-  --displacement [BEST_DISP] \
+python scripts/run_filter_rescue.py [ASSET] \
+  --trials 300 \
   --workers 1
 ```
 
