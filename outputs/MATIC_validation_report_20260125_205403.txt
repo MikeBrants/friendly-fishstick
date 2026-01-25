@@ -1,0 +1,16 @@
+GUARDS VALIDATION REPORT: MATIC
+======================================================================
+GUARD-001 Monte Carlo p-value: 0.0000 -> PASS
+GUARD-002 Sensitivity variance: 16.56% -> FAIL
+GUARD-003 Bootstrap Sharpe CI lower: 1.48 -> PASS
+GUARD-005 Trade distribution top10: 46.17% -> FAIL
+GUARD-006 Stress1 Sharpe: 2.72 -> PASS
+GUARD-007 Regime reconciliation mismatch: 0.00% -> PASS
+GUARD-WFE: 0.74 -> PASS
+----------------------------------------------------------------------
+OVERFITTING (report-only):
+PSR (P[SR>0]): 0.9809
+DSR (deflated): n/a
+SR* (deflated threshold): n/a
+----------------------------------------------------------------------
+ALL PASS: NO
