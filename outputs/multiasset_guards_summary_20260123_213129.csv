@@ -1,2 +1,0 @@
-asset,base_sharpe,guard001_p_value,guard001_pass,guard002_variance_pct,guard002_pass,guard003_sharpe_ci_lower,guard003_pass,guard005_top10_pct,guard005_pass,guard006_stress1_sharpe,guard006_pass,guard007_mismatch_pct,guard007_pass,guard_wfe,guard_wfe_pass,all_pass,error
-IMX,0.7552903633482818,0.025,True,75.4935750370864,False,-0.7714089658648305,False,92.51210899841438,False,0.3235663488471152,False,2.3575527132117253e-14,True,-0.2826622216332931,False,False,

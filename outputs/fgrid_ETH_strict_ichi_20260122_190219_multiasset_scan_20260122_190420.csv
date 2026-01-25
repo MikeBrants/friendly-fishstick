@@ -1,2 +1,0 @@
-asset,status,exchange,timeframe,start_date,end_date,total_bars,seed,fail_reason,sl_mult,tp1_mult,tp2_mult,tp3_mult,tenkan,kijun,tenkan_5,kijun_5,displacement,is_sharpe,is_return,is_trades,val_sharpe,val_return,val_trades,oos_sharpe,oos_return,oos_trades,oos_max_dd,oos_pf,wfe,mc_p,error
-ETH,SUCCESS,binance,1H,2024-01-23,2026-01-22,17520,42,,3.5,3.0,9.0,10.0,7,23,8,28,52,3.1494360989417935,14.167410947825786,258,-0.2806899847711739,-0.4958223190616118,96,2.359524747588294,3.237870975327395,81,-1.0567750658602604,1.7491435914105216,0.7491895925054937,0.014,

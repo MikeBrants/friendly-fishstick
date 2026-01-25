@@ -1,2 +1,0 @@
-asset,base_sharpe,guard001_p_value,guard001_pass,guard002_variance_pct,guard002_pass,guard003_sharpe_ci_lower,guard003_pass,guard005_top10_pct,guard005_pass,guard006_stress1_sharpe,guard006_pass,guard007_mismatch_pct,guard007_pass,guard_wfe,guard_wfe_pass,all_pass,error
-BTC,2.173113411904263,0.003,True,6.575376512373065,True,2.160618114167483,True,17.655726190303245,True,1.633922682259517,True,1.2356238514443145e-14,True,0.4886631813695325,False,False,

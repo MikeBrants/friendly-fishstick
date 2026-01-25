@@ -1,2 +1,0 @@
-asset,base_sharpe,guard001_p_value,guard001_pass,guard002_variance_pct,guard002_pass,guard003_sharpe_ci_lower,guard003_pass,guard005_top10_pct,guard005_pass,guard006_stress1_sharpe,guard006_pass,guard007_mismatch_pct,guard007_pass,guard_wfe,guard_wfe_pass,all_pass,error
-DOGE,2.2134488820673726,0.0,True,7.258871636440227,True,2.0279400477443543,True,20.402925340347693,True,1.592572119457061,True,1.688065069318886e-14,True,1.0314548032896422,True,True,
