@@ -1,8 +1,8 @@
 # PROJECT STATE - FINAL TRIGGER v2 Backtest System
 
-**Last Updated**: 25 janvier 2026, 01:45 UTC  
-**Phase**: POST-PR8 — Guard Threshold Update + Portfolio @ 11 Assets  
-**Status**: 🟢 STABLE (Validation complete, ready for next phase)
+**Last Updated**: 25 janvier 2026, 02:10 UTC  
+**Phase**: POST-PR8 — TIA/CAKE Reclassification + Portfolio @ 11 Assets  
+**Status**: 🟡 UPDATING (Asset configs being updated)
 
 ---
 
