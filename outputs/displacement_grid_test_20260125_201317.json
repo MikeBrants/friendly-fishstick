@@ -1,0 +1,48 @@
+{
+  "AR": {
+    "d26": {
+      "status": "FAIL",
+      "oos_sharpe": -1.1597213942250417,
+      "wfe": -0.45461309125915594,
+      "oos_trades": 40,
+      "displacement": 26
+    },
+    "d52": {
+      "status": "FAIL",
+      "oos_sharpe": 1.2472818555280114,
+      "wfe": 0.35713997427232547,
+      "oos_trades": 38,
+      "displacement": 52
+    },
+    "d78": {
+      "status": "FAIL",
+      "oos_sharpe": 3.381261774824858,
+      "wfe": 1.7893446014432128,
+      "oos_trades": 32,
+      "displacement": 78
+    }
+  },
+  "OSMO": {
+    "d26": {
+      "status": "FAIL",
+      "oos_sharpe": -2.3012943335419256,
+      "wfe": -0.5011729732308469,
+      "oos_trades": 114,
+      "displacement": 26
+    },
+    "d52": {
+      "status": "FAIL",
+      "oos_sharpe": 0.18086959577913783,
+      "wfe": 0.051438675775647695,
+      "oos_trades": 54,
+      "displacement": 52
+    },
+    "d78": {
+      "status": "FAIL",
+      "oos_sharpe": 1.4671277845715227,
+      "wfe": 0.3818195414562549,
+      "oos_trades": 57,
+      "displacement": 78
+    }
+  }
+}
