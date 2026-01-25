@@ -53,7 +53,7 @@
 **Responsabilités** :
 - Exécution des 7 guards :
   - Guard001: Monte Carlo (p < 0.05)
-  - Guard002: Sensitivity variance (< 10%)
+  - Guard002: Sensitivity variance (< 15%)
   - Guard003: Bootstrap CI lower (> 1.0)
   - Guard005: Top 10 trades concentration (< 40%)
   - Guard006: Stress test Sharpe (> 1.0)

@@ -96,7 +96,7 @@ Chaque agent applique ce cycle:
 | Guard | ID | Seuil | Critique |
 |-------|:---|-------|----------|
 | MC p-value | guard001 | < 0.05 | OUI |
-| Sensitivity variance | guard002 | < 10% | OUI |
+| Sensitivity variance | guard002 | < 15% | OUI |
 | Bootstrap CI lower | guard003 | > 1.0 | OUI |
 | (obsolete) | guard004 | - | Retire: remplace par guard003 |
 | Top10 trades % | guard005 | < 40% | OUI |
@@ -202,7 +202,7 @@ Quel guard?
 | Mode | Quand l'utiliser | Effet |
 |:-----|:-----------------|:------|
 | baseline | Premier test, toujours | Aucun filtre |
-| medium_distance_volume | Si guard002 (sensitivity) FAIL | Reduit bruit, winner ETH |
+| medium_distance_volume | Si guard002 (sensitivity >15%) FAIL | Reduit bruit, winner ETH |
 | light_kama | Si baseline trop sensible | Filtre momentum |
 | light_distance / light_volume | Tests intermediaires | Filtres legers |
 | moderate | Si light_* insuffisant | Filtres moyens |

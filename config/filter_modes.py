@@ -91,6 +91,14 @@ FILTER_MODES = {
         "use_ichimoku_filter": True,
         "ichi5in1_strict": True,
     },
+    "conservative": {
+        "use_distance_filter": True,
+        "use_volume_filter": True,
+        "use_regression_cloud": True,
+        "use_kama_oscillator": True,
+        "use_ichimoku_filter": True,
+        "ichi5in1_strict": True,
+    },
 }
 
 

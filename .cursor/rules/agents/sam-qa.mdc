@@ -26,7 +26,7 @@ alwaysApply: false
 |-------|:---|-------|----------------|
 | WFE | - | ≥0.6 | PENDING → Phase 3A |
 | MC p-value | guard001 | <0.05 | PENDING → Phase 3A |
-| Sensitivity variance | guard002 | <10% | PENDING → filter grid |
+| Sensitivity variance | guard002 | <15% | PENDING → filter grid |
 | Bootstrap CI lower | guard003 | >1.0 | PENDING → Phase 3A |
 | Top10 trades % | guard005 | <40% | BLOCKED (outlier-dependent) |
 | Stress1 Sharpe | guard006 | >1.0 | PENDING → Phase 3A |

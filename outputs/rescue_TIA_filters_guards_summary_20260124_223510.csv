@@ -1,0 +1,2 @@
+asset,base_sharpe,guard001_p_value,guard001_pass,guard002_variance_pct,guard002_pass,guard003_sharpe_ci_lower,guard003_pass,guard005_top10_pct,guard005_pass,guard006_stress1_sharpe,guard006_pass,guard007_mismatch_pct,guard007_pass,guard_wfe,guard_wfe_pass,overfit_psr,overfit_dsr,overfit_sr_star,all_pass,error
+TIA,2.3671188419182774,0.0,True,9.33381085353839,True,2.3362280587135738,True,21.02947560182119,True,2.1226432167132594,True,0.0,True,0.7893146060800857,True,0.9986812316826699,,,True,

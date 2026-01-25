@@ -22,33 +22,39 @@ if new_sharpe > old_sharpe * 1.10 and all_guards_pass:
     use_new_displacement = True
 ```
 
-## Filter Modes (Phase 4)
+## Filter Modes (Phase 4) - 12 modes
+
 | Mode | Filtres actifs |
 |------|----------------|
-| baseline | ichimoku_filter only |
+| baseline | ichimoku only |
 | light_kama | ichimoku + kama_oscillator |
 | light_distance | ichimoku + distance_filter |
 | light_volume | ichimoku + volume_filter |
+| light_regression | ichimoku + regression_cloud |
+| medium_kama_distance | ichimoku + kama + distance |
+| medium_kama_volume | ichimoku + kama + volume |
+| medium_kama_regression | ichimoku + kama + regression |
 | medium_distance_volume | ichimoku + distance + volume (WINNER ETH) |
-| moderate | 5 filtres |
-| conservative | 7 filtres (tous + strict) |
+| moderate | 5 filtres (tous sauf strict) |
+| strict_ichi | ichimoku strict (17 cond) |
+| conservative | 6 filtres + strict (dernier recours) |
 
 ## Commandes par Phase
 ```bash
-# Phase 1: Screening
+# Phase 1: Screening (workers=6 OK)
 python scripts/run_full_pipeline.py --assets ALL --workers 6 \
-    --trials-atr 100 --trials-ichi 100 --skip-guards
+    --trials-atr 150 --trials-ichi 150 --skip-guards
 
-# Phase 2: Validation
-python scripts/run_full_pipeline.py --assets WINNERS --workers 6 \
-    --trials-atr 200 --trials-ichi 200 --enforce-tp-progression --run-guards
+# Phase 2: Validation (workers=1 OBLIGATOIRE pour reproductibilité)
+python scripts/run_full_pipeline.py --assets WINNERS --workers 1 \
+    --trials-atr 300 --trials-ichi 300 --enforce-tp-progression --run-guards
 
 # Phase 3A: Rescue (displacement grid)
 python scripts/run_displacement_grid.py --assets PENDING
 
 # Phase 3B: Optimization
-python scripts/run_phase3b_optimization.py --assets WINNERS
+python scripts/run_phase3b_optimization.py --assets WINNERS --workers 1
 
 # Phase 4: Filter Grid
-python scripts/run_filter_grid.py --assets PENDING
+python scripts/run_filter_grid.py --assets PENDING --workers 1
 ```

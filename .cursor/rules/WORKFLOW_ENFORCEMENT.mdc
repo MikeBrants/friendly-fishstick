@@ -225,7 +225,7 @@ python scripts/run_full_pipeline.py \
 **Rationale:**
 - [Asset prioritaire / Sharpe élevé / etc.]
 - Workflow rescue non épuisé
-- Displacement peut résoudre [guard002 / etc.]
+- Displacement peut résoudre [guard002 sensitivity >15% / etc.]
 
 **Action:**
 1. @Jordan execute Phase 3A (d26 + d78)

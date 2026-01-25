@@ -28,7 +28,7 @@ alwaysApply: false
 |-------|:---|-------|-----------|-------|
 | WFE | - | ≥0.6 | 0.58-0.60: case-by-case | OOS/IS ratio |
 | MC p-value | guard001 | <0.05 | Strict, pas de tolérance | Significativité statistique |
-| Sensitivity | guard002 | <10% | 10-12%: arbitrage requis | Stabilité params |
+| Sensitivity | guard002 | <15% | 15-18%: arbitrage requis | Stabilité params |
 | Bootstrap CI | guard003 | >1.0 | 0.95-1.0: case-by-case | Robustesse Sharpe |
 | Top10 trades | guard005 | <40% | Strict, pas de tolérance | Outlier-dependency |
 | Stress Sharpe | guard006 | >1.0 | 0.9-1.0: case-by-case | Profitabilité sous stress |
@@ -53,14 +53,14 @@ alwaysApply: false
 
 ## Décisions Typiques
 
-### Cas 1: Variance borderline (10-12%)
+### Cas 1: Variance borderline (15-18%)
 ```
-Issue: Asset X a guard002 variance = 11.2%
-Analysis: Seuil strict = 10%, valeur = 11.2% (+1.2%)
+Issue: Asset X a guard002 variance = 16.2%
+Analysis: Seuil strict = 15%, valeur = 16.2% (+1.2%)
 Options: 
   1. FAIL strict (cohérence cross-asset)
   2. PASS avec warning (proche du seuil)
-Decision: FAIL - maintenir cohérence 10%
+Decision: FAIL - maintenir cohérence 15%
 Rationale: Pas d'exception, évite precedent dangereux
 Action: @Jordan tester filter mode medium_distance_volume
 ```

@@ -1,0 +1,16 @@
+GUARDS VALIDATION REPORT: TIA
+======================================================================
+GUARD-001 Monte Carlo p-value: 0.0000 -> PASS
+GUARD-002 Sensitivity variance: 9.33% -> PASS
+GUARD-003 Bootstrap Sharpe CI lower: 2.34 -> PASS
+GUARD-005 Trade distribution top10: 21.03% -> PASS
+GUARD-006 Stress1 Sharpe: 2.12 -> PASS
+GUARD-007 Regime reconciliation mismatch: 0.00% -> PASS
+GUARD-WFE: 0.79 -> PASS
+----------------------------------------------------------------------
+OVERFITTING (report-only):
+PSR (P[SR>0]): 0.9987
+DSR (deflated): n/a
+SR* (deflated threshold): n/a
+----------------------------------------------------------------------
+ALL PASS: YES

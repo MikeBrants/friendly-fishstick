@@ -27,11 +27,13 @@ description: Teste 12 combinaisons de filtres (baseline, light_kama, light_dista
 | `light_distance` | ichimoku + distance_filter | Distance au cloud |
 | `light_volume` | ichimoku + volume_filter | Volume léger |
 | `light_regression` | ichimoku + regression_cloud | Trend regression |
-| `medium_distance_volume` | ichimoku + distance + volume | **WINNER ETH** ⭐ |
 | `medium_kama_distance` | ichimoku + kama + distance | Combo momentum/distance |
 | `medium_kama_volume` | ichimoku + kama + volume | Combo momentum/volume |
-| `moderate` | 5 filtres | Filtrage moyen |
-| `conservative` | 7 filtres (tous + strict) | Maximum filtrage |
+| `medium_kama_regression` | ichimoku + kama + regression | Combo momentum/trend |
+| `medium_distance_volume` | ichimoku + distance + volume | **WINNER ETH** ⭐ |
+| `moderate` | 5 filtres (tous sauf strict) | Filtrage moyen |
+| `strict_ichi` | ichimoku strict (17 cond) | Strict sans autres filtres |
+| `conservative` | 6 filtres + strict | Maximum filtrage, dernier recours |
 
 **Ordre de test recommandé:**
 1. `medium_distance_volume` (winner ETH, tester en premier)

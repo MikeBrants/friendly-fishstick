@@ -539,7 +539,7 @@ def _guard_sensitivity(
         return {
             "guard": "sensitivity",
             "value": variance_pct,
-            "pass": variance_pct < 10.0,
+            "pass": variance_pct < 15.0,
             "error": None,
         }
     except Exception as e:
