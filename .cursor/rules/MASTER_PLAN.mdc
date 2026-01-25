@@ -318,6 +318,50 @@ python scripts/download_data.py --assets [ASSET_LIST]
 | outputs/multiasset_scan_*.csv | Resultats scans |
 | outputs/multiasset_guards_summary_*.csv | Resultats guards |
 | .cursor/rules/global-quant.mdc | Regles quant detaillees |
-| .cursor/rules/casey-orchestrator.mdc | Role Casey |
-| .cursor/rules/jordan-backtest.mdc | Role Jordan |
-| .cursor/rules/sam-guards.mdc | Role Sam |
+| .cursor/rules/agents/*.mdc | Roles agents (Casey, Jordan, Sam, Alex, Riley) |
+| skills/*/SKILL.md | Procedures how-to (guards, rescue, filter, pine) |
+
+---
+
+## ⚠️ MAINTENANCE SKILLS & RULES
+
+### Verification OBLIGATOIRE a chaque changement pipeline
+
+**Apres chaque commit qui modifie la strategie ou le pipeline:**
+
+1. **Changement de seuils** → Mettre a jour :
+   - `skills/guards-runner/SKILL.md`
+   - `.cursor/rules/agents/sam-qa.mdc`
+   - `.cursor/rules/agents/alex-lead.mdc`
+   - `.cursor/rules/global-quant.mdc`
+
+2. **Nouvelle commande/script** → Mettre a jour :
+   - Le skill correspondant
+   - `.cursor/rules/agents/jordan-dev.mdc`
+
+3. **Nouveau filter mode** → Mettre a jour :
+   - `skills/filter-grid/SKILL.md`
+
+4. **Changement workflow** → Mettre a jour :
+   - `.cursor/rules/workflow.mdc`
+   - `.cursor/rules/WORKFLOW_ENFORCEMENT.mdc`
+   - Skills concernes
+
+5. **Nouveau guard** → Mettre a jour :
+   - `skills/guards-runner/SKILL.md`
+   - `.cursor/rules/global-quant.mdc`
+   - Ce fichier (MASTER_PLAN)
+
+### Checklist post-commit strategie
+
+```
+[ ] Seuils changes? → maj skills + rules
+[ ] Commandes changes? → maj skills + jordan-dev.mdc
+[ ] Workflow change? → maj workflow.mdc + skills
+[ ] Guards changes? → maj guards-runner + global-quant + MASTER_PLAN
+[ ] Descriptions skills toujours pertinentes?
+```
+
+**Regle:** Tout changement pipeline = verification skills/rules dans le meme PR.
+
+Les skills et rules sont la **documentation executable** — si elles divergent du code, l'agent donnera des instructions obsoletes.
