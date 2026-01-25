@@ -1,10 +1,337 @@
 # Alex Lead — Communications
 
+## 2026-01-25 10:00 UTC — NOUVELLES TÂCHES PRIORITAIRES (URGENT)
+
+### FROM: Casey (Orchestrator)
+### TO: Alex (Lead Quant)
+### STATUS: TODO — REPRIORITISATION MAJEURE
+### PRIORITY: 🔴🔴🔴 CRITIQUE
+
+---
+
+## ⚠️ CHANGEMENT DE PRIORITÉS
+
+**La variance reduction est DÉPRIORITISÉE**. Les tâches ci-dessous prennent la priorité immédiate.
+
+---
+
+## TASK 0: Audit WFE Period Effect 🚨 BLOQUANT
+
+### Statut: BLOQUANT — Aucune décision PROD tant que non résolu
+
+### Problème Identifié
+
+Le calcul actuel de WFE dans `crypto_backtest/optimization/walk_forward.py:120` est suspect:
+
+```python
+efficiency_ratio = _ratio(mean_oos_return, mean_is_return) * 100.0
+```
+
+**Issues potentielles:**
+1. **Utilise les returns** au lieu des Sharpe ratios (WFE classique = OOS_Sharpe / IS_Sharpe)
+2. **Multiplication par 100** → Valeurs gonflées (ex: WFE 2.36 pour ETH semble trop haut)
+3. **Period effect**: Les fenêtres IS (180d) vs OOS (30d) ont des régimes différents
+
+### Questions à Auditer
+
+1. **Le calcul WFE est-il correct?** Comparer avec la définition standard (Robert Pardo)
+2. **Y a-t-il un biais temporel?** Les IS contiennent-ils systématiquement plus de bull markets?
+3. **Les WFE > 2.0 sont-ils réalistes?** (ETH: 2.36, SHIB: 2.27) — Normalement WFE < 1.0 est attendu
+
+### Références
+
+- **Robert Pardo** (2008) "The Evaluation and Optimization of Trading Strategies"
+- **WFE Standard**: Efficiency = OOS_Performance / IS_Performance, attendu entre 0.5-0.8
+
+### Deliverable
+
+Créer fichier: `reports/wfe-audit-2026-01-25.md`
+- Diagnostic du calcul actuel
+- Comparaison avec définition standard
+- Recommandation: FIX ou KEEP avec justification
+
+---
+
+## TASK 1: Implémenter PBO (Probability of Backtest Overfitting) 🔴 CRITIQUE
+
+### Statut: CRITIQUE — Nécessaire pour validation statistique
+
+### Contexte
+
+Le DSR actuel (`deflated_sharpe.py`) corrige le trial count mais **n'est pas le vrai PBO**.
+
+**PBO** (Bailey & López de Prado, 2014) = Probabilité que la meilleure stratégie backtest soit overfittée.
+
+### Définition Formelle
+
+```
+PBO = Probability that OOS performance of "best" IS strategy ranks below median
+
+Méthodologie:
+1. Diviser données en S sous-ensembles (ex: S=16)
+2. Former toutes combinaisons C(S, S/2) de training sets
+3. Pour chaque combo: identifier "best" strategy sur IS, mesurer rang OOS
+4. PBO = proportion de combos où rang OOS < médiane
+```
+
+### Implémentation Requise
+
+**Fichier**: `crypto_backtest/validation/pbo.py`
+
+```python
+def probability_of_backtest_overfitting(
+    returns_matrix: pd.DataFrame,  # N strategies x T periods
+    n_splits: int = 16,
+    risk_free: float = 0.0
+) -> dict:
+    """
+    Calculate PBO using CSCV (Combinatorially Symmetric Cross-Validation).
+
+    Returns:
+        pbo: float [0,1] — probability of overfitting
+        logits: array — distribution of relative ranks
+        threshold: float — PBO threshold for significance
+    """
+```
+
+### Seuils
+
+| PBO | Verdict |
+|-----|---------|
+| < 0.15 | ✅ PASS — Low overfitting risk |
+| 0.15-0.30 | ⚠️ MARGINAL — Proceed with caution |
+| > 0.30 | ❌ FAIL — High overfitting probability |
+
+### Références Académiques
+
+1. **Bailey, D. H., & López de Prado, M. (2014)**
+   "The Probability of Backtest Overfitting"
+   *Journal of Computational Finance*
+   https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2326253
+
+2. **Bailey, D. H., Borwein, J., López de Prado, M., & Zhu, Q. J. (2014)**
+   "Pseudo-Mathematics and Financial Charlatanism"
+   *Notices of the AMS*
+
+3. **López de Prado, M. (2018)**
+   "Advances in Financial Machine Learning" — Chapter 11: Backtesting
+
+### Code de Référence (MLFinLab)
+
+```python
+# Reference: hudson-and-thames/mlfinlab
+# Module: mlfinlab.cross_validation.combinatorial
+
+from itertools import combinations
+import numpy as np
+from scipy.special import comb
+
+def cscv_pbo(strategy_returns, n_groups=16):
+    """
+    Combinatorially Symmetric Cross-Validation for PBO.
+
+    1. Split time series into n_groups blocks
+    2. Enumerate all C(n_groups, n_groups/2) train/test splits
+    3. For each split:
+       - Rank strategies by IS Sharpe
+       - Record OOS rank of "best" IS strategy
+    4. PBO = P(OOS_rank <= median)
+    """
+    n_combos = int(comb(n_groups, n_groups // 2))
+    oos_ranks = []
+
+    for train_idx in combinations(range(n_groups), n_groups // 2):
+        test_idx = [i for i in range(n_groups) if i not in train_idx]
+
+        # Calculate IS performance
+        is_sharpes = calculate_sharpes(strategy_returns, train_idx)
+        best_is_strategy = np.argmax(is_sharpes)
+
+        # Calculate OOS rank of best IS strategy
+        oos_sharpes = calculate_sharpes(strategy_returns, test_idx)
+        oos_rank = rankdata(-oos_sharpes)[best_is_strategy]
+
+        # Relative rank (0 = best, 1 = worst)
+        relative_rank = oos_rank / len(oos_sharpes)
+        oos_ranks.append(relative_rank)
+
+    # PBO = proportion where OOS rank is below median
+    pbo = np.mean(np.array(oos_ranks) > 0.5)
+    return pbo, oos_ranks
+```
+
+---
+
+## TASK 2: Implémenter CPCV (Combinatorial Purged Cross-Validation)
+
+### Statut: HIGH — Complète PBO pour validation robuste
+
+### Contexte
+
+CPCV est la méthode de cross-validation recommandée par López de Prado pour les séries financières.
+
+**Problème des CV classiques**: Data leakage temporel (information future dans training set)
+
+**Solution CPCV**:
+1. **Purging**: Supprimer observations autour du split (évite leakage)
+2. **Embargo**: Gap temporel entre train/test
+3. **Combinatorial**: Toutes les combinaisons possibles de folds
+
+### Implémentation Requise
+
+**Fichier**: `crypto_backtest/validation/cpcv.py`
+
+```python
+from typing import Generator, Tuple
+import numpy as np
+import pandas as pd
+from itertools import combinations
+
+class CombinatorialPurgedKFold:
+    """
+    Combinatorial Purged K-Fold Cross-Validation.
+
+    Implements López de Prado's CPCV methodology:
+    - Purging: Remove observations within embargo period of test set
+    - Embargo: Additional gap after test set before training resumes
+    - Combinatorial: Generate all C(n_splits, n_test_splits) combinations
+    """
+
+    def __init__(
+        self,
+        n_splits: int = 6,
+        n_test_splits: int = 2,
+        purge_gap: int = 0,
+        embargo_pct: float = 0.01
+    ):
+        self.n_splits = n_splits
+        self.n_test_splits = n_test_splits
+        self.purge_gap = purge_gap
+        self.embargo_pct = embargo_pct
+
+    def split(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series = None,
+        groups: pd.Series = None
+    ) -> Generator[Tuple[np.ndarray, np.ndarray], None, None]:
+        """
+        Generate train/test indices with purging and embargo.
+
+        Yields:
+            train_indices, test_indices for each combination
+        """
+        pass  # Implement
+
+    def get_n_splits(self) -> int:
+        """Return number of splitting iterations."""
+        from scipy.special import comb
+        return int(comb(self.n_splits, self.n_test_splits))
+```
+
+### Références
+
+1. **López de Prado, M. (2018)**
+   "Advances in Financial Machine Learning" — Chapter 7: Cross-Validation in Finance
+
+2. **MLFinLab Documentation**
+   https://mlfinlab.readthedocs.io/en/latest/implementations/cross_validation.html
+
+3. **Hudson & Thames Implementation**
+   https://github.com/hudson-and-thames/mlfinlab/blob/master/mlfinlab/cross_validation/combinatorial.py
+
+---
+
+## 📚 Références Obligatoires
+
+### Papers López de Prado (À LIRE)
+
+| Paper | Année | Relevance |
+|-------|-------|-----------|
+| "The Probability of Backtest Overfitting" | 2014 | TASK 1 — PBO |
+| "The Deflated Sharpe Ratio" | 2014 | Context DSR |
+| "Pseudo-Mathematics and Financial Charlatanism" | 2014 | Pourquoi PBO |
+| "Advances in Financial Machine Learning" Ch.7,11 | 2018 | CPCV, Backtesting |
+
+### Repos GitHub à Analyser
+
+| Repo | Focus | URL |
+|------|-------|-----|
+| **mlfinlab** (Hudson & Thames) | PBO, CPCV, DSR | https://github.com/hudson-and-thames/mlfinlab |
+| **vectorbt** | WFE, Optimization | https://github.com/polakowo/vectorbt |
+| **backtesting.py** | Walk-Forward | https://github.com/kernc/backtesting.py |
+| **freqtrade** | Hyperopt, Validation | https://github.com/freqtrade/freqtrade |
+| **quantstats** | Metrics, Tearsheets | https://github.com/ranaroussi/quantstats |
+| **riskfolio-lib** | Portfolio Optimization | https://github.com/dcajasn/Riskfolio-Lib |
+
+### Focus Analyse GitHub
+
+Pour chaque repo, documenter:
+1. **Implémentation PBO** — Existe? Comment?
+2. **Implémentation CPCV** — Existe? Paramètres?
+3. **Calcul WFE** — Définition utilisée?
+4. **Anti-overfitting** — Autres techniques?
+
+---
+
+## 📊 Priorités Mises à Jour
+
+| # | Task | Priority | Status | Blocking |
+|---|------|----------|--------|----------|
+| 0 | WFE Period Effect Audit | 🔴🔴🔴 BLOQUANT | TODO | Oui |
+| 1 | PBO Implementation | 🔴🔴 CRITIQUE | TODO | Non |
+| 2 | CPCV Implementation | 🔴 HIGH | TODO | Non |
+| 3 | ~~Variance Reduction~~ | ⬜ DÉPRIORITISÉ | HOLD | Non |
+| 4 | GitHub Repos Analysis | 🟡 MEDIUM | TODO | Non |
+
+---
+
+## Deliverables Attendus
+
+1. **`reports/wfe-audit-2026-01-25.md`** — Audit WFE (TASK 0)
+2. **`crypto_backtest/validation/pbo.py`** — PBO module (TASK 1)
+3. **`crypto_backtest/validation/cpcv.py`** — CPCV module (TASK 2)
+4. **`reports/github-repos-analysis.md`** — Analyse repos (TASK 4)
+
+---
+
+## Format de Réponse
+
+```
+HHMM INPROGRESS alex-lead -> casey-quant: TASK [N] en cours
+Fichier: [path]
+Progress: [X/Y steps]
+Blockers: [if any]
+```
+
+Puis:
+```
+HHMM DONE alex-lead -> casey-quant: TASK [N] terminé
+Deliverable: [path to file]
+Key Findings: [bullet points]
+Recommendation: [action]
+```
+
+---
+
+## ⚡ Action Immédiate Requise
+
+**Alex**: Commence par TASK 0 (WFE Audit) — c'est BLOQUANT.
+
+Les décisions PROD sur les 11 assets validés sont en suspens jusqu'à confirmation que le calcul WFE est correct.
+
+---
+---
+
+## ARCHIVE — Tâches Précédentes
+
+---
+
 ## 2026-01-25 — MISE À JOUR PRIORITÉS (Audit Quant Externe)
 
 ### FROM: Casey (Orchestrator) + Audit Quant Specialist
 ### TO: Alex (Lead Quant)
-### STATUS: RE-PRIORISATION URGENTE
+### STATUS: ARCHIVÉ — Fusionné avec nouvelle version ci-dessus
 ### PRIORITY: 🔴 CRITIQUE
 
 ---
@@ -25,259 +352,14 @@ L'audit a vérifié: WFE formula ✅, Split overlap ✅, Indicator shifts ✅
 
 ---
 
-## 🔴 NOUVELLES TÂCHES CRITIQUES (Priorité Absolue)
+## 2026-01-24 22:30 UTC — TASK: Variance Reduction Research
 
-### TASK 0: AUDIT WFE — Period Effect Test ⚡ NOUVEAU
-**Priorité**: 🔴 BLOQUANT
-**Effort**: 1-2h
-**Status**: TODO
+### FROM: Casey (Orchestrator)
+### TO: Alex (Lead Quant)
+### STATUS: DÉPRIORITISÉ
+### PRIORITY: 🟡 MEDIUM (était HIGH)
 
-**Objectif**: Confirmer ou infirmer l'hypothèse "période OOS favorable"
-
-**Actions**:
-1. **Identifier les dates exactes IS/OOS** pour 3 assets (SHIB, ETH, DOT)
-2. **Analyser le marché** durant ces périodes (bull/bear/sideways)
-3. **Test split inversé**: Exécuter avec IS↔OOS inversés
-
-```python
-# Script à créer: scripts/audit_wfe_period_effect.py
-
-def split_data_reversed(df, splits=(0.6, 0.2, 0.2)):
-    """OOS devient IS, IS devient OOS — test période"""
-    n = len(df)
-    oos_end = int(n * splits[2])  # 20% premier
-    val_end = int(n * (splits[2] + splits[1]))  # 20% suivant
-    # INVERSÉ: anciennes données = OOS, nouvelles = IS
-    return df.iloc[val_end:], df.iloc[oos_end:val_end], df.iloc[:oos_end]
-
-def audit_period_effect(asset: str):
-    """
-    1. Charger données
-    2. Afficher dates IS vs OOS
-    3. Calculer rendement BTC/marché sur chaque période
-    4. Run normal + run inversé
-    5. Comparer WFE
-    """
-    df = load_data(asset)
-    df_is, df_val, df_oos = split_data(df)
-
-    print(f"IS Period:  {df_is.index[0]} -> {df_is.index[-1]}")
-    print(f"OOS Period: {df_oos.index[0]} -> {df_oos.index[-1]}")
-
-    # Rendement buy & hold sur chaque période
-    is_return = (df_is['close'].iloc[-1] / df_is['close'].iloc[0] - 1) * 100
-    oos_return = (df_oos['close'].iloc[-1] / df_oos['close'].iloc[0] - 1) * 100
-
-    print(f"IS Buy&Hold:  {is_return:.1f}%")
-    print(f"OOS Buy&Hold: {oos_return:.1f}%")
-
-    # Si OOS return >> IS return → effet période confirmé
-```
-
-**Résultat attendu**:
-- Si WFE inversé << 1.0 → **EFFET PÉRIODE CONFIRMÉ** → tous les WFE actuels sont biaisés
-- Si WFE inversé ~ WFE normal → chercher ailleurs
-
-**Deliverable**: `outputs/audit_wfe_period_effect_report.md`
-
----
-
-### TASK 1: Implémenter PBO (Probability of Backtest Overfitting) ⚡ NOUVEAU
-**Priorité**: 🔴 CRITIQUE
-**Effort**: 3-4h
-**Status**: TODO
-
-**Contexte**: DSR est implémenté ✅ mais **PBO manque**. PBO est le gold standard pour détecter l'overfitting.
-
-**Référence**: Bailey et al. (2015) "The Probability of Backtest Overfitting"
-
-**Fichier à créer**: `crypto_backtest/validation/pbo.py`
-
-```python
-"""
-Probability of Backtest Overfitting (PBO)
-
-Mesure la probabilité que le meilleur paramètre IS ne soit PAS le meilleur OOS.
-PBO > 0.5 = overfitting probable
-
-Méthode:
-1. Diviser données en S sous-échantillons
-2. Pour chaque combinaison de S/2 (IS) vs S/2 (OOS):
-   - Trouver best params sur IS
-   - Évaluer ce best sur OOS
-   - Compter si rank OOS < médiane
-3. PBO = proportion où best IS underperforms OOS
-"""
-import numpy as np
-from itertools import combinations
-from typing import List, Tuple, Callable
-
-def combinatorial_purged_cross_validation(
-    returns_matrix: np.ndarray,  # Shape: (n_trials, n_periods)
-    n_splits: int = 10,
-    purge_pct: float = 0.01,
-) -> Tuple[float, List[float]]:
-    """
-    Compute PBO using Combinatorial Purged Cross-Validation (CPCV).
-
-    Args:
-        returns_matrix: Matrix of returns for each trial configuration
-                       rows = different parameter sets
-                       cols = time periods
-        n_splits: Number of time splits (default 10)
-        purge_pct: Percentage of data to purge between train/test
-
-    Returns:
-        pbo: Probability of Backtest Overfitting [0, 1]
-        logits: Distribution of relative ranks
-
-    Interpretation:
-        PBO < 0.3: Low overfitting risk
-        PBO 0.3-0.5: Moderate risk
-        PBO > 0.5: High overfitting risk (best IS likely NOT best OOS)
-    """
-    n_trials, n_periods = returns_matrix.shape
-    split_size = n_periods // n_splits
-
-    # Generate all combinations of n_splits/2 for IS
-    all_splits = list(range(n_splits))
-    is_combinations = list(combinations(all_splits, n_splits // 2))
-
-    underperformance_count = 0
-    logits = []
-
-    for is_splits in is_combinations:
-        oos_splits = [s for s in all_splits if s not in is_splits]
-
-        # Build IS and OOS indices with purging
-        is_indices = []
-        oos_indices = []
-
-        for s in is_splits:
-            start = s * split_size
-            end = (s + 1) * split_size
-            is_indices.extend(range(start, end))
-
-        for s in oos_splits:
-            start = s * split_size
-            end = (s + 1) * split_size
-            oos_indices.extend(range(start, end))
-
-        # Compute Sharpe for each trial on IS and OOS
-        is_sharpes = []
-        oos_sharpes = []
-
-        for trial_idx in range(n_trials):
-            is_returns = returns_matrix[trial_idx, is_indices]
-            oos_returns = returns_matrix[trial_idx, oos_indices]
-
-            is_sharpe = np.mean(is_returns) / (np.std(is_returns) + 1e-10)
-            oos_sharpe = np.mean(oos_returns) / (np.std(oos_returns) + 1e-10)
-
-            is_sharpes.append(is_sharpe)
-            oos_sharpes.append(oos_sharpe)
-
-        # Find best trial on IS
-        best_is_idx = np.argmax(is_sharpes)
-
-        # Rank of best_is trial on OOS
-        oos_ranks = np.argsort(np.argsort(oos_sharpes)[::-1])  # Higher = better rank
-        best_is_oos_rank = oos_ranks[best_is_idx]
-
-        # Relative rank (0 = best, 1 = worst)
-        relative_rank = best_is_oos_rank / (n_trials - 1)
-        logits.append(relative_rank)
-
-        # Count if best IS underperforms median on OOS
-        if relative_rank > 0.5:
-            underperformance_count += 1
-
-    pbo = underperformance_count / len(is_combinations)
-
-    return pbo, logits
-
-
-def guard_pbo(
-    returns_matrix: np.ndarray,
-    threshold: float = 0.5,
-    n_splits: int = 10,
-) -> dict:
-    """
-    Guard function for PBO validation.
-
-    Args:
-        returns_matrix: (n_trials, n_periods) array
-        threshold: Max acceptable PBO (default 0.5)
-        n_splits: Number of CV splits
-
-    Returns:
-        dict with pass/fail and metrics
-    """
-    pbo, logits = combinatorial_purged_cross_validation(
-        returns_matrix, n_splits=n_splits
-    )
-
-    return {
-        "guard": "pbo",
-        "pass": pbo < threshold,
-        "pbo": round(pbo, 4),
-        "threshold": threshold,
-        "interpretation": interpret_pbo(pbo),
-        "n_combinations": len(logits),
-    }
-
-
-def interpret_pbo(pbo: float) -> str:
-    if pbo < 0.3:
-        return "LOW RISK - Parameters likely robust"
-    elif pbo < 0.5:
-        return "MODERATE RISK - Some overfitting possible"
-    else:
-        return "HIGH RISK - Best IS params likely overfit"
-```
-
-**Intégration**: Ajouter comme `guard_pbo` dans le pipeline de validation.
-
-**Deliverable**:
-- `crypto_backtest/validation/pbo.py`
-- Test sur 3 assets avec rapport
-
----
-
-### TASK 2: CPCV (Combinatorial Purged Cross-Validation) ⚡ NOUVEAU
-**Priorité**: 🟡 HIGH
-**Effort**: 2-3h
-**Status**: TODO
-
-**Contexte**: Remplacer le split fixe 60/20/20 par CPCV pour éliminer le biais de période.
-
-**Référence**: MLFinLab implementation
-
-**Objectif**:
-- Générer multiples combinaisons IS/OOS
-- Calculer WFE moyen sur toutes les combinaisons
-- Réduire la variance du WFE estimé
-
-**Fichier à créer**: `crypto_backtest/validation/cpcv.py`
-
----
-
-## 🟡 TÂCHES EXISTANTES (Re-priorisées)
-
-### TASK 3: DSR Implementation — ✅ DONE
-**Status**: COMPLÉTÉ
-**Fichier**: `crypto_backtest/validation/deflated_sharpe.py`
-
-Bien fait. Passer à la suite.
-
----
-
-### TASK 4: Variance Reduction Research
-**Priorité**: 🟡 MEDIUM (était HIGH)
-**Effort**: 2-4h
-**Status**: TODO — DÉPRIORITISÉ
-
-**Raison du changement**: La variance n'est pas le problème principal. Le WFE > 1.0 est plus urgent.
+**Raison**: La variance n'est pas le problème principal. Le WFE > 1.0 est plus urgent.
 
 **À faire APRÈS résolution du WFE**:
 1. Regime-aware WF splits
@@ -287,112 +369,4 @@ Bien fait. Passer à la suite.
 
 ---
 
-### TASK 5: GitHub Quant Repos Research
-**Priorité**: 🟡 MEDIUM
-**Effort**: 2-3h
-**Status**: TODO
-
-**Repos à analyser** (ordre de priorité):
-
-#### Priorité 1 — Anti-Overfitting Methods
-| Repo | Focus | Fichiers clés |
-|------|-------|---------------|
-| `hudson-and-thames/mlfinlab` | PBO, CPCV, DSR | `cross_validation/`, `backtest_statistics/` |
-| `stefan-jansen/machine-learning-for-trading` | Walk-forward, CV | `Chapter 8/`, validation code |
-
-#### Priorité 2 — Backtesting Best Practices
-| Repo | Focus | Fichiers clés |
-|------|-------|---------------|
-| `polakowo/vectorbt` | Vectorized WF | `portfolio/`, `signals/` |
-| `kernc/backtesting.py` | Simple but correct | `backtesting/lib.py` |
-
-#### Priorité 3 — Crypto-Specific
-| Repo | Focus | Fichiers clés |
-|------|-------|---------------|
-| `freqtrade/freqtrade` | Crypto strategies | `freqtrade/optimize/`, `hyperopt/` |
-| `jesse-ai/jesse` | Crypto backtesting | `jesse/services/` |
-
-**Questions à répondre**:
-1. Comment MLFinLab implémente PBO? (code exact)
-2. VectorBT gère-t-il le split IS/OOS différemment?
-3. Freqtrade a-t-il des guards anti-overfitting?
-4. Existe-t-il une implémentation CPCV en Python prête à l'emploi?
-
-**Deliverable**: `docs/GITHUB_REPOS_ANALYSIS.md` avec:
-- Code snippets utiles
-- Patterns à adopter
-- Warnings/anti-patterns identifiés
-
----
-
-## 📋 ORDRE D'EXÉCUTION RECOMMANDÉ
-
-| Ordre | Task | Effort | Bloquant? |
-|-------|------|--------|-----------|
-| 1 | **TASK 0: Audit WFE Period Effect** | 1-2h | 🔴 OUI |
-| 2 | **TASK 1: Implémenter PBO** | 3-4h | 🔴 OUI |
-| 3 | **TASK 5: GitHub Repos (MLFinLab focus)** | 1h | Non |
-| 4 | **TASK 2: CPCV** | 2-3h | Non |
-| 5 | TASK 4: Variance Reduction | 2-4h | Non |
-
-**STOP CONDITION**: Si TASK 0 confirme effet période → **tous les résultats actuels sont invalides** → repenser le pipeline avant de continuer.
-
----
-
-## 📚 RÉFÉRENCES OBLIGATOIRES
-
-### Papers
-1. **Bailey & López de Prado (2014)** — "The Deflated Sharpe Ratio"
-2. **Bailey et al. (2015)** — "The Probability of Backtest Overfitting"
-3. **Bailey & López de Prado (2012)** — "The Sharpe Ratio Efficient Frontier"
-
-### Code References
-- MLFinLab PBO: `github.com/hudson-and-thames/mlfinlab/blob/master/mlfinlab/cross_validation/`
-- CPCV Original: `github.com/hudson-and-thames/mlfinlab/blob/master/mlfinlab/cross_validation/combinatorial.py`
-
-### Livre
-- **"Advances in Financial Machine Learning"** — Marcos López de Prado
-  - Chapter 11: The Dangers of Backtesting
-  - Chapter 12: Backtesting through Cross-Validation
-
----
-
-## 🎯 DELIVERABLES ATTENDUS (Mis à jour)
-
-| # | Deliverable | Deadline | Status |
-|---|-------------|----------|--------|
-| 1 | `outputs/audit_wfe_period_effect_report.md` | URGENT | TODO |
-| 2 | `crypto_backtest/validation/pbo.py` | URGENT | TODO |
-| 3 | `crypto_backtest/validation/cpcv.py` | HIGH | TODO |
-| 4 | `docs/GITHUB_REPOS_ANALYSIS.md` | MEDIUM | TODO |
-| 5 | Rapport variance reduction | LOW | DÉPRIORITISÉ |
-
----
-
-## 💬 MESSAGE D'ALEX ATTENDU
-
-```
-HHMM INPROGRESS alex-lead -> casey-quant: TASK 0 Audit WFE en cours
-Assets: SHIB, ETH, DOT
-Dates IS: [DATE] -> [DATE]
-Dates OOS: [DATE] -> [DATE]
-Buy&Hold IS: X%
-Buy&Hold OOS: Y%
-Preliminary finding: [PERIOD EFFECT / NO PERIOD EFFECT]
-```
-
----
-
-## ⚠️ RAPPEL CRITIQUE
-
-> **Ne déclare RIEN "PROD ready" tant que:**
-> 1. TASK 0 (audit période) n'est pas complété
-> 2. PBO n'est pas implémenté et testé
->
-> Un WFE > 1.0 sur 7 assets est un **signal d'alarme majeur**.
-> La priorité est de comprendre pourquoi, pas de continuer à valider des assets.
-
----
-
-*Dernière mise à jour: 25 janvier 2026, 16:30 UTC*
-*Source: Audit quant externe*
+*Dernière mise à jour: 25 janvier 2026, 10:00 UTC*
