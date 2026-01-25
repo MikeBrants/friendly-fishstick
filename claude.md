@@ -740,20 +740,26 @@ streamlit run app.py
 # Tests
 pytest -v
 
-# Pipeline complet: download → optimize → cluster
-python scripts/run_full_pipeline.py --workers 8
+# Phase 2: Validation (workers=1 OBLIGATOIRE pour reproductibilité)
+python scripts/run_full_pipeline.py --assets ASSET \
+  --workers 1 --trials-atr 300 --trials-ichi 300 \
+  --enforce-tp-progression --run-guards
 
-# Optimisation multi-asset avec guards
-python scripts/run_guards_multiasset.py --assets BTC ETH AVAX UNI SEI --workers 4
+# Phase 3A: Displacement Rescue
+python scripts/run_full_pipeline.py --assets ASSET \
+  --fixed-displacement 26 --workers 1 \
+  --trials-atr 300 --trials-ichi 300 \
+  --enforce-tp-progression --run-guards
+
+# Phase 4: Filter Rescue (3 modes: baseline → moderate → conservative)
+python scripts/run_filter_rescue.py ASSET --trials 300 --workers 1
+
+# Phase 1: Screening (workers=6 OK car constant_liar=True)
+python scripts/run_full_pipeline.py --assets ASSET_LIST \
+  --workers 6 --trials-atr 100 --trials-ichi 100 --skip-guards
 
 # Analyse corrélations portfolio
 python scripts/portfolio_correlation.py
-
-# Comparer signaux Pine vs Python
-python tests/compare_signals.py --file data/BYBIT_BTCUSDT-60.csv --warmup 150
-
-# Demo optimisation (10 trials)
-python crypto_backtest/examples/optimize_final_trigger.py
 
 # Backtest simple
 python crypto_backtest/examples/run_backtest.py
@@ -765,35 +771,61 @@ python crypto_backtest/examples/run_backtest.py
 
 1. ✅ ~~**Dashboard Streamlit**~~: Interface visuelle complète (DONE)
 2. ✅ ~~**Displacement Grid Optimization**~~: Intégré dans le workflow 6 phases (Phase 3A/3B)
-3. **Live Trading Connector**: Implémenter connecteur exchange pour trading live
-4. **Documentation README**: Workflow complet et guide utilisateur
-5. **Tests E2E supplémentaires**: Validation signaux sur datasets étendus
+3. ✅ ~~**Filter System v2**~~: 3 modes (baseline/moderate/conservative) (DONE)
+4. ✅ ~~**14 Assets PROD**~~: Validés avec système déterministe (DONE 25 Jan)
+5. **Phase 3A Rescue**: OSMO, AR, METIS (3 assets pending)
+6. **Phase 1 Screening**: Batch 1 lancé (15 nouveaux assets)
+7. **Live Trading Connector**: À implémenter
 
 ---
 
-## Fichiers Clés (Mise à Jour 24 janvier 2026)
+## Fichiers Clés (Mise à Jour 25 janvier 2026)
+
+### Documentation
 
 | Fichier | Description | Priorité |
 |---------|-------------|----------|
-| [REPRODUCIBILITY_STRATEGY.md](REPRODUCIBILITY_STRATEGY.md) | **LIRE EN PREMIER** — Stratégie Option B (workers parallèles vs séquentiel) | 🔴 CRÍTICA |
-| [comms/PHASE1_PHASE2_INSTRUCTIONS.md](comms/PHASE1_PHASE2_INSTRUCTIONS.md) | Instructions concrètes pour Jordan (Phase 1) et Sam (Phase 2) | 🔴 CRÍTICA |
-| [docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md](docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md) | Workflow 6 phases UPDATED avec Option B | ✅ ACTIVE |
-| [app.py](app.py) | Dashboard Streamlit principal (~2300 lignes) | ✅ ACTIVE |
-| [docs/HANDOFF.md](docs/HANDOFF.md) | **OBSOLETE** — ne plus utiliser | ❌ DEPRECATED |
-| [crypto_backtest/config/asset_config.py](crypto_backtest/config/asset_config.py) | Config production (params optimaux par asset) |
-| [crypto_backtest/config/scan_assets.py](crypto_backtest/config/scan_assets.py) | Top 50 cryptos (tiers) + critères de validation |
+| [status/project-state.md](status/project-state.md) | **SOURCE DE VÉRITÉ** — État actuel du projet | 🔴 CRITIQUE |
+| [.cursor/rules/MASTER_PLAN.mdc](.cursor/rules/MASTER_PLAN.mdc) | Master Plan multi-agent (toujours chargé) | 🔴 CRITIQUE |
+| [docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md](docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md) | Workflow 6 phases | ✅ ACTIVE |
+| [app.py](app.py) | Dashboard Streamlit (~2300 lignes) | ✅ ACTIVE |
+
+### Agent Rules (chargées automatiquement)
+
+| Fichier | Agent | Rôle |
+|---------|-------|------|
+| [.cursor/rules/agents/casey-orchestrator.mdc](.cursor/rules/agents/casey-orchestrator.mdc) | Casey | Orchestration, verdicts, assignations |
+| [.cursor/rules/agents/jordan-dev.mdc](.cursor/rules/agents/jordan-dev.mdc) | Jordan | Phases 2/3A/3B/4, commandes, patterns code |
+| [.cursor/rules/agents/sam-qa.mdc](.cursor/rules/agents/sam-qa.mdc) | Sam | 7 guards, validation, workflow rescue |
+
+### Skills (seul skill restant)
+
+| Fichier | Description |
+|---------|-------------|
+| [.cursor/skills/regime-analyzer/SKILL.md](.cursor/skills/regime-analyzer/SKILL.md) | Code Python unique: compute_regime(), analyze_by_regime() |
+
+### Code Principal
+
+| Fichier | Description |
+|---------|-------------|
+| [crypto_backtest/config/asset_config.py](crypto_backtest/config/asset_config.py) | Config production (14 assets PROD) |
 | [crypto_backtest/strategies/final_trigger.py](crypto_backtest/strategies/final_trigger.py) | Main strategy (Puzzle + Grace logic) |
 | [crypto_backtest/indicators/ichimoku.py](crypto_backtest/indicators/ichimoku.py) | Ichimoku externe (17 bull / 3 bear Light) |
-| [crypto_backtest/indicators/five_in_one.py](crypto_backtest/indicators/five_in_one.py) | 5 combinable filters |
+| [crypto_backtest/indicators/five_in_one.py](crypto_backtest/indicators/five_in_one.py) | 5 combinable filters (KAMA bug fixed) |
 | [crypto_backtest/engine/backtest.py](crypto_backtest/engine/backtest.py) | Vectorized backtest engine |
 | [crypto_backtest/engine/position_manager.py](crypto_backtest/engine/position_manager.py) | Multi-TP (50/30/20) + trailing SL |
-| [crypto_backtest/optimization/parallel_optimizer.py](crypto_backtest/optimization/parallel_optimizer.py) | Optimisation parallèle multi-asset (joblib) |
-| [crypto_backtest/analysis/cluster_params.py](crypto_backtest/analysis/cluster_params.py) | K-means clustering des paramètres optimaux |
-| [crypto_backtest/analysis/diagnostics.py](crypto_backtest/analysis/diagnostics.py) | Diagnostics granulaires + recommandations reopt (6+ checks) |
-| [crypto_backtest/validation/conservative_reopt.py](crypto_backtest/validation/conservative_reopt.py) | Configs filtres (BASELINE/MODERATE/CONSERVATIVE) + reopt |
-| [scripts/run_full_pipeline.py](scripts/run_full_pipeline.py) | Pipeline complet (download → optimize → cluster) |
-| [scripts/portfolio_correlation.py](scripts/portfolio_correlation.py) | Analyse corrélations et drawdowns concurrents |
-| [tests/compare_signals.py](tests/compare_signals.py) | Validation signaux Python vs référence |
+| [crypto_backtest/optimization/parallel_optimizer.py](crypto_backtest/optimization/parallel_optimizer.py) | Optimisation parallèle (joblib) |
+| [crypto_backtest/validation/deflated_sharpe.py](crypto_backtest/validation/deflated_sharpe.py) | DSR (Deflated Sharpe Ratio) |
+| [config/filter_modes.py](config/filter_modes.py) | 3 modes: baseline/moderate/conservative |
+
+### Scripts
+
+| Fichier | Description |
+|---------|-------------|
+| [scripts/run_full_pipeline.py](scripts/run_full_pipeline.py) | Pipeline complet (download → optimize → guards) |
+| [scripts/run_filter_rescue.py](scripts/run_filter_rescue.py) | Phase 4 filter rescue (3 modes cascade) |
+| [scripts/run_guards_multiasset.py](scripts/run_guards_multiasset.py) | Exécution 7 guards + overfitting report |
+| [scripts/portfolio_correlation.py](scripts/portfolio_correlation.py) | Analyse corrélations portfolio |
 
 ---
 

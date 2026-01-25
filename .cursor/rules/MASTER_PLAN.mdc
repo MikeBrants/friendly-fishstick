@@ -335,9 +335,9 @@ python scripts/download_data.py --assets [ASSET_LIST]
 
 | Metrique | Cible | Actuel |
 |----------|-------|--------|
-| Assets PROD | 20+ | 5 |
+| Assets PROD | 20+ | **14** |
 | Guards pass rate | 100% | 100% |
-| Avg Sharpe OOS | > 1.5 | ~2.5 |
+| Avg Sharpe OOS | > 1.5 | ~3.2 |
 | Avg MaxDD | < 10% | ~2% |
 
 ---
