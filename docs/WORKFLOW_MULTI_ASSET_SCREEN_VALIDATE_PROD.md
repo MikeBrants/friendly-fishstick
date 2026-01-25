@@ -14,77 +14,76 @@ Ce document decrit le workflow **scalable** pour executer le pipeline FINAL TRIG
 - [../status/project-state.md](../status/project-state.md) — **CURRENT PROJECT STATUS** (single source of truth)
 - [../comms/TESTING_COORDINATION.md](../comms/TESTING_COORDINATION.md) — Agent coordination protocol
 
-**RECENT UPDATES (2026-01-24):**
-- ✅ **PR #7 MERGED**: Overfitting diagnostics (PSR/DSR) + portfolio construction
-- ✅ **Reproducibility Fix**: Deterministic seeds deployed and verified
-- 🔄 **Testing Phase**: Re-validating baseline assets with new system
-- 🔄 **Coordination System**: Multi-agent workflow active (Casey + Alex)
+**RECENT UPDATES (2026-01-25):**
+- ✅ **RESET COMPLETE**: 6 assets re-validés avec workers=1 (ETH, AVAX, MINA, YGG, RUNE, EGLD)
+- ✅ **14 Assets PROD**: Portefeuille validé avec système déterministe
+- ✅ **Filter System v2**: 3 modes (baseline/moderate/conservative), modes obsolètes supprimés
+- ✅ **AVAX Rescue**: baseline FAIL → moderate PASS (WFE 0.66)
+- 🔴 **3 Assets PENDING RESCUE**: OSMO, AR, METIS (Phase 3A required)
+- ❌ **OP EXCLU**: Sharpe 0.03, WFE 0.01 — rescue impossible
 
-**GUARDS CONFIG VERIFIED (2026-01-24):**
-- Monte Carlo iterations: **1000** ✅ (minimum standard)
-- Bootstrap samples: **10000** ✅ (5x minimum, excellent)
-- Confidence level: **0.95** ✅
-- **NEW**: Overfitting metrics (PSR/DSR) — Report-only (informational)
-- **NEW**: Guards parallélisation intra-asset (joblib threading) — 20-40% speedup
+**GUARDS CONFIG:**
+- Monte Carlo iterations: **1000** (minimum standard)
+- Bootstrap samples: **10000** (5x minimum, excellent)
+- Confidence level: **0.95**
+- Sensitivity threshold: **15%** (PR#8)
+- **Overfitting metrics**: PSR/DSR (report-only)
 
 ---
 
-## 🧪 CURRENT PHASE: Post-PR7 Integration & Re-Validation Testing
+## 🎯 CURRENT STATUS (25 Jan 2026, 16:00 UTC)
 
-**What's Happening Now** (24 janvier 2026, 19:00 UTC):
+### Assets PROD (14 validés)
 
-We are in a **testing and re-validation phase** following two major updates:
+| # | Asset | Sharpe | WFE | Mode | Validation |
+|---|-------|--------|-----|------|------------|
+| 1 | SHIB | 5.67 | 2.27 | baseline | Pre-reset |
+| 2 | TIA | 5.16 | 1.36 | baseline | PR#8 |
+| 3 | DOT | 4.82 | 1.74 | baseline | Pre-reset |
+| 4 | NEAR | 4.26 | 1.69 | baseline | Pre-reset |
+| 5 | DOGE | 3.88 | 1.55 | baseline | Pre-reset |
+| 6 | ANKR | 3.48 | 0.86 | baseline | Pre-reset |
+| 7 | ETH | 3.22 | 1.22 | baseline | **25 Jan** |
+| 8 | JOE | 3.16 | 0.73 | baseline | Pre-reset |
+| 9 | YGG | 3.11 | 0.78 | baseline | **25 Jan** |
+| 10 | MINA | 2.58 | 1.13 | baseline | **25 Jan** |
+| 11 | CAKE | 2.46 | 0.81 | baseline | PR#8 |
+| 12 | RUNE | 2.42 | 0.61 | baseline | **25 Jan** |
+| 13 | EGLD | 2.13 | 0.69 | baseline | **25 Jan** |
+| 14 | AVAX | 2.00 | 0.66 | **moderate** | **25 Jan rescue** |
 
-1. **PR #7 Merged** (commit `b7f73ff`):
-   - Added overfitting diagnostics (PSR/DSR) to validation pipeline
-   - Added portfolio construction with 4 optimization methods
-   - Added optional empyrical metrics cross-check
+### Assets Pending Rescue (Phase 3A)
 
-2. **Reproducibility Fix Deployed**:
-   - Deterministic seeds implemented (hashlib-based)
-   - Verified with 5+ consecutive identical runs
-   - System ready for scientific validation
+| Asset | Sharpe | WFE | Reason | Action |
+|-------|--------|-----|--------|--------|
+| OSMO | 0.68 | 0.19 | Severe overfit | Try d26/d78 |
+| AR | 1.64 | 0.39 | WFE + low trades | Try d26/d78 |
+| METIS | 1.59 | 0.48 | WFE fail | Try d26/d78 |
 
-**Active Workstreams**:
-- 🔄 **Alex** (Development): Testing PR #7 features (ETH integration test)
-- ⏸️ **Casey** (Orchestration): Waiting to re-validate baseline PROD assets
+### Assets Exclus
 
-**Why Re-Validation?**:
-- Old results (before fix) were non-deterministic → scientifically unreliable
-- New system produces reproducible results → scientifically valid
-- Need to confirm 15 frozen PROD assets still pass with deterministic system
-
-**Coordination System**:
-- Clear task assignments prevent agent conflicts
-- File naming conventions (`PR7_TEST_*`, `REVALIDATION_*`) track purpose
-- See [Testing Coordination](../comms/TESTING_COORDINATION.md) for details
-
-**Timeline**: 1-2 days to complete testing, then proceed to Phase 1 screening
+- **OP**: Sharpe 0.03, WFE 0.01 — severe fail, EXCLU définitif
 
 **Status Files**:
-- [../status/project-state.md](../status/project-state.md) — Master project status
-- [../comms/alex-dev.md](../comms/alex-dev.md) — Alex's current tasks
-- [../comms/casey-quant.md](../comms/casey-quant.md) — Casey's validation queue
-- [../memo.md](../memo.md) — Quick one-page snapshot
+- [../status/project-state.md](../status/project-state.md) — **SOURCE DE VÉRITÉ**
+- [../crypto_backtest/config/asset_config.py](../crypto_backtest/config/asset_config.py) — Params PROD
 
 ---
 
 ## Pipeline Actuel (7 Phases)
 
-**🔄 CURRENT PHASE**: Post-PR7 Integration Testing (see [Testing Coordination](../comms/TESTING_COORDINATION.md))
-
 | Phase | Nom | Input | Output | Status |
 |-------|-----|-------|--------|--------|
 | 0 | Download | - | `data/*.parquet` | ✅ READY |
-| 1 | Screening | 97 assets | `outputs/multiasset_scan_*.csv` | ✅ READY |
-| 2 | Validation | Screening winners | WINNERS + PENDING | 🧪 TESTING |
-| 3A | Rescue (PENDING) | PENDING | `displacement_rescue_*.csv` | ✅ READY |
+| 1 | Screening | Candidats | `outputs/multiasset_scan_*.csv` | 🔄 Batch 1 en cours |
+| 2 | Validation | Screening winners | WINNERS + PENDING | ✅ 14 PROD |
+| 3A | Rescue (PENDING) | PENDING | `displacement_rescue_*.csv` | 🔴 3 assets pending |
 | 3B | Optimization (WINNERS) | WINNERS | `displacement_optimization_*.csv` | ✅ READY |
-| 4 | Filter Rescue | PENDING restants | `filter_rescue_*.csv` | ✅ READY (refonte v2) |
-| 5 | Production | Tous valides | `asset_config.py` | ✅ READY |
-| 6 | **Portfolio Construction** | 5+ assets PROD | `portfolio_weights_*.csv` | ✅ NEW |
+| 4 | Filter Rescue | PENDING restants | `filter_rescue_*.csv` | ✅ v2 (3 modes) |
+| 5 | Production | Tous valides | `asset_config.py` | ✅ 14 assets |
+| 6 | Portfolio Construction | 5+ assets PROD | `portfolio_weights_*.csv` | ✅ READY |
 
-**NEW in v2.1**: Phase 6 enables multi-asset portfolio optimization with 4 methods (equal, max_sharpe, risk_parity, min_cvar)
+**Pipeline v2.2**: Filter System v2 (3 modes), reproducibilité workers=1, overfitting metrics (PSR/DSR)
 
 ---
 
@@ -230,12 +229,33 @@ python scripts/export_screening_results.py \
 - OOS Trades > 60
 - **Reproducible across 2 identical runs**
 
-**NEW — Overfitting Metrics (Report-Only, v2.1):**
-- **PSR** (Probabilistic Sharpe Ratio): P(SR > 0) — Expected > 0.85
-- **DSR** (Deflated Sharpe Ratio): After multiple testing adjustment — Expected > 0.70
-- **SR*** (Deflated threshold): Adjusted benchmark based on n_trials
-- **Status**: Informational only (does NOT affect all_pass status)
-- **Purpose**: Detect overfitting risk before production deployment
+**NEW — Overfitting Metrics (Alex's DSR Implementation):**
+
+Le **Deflated Sharpe Ratio (DSR)** corrige le "trial count paradox" identifié par Alex:
+- Plus de trials = plus de chances de trouver un Sharpe élevé par hasard
+- DSR calcule la probabilité que le Sharpe soit statistiquement significatif
+
+| Métrique | Description | Seuil | Status |
+|----------|-------------|-------|--------|
+| **PSR** | P(SR > 0) | > 0.85 | Report-only |
+| **DSR** | Sharpe after n_trials correction | > 0.70 | Report-only |
+| **SR*** | Threshold Sharpe (by chance) | - | Computed |
+
+**Fichier**: `crypto_backtest/validation/deflated_sharpe.py`
+
+**Usage**:
+```python
+from crypto_backtest.validation.deflated_sharpe import deflated_sharpe_ratio
+dsr, sr0 = deflated_sharpe_ratio(returns, sharpe_observed=2.14, n_trials=300)
+print(f"DSR: {dsr:.1%}, Threshold: {sr0:.2f}")
+```
+
+**Interprétation**:
+- DSR > 95%: **STRONG** — Edge statistiquement significatif
+- DSR 85-95%: **MARGINAL** — Acceptable si autres guards OK
+- DSR < 85%: **SUSPECT** — Probablement overfitting
+
+**Status**: Report-only (ne bloque PAS la validation, mais flag pour review)
 
 ### Commande — Validation
 
@@ -545,46 +565,135 @@ python scripts/backtest_portfolio.py \
 
 ---
 
+---
+
+## Travail d'Alex — DSR et Variance Reduction
+
+### DSR (Deflated Sharpe Ratio) — IMPLÉMENTÉ ✅
+
+**Fichier**: `crypto_backtest/validation/deflated_sharpe.py`
+
+Le DSR corrige le **trial count paradox**:
+- Plus de trials Optuna = plus de chances de trouver un Sharpe élevé par hasard
+- La formule Bailey & Lopez de Prado (2014) calcule le seuil SR₀ attendu par chance
+
+```python
+from crypto_backtest.validation.deflated_sharpe import deflated_sharpe_ratio
+
+# Calculer DSR pour un asset
+dsr, sr0 = deflated_sharpe_ratio(
+    returns=trade_returns,
+    sharpe_observed=2.14,
+    n_trials=300
+)
+print(f"DSR: {dsr:.1%}, SR threshold: {sr0:.2f}")
+```
+
+### Variance Reduction Research — TODO
+
+**Objectif**: Réduire la variance (sensitivity) sous 10% pour gros assets.
+
+**Pistes à explorer**:
+1. **Regime-aware WF splits** — Stratifier les splits par régime (BULL/BEAR/SIDEWAYS)
+2. **Parameter averaging** — Moyenner top N trials au lieu du best
+3. **Regularization Optuna** — Ajouter pénalité variance dans objective
+4. **Reduced trial count** — Tests montrent que 50 trials peut > 100 trials pour WFE
+
+**Assets cibles**: Tout asset avec sensitivity > 10%
+
+---
+
 ## NE PAS FAIRE
 
 - Ne jamais utiliser `docs/HANDOFF.md` comme reference
+- Ne jamais utiliser `medium_distance_volume` ou autres modes obsolètes
 - Ne jamais modifier les seuils guards sans validation
 - Ne jamais skip le warmup (200 barres minimum)
 - Ne jamais oublier `.shift(1)` sur les rolling features (look-ahead)
 - Ne jamais valider avec Sharpe > 4 ou WFE > 2 sans reconciliation (trop beau = suspect)
+- Ne jamais utiliser `workers > 1` en Phase 2+ (reproductibilité obligatoire)
 
 ---
 
 ## IMPORTANT — Fichiers de Reference
 
-**Source de Verite (TOUJOURS A JOUR)**:
-- **`status/project-state.md`** = Master project status (asset matrix, workstreams, decisions)
-- **`memo.md`** = Quick one-page snapshot
-- **`comms/TESTING_COORDINATION.md`** = Agent coordination protocol
-- **`comms/alex-dev.md`** = Alex's current tasks
-- **`comms/casey-quant.md`** = Casey's validation queue
+### Source de Vérité
 
-**Documentation Technique**:
-- **`docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md`** = This file (workflow reference)
-- **`docs/BRIEF_PARALLEL_GUARDS_V2.md`** = Guards system details
-- **`CLAUDE.md`** = System architecture
-- **`.cursor/rules/*.mdc`** = Agent roles (lues automatiquement)
+| Fichier | Description |
+|---------|-------------|
+| **`status/project-state.md`** | **MASTER STATUS** — État actuel du projet |
+| **`crypto_backtest/config/asset_config.py`** | Params PROD pour 14 assets |
+| **`.cursor/rules/MASTER_PLAN.mdc`** | Master Plan (chargé automatiquement) |
 
-**OBSOLETE (Ne Pas Utiliser)**:
-- ❌ **`docs/HANDOFF.md`** = Obsolete, ne plus utiliser
-- ❌ **`docs/BACKTESTING.md`** = Historique seulement, pas l'etat actuel
-- ❌ **`NEXT_STEPS_SUMMARY.md`** = Remplace par coordination system
+### Documentation Technique
+
+| Fichier | Description |
+|---------|-------------|
+| **`docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md`** | Ce fichier (workflow reference) |
+| **`CLAUDE.md`** | Architecture système + plan |
+| **`crypto_backtest/validation/deflated_sharpe.py`** | DSR implementation (Alex) |
+
+### Agent Rules (chargées automatiquement)
+
+| Fichier | Agent | Rôle |
+|---------|-------|------|
+| `.cursor/rules/agents/casey-orchestrator.mdc` | Casey | Orchestration, verdicts |
+| `.cursor/rules/agents/jordan-dev.mdc` | Jordan | Exécution, patterns code |
+| `.cursor/rules/agents/sam-qa.mdc` | Sam | 7 guards, validation |
+| `.cursor/rules/agents/alex-lead.mdc` | Alex | Architecture, DSR, variance |
+
+### Scripts Principaux
+
+| Script | Phase | Description |
+|--------|-------|-------------|
+| `scripts/run_full_pipeline.py` | 1-3 | Pipeline complet (download → optimize → guards) |
+| `scripts/run_filter_rescue.py` | 4 | Filter cascade (3 modes) |
+| `scripts/portfolio_construction.py` | 6 | Construction portfolio |
+| `scripts/run_guards_multiasset.py` | 2-3 | Guards + overfitting report |
+
+### OBSOLETE (Ne Pas Utiliser)
+
+- ❌ `docs/HANDOFF.md` — Obsolete
+- ❌ `medium_distance_volume` — Mode obsolète, utiliser `baseline` ou `moderate`
 
 ---
 
 ## Suivi et Tracabilite
 
-Maintenir `status/project-state.md` a jour avec :
+**Source de vérité**: `status/project-state.md` et `crypto_backtest/config/asset_config.py`
+
+### Assets PROD (14 validés, 25 Jan 2026)
 
 | Asset | Mode | Disp | Sharpe | WFE | Trades | Date Validation |
 |:------|:-----|:-----|:-------|:----|:-------|:---------------|
-| BTC | baseline | 52 | 2.14 | >0.6 | 416 | Pre-fix |
-| ETH | medium_distance_volume | 52 | 2.09 | 0.82 | 57 | 2026-01-22 |
+| SHIB | baseline | 52 | 5.67 | 2.27 | - | Pre-reset |
+| TIA | baseline | 52 | 5.16 | 1.36 | 75 | PR#8 (24 Jan) |
+| DOT | baseline | 52 | 4.82 | 1.74 | - | Pre-reset |
+| NEAR | baseline | 52 | 4.26 | 1.69 | - | Pre-reset |
+| DOGE | baseline | 26 | 3.88 | 1.55 | - | Pre-reset |
+| ANKR | baseline | 52 | 3.48 | 0.86 | - | Pre-reset |
+| ETH | baseline | 52 | 3.22 | 1.22 | 72 | **25 Jan reset** |
+| JOE | baseline | 26 | 3.16 | 0.73 | 63 | Pre-reset |
+| YGG | baseline | 52 | 3.11 | 0.78 | 78 | **25 Jan reset** |
+| MINA | baseline | 52 | 2.58 | 1.13 | 60 | **25 Jan reset** |
+| CAKE | baseline | 52 | 2.46 | 0.81 | 90 | PR#8 (24 Jan) |
+| RUNE | baseline | 52 | 2.42 | 0.61 | 102 | **25 Jan reset** |
+| EGLD | baseline | 52 | 2.13 | 0.69 | 91 | **25 Jan reset** |
+| AVAX | **moderate** | 52 | 2.00 | 0.66 | 81 | **25 Jan rescue** |
+
+### Modes de Filtres Valides (v2)
+
+| Mode | Description | Filtres | Usage |
+|------|-------------|---------|-------|
+| `baseline` | Ichimoku only | 1 | Default, première optimisation |
+| `moderate` | 5 filtres actifs | 5 | Si baseline FAIL WFE/sensitivity |
+| `conservative` | Tous + strict | 7 | Dernier recours avant EXCLU |
+
+### Modes OBSOLÈTES (ne plus utiliser)
+
+- ❌ `medium_distance_volume` — Remplacé par `baseline` ou `moderate`
+- ❌ `light_*` — Supprimés
+- ❌ `medium_kama_*` — Supprimés
 
 ---
 
@@ -592,32 +701,41 @@ Maintenir `status/project-state.md` a jour avec :
 
 ### Pre-flight
 
-- [ ] Donnees 1H telechargees pour le batch
-- [ ] TP progression enforcement ON
-- [ ] Verifier timestamp fichier > 2026-01-22 12:00 UTC (cutoff bug TP)
+- [x] Donnees 1H telechargees pour le batch
+- [x] TP progression enforcement ON (`--enforce-tp-progression`)
+- [x] Verifier timestamp fichier > 2026-01-22 12:00 UTC (cutoff bug TP)
+- [x] Utiliser `workers=1` pour Phase 2+ (reproductibilité)
 
 ### Phase 1 — Screening
 
-- [ ] Tous les batches run
-- [ ] Shortlist winners exportee
+- [x] Filter System v2 déployé (3 modes)
+- [ ] Batch 1 (15 assets) en cours
+- [ ] Analyser résultats et identifier candidats
 
 ### Phase 2 — Validation
 
-- [ ] Reopt 300 trials
-- [ ] Guards 7/7 pour WINNERS
+- [x] 14 assets validés avec workers=1
+- [x] Guards 7/7 PASS pour tous les PROD
+- [x] ETH, AVAX, MINA, YGG, RUNE, EGLD re-validés (25 Jan)
 
-### Phase 3A/3B — Displacement
+### Phase 3A — Rescue (PENDING)
 
-- [ ] Grid displacement teste pour PENDING/WINNERS
-- [ ] Meilleur displacement documente
+- [ ] OSMO: displacement rescue (d26, d78)
+- [ ] AR: displacement rescue (d26, d78)
+- [ ] METIS: displacement rescue (d26, d78)
 
-### Phase 4 — Filter Grid
+### Phase 4 — Filter Rescue
 
-- [ ] Combinaisons testees pour PENDING restants
-- [ ] Resultats documentes
+- [x] AVAX: baseline FAIL → moderate PASS
+- [ ] Autres assets si Phase 3A échoue
 
 ### Phase 5 — Production
 
-- [ ] `asset_config.py` a jour
-- [ ] `status/project-state.md` a jour
-- [ ] Plans Pine generes si necessaire
+- [x] `asset_config.py` à jour (14 assets)
+- [x] `status/project-state.md` à jour
+- [x] Modes obsolètes documentés
+
+### Phase 6 — Portfolio
+
+- [x] 14 assets disponibles
+- [ ] Construction portfolio (4 méthodes)
