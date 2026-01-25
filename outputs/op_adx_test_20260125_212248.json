@@ -1,0 +1,35 @@
+{
+  "asset": "OP",
+  "baseline": {
+    "is_sharpe": 3.0669115121884376,
+    "oos_sharpe": 0.8956292784586759,
+    "wfe": 0.29202970966044833,
+    "oos_trades": 90
+  },
+  "adx_tests": {
+    "threshold_20.0": {
+      "threshold": 20.0,
+      "is_sharpe": 3.703954159358138,
+      "oos_sharpe": -0.1977042275015936,
+      "wfe": -0.053376531942785695,
+      "oos_trades": 33,
+      "improvement_vs_baseline": -0.345406241603234
+    },
+    "threshold_25.0": {
+      "threshold": 25.0,
+      "is_sharpe": 1.8447441876501203,
+      "oos_sharpe": 3.435470399615336,
+      "wfe": 1.8623017882991795,
+      "oos_trades": 12,
+      "improvement_vs_baseline": 1.5702720786387312
+    },
+    "threshold_30.0": {
+      "threshold": 30.0,
+      "is_sharpe": 1.2956620104678542,
+      "oos_sharpe": 2.636950868579405,
+      "wfe": 2.03521508485629,
+      "oos_trades": 6,
+      "improvement_vs_baseline": 1.7431853751958417
+    }
+  }
+}

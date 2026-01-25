@@ -115,18 +115,33 @@ Sauver les assets FAIL via tests ciblés: displacement grid, filtres, ADX
 
 ### Assets BLOCKED ❌
 
-| Asset | Best Config | WFE | Guards | Raison | Verdict |
-|-------|-------------|-----|--------|--------|---------|
-| OSMO | d78 | 0.38 | N/A | Overfit sévère | DEFINITIF |
-| METIS | Baseline/Vol | 0.60 | N/A | Trade count < 60 | DEFINITIF |
-| FIL | Baseline | -0.06 | 6/7 | Reverse overfit (WFE négatif) | DEFINITIF |
-| ADA | Baseline | 0.61 | 4/7 | Sensibilité params 19% > 10% | Rescue possible (filtres/disp)
+| Asset | Best Config | WFE | Trades | Guards | Raison | Verdict |
+|-------|-------------|-----|--------|--------|--------|---------|
+| OSMO | d78 | 0.38 | 57 | N/A | Overfit sévère | DEFINITIF |
+| METIS | Baseline/Vol | 0.60 | 87 | N/A | Trade count < 60 min | DEFINITIF |
+| FIL | Baseline | -0.06 | 56 | 6/7 | Reverse overfit (WFE négatif) | DEFINITIF |
+| OP | ADX>30 | 2.04 | **6** | N/A | Sample size ridiculement bas | DEFINITIF |
+| ADA | Baseline | 0.61 | 90 | 4/7 | Sensibilité params 19% > 10% | Rescue possible (filtres/disp)
 
-### En cours ⏳
+### OP — ADX Filter Test (PARADOXE) 🤔
 
-| Test | Asset | ETA | Objectif |
-|------|-------|-----|----------|
-| Test B | OP | ~5 min | ADX filter pour réduire overfit (WFE=0.01) |
+| ADX Threshold | IS Sharpe | OOS Sharpe | WFE | OOS Trades | Status |
+|---------------|-----------|------------|-----|------------|--------|
+| Baseline (none) | 3.07 | 0.90 | **0.29** | 90 | FAIL |
+| 20.0 | 3.70 | -0.20 | -0.05 | 33 | WORSE |
+| 25.0 | 1.84 | 3.44 | 1.86 | 12 | WFE PASS, trades FAIL |
+| **30.0** | 1.30 | 2.64 | **2.04** | **6** | WFE PASS, **trades FAIL** |
+
+**Paradoxe ADX**: WFE passe de 0.29 → 2.04 (+600%) avec ADX>30, MAIS seulement 6 trades OOS (< 60 min)
+
+**Explication**: ADX>30 = filtre extrêmement sélectif
+- Garde uniquement les meilleurs trades (trending fort)
+- WFE excellent mais sample size insignifiant
+- **Résultat non exploitable** (6 trades = 0 significativité statistique)
+
+**Verdict**: OP reste BLOCKED. ADX améliore WFE mais détruit sample size.
+
+**Learning**: Les filtres trop stricts créent des "cherry-picked" backtests non généralisables
 
 ---
 
@@ -182,12 +197,14 @@ OP + ADX en cours, ETA ~5 min
 |--------|-------|--------|
 | RESCUE PROMETTEUR | 1 | AR (WFE=1.79, guards pending) |
 | RESCUE POSSIBLE | 1 | ADA (4/7 guards, sensibilité élevée) |
-| BLOCKED DEFINITIF | 3 | OSMO, METIS, FIL |
-| EN COURS | 1 | OP (ADX test) |
+| BLOCKED DEFINITIF | 4 | OSMO, METIS, FIL, OP |
+| EN COURS | 1 | AR (guards validation) |
 
-**ROI Rescue Mission**: 1 succès confirmé (AR), 1 à confirmer (ADA), 3 échecs définitifs
+**ROI Rescue Mission**: 1 succès potentiel (AR), 1 à explorer (ADA), 4 échecs définitifs
 
 **Taux de réussite**: 16-33% selon validation guards finale
+
+**Leçon ADX**: Filtres trop stricts créent un biais de sélection (cherry-picking). WFE excellent mais non exploitable commercialement.
 
 ---
 
