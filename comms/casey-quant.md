@@ -1,7 +1,114 @@
 # Casey (Orchestrator) — Communication Log
 
-**Last Updated:** 25 janvier 2026, 02:05 UTC  
-**Status:** 🟢 ACTIVE — TIA/CAKE Reclassification
+**Last Updated:** 25 janvier 2026, 10:30 UTC
+**Status:** 🔴 CRITICAL — WFE Audit + PBO/CPCV Initiative
+
+---
+
+## 🚨 ORCHESTRATION — PBO/CPCV Implementation (25 Jan 2026, 10:00 UTC)
+
+### MISSION CRITIQUE
+
+Implémenter validation anti-overfitting complète avant toute nouvelle décision PROD.
+
+### CONTEXTE
+
+**Problème identifié:** WFE > 1.0 sur 7 assets (statistiquement suspect)
+- ETH: 2.36, SHIB: 2.27, DOT: 1.74...
+- WFE normal attendu: 0.5-0.8
+
+**Hypothèse:** Period effect (OOS = bull market) ou bug calcul WFE
+
+### WORKFLOW ORCHESTRÉ
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    PHASE 1: AUDIT (BLOQUANT)                │
+├─────────────────────────────────────────────────────────────┤
+│  Alex TASK 0: WFE Period Effect Audit                       │
+│  Deliverable: reports/wfe-audit-2026-01-25.md               │
+│  Status: 🔴 TODO                                            │
+│                                                             │
+│  ⚠️ AUCUNE ACTION PROD jusqu'à completion                   │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                 PHASE 2: IMPLEMENTATION                      │
+├─────────────────────────────────────────────────────────────┤
+│  Alex TASK 1: PBO Implementation                            │
+│  Alex TASK 2: CPCV Implementation                           │
+│  Fichiers créés (stubs):                                    │
+│  - crypto_backtest/validation/pbo.py ✅                     │
+│  - crypto_backtest/validation/cpcv.py ✅                    │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   PHASE 3: INTEGRATION                       │
+├─────────────────────────────────────────────────────────────┤
+│  Jordan J1-J4: Intégrer PBO/CPCV dans pipeline              │
+│  - Ajouter GUARD-008 (PBO)                                  │
+│  - Modifier WFE si nécessaire                               │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     PHASE 4: VALIDATION                      │
+├─────────────────────────────────────────────────────────────┤
+│  Sam S1-S5: Tests et validation                             │
+│  - Tests unitaires PBO/CPCV                                 │
+│  - Validation sur 3 assets pilotes                          │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                  PHASE 5: REVALIDATION                       │
+├─────────────────────────────────────────────────────────────┤
+│  Revalider 11 assets PROD avec nouveau pipeline             │
+│  - Ajouter PBO check                                        │
+│  - Recalculer WFE si corrigé                                │
+│  - Décision finale GO/NO-GO                                 │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### TABLEAU DE BORD
+
+| Agent | Task | Priority | Status | Blocking |
+|-------|------|----------|--------|----------|
+| **Alex** | TASK 0: WFE Audit | 🔴🔴🔴 BLOQUANT | TODO | - |
+| **Alex** | TASK 1: PBO impl | 🔴🔴 CRITIQUE | TODO | TASK 0 |
+| **Alex** | TASK 2: CPCV impl | 🔴 HIGH | TODO | TASK 0 |
+| **Jordan** | J1-J4: Integration | 🟡 MEDIUM | PENDING | Alex |
+| **Sam** | S1-S5: Tests | 🟡 MEDIUM | PENDING | Jordan |
+
+### DÉCISIONS EN ATTENTE
+
+1. **WFE Fix or Keep?** — Dépend résultat TASK 0
+2. **Seuil PBO:** 0.30 proposé — À confirmer après tests
+3. **Revalidation scope:** 11 assets ou subset?
+
+### MESSAGES TRANSMIS
+
+| Agent | Message | Status |
+|-------|---------|--------|
+| Alex | Nouvelles priorités (TASK 0-2) | ✅ Transmis |
+| Jordan | Tâches J1-J4 (standby) | ✅ Transmis |
+| Sam | Tâches S1-S5 (standby) | ✅ Transmis |
+
+### POINTS DE CONTRÔLE
+
+- [ ] Alex: TASK 0 WFE Audit → Casey review
+- [ ] Casey: Décision FIX/KEEP WFE
+- [ ] Alex: TASK 1 PBO → Jordan integration
+- [ ] Alex: TASK 2 CPCV → Jordan integration
+- [ ] Jordan: Integration complete → Sam tests
+- [ ] Sam: Tests PASS → Casey GO pour revalidation
+- [ ] Revalidation 11 assets → Décision finale PROD
+
+---
+
+## ARCHIVE — Communications Précédentes
 
 ---
 

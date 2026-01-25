@@ -1,7 +1,102 @@
 # Sam (QA Validator) — Validation Log
 
-**Last Updated:** 25 janvier 2026, 02:05 UTC  
-**Status:** 🔵 PENDING — TIA/CAKE Validation
+**Last Updated:** 25 janvier 2026, 10:30 UTC
+**Status:** 🟡 STANDBY — En attente PBO/CPCV modules
+
+---
+
+## 🔴 NOUVELLES TÂCHES — Tests PBO/CPCV (25 Jan 2026, 10:00 UTC)
+
+**From:** Casey (Orchestrator)
+**Priority:** P1 (après Alex et Jordan)
+**Blocking:** Attend implémentation Alex + intégration Jordan
+
+### CONTEXTE
+
+Nouveaux modules de validation anti-overfitting à tester:
+- `pbo.py` — Probability of Backtest Overfitting
+- `cpcv.py` — Combinatorial Purged Cross-Validation
+
+### TÂCHES ASSIGNÉES
+
+| # | Task | Status | Blocking |
+|---|------|--------|----------|
+| S1 | Créer tests unitaires `test_pbo.py` | 🔵 PENDING | Alex TASK 1 |
+| S2 | Créer tests unitaires `test_cpcv.py` | 🔵 PENDING | Alex TASK 2 |
+| S3 | Valider PBO sur 3 assets (ETH, SHIB, DOT) | 🔵 PENDING | S1 |
+| S4 | Valider CPCV vs Walk-Forward actuel | 🔵 PENDING | S2 |
+| S5 | Documenter résultats dans rapport QA | 🔵 PENDING | S3, S4 |
+
+### TESTS À CRÉER
+
+```
+tests/validation/test_pbo.py
+tests/validation/test_cpcv.py
+```
+
+### TEST CASES PBO
+
+```python
+# test_pbo.py
+def test_pbo_random_returns():
+    """PBO should be ~0.5 for random strategies."""
+    returns = np.random.randn(100, 1000)
+    result = probability_of_backtest_overfitting(returns)
+    assert 0.4 < result.pbo < 0.6
+
+def test_pbo_perfect_strategy():
+    """PBO should be low for consistent outperformer."""
+    # One strategy always best
+    returns = np.random.randn(100, 1000)
+    returns[0, :] += 0.1  # Strategy 0 always better
+    result = probability_of_backtest_overfitting(returns)
+    assert result.pbo < 0.2
+
+def test_pbo_overfit_strategy():
+    """PBO should detect overfitting pattern."""
+    # Strategy good IS, bad OOS pattern
+    # ... construct overfit scenario
+```
+
+### TEST CASES CPCV
+
+```python
+# test_cpcv.py
+def test_cpcv_split_count():
+    """Verify correct number of combinations."""
+    cpcv = CombinatorialPurgedKFold(n_splits=6, n_test_splits=2)
+    assert cpcv.get_n_splits() == 15  # C(6,2) = 15
+
+def test_cpcv_no_leakage():
+    """Verify train/test don't overlap."""
+    cpcv = CombinatorialPurgedKFold(n_splits=6, n_test_splits=2)
+    for train_idx, test_idx in cpcv.split(data):
+        assert len(set(train_idx) & set(test_idx)) == 0
+
+def test_cpcv_purging():
+    """Verify purging removes adjacent observations."""
+    cpcv = CombinatorialPurgedKFold(purge_gap=5)
+    # ... verify gap exists
+```
+
+### SEUILS DE VALIDATION
+
+| Metric | Seuil PASS | Action si FAIL |
+|--------|------------|----------------|
+| PBO | < 0.30 | Asset rejeté ou réoptimisé |
+| CPCV WFE mean | > 0.5 | Investigate period effect |
+| CPCV WFE std | < 0.3 | Strategy inconsistante |
+
+### ATTENTE
+
+⏸️ **EN PAUSE** jusqu'à:
+1. Alex complète TASK 1 (PBO) et TASK 2 (CPCV)
+2. Jordan intègre dans pipeline
+3. Casey donne GO pour tests
+
+---
+
+## ARCHIVE — Validations Précédentes
 
 ---
 
