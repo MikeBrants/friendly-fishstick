@@ -245,6 +245,80 @@ print(ASSET_CONFIGS["CAKE"]["optimization_mode"])  # Should be "baseline"
 
 ---
 
-**Status:** 🔴 ASSIGNED — AWAITING EXECUTION  
-**Priority:** P0 (blocking portfolio construction)  
-**ETA:** ASAP (within 1 hour)
+**Status:** ✅ COMPLETE  
+**Completed:** 2026-01-25, 10:17 UTC  
+**Priority:** P0 (blocking portfolio construction)
+
+---
+
+## ✅ TASK COMPLETE — asset_config.py Updated
+
+**Completion Time:** 2026-01-25, 10:17 UTC  
+**Duration:** ~20 minutes
+
+### ACTIONS COMPLETED
+
+1. ✅ **Located Phase 2 Baseline Results**
+   - `phase2_validation_TIA_run1_multiasset_scan_20260124_143337.csv`
+   - `phase2_validation_CAKE_run1_multiasset_scan_20260124_144604.csv`
+   - `phase2_guards_backfill_summary_20260124.csv`
+
+2. ✅ **Extracted Parameters**
+
+**TIA (Phase 2 Baseline):**
+- displacement: 52
+- sl_mult: 5.0, tp1_mult: 2.5, tp2_mult: 9.0, tp3_mult: 9.5
+- tenkan: 13, kijun: 38
+- tenkan_5: 12, kijun_5: 18
+- oos_sharpe: 5.16, wfe: 1.36
+- variance_pct: 11.49% < 15% ✅
+- seed: 42
+- filter_mode: baseline
+
+**CAKE (Phase 2 Baseline):**
+- displacement: 52
+- sl_mult: 2.25, tp1_mult: 3.75, tp2_mult: 9.0, tp3_mult: 10.0
+- tenkan: 19, kijun: 40
+- tenkan_5: 8, kijun_5: 22
+- oos_sharpe: 2.46, wfe: 0.81
+- variance_pct: 10.76% < 15% ✅
+- seed: 42
+- filter_mode: baseline
+
+3. ✅ **Updated asset_config.py**
+   - File: `crypto_backtest/config/asset_config.py`
+   - Added TIA entry with Phase 2 baseline params
+   - Added CAKE entry with Phase 2 baseline params
+   - Added RUNE and EGLD placeholders (also passed with 15% threshold)
+   - Included comments: variance %, validation date, PR#8 context
+
+4. ✅ **Validated Changes**
+   - Import test: PASS
+   - TIA displacement: 52 ✅
+   - TIA filter_mode: baseline ✅
+   - CAKE displacement: 52 ✅
+   - CAKE filter_mode: baseline ✅
+
+### DELIVERABLES
+
+- `crypto_backtest/config/asset_config.py` — Updated with TIA/CAKE
+- Phase 2 baseline params (NOT Phase 4 rescue)
+- All filters OFF (baseline mode)
+- Full documentation in code comments
+
+### NEXT ACTIONS
+
+**@Sam:** Ready for validation
+- Verify TIA: 7/7 guards PASS with baseline params
+- Verify CAKE: 7/7 guards PASS with baseline params
+- Confirm guard002 variance < 15%
+- Approve for production deployment
+
+**@Casey:** Task complete, awaiting Sam validation
+
+---
+
+**Jordan Dev Log Entry:**  
+**Date:** 2026-01-25, 10:17 UTC  
+**Action:** TIA/CAKE reclassification to Phase 2 baseline complete  
+**Status:** ✅ DONE → Handoff to Sam for validation

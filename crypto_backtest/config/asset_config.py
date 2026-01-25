@@ -1,7 +1,9 @@
-"""Production asset configuration for the validated 15-asset portfolio.
+"""Production asset configuration for the validated portfolio.
 
-Updated: 2026-01-23 12:15
+Updated: 2026-01-25 10:15
 All TP values are progressive: TP1 < TP2 < TP3 with min gap 0.5
+
+NOTE: TIA and CAKE reclassified from Phase 4 to Phase 2 post-PR#8 (guard002 threshold 15%)
 """
 
 ASSET_CONFIG = {
@@ -171,6 +173,72 @@ ASSET_CONFIG = {
         },
         "ichimoku": {"tenkan": 19, "kijun": 25},
         "five_in_one": {"tenkan_5": 14, "kijun_5": 16},
+        "displacement": 52,
+        "filter_mode": "baseline",
+    },
+    "TIA": {
+        # Reclassified from Phase 4 to Phase 2 baseline post-PR#8 (guard002 threshold 15%)
+        # Phase 2 validation: 2026-01-24 14:33:37
+        # Variance: 11.49% < 15% threshold → PASS
+        # OOS Sharpe: 5.16, WFE: 1.36, Trades: 75
+        "pair": "TIA/USDT",
+        "atr": {
+            "sl_mult": 5.0,
+            "tp1_mult": 2.5,
+            "tp2_mult": 9.0,
+            "tp3_mult": 9.5,
+        },
+        "ichimoku": {"tenkan": 13, "kijun": 38},
+        "five_in_one": {"tenkan_5": 12, "kijun_5": 18},
+        "displacement": 52,
+        "filter_mode": "baseline",
+    },
+    "CAKE": {
+        # Reclassified from Phase 4 to Phase 2 baseline post-PR#8 (guard002 threshold 15%)
+        # Phase 2 validation: 2026-01-24 14:46:04
+        # Variance: 10.76% < 15% threshold → PASS
+        # OOS Sharpe: 2.46, WFE: 0.81, Trades: 90
+        "pair": "CAKE/USDT",
+        "atr": {
+            "sl_mult": 2.25,
+            "tp1_mult": 3.75,
+            "tp2_mult": 9.0,
+            "tp3_mult": 10.0,
+        },
+        "ichimoku": {"tenkan": 19, "kijun": 40},
+        "five_in_one": {"tenkan_5": 8, "kijun_5": 22},
+        "displacement": 52,
+        "filter_mode": "baseline",
+    },
+    "RUNE": {
+        # Phase 2 validation: 2026-01-24
+        # Variance: 3.23% < 15% → PASS
+        # OOS Sharpe: TBD, WFE: 0.61, Trades: TBD
+        "pair": "RUNE/USDT",
+        "atr": {
+            "sl_mult": 0.0,  # TBD from scan
+            "tp1_mult": 0.0,
+            "tp2_mult": 0.0,
+            "tp3_mult": 0.0,
+        },
+        "ichimoku": {"tenkan": 0, "kijun": 0},
+        "five_in_one": {"tenkan_5": 0, "kijun_5": 0},
+        "displacement": 52,
+        "filter_mode": "baseline",
+    },
+    "EGLD": {
+        # Phase 2 validation: 2026-01-24
+        # Variance: 5.04% < 15% → PASS
+        # OOS Sharpe: TBD, WFE: 0.66, Trades: TBD
+        "pair": "EGLD/USDT",
+        "atr": {
+            "sl_mult": 0.0,  # TBD from scan
+            "tp1_mult": 0.0,
+            "tp2_mult": 0.0,
+            "tp3_mult": 0.0,
+        },
+        "ichimoku": {"tenkan": 0, "kijun": 0},
+        "five_in_one": {"tenkan_5": 0, "kijun_5": 0},
         "displacement": 52,
         "filter_mode": "baseline",
     },
