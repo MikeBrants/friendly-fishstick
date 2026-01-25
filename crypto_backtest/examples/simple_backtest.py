@@ -146,15 +146,18 @@ def main() -> None:
         print(f"Win Rate: {metrics.get('win_rate', 0):.1%}")
         print(f"Profit Factor: {metrics.get('profit_factor', 0):.2f}")
 
-        # Trade stats
-        if "pnl" in result.trades.columns:
-            winners = result.trades[result.trades["pnl"] > 0]
-            losers = result.trades[result.trades["pnl"] < 0]
-            print(f"\nWinners: {len(winners)} | Losers: {len(losers)}")
+        # Trade stats by signal (not by leg)
+        pnl_col = "net_pnl" if "net_pnl" in result.trades.columns else "pnl"
+        if pnl_col in result.trades.columns and "entry_time" in result.trades.columns:
+            by_signal = result.trades.groupby("entry_time")[pnl_col].sum()
+            n_signals = len(by_signal)
+            winners = by_signal[by_signal > 0]
+            losers = by_signal[by_signal <= 0]
+            print(f"\nSignals: {n_signals} | Winners: {len(winners)} | Losers: {len(losers)}")
             if len(winners) > 0:
-                print(f"Avg win: ${winners['pnl'].mean():,.2f}")
+                print(f"Avg win: ${winners.mean():,.2f}")
             if len(losers) > 0:
-                print(f"Avg loss: ${losers['pnl'].mean():,.2f}")
+                print(f"Avg loss: ${losers.mean():,.2f}")
     else:
         print("No trades generated.")
 

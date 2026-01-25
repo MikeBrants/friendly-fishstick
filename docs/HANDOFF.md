@@ -1,198 +1,268 @@
 # Handoff — FINAL TRIGGER v2 Backtest System
 
-> **Date de transmission**: 2026-01-22
-> **Etat**: REVALIDATION EN COURS - TP progression enforcee, guard variance bloque ETH/CAKE
+**Dernière MAJ**: 19 janvier 2026
 
 ---
 
-## EXECUTIVE SUMMARY (Pour Agent Suivant)
+## 🎯 Objectif
 
-### Qu'est-ce que c'est ?
-Pipeline de backtest complet pour la stratégie TradingView "FINAL TRIGGER v2" convertie en Python. Inclut optimisation bayésienne (ATR + Ichimoku), validation walk-forward, tests Monte Carlo, analyse de régimes, et construction de portfolio multi-asset.
-
-### ETAT CRITIQUE (2026-01-22)
-
-TP progression is now enforced by default. Previous pre-fix scans are invalid.
-
-Revalidation results (2026-01-22):
-- ETH SUCCESS (OOS Sharpe 3.87, WFE 2.36) but guard002 variance 12.96% -> guards fail
-- AVAX/UNI FAIL (WFE < 0.6); SEI FAIL (OOS Sharpe < 1.0, WFE < 0.6)
-- CAKE disp=26 SUCCESS (OOS Sharpe 2.73, WFE 0.73) but guard002 variance 20.70% -> guards fail
-
-No asset besides BTC is cleared for production.
-
-### État Production Réel
-
-| Asset | Status | Raison |
-|-------|--------|--------|
-| **BTC** | ✅ PRODUCTION | Baseline validé (params manuels historiques) |
-| ETH | ⚠️ A REVALIDER | TP enforced: SUCCESS (OOS Sharpe 3.87, WFE 2.36) but guard002 variance 12.96% |
-| AVAX | ⚠️ A REVALIDER | TP enforced: WFE 0.52 (<0.6) |
-| UNI | ⚠️ A REVALIDER | TP enforced: WFE 0.56 (<0.6), variance 10.27% |
-| SEI | ⚠️ A REVALIDER | TP enforced: OOS Sharpe < 1.0, WFE < 0.6 |
-| CAKE (disp=26) | ⚠️ A REVALIDER | SUCCESS (OOS Sharpe 2.73, WFE 0.73) but guard002 variance 20.70% |
-| OP (disp=78) | ⚠️ À REVALIDER | Guards OK mais params pré-fix |
-| DOGE (disp=26) | ⚠️ À REVALIDER | Guards OK mais params pré-fix |
-| DOT, SHIB, NEAR | ⚠️ À REVALIDER | Scan PASS mais pré-fix |
-| AR, EGLD, CELO, ANKR | ⚠️ À REVALIDER | Guards PASS mais pré-fix |
-
-**Seul BTC est actuellement en production.**
-
-## Etat actuel du pipeline (2026-01-22)
-
-| Batch | Assets | Status |
-|:------|:-------|:-------|
-| Displacement d26 | JOE, CAKE | JOE PASS (pre-fix); CAKE SUCCESS but guards fail (variance 20.70%) |
-| Displacement d65 | OSMO | PASS (57 trades accepted) |
-| Displacement d78 | MINA, RUNE, TON | MINA PASS; RUNE/TON FAIL |
-| Displacement d39 | AXS | FAIL (excluded) |
-| Core P0 | ETH, AVAX, UNI, SEI | RUN DONE: ETH SUCCESS but guards fail (variance 12.96%); AVAX/UNI WFE<0.6; SEI OOS Sharpe<1.0 |
-| Winners P1.1 | DOT, SHIB, NEAR | Pending after core re-opt |
-| Disp P1.2 | OP, DOGE | Pending after core re-opt |
-| Guard-passed P1.3 | AR, EGLD, CELO, ANKR | Pending after P1.1/P1.2 |
-
-Filter grid (ETH): DONE. Best mode = medium_distance_volume (all_pass True, sens_var 3.95%, OOS Sharpe 2.09, WFE 0.82, trades 57). Outputs: `outputs/filter_grid_results_ETH_20260122_1917.csv`, `outputs/filter_grid_summary_ETH_20260122_1917.csv`, `outputs/FILTER_GRID_ETH_SUMMARY.md`, `outputs/ANALYSIS_FILTER_GRID_ETH_20260122.md`.
-
-### Assets Exclus (définitif)
-- SOL, AAVE, HYPE, ATOM, ARB, LINK, INJ, TIA (WFE < 0.6 ou overfit)
-- HOOK, ALICE, HMSTR, LOOM (données insuffisantes: <60 trades OOS ou <10K bars)
-- APT, EIGEN, ONDO (outliers suspects)
-
-### Documentation Clé
-
-| Document | Description |
-|----------|-------------|
-| **[docs/BACKTESTING.md](BACKTESTING.md)** | Résultats, analyses, problèmes, next steps |
-| **[docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md](WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md)** | Workflow scalable Screen→Validate→Prod (Phase 1: 200 trials, Phase 2: 300 trials + guards) |
-| **[README.md](../README.md)** | Guide d'utilisation + interprétation outputs |
+Convertir l'indicateur TradingView "FINAL TRIGGER v2 - State/Transition + A/D Line + Ichi Light" en Python avec système de backtest professionnel, walk-forward analysis et optimisation bayésienne.
 
 ---
 
-## RERUNS PRIORITAIRES
+## ✅ État Actuel (88% complété)
 
-### Commande Batch (avec TP enforcement)
+### Architecture Implémentée
 
-Note: for re-optimization, prefer `--optimization-mode moderate` (baseline remains default).
-
-```bash
-# Batch 1: Core assets (disp=52)
-python scripts/run_full_pipeline.py \
-  --assets ETH AVAX UNI SEI DOT SHIB NEAR \
-  --workers 6 --trials-atr 100 --trials-ichi 100 \
-  --enforce-tp-progression \
-  --skip-download
-
-# Batch 2: Displacement variants
-python scripts/run_full_pipeline.py \
-  --assets OP --fixed-displacement 78 \
-  --workers 6 --trials-atr 100 --trials-ichi 100 \
-  --enforce-tp-progression --skip-download
-
-python scripts/run_full_pipeline.py \
-  --assets DOGE --fixed-displacement 26 \
-  --workers 6 --trials-atr 100 --trials-ichi 100 \
-  --enforce-tp-progression --skip-download
-
-# Batch 3: Nouveaux displacement winners (non encore validés)
-python scripts/run_full_pipeline.py \
-  --assets MINA RUNE TON --fixed-displacement 78 \
-  --workers 6 --trials-atr 100 --trials-ichi 100 \
-  --enforce-tp-progression --skip-download
-
-python scripts/run_full_pipeline.py \
-  --assets OSMO --fixed-displacement 65 \
-  --workers 6 --trials-atr 100 --trials-ichi 100 \
-  --enforce-tp-progression --skip-download
+```
+crypto_backtest/
+├── config/settings.py           ✅ Paramètres globaux
+├── data/
+│   ├── fetcher.py               ✅ CCXT multi-exchange
+│   ├── storage.py               ✅ Cache Parquet
+│   └── preprocessor.py          ✅ Nettoyage données
+├── indicators/
+│   ├── mama_fama_kama.py        ✅ MESA Adaptive MA (compute_alpha aligné Pine)
+│   ├── ichimoku.py              ✅ 17 cond bull + 3 cond bear Light
+│   ├── five_in_one.py           ✅ 5 filtres avec toggles
+│   └── atr.py                   ✅ ATR pour SL/TP
+├── strategies/
+│   ├── base.py                  ✅ Interface abstraite
+│   └── final_trigger.py         ✅ Puzzle + Grace logic
+├── engine/
+│   ├── backtest.py              ✅ Moteur vectorisé
+│   ├── execution.py             ✅ Fees/slippage
+│   └── position_manager.py      ✅ Multi-TP (50/30/20) + trailing
+├── optimization/
+│   ├── bayesian.py              ✅ Optuna TPE
+│   └── walk_forward.py          ✅ Walk-forward analysis
+├── analysis/
+│   ├── metrics.py               ✅ Sharpe, Sortino, Calmar, etc.
+│   ├── visualization.py         ✅ Plotly charts
+│   └── validation.py            ✅ Compare Pine vs Python
+└── examples/
+    ├── run_backtest.py          ✅ Demo principal
+    ├── compare_signals.py       ✅ Validation Pine
+    └── optimize_final_trigger.py ✅ Optim demo
 ```
 
-### Validation Post-Rerun
+### Tests
+- **17 tests passent** (`pytest -v`)
+- Couverture: indicateurs, backtest, position manager
+
+---
+
+## 🧩 Validation Pine (FINAL LONG/SHORT)
+
+Le script `tests/compare_signals.py` compare désormais les signaux Python
+à `FINAL LONG` / `FINAL SHORT` et génère les entrées via le pipeline
+`FinalTriggerStrategy` (Ichimoku externe + 5in1 Light + Puzzle/Grace).
+
+### Fichiers ajoutés/modifiés
+- `tests/compare_signals.py` (comparaison FINAL LONG/SHORT + debug trend)
+- `data/BYBIT_BTCUSDT-60.csv` (dataset TradingView)
+
+### Résultats
+- `python tests/compare_signals.py --file data/BYBIT_BTCUSDT-60.csv --warmup 150` : 100% match FINAL LONG/SHORT.
+- Backtest local exporté sur `crypto_backtest/BYBIT_BTCUSDT, 60 (1).csv` (fichiers dans `outputs/`).
+
+---
+
+## 🔧 Configuration Pine Utilisateur
+
+La configuration par défaut Python est alignée sur Pine:
 
 ```python
-import pandas as pd
-from glob import glob
+# FinalTriggerParams defaults
+use_mama_kama_filter = False      # Pine: OFF
+require_fama_between = False      # Pine: OFF
+strict_lock_5in1_last = False     # Pine: OFF
+grace_bars = 1                    # Pine: 1
 
-scan = pd.read_csv(sorted(glob("outputs/multiasset_scan_*.csv"))[-1])
-for _, row in scan.iterrows():
-    tp1, tp2, tp3 = row['tp1_mult'], row['tp2_mult'], row['tp3_mult']
-    ok = (tp1 < tp2 < tp3) and (tp2 - tp1 >= 0.5) and (tp3 - tp2 >= 0.5)
-    print(f"{row['asset']}: TP {tp1:.2f}<{tp2:.2f}<{tp3:.2f} | {'✅' if ok else '❌'}")
+# FiveInOneConfig defaults  
+use_distance_filter = False       # Pine: OFF
+use_volume_filter = False         # Pine: OFF (mais use_ad_line = True prêt)
+use_regression_cloud = False      # Pine: OFF
+use_kama_oscillator = False       # Pine: OFF
+use_ichimoku_filter = True        # Pine: ON ← SEUL FILTRE ACTIF
+ichi5in1_strict = False           # Pine: OFF (Light = 3 cond bear)
+use_transition_mode = False       # Pine: OFF (State mode)
+```
+
+**Logique simplifiée effective:**
+1. Ichimoku externe donne le biais (ichi_long_active / ichi_short_active)
+2. 5in1 = Ichimoku Light seul → signal quand allBull/allBear (state mode)
+3. Puzzle combine les deux + grace window 1 bar
+4. Entry génère SL/TP1/TP2/TP3 basés sur ATR
+
+---
+
+## 📋 Checklist
+
+### Complété
+- [x] Scanner le repo et confirmer la structure
+- [x] Poser l'ossature des modules/fichiers
+- [x] Implémenter la couche data (fetcher/cache/preprocess)
+- [x] Indicateurs core + tests unitaires de base
+- [x] Aligner MAMA/FAMA/KAMA sur `computeAlpha()` MESA (alpha/beta dynamiques)
+- [x] Stratégie Final Trigger + moteur de backtest + position manager multi-TP
+- [x] Rendre l'ordre intra-bar et le sizing configurables + tests associés
+- [x] Aligner compounding avec coûts + scénarios backtest multi-legs
+- [x] Tests `sizing_mode="equity"` (compounding net of costs)
+- [x] Ajouter métriques/visualisation + optimisation (Bayesian, walk-forward)
+- [x] Ajouter un outil de comparaison des signaux Pine vs Python
+- [x] Fix FutureWarning: `Hour.delta` deprecated dans `metrics.py`
+- [x] Fix: BayesianOptimizer convertit correctement dict → dataclass
+- [x] Aligner defaults Python sur config Pine utilisateur
+- [x] Sizing basé sur le risque (`risk_per_trade`) + export backtest CSV
+- [x] Autoriser réentrée sur la bougie de sortie (backtest)
+- [x] Fix comptage métriques: par signal (pas par leg) pour matcher Pine
+- [x] Script téléchargement données historiques CCXT (`scripts/download_historical_data.py`)
+- [x] Test optimisation bayésienne sur dataset réel
+- [x] Simulation Monte Carlo (bootstrap trades)
+
+### À Faire
+- [ ] Valider cohérence signaux vs Pine sur CSV 2000+ bougies
+- [ ] Inspecter `compare_report.csv` pour isoler divergences résiduelles
+- [ ] Ajouter tests unitaires pour `optimize_final_trigger.py`
+- [ ] Créer `optimization/overfitting_guard.py` (Deflated Sharpe, PBO)
+- [ ] Documenter le workflow d'optimisation dans README
+- [ ] Notebook tutoriel optimisation
+
+---
+
+## 🔴 Problèmes Connus
+
+### 1. Warmup Indicateurs MESA
+Les indicateurs MAMA/FAMA/KAMA nécessitent ~200-300 bougies pour converger. Les premiers signaux peuvent diverger du Pine pendant cette période.
+
+**Solution**: Ignorer les 300 premières bougies dans les comparaisons.
+
+### 2. barstate.isconfirmed
+Pine vérifie `barstate.isconfirmed` avant de générer des signaux. Python n'a pas cet équivalent explicite.
+
+**Impact**: En backtest historique, toutes les bougies sont "confirmées". En live, attention à la dernière bougie.
+
+### 3. Dataset et Win Rate
+Le CSV actuel (3737 bars, ~5 mois) génère ~40 signaux vs ~259 dans Pine (2+ ans).
+Win Rate Python 45% vs Pine 71% sur des périodes différentes.
+
+**Solution**: Utiliser `scripts/download_historical_data.py` pour télécharger 2 ans de données via CCXT.
+
+---
+
+## 📊 Décisions Techniques
+
+| Décision | Raison |
+|----------|--------|
+| Reproduction fidèle logique Pine | Éviter écarts de signaux |
+| Manager multi-TP avec trailing | Refléter comportement visuel Pine |
+| MAMA/FAMA/KAMA via `computeAlpha()` MESA | Coller au Pine (alpha/beta dynamiques) |
+| Coûts appliqués à la sortie (net_pnl) | Compounding cohérent en mode `equity` |
+| Param space standardisé `base_params` + `search_space` | Optuna compatible |
+| Exports CSV comparaison dans repo | Traçabilité des écarts |
+| Filtres modulaires avec toggles | Flexibilité pour tester configs |
+| Defaults alignés sur la config Pine | Light + State, filtre MAMA/KAMA désactivé |
+| Sizing risk-based (`risk_per_trade`) | Risque fixe par trade, notional ajusté au stop |
+| Réentrée sur bougie de sortie | Permet d'enchaîner les signaux sans attente |
+| Métriques par signal (pas par leg) | Pine compte 1 signal = 1 trade, même avec 3 legs |
+
+---
+
+## 🚀 Commandes Utiles
+
+```bash
+# Tests
+pytest -v
+
+# Comparer signaux Pine vs Python
+python crypto_backtest/examples/compare_signals.py
+
+# Demo optimisation (10 trials)
+python crypto_backtest/examples/optimize_final_trigger.py
+
+# Backtest simple
+python crypto_backtest/examples/run_backtest.py
+
+# Backtest CSV local (export via script simple)
+python crypto_backtest/examples/simple_backtest.py --file data/BYBIT_BTCUSDT-60.csv --warmup 150
 ```
 
 ---
 
-## Dernières mises à jour (2026-01-22)
-
-- **CRITICAL - TP progression**: Enforcement is default; pre-fix results are invalid.
-- **Revalidation (2026-01-22)**: ETH SUCCESS but guard002 variance 12.96%; AVAX/UNI/SEI fail WFE; CAKE SUCCESS but guard002 variance 20.70%.
-- **Optimization modes**: baseline/moderate/conservative available; moderate is default for re-optimization.
-- **ETH filter grid**: Completed. Winner = medium_distance_volume (all_pass True, sens_var 3.95%, trades 57) in `outputs/filter_grid_results_ETH_20260122_1917.csv`.
-- **Workflow multi-asset**: Nouveau document `docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md` decrivant le processus scalable en 3 phases.
-- **Guards timestampes**: `scripts/run_guards_multiasset.py` suffixe chaque fichier avec `run_id`.
-- **Fixed displacement mode**: `--fixed-displacement` disponible pour optimiser avec displacement fige.
-
-### Historique (2026-01-21)
-- Top 50 scan (2 batches): DOT, SHIB, NEAR, SUI, APT PASS (mais pré-fix TP)
-- OP displacement=78: OOS Sharpe 2.48, WFE 1.66 (guards PASS mais pré-fix)
-- DOGE displacement=26: OOS Sharpe 3.12, WFE 1.18 (pré-fix)
-- Guard errors "complex numbers": YGG, ARKM, STRK, METIS, AEVO (debug requis)
-
----
-
-## Fichiers Critiques
+## 📁 Fichiers Clés
 
 | Fichier | Description |
 |---------|-------------|
-| `app.py` | Dashboard Streamlit (Dark Trading Theme) |
-| `README.md` | Guide d'utilisation + interprétation outputs |
-| `crypto_backtest/config/asset_config.py` | Config production (params optimaux par asset) |
-| `crypto_backtest/config/scan_assets.py` | Top 50 cryptos (tiers) + critères |
-| `docs/HANDOFF.md` | Ce document - résumé + liens |
-| `docs/BACKTESTING.md` | Dossier backtesting (résultats, analyses, next steps) |
-| `docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md` | Workflow scalable multi-asset |
-| `outputs/tp_progression_errors_*.csv` | ⚠️ Audit des erreurs TP (519 détectées) |
-| `scripts/run_guards_multiasset.py` | Guards multi-asset (outputs timestampés) |
+| `indicators/mama_fama_kama.py` | MESA Adaptive MA avec Hilbert Transform |
+| `indicators/five_in_one.py` | 5 filtres combinables (Distance, Volume, RegCloud, KAMA Osc, Ichi5in1) |
+| `indicators/ichimoku.py` | Ichimoku externe (17 cond bull, 3 cond bear Light) |
+| `strategies/final_trigger.py` | Stratégie complète Puzzle + Grace |
+| `engine/position_manager.py` | Gestion multi-TP (50/30/20) + trailing SL |
+| `optimization/bayesian.py` | Optimisation Optuna TPE |
+| `examples/compare_signals.py` | Validation signaux Pine vs Python |
 
 ---
 
-## Seuils de Validation (Rappel)
+## 📈 Paramètres Optimisables
 
-| Guard | Seuil | Critique |
-|-------|-------|----------|
-| WFE | > 0.6 | OUI |
-| MC p-value | < 0.05 | OUI |
-| Sensitivity var | < 10% | OUI |
-| Bootstrap CI lower | > 1.0 | OUI |
-| Top10 trades | < 40% | OUI |
-| Stress1 Sharpe | > 1.0 | OUI |
-| Regime mismatch | < 1% | OUI |
-| Min trades OOS | > 60 | OUI |
-| Min bars IS | > 8000 | OUI |
+| Paramètre | Range | Type | Description |
+|-----------|-------|------|-------------|
+| `kama_length` | 10-50 | int | Période MAMA/KAMA |
+| `tenkan` | 5-15 | int | Tenkan-sen Ichimoku |
+| `kijun` | 20-35 | int | Kijun-sen Ichimoku |
+| `sl_mult` | 1.5-5.0 | float | SL en multiples ATR |
+| `tp1_mult` | 1.0-4.0 | float | TP1 en multiples ATR |
+| `tp2_mult` | 4.0-10.0 | float | TP2 en multiples ATR |
+| `tp3_mult` | 6.0-15.0 | float | TP3 Runner en multiples ATR |
+| `grace_bars` | 0-1 | int | Fenêtre de grâce |
 
-**Targets**: Sharpe > 1.0 (target > 2.0) | PF > 1.3 | MaxDD < 15%
-
----
-
-## Prochaines Étapes
-
-1. 🔴 **P0 - Revalidation (TP enforced)**: Apply ETH winner mode `medium_distance_volume` to AVAX/UNI, then guards. ETH/CAKE (guard002 variance), AVAX/UNI/SEI (WFE < 0.6), OP/DOGE (pre-fix)
-2. 🔴 **P1 - Guards post-rerun**: Lancer 7 guards sur tous les assets PASS
-3. 🟡 **P2 - Displacement grid**: Finaliser MINA, OSMO, RUNE, TON
-4. 🟡 **P3 - Debug guard errors**: Investiguer YGG, ARKM, STRK, METIS, AEVO
-5. ⬜ **P4 - Portfolio construction**: Apres validation, construire portfolio final
-6. ⬜ **P5 - Pine generation**: Generer scripts TradingView pour assets valides
-7. ⬜ **P6 - Live trading**: Implementer connecteur exchange
+**Toggles binaires:**
+- `use_mama_kama_filter`, `require_fama_between`, `strict_lock_5in1_last`
+- `use_distance_filter`, `use_volume_filter`, `use_ad_line`
+- `use_regression_cloud`, `use_kama_oscillator`
+- `use_ichimoku_filter`, `ichi5in1_strict`, `use_transition_mode`
 
 ---
 
-## Données (Local Only)
+## 📈 Résultats Optimisation (Dataset 5 mois)
 
-Les fichiers `data/Binance_*_1h.csv` sont ignorés par git. Pour régénérer:
-```bash
-python fetch_binance_data.py
-```
+### Paramètres Default vs Optimisés
+
+| Param | Default | Optimisé |
+|-------|---------|----------|
+| SL | 3.0 ATR | **4.0 ATR** |
+| TP1 | 2.0 ATR | **2.5 ATR** |
+| TP2 | 6.0 ATR | **4.5 ATR** |
+| TP3 | 10.0 ATR | **7.0 ATR** |
+
+### Performance Comparée
+
+| Métrique | Default | Optimisé |
+|----------|---------|----------|
+| Win Rate | 45% | **67.6%** |
+| Profit Factor | 0.43 | **1.07** |
+| Total Return | -6.8% | **+0.4%** |
+| Max Drawdown | -7.7% | **-1.8%** |
+
+### Monte Carlo (1000 simulations, 34 signaux)
+
+| Percentile | Equity Finale | Max DD |
+|------------|---------------|--------|
+| 5% | $9,642 | -4.5% |
+| 50% (médiane) | $10,036 | -2.1% |
+| 95% | $10,411 | -1.0% |
+
+- **Probabilité profit**: 56.7%
+- **Probabilité perte >10%**: 0%
+
+> Note: Dataset trop petit (34 signaux). Télécharger 2 ans de données pour résultats fiables.
 
 ---
 
-## Backtesting Dossier
+## 🎯 Next Steps Prioritaires
 
-Détails complets dans `docs/BACKTESTING.md`.
+1. **Télécharger 2 ans de données** via `python scripts/download_historical_data.py`
+2. **Relancer optimisation** sur dataset complet (~250 signaux)
+3. **Valider Monte Carlo** avec plus de données
+4. **Créer `overfitting_guard.py`** (Deflated Sharpe, PBO)
