@@ -50,11 +50,14 @@ def probability_of_backtest_overfitting(
 
     Args:
         returns_matrix: Shape (n_trials, n_periods) - returns for each trial
-        n_splits: Number of time splits (must be even, default 16)
+        n_splits: Number of time splits (must be even and >= 2, default 16)
         threshold: Maximum acceptable PBO (default 0.30)
 
     Returns:
         PBOResult with pbo value, logits distribution, and pass/fail
+
+    Raises:
+        ValueError: If n_splits < 2 or n_splits is not even
 
     Interpretation:
         PBO < 0.15: LOW RISK - Parameters likely robust
@@ -66,6 +69,8 @@ def probability_of_backtest_overfitting(
         >>> result = probability_of_backtest_overfitting(returns)
         >>> print(f"PBO: {result.pbo:.2%}, Pass: {result.passed}")
     """
+    if n_splits < 2:
+        raise ValueError("n_splits must be at least 2")
     if n_splits % 2 != 0:
         raise ValueError("n_splits must be even")
 
@@ -148,7 +153,7 @@ def guard_pbo(
     Args:
         returns_matrix: (n_trials, n_periods) array of returns
         threshold: Max acceptable PBO (default 0.30)
-        n_splits: Number of CV splits (must be even)
+        n_splits: Number of CV splits (must be even and >= 2)
 
     Returns:
         dict with guard results compatible with validation pipeline
