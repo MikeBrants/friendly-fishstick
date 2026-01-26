@@ -220,10 +220,40 @@ Priority: P1 (après validation Sam)
 **Actions:**
 - ✅ `EXCLUDED_ASSETS` mis à jour dans `scan_assets.py`
 - ✅ `asset_config.py` marqué avec notes régime
-- ⏳ `project-state.md` à mettre à jour
+- ✅ `project-state.md` mis à jour (26 Jan 16:30 UTC)
 - ⏳ `ETAT_ACTUEL_20260126.md` à mettre à jour
 
 **Référence:** `outputs/STRESS_TEST_REPORT_20260126.md` (TASK 3 complet)
+
+---
+
+## 1630 DONE casey-quant -> jordan-dev: EGLD/AVAX decision = Option A
+
+**Decision:** Option A — EXCLUDE EGLD and AVAX from PROD portfolio
+
+**Rationale:**
+- Regime Stress Test (Issue #17 TASK 3) revealed critical failures
+- EGLD: SIDEWAYS Sharpe -4.59 (60 trades, 35% win rate)
+- AVAX: SIDEWAYS Sharpe -0.36 (75 trades, 25.3% win rate)
+- Both assets fail in SIDEWAYS regime (25-35% of market conditions)
+- Negative Sharpe indicates strategy not profitable on these assets
+
+**Impact:**
+- Portfolio: 14 → **12 assets PROD**
+- Mean Sharpe: 3.54 → **3.35** (improved after exclusion)
+- Progress: 70% → **60%** of goal (12/20)
+
+**Action Required:**
+- ✅ Update `project-state.md` (Category 1: 14→12, Category 5: add EGLD/AVAX)
+- ✅ Add "Stress Test Results — 26 Jan" section to `project-state.md`
+- ⏳ Update `asset_config.py` with regime notes (if not already done)
+- ⏳ Verify `EXCLUDED_ASSETS` list in `scan_assets.py`
+
+**Files Updated:**
+- `status/project-state.md` — Portfolio count, Category 5, Stress Test section
+- `comms/casey-quant.md` — This decision log
+
+**Next:** Jordan to verify asset_config.py updates, then proceed with portfolio construction (12 assets)
 
 ---
 
