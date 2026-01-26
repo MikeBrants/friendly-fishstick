@@ -5,6 +5,7 @@
 **Status**: 🟢 7/7 SUSPECT ASSETS VALIDATED (Period effect confirmed, WFE DUAL deployed)
 
 ## Recent Activity
+- 2026-01-26 OK Regime test checklist closed (Agent: Jordan) -> status/project-state.md
 - 2026-01-26 OK Phase 3A rescue script fixed (Agent: Jordan) -> scripts/run_phase3a_rescue.py
 - 2026-01-26 OK PBO edge case tests added (Agent: Sam) -> tests/validation/test_pbo.py
 - 2026-01-26 OK Regime v3 PROD validation run (Agent: Jordan) -> reports/regime_v3_prod_analysis_20260126_151129.csv; reports/regime_v3_prod_analysis_20260126_151129.md
@@ -759,7 +760,7 @@ C. **HYBRID** - Keep high-confidence (JOE, OSMO), re-validate questionable (BTC)
 - [x] **PBO Full Activation** - Implement returns_matrix tracking
 - [x] **3 Critical PBO Tests** - Add GAP-1, GAP-2, GAP-3 edge case tests (30 min)
 - [ ] **Phase 3A Rescue** - OSMO, AR, METIS displacement optimization
-- [ ] **REGIME TEST** — Re-run regime analysis with updated parameters
+- [x] **REGIME TEST** — Re-run regime analysis with updated parameters
 - [ ] **GitHub Repos Analysis** - Survey mlfinlab, vectorbt for additional methods
 
 ### Production Readiness Status
@@ -780,10 +781,13 @@ Suite aux changements majeurs (bug KAMA corrigé, seuil sensitivity 15%, ETH bas
 - Le ratio 79.5% SIDEWAYS profit doit être re-vérifié
 
 ### Actions Requises
-1. **Re-run regime analysis** sur tous les assets PROD avec les nouveaux paramètres
-2. **Vérifier** la distribution des profits par régime
-3. **Confirmer** que SIDEWAYS reste dominant (ou documenter le changement)
-4. **Mettre à jour** `guard007` (regime mismatch) si nécessaire
+1. ✅ **Re-run regime analysis** sur tous les assets PROD avec les nouveaux paramètres
+2. ✅ **Vérifier** la distribution des profits par régime
+3. ✅ **Confirmer** que SIDEWAYS reste dominant (ou documenter le changement)
+4. ⚠️ **Mettre à jour** `guard007` (regime mismatch) si nécessaire
+
+**Résultat (26 Jan 2026)**: SIDEWAYS mean 25.3% (min 16.9%, max 39.0%), 0/14 assets above the 70% target.  
+**Implication**: Guard007 threshold or regime definitions likely need recalibration.
 
 ### Commande
 ```bash

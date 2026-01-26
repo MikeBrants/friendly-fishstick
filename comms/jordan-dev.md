@@ -7,6 +7,13 @@
 **Summary**: Fixed rescue runner to use run_full_pipeline.py flag --fixed-displacement and replaced Unicode status markers with ASCII-safe output.
 **Next**: Run Phase 3A rescue for OSMO/AR/METIS once approved (multi-hour run).
 
+## 2026-01-26 15:18 UTC — Regime test checklist closed
+
+**Status**: TODO → DONE
+**Output**: status/project-state.md
+**Summary**: Marked REGIME TEST as completed and logged SIDEWAYS distribution (mean 25.3%, 0/14 above 70%). Guard007 recalibration flagged.
+**Next**: Decide guard007 threshold/regime definition changes before additional validation.
+
 ## 2026-01-26 15:12 UTC — Regime v3 PROD validation run
 
 **Status**: TODO → DONE
