@@ -27,6 +27,7 @@ from crypto_backtest.optimization.bayesian import _instantiate_strategy
 from crypto_backtest.optimization.parallel_optimizer import build_strategy_params, load_data
 from crypto_backtest.strategies.final_trigger import FinalTriggerStrategy
 from crypto_backtest.validation.overfitting import compute_overfitting_report
+from crypto_backtest.validation.pbo import guard_pbo
 
 
 BASE_CONFIG = BacktestConfig(
@@ -696,6 +697,56 @@ def _guard_regime(
         }
 
 
+def _guard_pbo(
+    returns_matrix: np.ndarray | None,
+    n_splits: int,
+    threshold: float,
+    outputs_path: Path,
+    asset: str,
+    run_id: str,
+) -> dict[str, Any]:
+    """PBO guard wrapper - returns standardized result dict.
+
+    NOTE: PBO requires per-trial returns storage which is not currently tracked.
+    This guard will fail gracefully if returns_matrix is not provided.
+    """
+    try:
+        if returns_matrix is None or len(returns_matrix) == 0:
+            return {
+                "guard": "pbo",
+                "value": None,
+                "pass": False,
+                "error": "PBO requires per-trial returns matrix - not currently tracked in pipeline",
+            }
+
+        pbo_result = guard_pbo(
+            returns_matrix,
+            threshold=threshold,
+            n_splits=n_splits,
+        )
+
+        pbo_path = outputs_path / f"{asset}_pbo_{run_id}.json"
+        import json
+        with open(pbo_path, "w") as f:
+            json.dump(pbo_result, f, indent=2)
+
+        return {
+            "guard": "pbo",
+            "value": pbo_result["pbo"],
+            "pass": pbo_result["pass"],
+            "interpretation": pbo_result.get("interpretation", ""),
+            "n_combinations": pbo_result.get("n_combinations", 0),
+            "error": None,
+        }
+    except Exception as e:
+        return {
+            "guard": "pbo",
+            "value": None,
+            "pass": False,
+            "error": str(e),
+        }
+
+
 def _run_guards_parallel(
     data: pd.DataFrame,
     params: dict[str, Any],
@@ -712,6 +763,9 @@ def _run_guards_parallel(
     stress_scenarios: list[tuple[float, float]],
     wfe_value: float | None,
     n_jobs: int = 4,
+    returns_matrix: np.ndarray | None = None,
+    pbo_n_splits: int = 16,
+    pbo_threshold: float = 0.30,
 ) -> dict[str, Any]:
     """
     Execute all requested guards in parallel using joblib.
@@ -765,7 +819,13 @@ def _run_guards_parallel(
             data, base_result, outputs_path, asset, run_id
         ))
         guard_names.append("regime")
-    
+
+    if "pbo" in guards:
+        tasks.append(delayed(_guard_pbo)(
+            returns_matrix, pbo_n_splits, pbo_threshold, outputs_path, asset, run_id
+        ))
+        guard_names.append("pbo")
+
     # Execute in parallel
     if tasks:
         # Use threading backend for I/O bound tasks (CSV writes)
@@ -821,6 +881,9 @@ def _write_report(
         "GUARD-007 Regime reconciliation mismatch: "
         f"{_fmt(guard_results.get('guard007_mismatch_pct'), 2)}% -> "
         f"{'PASS' if guard_results['guard007_pass'] else 'FAIL'}",
+        "GUARD-008 PBO (Probability of Backtest Overfitting): "
+        f"{_fmt(guard_results.get('guard008_pbo'), 4)} -> "
+        f"{'PASS' if guard_results['guard008_pass'] else 'FAIL'}",
         "GUARD-WFE: "
         f"{_fmt(guard_results.get('guard_wfe'), 2)} -> "
         f"{'PASS' if guard_results.get('guard_wfe_pass', True) else 'FAIL'}",
@@ -919,6 +982,7 @@ def _asset_guard_worker(
         raise RuntimeError("No trades for guard calculations.")
 
     # ===== PARALLEL EXECUTION OF GUARDS =====
+    # NOTE: returns_matrix not available - PBO will be skipped unless implemented
     guard_results = _run_guards_parallel(
         data=data,
         params=params,
@@ -935,6 +999,9 @@ def _asset_guard_worker(
         stress_scenarios=stress_scenarios,
         wfe_value=wfe_value,
         n_jobs=4,
+        returns_matrix=None,  # TODO: Track per-trial returns for PBO
+        pbo_n_splits=16,
+        pbo_threshold=0.30,
     )
 
     # ===== Extract results from parallel execution =====
@@ -945,6 +1012,7 @@ def _asset_guard_worker(
     stress_result = guard_results.get("stress", {"value": None, "pass": True, "error": None})
     regime_result = guard_results.get("regime", {"value": None, "pass": True, "error": None})
     wfe_result = guard_results.get("wfe", {"value": wfe_value, "pass": True, "error": None})
+    pbo_result = guard_results.get("pbo", {"value": None, "pass": True, "error": None})
 
     # Check for errors in any guard
     errors = [r.get("error") for r in guard_results.values() if r.get("error")]
@@ -972,6 +1040,9 @@ def _asset_guard_worker(
 
     guard_wfe_pass = wfe_result["pass"]
 
+    pbo_value = pbo_result["value"]
+    guard008_pass = pbo_result["pass"]
+
     # Build pass checklist
     guard_checks = []
     if "mc" in guards:
@@ -988,6 +1059,8 @@ def _asset_guard_worker(
         guard_checks.append(guard007_pass)
     if "wfe" in guards:
         guard_checks.append(guard_wfe_pass)
+    if "pbo" in guards:
+        guard_checks.append(guard008_pass)
     all_pass = all(guard_checks) if guard_checks else True
 
     report_path = outputs_path / f"{asset}_validation_report_{run_id}.txt"
@@ -1007,6 +1080,8 @@ def _asset_guard_worker(
             "guard006_pass": guard006_pass,
             "guard007_mismatch_pct": mismatch_pct,
             "guard007_pass": guard007_pass,
+            "guard008_pbo": pbo_value,
+            "guard008_pass": guard008_pass,
             "guard_wfe": wfe_value,
             "guard_wfe_pass": guard_wfe_pass,
             "overfit_psr": overfit.psr,
@@ -1031,6 +1106,8 @@ def _asset_guard_worker(
         "guard006_pass": guard006_pass,
         "guard007_mismatch_pct": mismatch_pct,
         "guard007_pass": guard007_pass,
+        "guard008_pbo": pbo_value,
+        "guard008_pass": guard008_pass,
         "guard_wfe": wfe_value,
         "guard_wfe_pass": guard_wfe_pass,
         "overfit_psr": overfit.psr,

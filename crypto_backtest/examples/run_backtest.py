@@ -20,8 +20,9 @@ def main() -> None:
 
     result = analyzer.analyze(data, FinalTriggerStrategy, param_space)
     print(f"Combined Sharpe: {result.combined_metrics.get('sharpe_ratio', 0.0):.2f}")
-    print(f"Efficiency Ratio: {result.efficiency_ratio:.1f}%")
-    print(f"Degradation: {result.degradation_ratio:.2%}")
+    print(f"Return Efficiency: {result.return_efficiency:.1%}")
+    print(f"WFE (Pardo): {result.wfe_pardo:.2f}")
+    print(f"Degradation: {result.degradation_pct:.1f}%")
 
 
 if __name__ == "__main__":

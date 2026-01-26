@@ -246,7 +246,21 @@ def load_data(asset: str, data_dir: str = "data") -> pd.DataFrame:
 
 
 def split_data(df: pd.DataFrame, splits=(0.6, 0.2, 0.2)):
-    """Split data into IS/VAL/OOS segments."""
+    """Split data into IS/VAL/OOS segments.
+
+    TODO: Consider CombinatorialPurgedKFold for more robust CV
+    See crypto_backtest/validation/cpcv.py for implementation.
+    Note: CPCV is 5x slower than current walk-forward due to combinatorial splits,
+    but provides better protection against data leakage and overfitting.
+    Use only if overfitting is suspected or for final production validation.
+
+    Example usage:
+        from crypto_backtest.validation.cpcv import CombinatorialPurgedKFold
+        cpcv = CombinatorialPurgedKFold(n_splits=6, n_test_splits=2, purge_gap=5)
+        for train_idx, test_idx in cpcv.split(data):
+            # Optimize on train_idx, validate on test_idx
+            pass
+    """
     n = len(df)
     is_end = int(n * splits[0])
     val_end = int(n * (splits[0] + splits[1]))

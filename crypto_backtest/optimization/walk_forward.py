@@ -20,8 +20,9 @@ class WalkForwardConfig:
 @dataclass(frozen=True)
 class WalkForwardResult:
     combined_metrics: dict[str, float]
-    efficiency_ratio: float
-    degradation_ratio: float
+    return_efficiency: float  # RENAMED from efficiency_ratio - measures return degradation
+    wfe_pardo: float  # RENAMED from degradation_ratio - TRUE WFE using Sharpe ratios
+    degradation_pct: float  # Display-friendly degradation percentage
 
 
 class WalkForwardAnalyzer:
@@ -105,7 +106,12 @@ class WalkForwardAnalyzer:
             window_start = test_end
 
         if not oos_equity_curves:
-            return WalkForwardResult(combined_metrics={}, efficiency_ratio=0.0, degradation_ratio=0.0)
+            return WalkForwardResult(
+                combined_metrics={},
+                return_efficiency=0.0,
+                wfe_pardo=0.0,
+                degradation_pct=0.0,
+            )
 
         combined_equity = _stitch_equity(oos_equity_curves, backtest_config.initial_capital)
         combined_trades = pd.concat(oos_trades, ignore_index=True)
@@ -113,16 +119,20 @@ class WalkForwardAnalyzer:
 
         mean_is_score = _mean_safe(is_scores)
         mean_oos_score = _mean_safe(oos_scores)
-        degradation_ratio = _ratio(mean_oos_score, mean_is_score)
+        wfe_pardo = _ratio(mean_oos_score, mean_is_score)  # TRUE WFE using Sharpe ratios
 
         mean_is_return = _mean_safe(is_returns)
         mean_oos_return = _mean_safe(oos_returns)
-        efficiency_ratio = _ratio(mean_oos_return, mean_is_return) * 100.0
+        return_efficiency = _ratio(mean_oos_return, mean_is_return)  # Return ratio (NOT WFE)
+
+        # Calculate display-friendly degradation percentage
+        degradation_pct = (1 - wfe_pardo) * 100.0 if wfe_pardo < 1 else 0.0
 
         return WalkForwardResult(
             combined_metrics=combined_metrics,
-            efficiency_ratio=efficiency_ratio,
-            degradation_ratio=degradation_ratio,
+            return_efficiency=return_efficiency,
+            wfe_pardo=wfe_pardo,
+            degradation_pct=degradation_pct,
         )
 
 
