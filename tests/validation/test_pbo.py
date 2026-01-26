@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from crypto_backtest.validation.pbo import (
     guard_pbo,
@@ -45,3 +46,22 @@ def test_guard_pbo_shape():
     assert "pbo" in result
     assert "passed" not in result  # guard_pbo uses 'pass'
     assert result["pass"] in (True, False)
+
+
+def test_pbo_empty_returns_matrix():
+    empty_returns = np.empty((0, 0))
+    with pytest.raises(ValueError, match="Not enough periods"):
+        probability_of_backtest_overfitting(empty_returns, n_splits=4)
+
+
+def test_pbo_zero_or_negative_splits():
+    returns = _random_returns(n_trials=10, n_periods=32, seed=5)
+    for n_splits in (0, -4):
+        with pytest.raises(ValueError, match="n_splits must be at least 2"):
+            probability_of_backtest_overfitting(returns, n_splits=n_splits)
+
+
+def test_pbo_insufficient_periods():
+    returns = _random_returns(n_trials=10, n_periods=8, seed=9)
+    with pytest.raises(ValueError, match="Not enough periods"):
+        probability_of_backtest_overfitting(returns, n_splits=16)

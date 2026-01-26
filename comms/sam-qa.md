@@ -1,5 +1,12 @@
 # Sam (QA Validator) — Validation Log
 
+## 2026-01-26 15:14 UTC — PBO edge case tests added
+
+**Status**: TODO → DONE
+**Output**: tests/validation/test_pbo.py
+**Summary**: Added GAP-1/2/3 tests for empty returns matrix, invalid n_splits, and insufficient periods. Pytest run passes.
+**Next**: Run full guard suite with PBO enabled once returns_matrix outputs are available.
+
 ## 2026-01-26 10:34 UTC — PBO asset validation blocked (returns_matrix missing)
 
 **Status**: TODO → BLOCKED
