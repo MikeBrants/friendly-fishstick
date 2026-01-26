@@ -6,6 +6,21 @@
 
 ---
 
+## ⚠️ RÈGLES DE MISE À JOUR
+
+**CE FICHIER EST STABLE** — Modifier uniquement si:
+- Nouveau script ajouté au repo
+- Argument CLI changé/ajouté
+- Correction de commande erronée
+
+**NE PAS MODIFIER:**
+- Les paramètres (workers, trials, seuils) → voir `MASTER_PLAN.mdc`
+- L'ordre des phases
+
+**OWNER:** Jordan (Dev) — Peut mettre à jour après test de la commande
+
+---
+
 ## Phase 0: Download Data
 
 ```bash
@@ -29,7 +44,7 @@ python scripts/run_full_pipeline.py \
   --output-prefix screening
 ```
 
-**Seuils SOFT:** WFE>0.5, Sharpe>0.5, Trades>50
+**Seuils SOFT:** WFE>0.5, Sharpe>0.5, Trades>50, SHORT 25-75%
 **Output:** `outputs/screening_multiasset_scan_*.csv`
 
 ---
@@ -169,4 +184,5 @@ python scripts/export_screening_results.py \
 
 ---
 
-**Version**: 1.0 (26 Jan 2026)
+**Version**: 1.1 (26 Jan 2026)
+**Dernière MAJ**: Ajout règles MAJ + SHORT ratio Phase 1
