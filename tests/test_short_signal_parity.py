@@ -67,8 +67,8 @@ class TestAssetConfig:
         assert params.five_in_one.kijun_5 == 20, "FiveInOneConfig.kijun_5 should be 20 for ETH"
         
         # Check IchimokuConfig has correct PUZZLE values
-        assert params.ichimoku.tenkan_period == 17, "IchimokuConfig.tenkan should be 17 for ETH"
-        assert params.ichimoku.kijun_period == 31, "IchimokuConfig.kijun should be 31 for ETH"
+        assert params.ichimoku.tenkan == 17, "IchimokuConfig.tenkan should be 17 for ETH"
+        assert params.ichimoku.kijun == 31, "IchimokuConfig.kijun should be 31 for ETH"
 
 
 class TestShortSignalGeneration:

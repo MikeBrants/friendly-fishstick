@@ -279,13 +279,13 @@ def print_summary(results: list[ParityResult]) -> None:
     for r in results:
         print(
             f"{r.asset:<8} "
-            f"{'✅' if r.config_match else '❌':<8} "
+            f"{'OK' if r.config_match else 'FAIL':<8} "
             f"{r.signals_generated:<10} "
             f"{r.longs:<8} "
             f"{r.shorts:<8} "
             f"{r.short_ratio*100:.1f}%{'  ':<4} "
-            f"{'✅' if r.alternation_ok else '❌':<6} "
-            f"{'✅ PASS' if r.verdict == 'PASS' else '❌ FAIL':<8}"
+            f"{'OK' if r.alternation_ok else 'FAIL':<6} "
+            f"{'PASS' if r.verdict == 'PASS' else 'FAIL':<8}"
         )
     
     print("-"*80)

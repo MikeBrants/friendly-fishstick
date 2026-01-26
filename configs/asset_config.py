@@ -137,8 +137,8 @@ def build_params_for_asset(asset: str):
     validate_config(config)
 
     ichimoku_config = IchimokuConfig(
-        tenkan_period=config["tenkan"],
-        kijun_period=config["kijun"],
+        tenkan=config["tenkan"],
+        kijun=config["kijun"],
         displacement=config.get("displacement", 52),
     )
 
