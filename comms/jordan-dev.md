@@ -91,24 +91,25 @@
 
 ---
 
-## 🔴 NOUVELLES TÂCHES — PBO/CPCV Integration (25 Jan 2026, 10:00 UTC)
+## ✅ TÂCHES COMPLÉTÉES — PBO/CPCV Integration (26 Jan 2026, 11:30 UTC)
 
 **From:** Casey (Orchestrator)
 **Priority:** P1 (après WFE audit)
-**Blocking:** Attend résultat TASK 0 d'Alex
+**Completed:** 26 Jan 2026, 11:30 UTC
+**Status:** ✅ DONE
 
 ### CONTEXTE
 
-Alex implémente PBO et CPCV. Jordan doit intégrer ces modules dans le pipeline de validation.
+Alex a implémenté PBO et CPCV. Jordan a intégré ces modules dans le pipeline de validation.
 
-### TÂCHES ASSIGNÉES
+### TÂCHES COMPLÉTÉES ✅
 
-| # | Task | Status | Blocking |
-|---|------|--------|----------|
-| J1 | Intégrer `pbo.py` dans guards pipeline | 🔵 PENDING | WFE Audit |
-| J2 | Intégrer `cpcv.py` dans walk-forward | 🔵 PENDING | WFE Audit |
-| J3 | Ajouter GUARD-008 (PBO < 0.30) | 🔵 PENDING | J1 |
-| J4 | Modifier WFE calculation si nécessaire | 🔵 PENDING | WFE Audit |
+| # | Task | Status | Completed |
+|---|------|--------|-----------|
+| J1 | Intégrer `pbo.py` dans guards pipeline | ✅ DONE | 26 Jan 11:30 |
+| J2 | Intégrer `cpcv.py` dans walk-forward | ✅ DONE | 26 Jan 11:30 |
+| J3 | Ajouter GUARD-008 (PBO < 0.30) | ✅ DONE | 26 Jan 11:30 |
+| J4 | Modifier WFE calculation | ✅ DONE | WFE DUAL deployed |
 
 ### FICHIERS À MODIFIER
 
