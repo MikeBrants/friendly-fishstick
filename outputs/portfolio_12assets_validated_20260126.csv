@@ -1,0 +1,13 @@
+asset,status,oos_sharpe,wfe_pardo,guards,mode
+SHIB,SUCCESS,5.67,2.43,7/7,baseline
+DOT,SUCCESS,5.33,3.12,7/7,baseline
+TIA,SUCCESS,5.16,1.20,7/7,baseline
+NEAR,SUCCESS,4.26,0.95,7/7,baseline
+DOGE,SUCCESS,3.88,0.70,7/7,baseline
+ANKR,SUCCESS,3.48,0.86,7/7,baseline
+ETH,SUCCESS,3.22,1.26,7/7,baseline
+JOE,SUCCESS,3.16,0.73,7/7,baseline
+YGG,SUCCESS,3.11,0.78,7/7,baseline
+MINA,SUCCESS,2.58,1.20,7/7,baseline
+CAKE,SUCCESS,2.46,0.81,7/7,baseline
+RUNE,SUCCESS,2.42,0.61,7/7,baseline

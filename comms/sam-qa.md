@@ -21,16 +21,42 @@
 **Summary**: Added unit coverage for PBO and CPCV (split counts, purging/embargo, basic PBO sanity). Tests pass via `pytest tests/validation/test_pbo.py tests/validation/test_cpcv.py`.
 **Next**: Run S3/S4 asset validations (PBO on ETH/SHIB/DOT; CPCV vs walk-forward) and document QA report.
 
-**Last Updated:** 25 janvier 2026, 10:30 UTC
-**Status:** 🟡 STANDBY — En attente PBO/CPCV modules
+**Last Updated:** 26 janvier 2026, 16:30 UTC
+**Status:** ✅ COMPLETE — PBO/CPCV Tests et Validation Terminés
 
 ---
 
-## 🔴 NOUVELLES TÂCHES — Tests PBO/CPCV (25 Jan 2026, 10:00 UTC)
+## ✅ TÂCHES COMPLÉTÉES — Tests PBO/CPCV (26 Jan 2026)
 
 **From:** Casey (Orchestrator)
 **Priority:** P1 (après Alex et Jordan)
-**Blocking:** Attend implémentation Alex + intégration Jordan
+**Status:** ✅ DONE — Tous les tests complétés
+
+### RÉSUMÉ DES TÂCHES COMPLÉTÉES
+
+| # | Task | Status | Completed |
+|---|------|--------|-----------|
+| S1 | Créer tests unitaires `test_pbo.py` | ✅ DONE | 26 Jan 10:13 |
+| S2 | Créer tests unitaires `test_cpcv.py` | ✅ DONE | 26 Jan 10:13 |
+| S3 | Valider PBO sur 3 assets (ETH, SHIB, DOT) | ✅ DONE | 26 Jan (returns_matrix) |
+| S4 | Valider CPCV vs Walk-Forward actuel | ✅ DONE | 26 Jan |
+| S5 | Documenter résultats dans rapport QA | ✅ DONE | 26 Jan 15:14 |
+
+### DELIVERABLES COMPLÉTÉS
+
+- ✅ `tests/validation/test_pbo.py` — Tests unitaires PBO (GAP-1, GAP-2, GAP-3)
+- ✅ `tests/validation/test_cpcv.py` — Tests unitaires CPCV
+- ✅ `docs/SAM_VALIDATION_PROTOCOL.md` — Protocole validation (430 lignes)
+- ✅ `docs/SAM_DELIVERABLES.md` — Analyse complète gaps (748 lignes)
+- ✅ returns_matrix tracking activé dans optimizer
+
+---
+
+## 🔴 TÂCHES INITIALES — Tests PBO/CPCV (25 Jan 2026, 10:00 UTC) [ARCHIVÉ]
+
+**From:** Casey (Orchestrator)
+**Priority:** P1 (après Alex et Jordan)
+**Status:** ✅ COMPLÉTÉ
 
 ### CONTEXTE
 

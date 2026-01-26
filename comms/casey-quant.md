@@ -1,7 +1,125 @@
 # Casey (Orchestrator) — Communication Log
 
-**Last Updated:** 26 janvier 2026, 17:00 UTC
-**Status:** ✅ REGIME STRESS INTEGRATION COMPLETE — Pipeline upgraded to 7 phases
+**Last Updated:** 26 janvier 2026, 17:05 UTC
+**Status:** 🔴 ISSUE #17 IN PROGRESS — TASK 1+2 P0 ASSIGNED TO ALEX
+
+---
+
+## 🚨 NOUVELLE ASSIGNATION — Issue #17 TASK 1+2 (26 Jan 2026, 17:05 UTC)
+
+### FROM: Casey (Orchestrator)
+### TO: Alex (Lead Quant)
+### PRIORITY: 🔴🔴🔴 P0 CRITIQUE (bloque production complète)
+
+### CONTEXTE
+
+Issue #17 "Regime-Robust Validation Framework" est **1/6 tasks complete** (17%).
+
+**TASK 3 (Jordan) DONE ✅:**
+- Regime Stress Test complet (MARKDOWN/SIDEWAYS)
+- EGLD/AVAX exclus (Sharpe négatif SIDEWAYS)
+- 12 assets PROD validated
+
+**TASKS P0 RESTANTS (Alex):**
+
+#### TASK 1: CPCV Full Activation (6h)
+**Objectif:** 15 combinaisons CPCV au lieu d'un seul split walk-forward
+
+**Implementation:**
+```python
+# crypto_backtest/validation/cpcv.py (expand stub)
+class CombinatorialPurgedKFold:
+    def __init__(self, n_splits=6, n_test_splits=2, purge_gap=0, embargo_pct=0.01):
+        # C(6,2) = 15 combinaisons
+
+# Intégration avec PBO:
+# - Pour chaque combinaison: best IS strategy
+# - Measure OOS rank
+# - PBO = P(OOS_rank <= median)
+# - Threshold: PBO < 0.15 PASS, 0.15-0.30 MARGINAL, > 0.30 FAIL
+```
+
+**Deliverables:**
+- [ ] `crypto_backtest/validation/cpcv.py` full implementation
+- [ ] 15 combinations per asset
+- [ ] Purging + embargo (avoid leakage)
+- [ ] PBO integration with threshold 0.15
+- [ ] Tests: `tests/validation/test_cpcv_full.py`
+
+#### TASK 2: Regime-Stratified Walk-Forward (8h)
+**Objectif:** Chaque fold contient min 15% de chaque régime
+
+**Problème actuel:**
+- Un fold peut être 100% ACCUMULATION
+- Biais si optimization sur bull-only periods
+
+**Implementation:**
+```python
+# crypto_backtest/optimization/walk_forward.py
+def stratified_regime_split(data, regime_col, n_splits=3, min_regime_pct=0.15):
+    """
+    Ensure each fold has min 15% of ACCUMULATION, MARKDOWN, SIDEWAYS.
+
+    Returns:
+        splits: List[Tuple[train_idx, test_idx]]
+        regime_distribution: Dict per fold
+    """
+```
+
+**Deliverables:**
+- [ ] `stratified_regime_split()` function
+- [ ] Min 15% chaque régime (ACCUM/MARK/SIDE) par fold
+- [ ] Tests unitaires distribution équilibrée
+- [ ] Integration avec CPCV (TASK 1)
+- [ ] Re-run 3 assets pilotes (ETH, SHIB, DOT)
+
+### SEUILS DE VALIDATION
+
+| Metric | Threshold | Action |
+|--------|-----------|--------|
+| **PBO (CPCV)** | < 0.15 | ✅ PASS |
+| **PBO (CPCV)** | 0.15-0.30 | ⚠️ MARGINAL |
+| **PBO (CPCV)** | > 0.30 | ❌ FAIL — Asset rejeté |
+| **Regime balance** | Min 15% per regime | Required per fold |
+
+### TIMELINE
+
+| Task | Effort | ETA |
+|------|--------|-----|
+| TASK 1: CPCV Full | 6h | 27 Jan 12:00 UTC |
+| TASK 2: Regime-Stratified | 8h | 27 Jan 20:00 UTC |
+| **Total P0** | **14h** | **27 Jan EOD** |
+
+### FORMAT DE RÉPONSE
+
+```
+HHMM INPROGRESS alex-lead -> casey-quant: TASK 1 en cours
+File: crypto_backtest/validation/cpcv.py
+Progress: [X/Y steps]
+Blockers: [if any]
+```
+
+Puis:
+```
+HHMM DONE alex-lead -> casey-quant: TASK 1 terminé
+Deliverable: crypto_backtest/validation/cpcv.py (full implementation)
+Key Findings: [PBO results, seuils validation]
+Recommendation: [PASS/FAIL assets]
+```
+
+### RÉFÉRENCES
+
+**Papers:**
+- Bailey & López de Prado (2014) — "The Probability of Backtest Overfitting"
+- López de Prado (2018) — "Advances in Financial Machine Learning" Ch.7
+
+**Repos:**
+- `hudson-and-thames/mlfinlab` — CPCV reference implementation
+- `stefan-jansen/machine-learning-for-trading` — Regime-aware CV
+
+**Internal:**
+- Issue #17 — Regime-Robust Validation Framework
+- `docs/REGIME_AWARE_VALIDATION.md` — Specification
 
 ---
 

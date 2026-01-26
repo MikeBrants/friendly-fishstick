@@ -382,4 +382,4 @@ L'audit a vérifié: WFE formula ✅, Split overlap ✅, Indicator shifts ✅
 
 ---
 
-*Dernière mise à jour: 25 janvier 2026, 10:00 UTC*
+*Dernière mise à jour: 26 janvier 2026, 16:30 UTC*
