@@ -1,0 +1,2 @@
+asset,base_sharpe,guard001_p_value,guard001_pass,guard002_variance_pct,guard002_pass,guard003_sharpe_ci_lower,guard003_pass,guard005_top10_pct,guard005_pass,guard006_stress1_sharpe,guard006_pass,guard007_mismatch_pct,guard007_pass,guard_wfe,guard_wfe_pass,overfit_psr,overfit_dsr,overfit_sr_star,all_pass,error
+AR,1.933257729248,0.001,True,23.98913027466543,False,1.3837118866372535,True,30.925999506522373,True,1.6346506601063644,True,0.0,True,1.1005316962499854,True,0.997650264347053,,,False,
