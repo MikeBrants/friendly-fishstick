@@ -56,7 +56,7 @@ def run_optimization_for_displacement(
         "--optimization-mode", "baseline",
         "--trials-atr", str(trials),
         "--trials-ichi", str(trials),
-        "--displacement", str(displacement),
+        "--fixed-displacement", str(displacement),
         "--run-guards",
         "--workers", str(workers),
     ]
@@ -75,7 +75,7 @@ def run_optimization_for_displacement(
         )
         
         if result.returncode == 0:
-            print(f"✅ Optimization completed successfully")
+            print("OK Optimization completed successfully")
             return {
                 "asset": asset,
                 "displacement": displacement,
@@ -83,7 +83,7 @@ def run_optimization_for_displacement(
                 "stdout": result.stdout[-2000:] if result.stdout else "",
             }
         else:
-            print(f"❌ Optimization failed with return code {result.returncode}")
+            print(f"ERROR Optimization failed with return code {result.returncode}")
             return {
                 "asset": asset,
                 "displacement": displacement,
@@ -92,14 +92,14 @@ def run_optimization_for_displacement(
             }
             
     except subprocess.TimeoutExpired:
-        print(f"⏰ Optimization timed out after 2 hours")
+        print("ERROR Optimization timed out after 2 hours")
         return {
             "asset": asset,
             "displacement": displacement,
             "status": "timeout",
         }
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"ERROR: {e}")
         return {
             "asset": asset,
             "displacement": displacement,
@@ -215,7 +215,7 @@ def run_rescue_campaign(
         all_results[asset] = {}
         
         candidate_info = RESCUE_CANDIDATES.get(asset, {})
-        print(f"\n📦 Asset: {asset}")
+        print(f"\nAsset: {asset}")
         print(f"   Reason for rescue: {candidate_info.get('reason', 'Unknown')}")
         
         best_result = None
@@ -255,7 +255,7 @@ def run_rescue_campaign(
         
         # Summary for asset
         if best_result:
-            print(f"\n   🏆 Best result for {asset}: d{best_displacement}")
+            print(f"\n   Best result for {asset}: d{best_displacement}")
             print(f"      Sharpe: {best_result.get('sharpe_oos', 'N/A')}")
             print(f"      WFE: {best_result.get('wfe', 'N/A')}")
             print(f"      Verdict: {evaluate_rescue(best_result)}")
@@ -279,10 +279,10 @@ def run_rescue_campaign(
         
         if verdict in ["PASS", "LIKELY_PASS"]:
             rescued.append(asset)
-            print(f"✅ {asset}: RESCUED (d{best.get('displacement')})")
+            print(f"OK {asset}: RESCUED (d{best.get('displacement')})")
         else:
             failed.append(asset)
-            print(f"❌ {asset}: NOT RESCUED ({verdict})")
+            print(f"FAIL {asset}: NOT RESCUED ({verdict})")
     
     print(f"\nRescued: {len(rescued)}/{len(assets)}")
     print(f"Failed: {len(failed)}/{len(assets)}")
@@ -306,7 +306,7 @@ def run_rescue_campaign(
                     serializable[asset][k] = str(v)
         json.dump(serializable, f, indent=2, default=str)
     
-    print(f"\n📄 Results saved to: {results_file}")
+    print(f"\nResults saved to: {results_file}")
     
     return all_results
 
@@ -357,7 +357,7 @@ def main():
     )
     
     print("\n" + "="*80)
-    print("✅ PHASE 3A RESCUE COMPLETE")
+    print("OK PHASE 3A RESCUE COMPLETE")
     print("="*80)
 
 
