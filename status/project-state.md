@@ -7,6 +7,10 @@
 ## Recent Activity
 - 2026-01-26 OK TON guards run (Agent: Jordan) -> outputs/REVALIDATION_TON_guards_20260126_131616.csv
 - 2026-01-26 OK PR15 regime analysis v3 merged + fixes (Agent: Jordan) -> crypto_backtest/analysis/regime_v3.py; scripts/run_regime_analysis.py
+- 2026-01-26 OK Regime analysis v3 run (Agent: Jordan) -> outputs/regime_analysis/*.csv; reports/regime_analysis_*_20260126.md
+- 2026-01-26 OK PBO/CPCV unit tests added (Agent: Sam) -> tests/validation/test_pbo.py; tests/validation/test_cpcv.py
+- 2026-01-26 OK OSMO Phase 3A rescue d78 FAIL (Agent: Jordan) -> outputs/rescue_OSMO_d78_20260126_guards_summary_20260126_141934.csv
+- 2026-01-26 BLOCKED PBO asset validation (Agent: Sam) -> returns_matrix not tracked
 
 ---
 

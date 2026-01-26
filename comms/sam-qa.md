@@ -1,5 +1,19 @@
 # Sam (QA Validator) — Validation Log
 
+## 2026-01-26 10:34 UTC — PBO asset validation blocked (returns_matrix missing)
+
+**Status**: TODO → BLOCKED
+**Output**: None
+**Summary**: Guard-008 requires `returns_matrix` which is not tracked in the optimizer pipeline yet, so PBO asset validation (ETH/SHIB/DOT) cannot run.
+**Next**: Implement returns_matrix tracking in `parallel_optimizer.py` and plumb into `run_guards_multiasset.py`, then rerun S3/S4.
+
+## 2026-01-26 10:13 UTC — PBO/CPCV unit tests created
+
+**Status**: TODO → DONE
+**Output**: tests/validation/test_pbo.py, tests/validation/test_cpcv.py
+**Summary**: Added unit coverage for PBO and CPCV (split counts, purging/embargo, basic PBO sanity). Tests pass via `pytest tests/validation/test_pbo.py tests/validation/test_cpcv.py`.
+**Next**: Run S3/S4 asset validations (PBO on ETH/SHIB/DOT; CPCV vs walk-forward) and document QA report.
+
 **Last Updated:** 25 janvier 2026, 10:30 UTC
 **Status:** 🟡 STANDBY — En attente PBO/CPCV modules
 

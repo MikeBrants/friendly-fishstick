@@ -1,5 +1,19 @@
 # Jordan (Developer) — Task Log
 
+## 2026-01-26 10:33 UTC — OSMO Phase 3A rescue d78
+
+**Status**: TODO → DONE
+**Output**: outputs/rescue_OSMO_d78_20260126_multiasset_scan_20260126_141934.csv, outputs/rescue_OSMO_d78_20260126_guards_summary_20260126_141934.csv
+**Summary**: OSMO rescue d78 fails (OOS Sharpe 1.84, WFE 0.42; guard_wfe FAIL). d26 also failed earlier (variance 16.89%). Overall rescue unsuccessful.
+**Next**: Decide EXCLU or attempt Phase 4 filter rescue if still desired.
+
+## 2026-01-26 10:10 UTC — Regime analysis v3 run (PROD assets)
+
+**Status**: TODO → DONE
+**Output**: outputs/regime_analysis/*.csv, reports/regime_analysis_*_20260126.md
+**Summary**: Ran v3 regime analysis on all 14 PROD assets with exports enabled. Generated per-asset regime CSVs and markdown reports for review.
+**Next**: Review regime distributions for SIDEWAYS dominance and decide if guard007 needs recalibration.
+
 ## 2026-01-26 10:04 UTC — PR15 regime analysis v3 integration + fixes
 
 **Status**: TODO → DONE
