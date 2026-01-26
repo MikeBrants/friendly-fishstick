@@ -1,7 +1,7 @@
-# Workflow Dynamique — Raccourci Cursor
+# Workflow Orchestré — Raccourci Cursor
 
 ## Usage
-Dans Cursor: `@wf.md` puis une commande
+`@wf.md [commande]`
 
 ---
 
@@ -9,24 +9,49 @@ Dans Cursor: `@wf.md` puis une commande
 
 | Tape | Action |
 |------|--------|
-| `go` | Lis project-state.md → status + prochaine action |
-| `tasks` | Liste TOUTES les tâches depuis comms/*.md |
-| `[nom]` | Exécute la tâche nommée (ex: "wfe audit") |
-| `next` | Identifie et lance la prochaine tâche non-DONE |
-| `tests` | Crée tests manquants |
-| `pr` | Résumé PRs GitHub |
+| `go` | Status + prochaine action |
+| `tasks` | Liste toutes les tâches |
+| `next` | Exécute la prochaine tâche TODO |
+| `done [task]` | Marque une tâche DONE |
+
+---
+
+## RÈGLE CRITIQUE — MISE À JOUR FICHIERS
+
+**APRÈS CHAQUE ACTION**, tu DOIS mettre à jour le fichier de l'agent concerné :
+
+| Agent | Fichier à modifier |
+|-------|-------------------|
+| Casey | `comms/casey-quant.md` |
+| Alex | `comms/alex-lead.md` |
+| Jordan | `comms/jordan-dev.md` |
+| Sam | `comms/sam-qa.md` |
+
+### Format de mise à jour
+
+```markdown
+## [DATE] [HEURE] — [ACTION]
+
+**Task**: [nom de la tâche]
+**Status**: TODO → INPROGRESS / INPROGRESS → DONE / BLOCKED
+**Output**: [fichier créé ou modifié]
+**Next**: [prochaine étape ou agent suivant]
+```
 
 ---
 
 ## go
 
 ```
-ÉTAPES OBLIGATOIRES:
 1. cat status/project-state.md
-2. cat comms/casey-quant.md (si existe)
-3. Résume en 5 points max le status actuel
-4. Identifie le PREMIER item BLOQUANT ou TODO
-5. Propose la commande exacte à exécuter
+2. cat comms/casey-quant.md (orchestrateur)
+3. Résume en 5 points:
+   - Tâches DONE
+   - Tâches INPROGRESS
+   - Tâches TODO (priorité haute)
+   - Blockers
+   - Prochaine action recommandée
+4. Indique QUEL AGENT doit agir et QUEL FICHIER regarder
 ```
 
 ---
@@ -34,18 +59,17 @@ Dans Cursor: `@wf.md` puis une commande
 ## tasks
 
 ```
-ÉTAPES OBLIGATOIRES:
 1. Lis TOUS les fichiers comms/*.md
-2. Extrait chaque tâche avec son status (TODO/INPROGRESS/DONE/BLOCKED)
-3. Affiche en tableau:
+2. Extrait chaque tâche avec agent assigné
 
-| Agent | Task | Status | Priority |
-|-------|------|--------|----------|
-| alex  | WFE Audit | TODO | 🔴🔴🔴 |
-| alex  | PBO | TODO | 🔴🔴 |
-| ...   | ... | ... | ... |
+| Agent | Task | Status | Fichier |
+|-------|------|--------|---------|
+| alex | WFE Audit | TODO | comms/alex-lead.md |
+| alex | PBO | TODO | comms/alex-lead.md |
+| jordan | Tests PBO | TODO | comms/jordan-dev.md |
+| sam | Validation | TODO | comms/sam-qa.md |
 
-4. Indique laquelle est la prochaine à faire
+3. Indique la prochaine tâche et SON FICHIER
 ```
 
 ---
@@ -53,72 +77,73 @@ Dans Cursor: `@wf.md` puis une commande
 ## next
 
 ```
-ÉTAPES OBLIGATOIRES:
-1. Exécute "tasks" mentalement
-2. Trouve la première tâche:
-   - Status = TODO ou INPROGRESS
-   - Priority = la plus haute (🔴🔴🔴 > 🔴🔴 > 🔴 > 🟡)
-   - Non bloquée par une autre
-3. Charge les instructions depuis le fichier comms/ correspondant
+1. Identifie la prochaine tâche TODO (priorité max)
+2. Identifie l'AGENT assigné
+3. Charge les règles: @.cursor/rules/agents/[agent].mdc
 4. Exécute la tâche
-5. Met à jour comms/[agent].md avec le résultat
+5. ⚠️ OBLIGATOIRE: Met à jour comms/[agent].md avec:
+   - Status: INPROGRESS ou DONE
+   - Output: fichiers créés
+   - Timestamp
+6. Affiche: "→ Regarde comms/[agent].md pour le résultat"
 ```
 
 ---
 
-## [nom de tâche]
+## done [task]
 
 ```
-Exemple: @wf.md wfe audit
-
-ÉTAPES:
-1. Cherche "wfe audit" dans comms/*.md
-2. Trouve les instructions détaillées
-3. Exécute selon les specs
-4. Met à jour le fichier comms/ avec DONE ou BLOCKED
+1. Trouve la tâche dans comms/*.md
+2. Change son status → DONE
+3. Ajoute timestamp et résumé
+4. Identifie la tâche suivante
+5. Affiche: "✅ [task] DONE dans comms/[agent].md → Next: [suivante]"
 ```
 
 ---
 
-## tests
+## Mapping Agent → Responsabilités
+
+| Agent | Domaine | Tâches typiques |
+|-------|---------|-----------------|
+| **Casey** | Orchestration | Priorisation, décisions, coordination |
+| **Alex** | Lead Quant | WFE audit, PBO, CPCV, recherche |
+| **Jordan** | Dev | Code, tests, intégration pipeline |
+| **Sam** | QA | Validation guards, tests, verdicts |
+
+---
+
+## Exemple complet
 
 ```
-1. find tests/ -name "test_*.py"
-2. Lis comms/*.md pour identifier les modules créés
-3. Pour chaque module sans test → crée le test
-4. Template pytest standard
+Toi: @wf.md next
+
+Cursor:
+1. Prochaine tâche: "WFE Audit" (alex, 🔴🔴🔴)
+2. Charge @.cursor/rules/agents/alex-lead.mdc
+3. Exécute: analyse walk_forward.py:120...
+4. Crée: reports/wfe-audit-2026-01-26.md
+5. Met à jour comms/alex-lead.md:
+   
+   ## 2026-01-26 10:52 — WFE AUDIT
+   **Status**: TODO → DONE
+   **Output**: reports/wfe-audit-2026-01-26.md
+   **Finding**: WFE utilise returns au lieu de Sharpe
+   **Next**: Jordan pour fix walk_forward.py
+
+6. Affiche: "→ Regarde comms/alex-lead.md pour détails"
 ```
 
 ---
 
-## pr
+## Fichiers sources
 
-```
-1. Liste les PRs ouvertes (gh pr list ou lecture GitHub)
-2. Pour chaque: status, conflits, fichiers modifiés
-3. Recommande l'ordre de merge
-```
-
----
-
-## RÈGLES CRITIQUES
-
-1. **TOUJOURS** lire les fichiers source — ne jamais supposer
-2. **TOUJOURS** mettre à jour comms/*.md après une action
-3. **JAMAIS** hardcoder les tâches — elles viennent des fichiers
-4. Format commit: `feat|fix|docs: description`
-5. Si doute → demander
-
----
-
-## Fichiers sources de vérité
-
-| Fichier | Contenu |
-|---------|---------|
-| `status/project-state.md` | État global du projet |
+| Fichier | Rôle |
+|---------|------|
+| `status/project-state.md` | État global |
 | `comms/casey-quant.md` | Tâches orchestrateur |
 | `comms/alex-lead.md` | Tâches lead quant |
 | `comms/jordan-dev.md` | Tâches dev |
 | `comms/sam-qa.md` | Tâches QA |
 
-**Ces fichiers sont la SOURCE DE VÉRITÉ — pas ce prompt.**
+**Ces fichiers sont MIS À JOUR après chaque action.**
