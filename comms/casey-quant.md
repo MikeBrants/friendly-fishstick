@@ -1,7 +1,7 @@
 # Casey (Orchestrator) — Communication Log
 
-**Last Updated:** 25 janvier 2026, 10:30 UTC
-**Status:** 🔴 CRITICAL — WFE Audit + PBO/CPCV Initiative
+**Last Updated:** 26 janvier 2026, 16:30 UTC
+**Status:** 🟡 PORTFOLIO UPDATE — EGLD/AVAX EXCLUDED (Regime Stress FAIL)
 
 ---
 
@@ -198,6 +198,32 @@ Priority: P1 (après validation Sam)
 - Attendre confirmation Sam avant génération
 - Utiliser template baseline (pas filter mode)
 - Exporter changelog PR#8 impact
+
+---
+
+## 🚨 CRITICAL UPDATE — EGLD/AVAX EXCLUDED (26 Jan 2026, 16:30 UTC)
+
+### DÉCISION EXÉCUTIVE
+
+**EGLD et AVAX sont EXCLUS du portfolio PROD** suite au Regime Stress Test (TASK 3).
+
+**Rationale:**
+- **EGLD**: SIDEWAYS Sharpe -4.59 (60 trades, 35% win rate) — FAIL
+- **AVAX**: SIDEWAYS Sharpe -0.36 (75 trades, 25.3% win rate) — FAIL
+- **MARKDOWN**: EGLD aussi négatif (-5.15 Sharpe sur 6 trades)
+
+**Impact:**
+- Portfolio réduit: 14 → **12 assets PROD**
+- Progress: 70% → **60% du goal** (12/20)
+- Mean Sharpe: 3.17 → **3.35** (amélioration après exclusion)
+
+**Actions:**
+- ✅ `EXCLUDED_ASSETS` mis à jour dans `scan_assets.py`
+- ✅ `asset_config.py` marqué avec notes régime
+- ⏳ `project-state.md` à mettre à jour
+- ⏳ `ETAT_ACTUEL_20260126.md` à mettre à jour
+
+**Référence:** `outputs/STRESS_TEST_REPORT_20260126.md` (TASK 3 complet)
 
 ---
 

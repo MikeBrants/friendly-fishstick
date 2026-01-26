@@ -56,7 +56,9 @@
 
 ## 📊 PORTFOLIO STATUS
 
-### Assets PROD Validés (14)
+### Assets PROD Validés (12) ⚠️ UPDATED
+
+**⚠️ UPDATE 26 Jan 16:30 UTC:** EGLD et AVAX EXCLUS (Regime Stress FAIL - SIDEWAYS)
 
 | Rank | Asset | OOS Sharpe | WFE_Pardo | Mode | Status |
 |:----:|-------|------------|-----------|------|--------|
@@ -72,11 +74,16 @@
 | 10 | MINA | 2.58 | 1.13 | baseline | ✅ 7/7 |
 | 11 | CAKE | 2.46 | 0.81 | baseline | ✅ 7/7 |
 | 12 | RUNE | 2.42 | 0.61 | baseline | ✅ 7/7 |
-| 13 | EGLD | 2.13 | 0.69 | baseline | ✅ 7/7 |
-| 14 | AVAX | 2.00 | 0.66 | **moderate** | ✅ 7/7 |
+| ~~13~~ | ~~EGLD~~ | ~~2.13~~ | ~~0.69~~ | ~~baseline~~ | ❌ **EXCLUDED** (SIDEWAYS FAIL) |
+| ~~14~~ | ~~AVAX~~ | ~~2.00~~ | ~~0.66~~ | ~~**moderate**~~ | ❌ **EXCLUDED** (SIDEWAYS FAIL) |
 
-**Mean Sharpe**: 3.17  
-**Progress**: 70% du goal (14/20 assets)
+**Mean Sharpe**: 3.35 (après exclusion)  
+**Progress**: 60% du goal (12/20 assets)
+
+**Exclusion Reason:**
+- EGLD: SIDEWAYS Sharpe -4.59 (60 trades)
+- AVAX: SIDEWAYS Sharpe -0.36 (75 trades)
+- Référence: `outputs/STRESS_TEST_REPORT_20260126.md`
 
 ---
 
@@ -214,10 +221,10 @@ python scripts/run_full_pipeline.py \
 - **All assets**: WFE > 0.6 threshold ✅
 
 ### Validation Status
-- **Assets PROD**: 14 ✅
+- **Assets PROD**: 12 ✅ (EGLD, AVAX exclus 26 Jan)
 - **Assets PENDING Rescue**: 3 (OSMO, AR, METIS)
-- **Assets EXCLUDED**: 1 (OP)
-- **Progress**: 70% du goal (14/20)
+- **Assets EXCLUDED**: 3 (OP, EGLD, AVAX)
+- **Progress**: 60% du goal (12/20)
 
 ### System Status
 - **WFE Audit**: ✅ COMPLETE

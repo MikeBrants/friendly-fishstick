@@ -483,8 +483,10 @@ Avec le nouveau seuil 15%, ETH baseline passe directement **sans filter grid**:
 
 ## 📊 ASSET STATUS MATRIX
 
-### Category 1: ✅ VALIDATED PROD ASSETS (14 assets - POST-RESET 25 Jan)
+### Category 1: ✅ VALIDATED PROD ASSETS (12 assets - POST-EXCLUSION 26 Jan)
 **Status**: 🟢 **PRODUCTION READY**
+
+**⚠️ UPDATE 26 Jan 16:30 UTC:** EGLD et AVAX EXCLUS (Regime Stress FAIL - SIDEWAYS Sharpe négatif)
 
 | Rank | Asset | OOS Sharpe | WFE | Guards | Mode | Validation Date |
 |:----:|:------|:-----------|:----|:-------|:-----|:----------------|
@@ -506,9 +508,10 @@ Avec le nouveau seuil 15%, ETH baseline passe directement **sans filter grid**:
 **Notes**:
 - 6 assets re-validated with deterministic system (workers=1) on 25 Jan 2026
 - ETH migrated from OBSOLETE `medium_distance_volume` to `baseline`
-- AVAX required filter rescue: baseline FAIL → moderate PASS
-- **Mean Sharpe: 3.17**, all exceed minimum thresholds
-- **Portfolio construction READY** (14 assets)
+- AVAX required filter rescue: baseline FAIL → moderate PASS → **EXCLUDED 26 Jan** (Regime Stress)
+- EGLD excluded 26 Jan: SIDEWAYS Sharpe -4.59 (Regime Stress FAIL)
+- **Mean Sharpe: 3.35** (après exclusion), all exceed minimum thresholds
+- **Portfolio construction READY** (12 assets)
 
 ---
 

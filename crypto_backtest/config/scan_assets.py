@@ -96,7 +96,7 @@ BONUS_ASSETS = [
 VALIDATED_ASSETS = ["BTC", "ETH", "XRP", "AVAX", "UNI", "SEI"]
 
 # Assets excluded (failed guards or overfit)
-EXCLUDED_ASSETS = ["SOL", "AAVE", "SUI", "HYPE", "ATOM", "ARB", "LINK", "INJ", "TIA"]
+EXCLUDED_ASSETS = ["SOL", "AAVE", "SUI", "HYPE", "ATOM", "ARB", "LINK", "INJ", "TIA", "EGLD", "AVAX"]  # EGLD, AVAX: Regime stress FAIL (SIDEWAYS)
 
 # New assets to scan (not yet tested)
 SCAN_ASSETS = [
