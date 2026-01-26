@@ -1,7 +1,7 @@
 # Casey (Orchestrator) — Communication Log
 
-**Last Updated:** 26 janvier 2026, 16:30 UTC
-**Status:** 🟡 PORTFOLIO UPDATE — EGLD/AVAX EXCLUDED (Regime Stress FAIL)
+**Last Updated:** 26 janvier 2026, 17:00 UTC
+**Status:** ✅ REGIME STRESS INTEGRATION COMPLETE — Pipeline upgraded to 7 phases
 
 ---
 
@@ -198,6 +198,52 @@ Priority: P1 (après validation Sam)
 - Attendre confirmation Sam avant génération
 - Utiliser template baseline (pas filter mode)
 - Exporter changelog PR#8 impact
+
+---
+
+## ✅ REGIME STRESS INTEGRATION COMPLETE (26 Jan 2026, 17:00 UTC)
+
+### Mission Accomplie
+
+**Phase 2B intégrée au pipeline** avec succès:
+- Pipeline upgraded: 6 → **7 phases**
+- Guards system upgraded: 7 → **8 guards** (guard008: Regime Stress)
+- Decision tree updated: Branche Regime Stress FAIL ajoutée
+- Workflow rules updated: MASTER_PLAN.mdc, global-quant.mdc, workflow.mdc
+
+### Fichiers Modifiés
+
+| Fichier | Changement | Status |
+|---------|------------|--------|
+| `.cursor/rules/MASTER_PLAN.mdc` | Phase 2B + guard008 + decision tree | ✅ DONE |
+| `.cursor/rules/global-quant.mdc` | Guard008 section complète | ✅ DONE |
+| `.cursor/rules/workflow.mdc` | Pipeline 7 phases | ✅ DONE |
+| `comms/casey-quant.md` | Documentation décision | ✅ DONE |
+| `status/project-state.md` | Portfolio 12 assets | ✅ DONE |
+| `ETAT_ACTUEL_20260126.md` | Stats mises à jour | ✅ DONE |
+| `crypto_backtest/config/scan_assets.py` | EXCLUDED_ASSETS updated | ✅ DONE |
+
+### Commits
+
+| Commit | Description |
+|--------|-------------|
+| `d934f0e` | fix: exclude EGLD and AVAX from PROD |
+| `0b70ea6` | feat: integrate regime stress test as Phase 2B (guard008) |
+
+**Push**: ✅ Réussi vers `origin/main`
+
+### Portfolio Impact
+
+**Avant exclusion:**
+- 14 assets PROD
+- Mean Sharpe: 3.17
+
+**Après exclusion:**
+- **12 assets PROD**
+- Mean Sharpe: **3.35** (amélioration)
+- Progress: 60% du goal (12/20)
+
+**Quality improvement:** Exclusion des assets underperformant sur SIDEWAYS améliore la qualité globale.
 
 ---
 
