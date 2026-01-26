@@ -1,7 +1,93 @@
 # Jordan (Developer) — Task Log
 
-**Last Updated:** 25 janvier 2026, 10:30 UTC
-**Status:** 🟡 STANDBY — En attente résultat WFE Audit
+**Last Updated:** 25 janvier 2026, 20:10 UTC  
+**Status:** 🟡 AWAITING DECISION — Batch 1 complete (0 PASS), options ready
+
+---
+
+## 📊 SESSION COMPLETE — Phase 1 Batch 1 + MATIC Rescue (25 Jan 2026, 17:50-20:10 UTC)
+
+**Duration:** 2h20  
+**Result:** 0 nouveaux assets ❌  
+**Portfolio:** Stable à 11 assets PROD (55% du goal)
+
+### ✅ COMPLETED TASKS
+
+#### 1. Phase 1 Batch 1 Screening (17:50-18:05 UTC)
+**Assets:** 15 (Tier 1/2/3)  
+**Duration:** 16 minutes  
+**Phase 1 PASS:** 2 assets (ADA, FIL)  
+**Phase 2 PASS:** 0 assets
+
+**ADA FAIL:**
+- OOS Sharpe: 1.92, WFE: 0.61
+- Guards: 4/7 PASS (variance 19.38%, CI 0.79, stress 0.95)
+- File: `outputs/phase2_validation_batch1_20260125_guards_summary_*.csv`
+
+**FIL FAIL (overfitting):**
+- Phase 1 (150 trials): Sharpe 1.98
+- Phase 2 (300 trials): Sharpe -0.22 ❌
+- Classic overfitting paradox revealed
+
+#### 2. MATIC/POL Data Rescue (18:55-20:05 UTC)
+**Issue:** MATIC token renamed to POL in Sept 2024  
+**Fix:** Downloaded POL + merged with legacy MATIC  
+**Dataset:** 17,441 bars (5,458 MATIC + 11,983 POL)
+
+**Technical Challenges:**
+1. ✅ Token rename discovered (user insight)
+2. ✅ Downloaded POL data from Binance
+3. ✅ Merged datasets (80h gap acceptable)
+4. ✅ Fixed file naming (`MATIC_1H.parquet`)
+5. ✅ Fixed `--skip-download` usage
+6. ✅ Corrected old file overwrite issue
+
+**Result — FAIL CATASTROPHIQUE:**
+- Phase 1 (5,459 bars): Sharpe 6.84 🔥
+- Phase 2 (17,441 bars): Sharpe -1.44 ❌
+- Delta: -8.28 Sharpe (severe overfitting on small sample)
+- File: `outputs/matic_final_20260125_multiasset_scan_*.csv`
+
+**Conclusion:** Le Sharpe 6.84 initial était un artifact d'overfitting sévère.
+
+### 📋 DOCUMENTATION CRÉÉE
+- `PHASE1_BATCH1_RESULTS.md` — Batch 1 analysis
+- `MATIC_POL_RESCUE.md` — Data merge process
+- `MATIC_FINAL_RUN.md` — Complete dataset run
+- `BATCH1_FINAL_SUMMARY.md` — Overview
+- `SESSION_SUMMARY_20260125.md` — Full session recap
+- `merge_matic_pol.py` — Merge script
+
+### 🎓 LESSONS LEARNED
+1. Blue chips (BNB, LTC, XRP) underperform vs mid-caps
+2. More optimization can reveal overfitting (FIL paradox)
+3. Small sample (< 8k bars) = red flag for high Sharpe
+4. Data quality critical (token migrations cause issues)
+5. Phase 1 needs 200 trials (not 150) to reduce false positives
+
+### 🎯 NEXT OPTIONS (PENDING USER DECISION)
+
+**Option A: Batch 2 Screening (Tier 3/4)** 🟢 RECOMMENDED
+- Assets: VET, MKR, ALGO, FTM, SAND, MANA, GALA, FLOW (15)
+- Duration: 20-30 min
+- Expected: 2-3 PASS
+- Improvements: 200 trials Phase 1, data pre-screening
+
+**Option B: Rescue AVAX/ADA** ⚠️
+- AVAX: Sharpe 2.22, WFE 0.52 (close to 0.6)
+- ADA: Variance 19.38% (4.38% above 15%)
+- Duration: 2-3h per asset
+- Probability: 30-40% success
+
+**Option C: Adjust Thresholds** 📊
+- Guard002: 15% → 18% (rescue ADA)
+- WFE: 0.6 → 0.55 (rescue AVAX)
+- Impact: +1-2 assets immediate
+- Risk: Lower quality bar
+
+**Option D: Stop for Today** ⏸️
+- Rationale: 0/17 assets today, need strategy review
+- Next: Fresh start tomorrow
 
 ---
 
