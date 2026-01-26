@@ -1,7 +1,7 @@
-# Workflow Orchestré — Raccourci Cursor
+# Workflow Dynamique — Raccourci Cursor
 
-## Usage rapide
-Dans Cursor: `@wf.md` puis "go" ou numéro de tâche
+## Usage
+Dans Cursor: `@wf.md` puis une commande
 
 ---
 
@@ -9,81 +9,73 @@ Dans Cursor: `@wf.md` puis "go" ou numéro de tâche
 
 | Tape | Action |
 |------|--------|
-| `go` | Status complet + prochaine action |
-| `0` | TASK 0: WFE Audit (BLOQUANT) |
-| `1` | TASK 1: PBO Implementation |
-| `2` | TASK 2: CPCV Implementation |
-| `3` | TASK 3: Regime Guards (indicatifs) |
-| `tests` | Créer tests unitaires manquants |
-| `pr` | Résumé PRs + conflits |
+| `go` | Lis project-state.md → status + prochaine action |
+| `tasks` | Liste TOUTES les tâches depuis comms/*.md |
+| `[nom]` | Exécute la tâche nommée (ex: "wfe audit") |
+| `next` | Identifie et lance la prochaine tâche non-DONE |
+| `tests` | Crée tests manquants |
+| `pr` | Résumé PRs GitHub |
 
 ---
 
 ## go
 
 ```
+ÉTAPES OBLIGATOIRES:
 1. cat status/project-state.md
-2. Résume en 5 points max
-3. Identifie le PREMIER blocker
-4. Propose la commande exacte à exécuter
+2. cat comms/casey-quant.md (si existe)
+3. Résume en 5 points max le status actuel
+4. Identifie le PREMIER item BLOQUANT ou TODO
+5. Propose la commande exacte à exécuter
 ```
 
 ---
 
-## 0 — WFE Audit
+## tasks
 
 ```
-Fichier: reports/wfe-audit-2026-01-25.md
+ÉTAPES OBLIGATOIRES:
+1. Lis TOUS les fichiers comms/*.md
+2. Extrait chaque tâche avec son status (TODO/INPROGRESS/DONE/BLOCKED)
+3. Affiche en tableau:
 
-Analyse crypto_backtest/optimization/walk_forward.py:120
-- Le calcul utilise-t-il returns ou Sharpe?
-- Pourquoi multiplication par 100?
-- Compare avec définition Pardo (OOS_Sharpe / IS_Sharpe)
+| Agent | Task | Status | Priority |
+|-------|------|--------|----------|
+| alex  | WFE Audit | TODO | 🔴🔴🔴 |
+| alex  | PBO | TODO | 🔴🔴 |
+| ...   | ... | ... | ... |
 
-Output: diagnostic + recommandation FIX/KEEP
-```
-
----
-
-## 1 — PBO
-
-```
-Fichier: crypto_backtest/validation/pbo.py (existe déjà)
-
-Actions:
-1. Valider le code stub existant
-2. Créer tests/validation/test_pbo.py
-3. Tester sur ETH, SHIB, DOT
-
-Seuils: <0.15 PASS | 0.15-0.30 MARGINAL | >0.30 FAIL
+4. Indique laquelle est la prochaine à faire
 ```
 
 ---
 
-## 2 — CPCV
+## next
 
 ```
-Fichier: crypto_backtest/validation/cpcv.py (existe déjà)
-
-Actions:
-1. Valider le code stub existant
-2. Créer tests/validation/test_cpcv.py
-3. Comparer avec Walk-Forward actuel
+ÉTAPES OBLIGATOIRES:
+1. Exécute "tasks" mentalement
+2. Trouve la première tâche:
+   - Status = TODO ou INPROGRESS
+   - Priority = la plus haute (🔴🔴🔴 > 🔴🔴 > 🔴 > 🟡)
+   - Non bloquée par une autre
+3. Charge les instructions depuis le fichier comms/ correspondant
+4. Exécute la tâche
+5. Met à jour comms/[agent].md avec le résultat
 ```
 
 ---
 
-## 3 — Regime Guards
+## [nom de tâche]
 
 ```
-Fichiers à créer:
-- crypto_backtest/analysis/regime_detector.py
-- crypto_backtest/validation/indicative_guards.py
-- tests/test_regime_detector.py
+Exemple: @wf.md wfe audit
 
-IMPORTANT: blocks_validation=False TOUJOURS
-
-Voir: docs/REGIME_AWARE_GUARDS_IMPLEMENTATION.md
+ÉTAPES:
+1. Cherche "wfe audit" dans comms/*.md
+2. Trouve les instructions détaillées
+3. Exécute selon les specs
+4. Met à jour le fichier comms/ avec DONE ou BLOCKED
 ```
 
 ---
@@ -91,19 +83,10 @@ Voir: docs/REGIME_AWARE_GUARDS_IMPLEMENTATION.md
 ## tests
 
 ```
-Fichiers manquants:
-- tests/validation/test_pbo.py
-- tests/validation/test_cpcv.py
-- tests/test_regime_detector.py
-- tests/test_indicative_guards.py
-
-Template:
-import pytest
-from crypto_backtest.validation.X import Y
-
-def test_Y_basic():
-    result = Y(...)
-    assert result...
+1. find tests/ -name "test_*.py"
+2. Lis comms/*.md pour identifier les modules créés
+3. Pour chaque module sans test → crée le test
+4. Template pytest standard
 ```
 
 ---
@@ -111,16 +94,31 @@ def test_Y_basic():
 ## pr
 
 ```
-1. gh pr list
-2. Pour chaque PR ouverte: status, conflits, reviewers
+1. Liste les PRs ouvertes (gh pr list ou lecture GitHub)
+2. Pour chaque: status, conflits, fichiers modifiés
 3. Recommande l'ordre de merge
 ```
 
 ---
 
-## Règles
+## RÈGLES CRITIQUES
 
-- TOUJOURS lire project-state.md AVANT toute action
-- TOUJOURS mettre à jour comms/[agent].md APRÈS complétion
-- Format commit: `feat|fix|docs: description courte`
-- Si doute → demander plutôt que deviner
+1. **TOUJOURS** lire les fichiers source — ne jamais supposer
+2. **TOUJOURS** mettre à jour comms/*.md après une action
+3. **JAMAIS** hardcoder les tâches — elles viennent des fichiers
+4. Format commit: `feat|fix|docs: description`
+5. Si doute → demander
+
+---
+
+## Fichiers sources de vérité
+
+| Fichier | Contenu |
+|---------|---------|
+| `status/project-state.md` | État global du projet |
+| `comms/casey-quant.md` | Tâches orchestrateur |
+| `comms/alex-lead.md` | Tâches lead quant |
+| `comms/jordan-dev.md` | Tâches dev |
+| `comms/sam-qa.md` | Tâches QA |
+
+**Ces fichiers sont la SOURCE DE VÉRITÉ — pas ce prompt.**
