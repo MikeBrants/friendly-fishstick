@@ -24,6 +24,8 @@ sys.path.insert(0, str(PROJECT_ROOT))
 import pandas as pd
 import numpy as np
 
+from crypto_backtest.optimization.parallel_optimizer import load_data
+
 # PROD assets list (14 validated assets)
 PROD_ASSETS = [
     "SHIB", "DOT", "TIA", "NEAR", "DOGE", "ANKR", "ETH",
@@ -51,26 +53,7 @@ WFE_TIERS = {
 
 def load_ohlcv_data(asset: str) -> pd.DataFrame:
     """Load OHLCV data for an asset."""
-    data_path = PROJECT_ROOT / "data" / f"{asset}_USDT_1h.parquet"
-    
-    if not data_path.exists():
-        # Try alternative path
-        data_path = PROJECT_ROOT / "data" / f"{asset}USDT_1h.parquet"
-    
-    if not data_path.exists():
-        raise FileNotFoundError(f"Data file not found for {asset}")
-    
-    df = pd.read_parquet(data_path)
-    
-    # Ensure required columns
-    required_cols = ["open", "high", "low", "close", "volume"]
-    df.columns = df.columns.str.lower()
-    
-    for col in required_cols:
-        if col not in df.columns:
-            raise ValueError(f"Missing required column: {col}")
-    
-    return df
+    return load_data(asset, data_dir=str(PROJECT_ROOT / "data"))
 
 
 def analyze_single_asset(asset: str, use_hmm: bool = True) -> dict:
@@ -208,7 +191,7 @@ def run_prod_analysis(assets: list, use_hmm: bool = True, export: bool = True) -
             stats = analyze_single_asset(asset, use_hmm=use_hmm)
             results.append(stats)
         except Exception as e:
-            print(f"\n❌ Error analyzing {asset}: {e}")
+            print(f"\nERROR analyzing {asset}: {e}")
             results.append({
                 "asset": asset,
                 "error": str(e),
@@ -250,12 +233,12 @@ def run_prod_analysis(assets: list, use_hmm: bool = True, export: bool = True) -
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         output_path = output_dir / f"regime_v3_prod_analysis_{timestamp}.csv"
         df_results.to_csv(output_path, index=False)
-        print(f"\n✅ Results exported to: {output_path}")
+        print(f"\nOK Results exported to: {output_path}")
         
         # Generate markdown report
         report_path = output_dir / f"regime_v3_prod_analysis_{timestamp}.md"
         generate_markdown_report(df_results, report_path)
-        print(f"✅ Report exported to: {report_path}")
+        print(f"OK Report exported to: {report_path}")
     
     return df_results
 
@@ -309,9 +292,9 @@ def generate_markdown_report(df: pd.DataFrame, output_path: Path):
         
         # Check thresholds
         if valid.mean() >= 70:
-            report += "✅ **SIDEWAYS distribution healthy** — Mean above 70% threshold\n"
+            report += "**SIDEWAYS distribution healthy** - mean above 70% threshold\n"
         else:
-            report += "⚠️ **SIDEWAYS distribution below target** — Consider filter adjustments\n"
+            report += "**SIDEWAYS distribution below target** - consider filter adjustments\n"
     
     report += f"""
 ---
@@ -377,7 +360,7 @@ def main():
     )
     
     print("\n" + "="*80)
-    print("✅ REGIME ANALYSIS COMPLETE")
+    print("OK REGIME ANALYSIS COMPLETE")
     print("="*80)
 
 

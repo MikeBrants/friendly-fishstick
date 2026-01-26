@@ -1,5 +1,12 @@
 # Jordan (Developer) — Task Log
 
+## 2026-01-26 15:12 UTC — Regime v3 PROD validation run
+
+**Status**: TODO → DONE
+**Output**: reports/regime_v3_prod_analysis_20260126_151129.csv; reports/regime_v3_prod_analysis_20260126_151129.md
+**Summary**: Ran PROD regime v3 validation on all 14 assets using run_regime_prod_analysis.py. SIDEWAYS mean 25.3% (min 16.9%, max 39.0%), far below the 70% target; no assets meet the old SIDEWAYS threshold.
+**Next**: Decide whether guard007 thresholds or regime definitions need recalibration before further validation.
+
 ## 2026-01-26 14:55 UTC — returns_matrix tracking for PBO
 
 **Status**: TODO → DONE
