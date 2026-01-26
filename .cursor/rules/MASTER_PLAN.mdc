@@ -12,11 +12,27 @@ alwaysApply: true
 
 ---
 
+## ⚠️ RÈGLES DE MISE À JOUR
+
+**CE FICHIER EST STABLE** — Modifier uniquement si:
+- Changement de seuil validé par tests scientifiques
+- Nouveau guard ajouté/retiré (avec PR approuvée)
+- Correction d'erreur documentée
+
+**NE PAS MODIFIER:**
+- Tableau PARAMÈTRES sans validation scientifique
+- Seuils guards sans PR approuvée
+- Anti-patterns (règles fixes)
+
+**OWNER:** Alex (Lead Quant) — Approbation requise pour tout changement
+
+---
+
 ## 📊 PARAMÈTRES PIPELINE (Source Unique)
 
 | Phase | Nom | Workers | Trials | Guards | Seuils |
 |:-----:|-----|:-------:|:------:|:------:|--------|
-| **1** | Screening | **10** | 200 | OFF | WFE>0.5, Sharpe>0.5, Trades>50 |
+| **1** | Screening | **10** | 200 | OFF | WFE>0.5, Sharpe>0.5, Trades>50, **SHORT 25-75%** |
 | **2** | Validation | **1** | 300 | ON (11) | WFE>0.6, Sharpe>1.0, Trades>60 |
 | **3** | Rescue | **1** | 300 | ON (11) | 7/7 hard PASS |
 | **4** | Signal Parity | - | - | - | 100% Python/Pine match |
@@ -146,7 +162,7 @@ baseline FAIL → moderate → conservative → EXCLU
 ## 📁 FICHIERS RÉFÉRENCE
 
 | Fichier | Contenu |
-|---------|---------|
+|---------|--------|
 | `status/project-state.md` | État actuel (assets, progression) |
 | `docs/WORKFLOW_PIPELINE.md` | Commandes par phase |
 | `.cursor/rules/MASTER_PLAN.mdc` | **CE FICHIER** (règles, params) |
@@ -166,5 +182,5 @@ baseline FAIL → moderate → conservative → EXCLU
 
 ---
 
-**Version**: 2.0 (26 Jan 2026)
-**Dernière refonte**: Consolidation post-PR#20
+**Version**: 2.1 (26 Jan 2026)
+**Dernière MAJ**: Ajout règles MAJ + SHORT ratio
