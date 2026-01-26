@@ -127,7 +127,7 @@ PIPELINE_STEPS = [
     {"id": 1, "name": "Data", "icon": "📥", "status_key": "data_loaded"},
     {"id": 2, "name": "Optimize", "icon": "⚡", "status_key": "optimized"},
     {"id": 3, "name": "Guards", "icon": "🛡️", "status_key": "guards_complete"},
-    {"id": 4, "name": "Validate", "icon": "✅", "status_key": "validated"},
+    {"id": 4, "name": "Validate", "icon": "[OK]", "status_key": "validated"},
     {"id": 5, "name": "Deploy", "icon": "🚀", "status_key": "deployed"},
 ]
 

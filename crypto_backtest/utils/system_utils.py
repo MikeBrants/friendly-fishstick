@@ -35,7 +35,7 @@ def check_storage_warning() -> tuple[bool, str]:
     free_gb = free / (1024**3)
 
     if used_pct > 90:
-        return True, f"⚠️ Stockage critique: {used_pct:.0f}% utilisé ({free_gb:.1f} GB libre)"
+        return True, f"[WARN] Stockage critique: {used_pct:.0f}% utilise ({free_gb:.1f} GB libre)"
     return False, f"Stockage OK: {free_gb:.1f} GB libre"
 
 

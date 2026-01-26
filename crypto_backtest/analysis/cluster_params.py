@@ -264,10 +264,10 @@ def run_full_analysis(scan_results_path: str, n_clusters: int = None) -> Dict:
     loss_path = f"outputs/cluster_param_loss_{timestamp}.csv"
     loss_df.to_csv(loss_path, index=False)
 
-    print(f"\n✓ Exported: {json_path}")
-    print(f"✓ Exported: {config_path}")
-    print(f"✓ Exported: {latest_config_path}")
-    print(f"✓ Exported: {loss_path}")
+    print(f"\n[OK] Exported: {json_path}")
+    print(f"[OK] Exported: {config_path}")
+    print(f"[OK] Exported: {latest_config_path}")
+    print(f"[OK] Exported: {loss_path}")
 
     return cluster_info
 
