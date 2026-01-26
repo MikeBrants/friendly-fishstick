@@ -1,0 +1,17 @@
+GUARDS VALIDATION REPORT: TON
+======================================================================
+GUARD-001 Monte Carlo p-value: 0.0030 -> PASS
+GUARD-002 Sensitivity variance: 25.04% -> FAIL
+GUARD-003 Bootstrap Sharpe CI lower: -0.92 -> FAIL
+GUARD-005 Trade distribution top10: 124.68% -> FAIL
+GUARD-006 Stress1 Sharpe: 0.08 -> FAIL
+GUARD-007 Regime reconciliation mismatch: 0.00% -> PASS
+GUARD-008 PBO (Probability of Backtest Overfitting): n/a -> PASS
+GUARD-WFE: 1.21 -> PASS
+----------------------------------------------------------------------
+OVERFITTING (report-only):
+PSR (P[SR>0]): 0.7918
+DSR (deflated): 0.0482
+SR* (deflated threshold): 0.0220
+----------------------------------------------------------------------
+ALL PASS: NO

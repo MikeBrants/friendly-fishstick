@@ -1,0 +1,2 @@
+asset,base_sharpe,guard001_p_value,guard001_pass,guard002_variance_pct,guard002_pass,guard003_sharpe_ci_lower,guard003_pass,guard005_top10_pct,guard005_pass,guard006_stress1_sharpe,guard006_pass,guard007_mismatch_pct,guard007_pass,guard008_pbo,guard008_pass,guard_wfe,guard_wfe_pass,overfit_psr,overfit_dsr,overfit_sr_star,all_pass,error
+OSMO,2.991692320794798,0.0,True,16.892748812835382,False,3.183861961658678,True,21.74823217192811,True,2.166904873102414,True,0.0,True,,True,,False,0.9999980588745789,,,False,

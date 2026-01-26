@@ -1,7 +1,15 @@
 # Jordan (Developer) — Task Log
 
-**Last Updated:** 25 janvier 2026, 20:10 UTC  
-**Status:** 🟡 AWAITING DECISION — Batch 1 complete (0 PASS), options ready
+## 2026-01-26 13:30 UTC — TON guards run
+
+**Task**: jordan-1 (TON guards)
+**Status**: TODO -> DONE
+**Output**: outputs/REVALIDATION_TON_guards_20260126_131616.csv
+**Summary**: TON fails guards (variance 25.04%, CI lower -0.92, top10 124.68%, stress Sharpe 0.08); all_pass False.
+**Next**: Update status/project-state.md and decide whether to exclude TON or attempt rescue.
+
+**Last Updated:** 26 janvier 2026, 13:30 UTC  
+**Status:** 🟡 AWAITING DECISION — TON guards complete, next action pending
 
 ---
 
