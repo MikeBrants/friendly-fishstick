@@ -1,5 +1,33 @@
 # Jordan (Developer) — Task Log
 
+## 2026-01-26 16:50 UTC — Git Push: TASK 3 + Data Correction
+
+**Status**: DONE  
+**Action**: Committed and pushed to origin/main
+
+**Commit**: 2048c19
+```
+feat: Issue #17 TASK 3 complete - Regime stress test + data correction
+
+- NEW: scripts/run_regime_stress_test.py
+- Tested 14 assets on MARKDOWN and SIDEWAYS regimes  
+- Results: 12/14 PASS SIDEWAYS, EGLD/AVAX FAIL
+- Fixed obsolete 79.5% SIDEWAYS data in 6 files
+- Documentation: STRESS_TEST_REPORT + REGIME_DATA_CORRECTION
+```
+
+**Files committed** (11 files, 881 insertions):
+- scripts/run_regime_stress_test.py (NEW)
+- REGIME_DATA_CORRECTION_20260126.md (NEW)
+- outputs/STRESS_TEST_REPORT_20260126.md (NEW)
+- outputs/stress_test_*.csv (2 files)
+- .cursor/rules/*.mdc (2 files)
+- comms/jordan-dev.md, status/project-state.md, CLAUDE.md, alex.md
+
+**Next**: Attente Casey review EGLD/AVAX
+
+---
+
 ## 2026-01-26 16:45 UTC — Correction: Données Régime Obsolètes
 
 **Status**: TODO -> DONE  
