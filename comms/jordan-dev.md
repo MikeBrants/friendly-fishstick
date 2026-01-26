@@ -1,5 +1,12 @@
 # Jordan (Developer) — Task Log
 
+## 2026-01-26 10:04 UTC — PR15 regime analysis v3 integration + fixes
+
+**Status**: TODO → DONE
+**Output**: crypto_backtest/analysis/regime_v3.py, scripts/run_regime_analysis.py, tests/test_regime_v3.py
+**Summary**: Merged PR15 (regime analysis v3 + runner + tests). Fixed data loader to use `data/*_1H.parquet` and clamped position sizing to min/max on final size; pytest tests/test_regime_v3.py passes.
+**Next**: Run `python scripts/run_regime_analysis.py --all-prod --export-stats --export-report` and log outputs.
+
 ## 2026-01-26 13:30 UTC — TON guards run
 
 **Task**: jordan-1 (TON guards)

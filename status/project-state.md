@@ -5,7 +5,8 @@
 **Status**: 🟢 7/7 SUSPECT ASSETS VALIDATED (Period effect confirmed, WFE DUAL deployed)
 
 ## Recent Activity
-- 2026-01-26 ? TON guards run (Agent: Jordan) ? outputs/REVALIDATION_TON_guards_20260126_131616.csv
+- 2026-01-26 OK TON guards run (Agent: Jordan) -> outputs/REVALIDATION_TON_guards_20260126_131616.csv
+- 2026-01-26 OK PR15 regime analysis v3 merged + fixes (Agent: Jordan) -> crypto_backtest/analysis/regime_v3.py; scripts/run_regime_analysis.py
 
 ---
 
