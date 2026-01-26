@@ -6,420 +6,165 @@ alwaysApply: true
 
 # MASTER PLAN — FINAL TRIGGER v2
 
-## Vision
-
-Systeme de trading quant crypto valide statistiquement, deploye via pipeline multi-agent semi-autonome.
-
-## Etat Actuel (2026-01-25 15:45 UTC)
-
-| Metrique | Valeur |
-|----------|--------|
-| Assets PROD | **14** |
-| Assets Pending Rescue | 3 (OSMO, AR, METIS) |
-| Assets Exclus | 20+ |
-| Bug TP | RESOLU |
-| Filter System | v2 (baseline/moderate/conservative) |
-
-## CUTOFF DATE
-
-**2026-01-22 12:00 UTC** — Tout resultat anterieur est INVALIDE (bug TP non-progressif).
-**2026-01-25** — Reset complet avec systeme deterministe (workers=1).
-
-### Assets PROD (8/8 Guards PASS) — 12 assets ⚡ UPDATED 26 Jan
-
-| Asset | Mode | Disp | OOS Sharpe | WFE | Validation |
-|:------|:-----|:-----|:-----------|:----|:-----------|
-| SHIB | baseline | 52 | 5.67 | 2.27 | Pre-reset |
-| TIA | baseline | 52 | 5.16 | 1.36 | PR#8 |
-| DOT | baseline | 52 | 4.82 | 1.74 | Pre-reset |
-| NEAR | baseline | 52 | 4.26 | 1.69 | Pre-reset |
-| DOGE | baseline | 26 | 3.88 | 1.55 | Pre-reset |
-| ANKR | baseline | 52 | 3.48 | 0.86 | Pre-reset |
-| ETH | baseline | 52 | 3.22 | 1.22 | **25 Jan reset** |
-| JOE | baseline | 26 | 3.16 | 0.73 | Pre-reset |
-| YGG | baseline | 52 | 3.11 | 0.78 | **25 Jan reset** |
-| MINA | baseline | 52 | 2.58 | 1.13 | **25 Jan reset** |
-| CAKE | baseline | 52 | 2.46 | 0.81 | PR#8 |
-| RUNE | baseline | 52 | 2.42 | 0.61 | **25 Jan reset** |
-| ~~EGLD~~ | ~~baseline~~ | ~~52~~ | ~~2.13~~ | ~~0.69~~ | **26 Jan EXCLU** (SIDEWAYS -4.59) |
-| ~~AVAX~~ | ~~moderate~~ | ~~52~~ | ~~2.00~~ | ~~0.66~~ | **26 Jan EXCLU** (SIDEWAYS -0.36) |
-
-### Assets Pending Rescue (Phase 3A required)
-
-| Asset | Sharpe | WFE | Reason | Action |
-|:------|:-------|:----|:-------|:-------|
-| OSMO | 0.68 | 0.19 | Severe overfit | Try d26/d78 |
-| AR | 1.64 | 0.39 | WFE + low trades | Try d26/d78 |
-| METIS | 1.59 | 0.48 | WFE fail | Try d26/d78 |
-
-### Assets Exclus (Definitif)
-
-**Low sample/outlier:** APT, EIGEN, ONDO, HMSTR, LOOM, ALICE, HOOK
-
-**FAIL guards + variants epuises:** SEI, AXS, TON, SOL, AAVE, HYPE, ATOM, ARB, LINK, INJ
-
-**Severe fail (25 Jan reset):** OP (Sharpe 0.03, WFE 0.01)
-
-## Objectif Q1 2026
-
-Valider 20+ assets en PROD avec 8/8 guards (incluant Regime Stress), prets pour paper trading.
-
-**Progress actuel:** 12/20 assets (60%)
-**Progres: 14/20 (70%)**
+> **Source de vérité pour les RÈGLES et PARAMÈTRES.**
+> Pour l'état du projet → `status/project-state.md`
+> Pour les commandes → `docs/WORKFLOW_PIPELINE.md`
 
 ---
 
-## ARCHITECTURE AGENTS
+## 📊 PARAMÈTRES PIPELINE (Source Unique)
 
-| Agent | Role | Decide | Ne decide PAS |
-|-------|------|--------|---------------|
-| Casey | Orchestrateur | Priorites, verdicts finaux | Implementation |
-| Jordan | Developer | Fixes techniques | Validation stats |
-| Sam | QA | Guards PASS/FAIL | Priorites business |
+| Phase | Nom | Workers | Trials | Guards | Seuils |
+|:-----:|-----|:-------:|:------:|:------:|--------|
+| **1** | Screening | **10** | 200 | OFF | WFE>0.5, Sharpe>0.5, Trades>50 |
+| **2** | Validation | **1** | 300 | ON (11) | WFE>0.6, Sharpe>1.0, Trades>60 |
+| **3** | Rescue | **1** | 300 | ON (11) | 7/7 hard PASS |
+| **4** | Signal Parity | - | - | - | 100% Python/Pine match |
+| **5** | Portfolio | - | - | - | Corrélations <0.5 |
+| **6** | Production | - | - | - | Reproductibilité 2 runs |
 
-### Communication
+### Displacements Valides
 
-```
-Casey assigne -> Jordan execute -> Sam valide -> Casey verdict
-         ^___________________________________________|
+| Displacement | Usage |
+|:------------:|-------|
+| d26 | Meme/fast (DOGE, SHIB, JOE) |
+| d52 | Standard (BTC, ETH, majeurs) |
+| d78 | L2/slow (OP, ARB) |
+
+### Filter Modes
+
+| Mode | Filtres | Trades min | WFE min |
+|------|:-------:|:----------:|:-------:|
+| baseline | 1 | 60 | 0.6 |
+| moderate | 5 | 50 | 0.6 |
+| conservative | 7 | 40 | 0.55 |
+
+---
+
+## 🛡️ 11 GUARDS
+
+### 7 Hard Guards (MUST PASS)
+
+| # | Guard | Seuil |
+|:-:|-------|-------|
+| 1 | WFE Pardo | >0.6 |
+| 2 | Sensitivity | <15% |
+| 3 | Bootstrap CI | >1.0 |
+| 4 | Monte Carlo | p<0.05 |
+| 5 | Top10 Concentration | <40% |
+| 6 | Trades OOS | ≥60 |
+| 7 | Bars IS | ≥8000 |
+
+### 4 Soft Guards (Report + Rescue if FAIL)
+
+| # | Guard | Seuil |
+|:-:|-------|-------|
+| 8 | PBO | <0.50 |
+| 9 | DSR | >85% |
+| 10 | CPCV | >0.8 all folds |
+| 11 | PSR | >95% |
+
+---
+
+## ⛔ ANTI-PATTERNS (JAMAIS)
+
+### 1. Look-Ahead Bias
+```python
+signal = indicator.shift(1)  # ✅ TOUJOURS
+signal = indicator           # ❌ INTERDIT
 ```
 
-## BOUCLE AUTONOME (pattern Cursor)
+### 2. TP Non-Progressif
+```python
+assert tp1 < tp2 < tp3
+assert (tp2 - tp1) >= 0.5 and (tp3 - tp2) >= 0.5
+```
 
-Chaque agent applique ce cycle:
-1. Lire `comms/*.md` pour nouvelles taches/resultats
-2. Executer son action
-3. Ecrire output dans son fichier `comms/[agent].md`
-4. Relire `comms/*.md` apres 30s
-5. Repeter jusqu'a `[CYCLE COMPLETE]` ou timeout 2h
+### 3. Regime sur Exit Time
+```python
+regime = get_regime_at(entry_time)  # ✅ CORRECT
+regime = get_regime_at(exit_time)   # ❌ INTERDIT
+```
 
-**Anti-race:** Un seul agent ecrit dans son propre fichier. Lecture = tous.
+### 4. Résultats Suspects → CHALLENGER
+- Sharpe > 4.0 → Reconciliation obligatoire
+- WFE > 2.0 → Vérifier overfitting
 
-### Fichiers Cles
-
-| Fichier | Fonction | Owner |
-|---------|----------|-------|
-| status/project-state.md | Source de verite dynamique | Casey |
-| comms/casey-quant.md | Taches et verdicts | Casey |
-| comms/jordan-dev.md | Runs et outputs | Jordan |
-| comms/sam-qa.md | Validations guards | Sam |
-
----
-
-## REGLES ABSOLUES
-
-### 7 Guards (tous obligatoires)
-
-| Guard | ID | Seuil | Critique |
-|-------|:---|-------|----------|
-| MC p-value | guard001 | < 0.05 | OUI |
-| Sensitivity variance | guard002 | < 15% | OUI |
-| Bootstrap CI lower | guard003 | > 1.0 | OUI |
-| (obsolete) | guard004 | - | Retire: remplace par guard003 |
-| Top10 trades % | guard005 | < 40% | OUI |
-| Stress1 Sharpe | guard006 | > 1.0 | OUI |
-| Regime mismatch | guard007 | < 1% | OUI |
-| WFE | - | > 0.6 | OUI |
-
-**Seuils additionnels:**
-- OOS Sharpe > 1.0 (target > 2.0)
-- OOS Trades > 60
-- TP Progression: TP1 < TP2 < TP3, gap >= 0.5
-
-**GATE: 7/7 PASS obligatoire avant tout merge en PROD.**
-
-### Anti-patterns (JAMAIS)
-
-1. **Look-Ahead**
-   ```python
-   signal = indicator.shift(1)  # TOUJOURS
-   signal = indicator           # INTERDIT
-   ```
-
-2. **TP non-progressif**
-   ```python
-   assert tp1 < tp2 < tp3, "TP must be progressive"
-   assert (tp2 - tp1) >= 0.5 and (tp3 - tp2) >= 0.5, "Gap min 0.5"
-   ```
-
-3. **Regime sur exit_time**
-   ```python
-   regime = get_regime_at(entry_time)  # CORRECT
-   regime = get_regime_at(exit_time)   # INTERDIT
-   ```
-
-4. **NE PAS filtrer SIDEWAYS sans analyse** — distribution variable par asset
-
-### ⚠️ REGIME DATA UPDATE (26 Jan 2026)
-
-**OBSOLETE:** "SIDEWAYS fait 79.5% du profit" (ancienne analyse ETH single-asset)
-
-**ACTUEL (regime_v3 multi-asset):**
-- ACCUMULATION: ~82% des trades (biais période 2020-2024)
-- MARKDOWN: 5-15% selon asset (régimes bear)
-- SIDEWAYS: variable par asset (16.9%-39% des barres)
-
-**Action:** Consulter `outputs/regime_analysis/{ASSET}_regimes.csv` pour données actuelles  
-**Référence:** Issue #17 TASK 3 stress test validé 26 Jan 2026
-
-### Resultats Suspects (CHALLENGER)
-
-- Sharpe > 4.0 -> demander reconciliation
-- WFE > 2.0 -> verifier overfitting
-- MaxDD < 1% -> verifier calcul
+### 5. Workers Phase 2+
+```bash
+--workers 1  # ✅ OBLIGATOIRE Phase 2+
+```
 
 ---
 
-## WORKFLOW STANDARD
-
-### Phase 1 — Assignation (Casey)
-
-1. Choisir asset(s) prioritaire(s)
-2. Determiner displacement (d26/d52/d78)
-3. Ecrire tache dans `comms/casey-quant.md`
-4. Assigner a Jordan
-
-### Phase 2 — Execution (Jordan)
-
-1. Lire tache dans `comms/casey-quant.md`
-2. Executer pipeline avec `--enforce-tp-progression`
-3. Documenter dans `comms/jordan-dev.md`
-4. Signaler Sam
-
-### Phase 3 — Validation (Sam)
-
-1. Lire run dans `comms/jordan-dev.md`
-2. Valider 7 guards (checklist complete)
-3. Ecrire verdict dans `comms/sam-qa.md`
-4. Signaler Casey
-
-### Phase 3B — Regime Stress Test (Jordan) ⚡ NEW 26 Jan 2026
-
-**Trigger:** Asset PASS Phase 3 (7/7 guards)  
-**Owner:** Jordan  
-**Validator:** Sam
-
-#### Workflow
-1. Jordan exécute stress test sur régimes critiques:
-   ```bash
-   python scripts/run_regime_stress_test.py --asset [ASSET] --regime MARKDOWN
-   python scripts/run_regime_stress_test.py --asset [ASSET] --regime SIDEWAYS
-   ```
-
-2. Critères PASS:
-   | Régime | Critère | Action si FAIL |
-   |--------|---------|----------------|
-   | MARKDOWN | Trades < 10 OR Sharpe ≥ 0 | Si Sharpe < -1.0 sur >10 trades → REVIEW |
-   | SIDEWAYS | Sharpe > 0 | Si Sharpe < 0 → EXCLU ou position réduite |
-
-3. Sam valide les résultats dans `comms/sam-qa.md`
-
-4. Verdicts possibles:
-   - **PASS** → Phase 4 (PROD)
-   - **REVIEW** → Casey décide (exclu vs position réduite)
-   - **FAIL** → EXCLU définitif
-
-#### Outputs
-- `outputs/stress_test_MARKDOWN_{ASSET}_{timestamp}.csv`
-- `outputs/stress_test_SIDEWAYS_{ASSET}_{timestamp}.csv`
-
-**Note:** Stratégie Ichimoku évite naturellement MARKDOWN (0-9 trades). Focus critique = SIDEWAYS.
-
-### Phase 4 — Verdict (Casey)
-
-1. Lire validation dans `comms/sam-qa.md`
-2. Decider: PROD / BLOCKED / RETEST
-3. Mettre a jour `status/project-state.md`
-4. Si RETEST -> retour Phase 1 avec variant
-
----
-
-## ARBRES DE DECISION
+## 🌳 ARBRES DE DÉCISION
 
 ### Choix Displacement
-
 ```
 Asset type?
-├── Majeur (BTC, ETH) ──────────────> d52
-├── L2/Infrastructure (OP, ARB) ────> d78
-├── Meme/Fast (DOGE, SHIB, JOE) ───> d26
-├── Edge case (OSMO) ───────────────> d65 (custom, valide empiriquement)
-└── Inconnu ────────────────────────> d52, puis ajuster si WFE < 0.6
+├── Meme/Fast (DOGE, SHIB, JOE) → d26
+├── Standard (BTC, ETH, majeurs) → d52
+└── L2/Slow (OP, ARB) → d78
 ```
 
 ### Si Guard FAIL
-
 ```
 Quel guard?
-├── WFE < 0.6 ──────────> Tester autre displacement
-├── MC p > 0.05 ────────> Plus de donnees ou trials
-├── Sensitivity > 15% ──> Filter Rescue (baseline → moderate → conservative)
-├── Top10 > 40% ────────> Donnees insuffisantes
-├── **Regime Stress FAIL** ─> EXCLU ou position réduite (Casey decide)
-│     ├── SIDEWAYS Sharpe < -1.0 ──> EXCLU définitif
-│     └── SIDEWAYS Sharpe [-1, 0] ──> Position 0.5× ou EXCLU
-└── Autre ──────────────> BLOCKED, documenter raison
+├── WFE < 0.6 → Autre displacement
+├── Sensitivity > 15% → Filter cascade
+├── Trades < 60 → Plus de données
+├── SIDEWAYS Sharpe < 0 → EXCLU définitif
+└── Autre → BLOCKED
 ```
 
-### Phase 4: Filter Rescue (SI baseline FAIL guard002)
-
-**Refonte 2026-01-24**: Ancien grid de 12 combinaisons remplacé par cascade de 3 modes.
-
-#### Workflow Décisionnel
+### Filter Rescue
 ```
-Asset → baseline (seuil sensitivity 15%)
-         │
-         ├─ PASS → PROD ✓
-         │
-         └─ FAIL guard002 (sensitivity > 15%)
-              │
-              └─ moderate (5 filtres)
-                   │
-                   ├─ PASS → PROD ✓
-                   │
-                   └─ FAIL
-                        │
-                        └─ conservative (7 filtres)
-                             │
-                             ├─ PASS → PROD ✓
-                             │
-                             └─ FAIL → EXCLU ✗
-```
-
-#### Seuils par Mode
-| Mode | Filtres | Sensitivity | Trades OOS | WFE |
-|------|---------|-------------|------------|-----|
-| baseline | ichimoku only | <15% | ≥60 | ≥0.6 |
-| moderate | 5 filtres (all except strict) | <15% | ≥50 | ≥0.6 |
-| conservative | 7 filtres (all + strict) | <15% | ≥40 | ≥0.55 |
-
-#### Commande Rescue
-```bash
-python scripts/run_filter_rescue.py ASSET
-python scripts/run_filter_rescue.py ETH --trials 300
-```
-
-#### Règles Critiques
-- TOUJOURS commencer par baseline
-- Max 3 tests par asset (correction stats OK: Bonferroni ÷3 vs ancien ÷12)
-- Si conservative FAIL → EXCLU définitif
-- NE PAS chercher d'autres combinaisons (data mining)
-
----
-
-## PRIORITES ACTUELLES (26 Jan 2026)
-
-### P0 — Phase 3A Rescue (Required)
-
-- [ ] OSMO — displacement rescue (try d26, d78)
-- [ ] AR — displacement rescue (try d26, d78)
-- [ ] METIS — displacement rescue (try d26, d78)
-
-### P1 — Phase 1 Screening (Optional)
-
-- [x] Phase 1 Batch 1 complete (15 assets: 0 PASS)
-- [ ] Phase 1 Batch 2 (VET, MKR, ALGO, FTM, etc.)
-
-### P2 — Regime Test (Optional)
-
-- [ ] Test 12 assets PROD restants avec nouveaux params
-
-### Completed (25-26 Jan)
-
-- [x] ETH — baseline PASS (Sharpe 3.22) + Regime PASS
-- [x] MINA — baseline PASS (Sharpe 2.58)
-- [x] YGG — baseline PASS (Sharpe 3.11)
-- [x] RUNE — baseline PASS (Sharpe 2.42)
-- [x] AVAX — moderate PASS (Sharpe 2.00) → **EXCLU 26 Jan** (Regime FAIL)
-- [x] EGLD — baseline PASS (Sharpe 2.13) → **EXCLU 26 Jan** (Regime FAIL)
-
----
-
-## COMMANDES REFERENCE
-
-### Run standard
-
-```bash
-python scripts/run_full_pipeline.py \
-  --assets [ASSET] \
-  --workers 6 \
-  --trials-atr 150 \
-  --trials-ichi 150 \
-  --enforce-tp-progression \
-  --run-guards
-```
-
-### Avec filter mode
-
-```bash
-# Valid modes: baseline (default), moderate, conservative
-python scripts/run_full_pipeline.py \
-  --assets [ASSET] \
-  --optimization-mode moderate \
-  --enforce-tp-progression \
-  --run-guards
-```
-
-### Avec displacement fixe
-
-```bash
-python scripts/run_full_pipeline.py \
-  --assets [ASSET] \
-  --fixed-displacement [26|52|65|78] \
-  --enforce-tp-progression \
-  --run-guards
-```
-
-### Download data
-
-```bash
-python scripts/download_data.py --assets [ASSET_LIST]
+baseline FAIL → moderate → conservative → EXCLU
 ```
 
 ---
 
-## METRIQUES DE SUCCES
+## 🤖 AGENTS
 
-| Metrique | Cible | Actuel |
-|----------|-------|--------|
-| Assets PROD | 20+ | **12** |
-| Guards pass rate | 100% | 100% (8/8) |
-| Avg Sharpe OOS | > 1.5 | 3.35 |
-| Avg MaxDD | < 10% | ~2% |
+| Agent | Rôle | Décide |
+|-------|------|--------|
+| **Casey** | Orchestrateur | Priorités, verdicts |
+| **Jordan** | Developer | Fixes techniques |
+| **Sam** | QA | Guards PASS/FAIL |
+| **Alex** | Lead Quant | Architecture, recherche |
 
----
-
-## CONTRAINTES
-
-- **Degradation live attendue**: Sharpe x0.5-0.7, MaxDD x2-3
-- **Min trades OOS**: 60
-- **Min bars IS**: 8000
-- **Timeout pipeline**: 2h max par asset
-
----
-
-## ERREURS CONNUES (a ne pas repeter)
-
-| Bug | Status | Fix |
-|-----|--------|-----|
-| TP1 > TP2 (Optuna) | RESOLU | `--enforce-tp-progression` |
-| AXS MC p=0.09 | EN ATTENTE | Rerun post-fix requis |
-| Slippage fixe 2bps | NON CORRIGE | TODO: f(volume) |
-| Funding rates | NON INTEGRE | Biais potentiel sur longs |
+### Fichiers Agents
+| Fichier | Owner |
+|---------|-------|
+| `comms/casey-quant.md` | Casey |
+| `comms/jordan-dev.md` | Jordan |
+| `comms/sam-qa.md` | Sam |
+| `comms/alex-lead.md` | Alex |
 
 ---
 
-## FICHIERS REFERENCE
+## 📁 FICHIERS RÉFÉRENCE
 
-| Fichier | Description |
-|---------|-------------|
-| docs/HANDOFF.md | **OBSOLETE** — ne plus utiliser |
-| docs/BACKTESTING.md | Historique seulement, pas source de verite |
-| docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md | Workflow 6 phases (reference principale) |
-| status/project-state.md | **SOURCE DE VERITE** — etat actuel du projet |
-| outputs/multiasset_scan_*.csv | Resultats scans |
-| outputs/multiasset_guards_summary_*.csv | Resultats guards |
-| .cursor/rules/global-quant.mdc | Regles quant detaillees |
-| .cursor/rules/casey-orchestrator.mdc | Role Casey |
-| .cursor/rules/jordan-backtest.mdc | Role Jordan |
-| .cursor/rules/sam-guards.mdc | Role Sam |
+| Fichier | Contenu |
+|---------|---------|
+| `status/project-state.md` | État actuel (assets, progression) |
+| `docs/WORKFLOW_PIPELINE.md` | Commandes par phase |
+| `.cursor/rules/MASTER_PLAN.mdc` | **CE FICHIER** (règles, params) |
+
+### OBSOLÈTES (ne pas utiliser)
+- ❌ `docs/HANDOFF.md`
+- ❌ `docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md`
+
+---
+
+## 🎯 CONTRAINTES LIVE
+
+| Métrique | Backtest → Live |
+|----------|-----------------|
+| Sharpe | ×0.5-0.7 |
+| MaxDD | ×2-3 |
+
+---
+
+**Version**: 2.0 (26 Jan 2026)
+**Dernière refonte**: Consolidation post-PR#20
