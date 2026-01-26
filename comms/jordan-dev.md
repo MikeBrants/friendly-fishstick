@@ -1,5 +1,12 @@
 # Jordan (Developer) — Task Log
 
+## 2026-01-26 15:16 UTC — Phase 3A rescue script fixes
+
+**Status**: TODO → DONE
+**Output**: scripts/run_phase3a_rescue.py
+**Summary**: Fixed rescue runner to use run_full_pipeline.py flag --fixed-displacement and replaced Unicode status markers with ASCII-safe output.
+**Next**: Run Phase 3A rescue for OSMO/AR/METIS once approved (multi-hour run).
+
 ## 2026-01-26 15:12 UTC — Regime v3 PROD validation run
 
 **Status**: TODO → DONE

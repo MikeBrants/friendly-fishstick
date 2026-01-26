@@ -5,6 +5,7 @@
 **Status**: 🟢 7/7 SUSPECT ASSETS VALIDATED (Period effect confirmed, WFE DUAL deployed)
 
 ## Recent Activity
+- 2026-01-26 OK Phase 3A rescue script fixed (Agent: Jordan) -> scripts/run_phase3a_rescue.py
 - 2026-01-26 OK PBO edge case tests added (Agent: Sam) -> tests/validation/test_pbo.py
 - 2026-01-26 OK Regime v3 PROD validation run (Agent: Jordan) -> reports/regime_v3_prod_analysis_20260126_151129.csv; reports/regime_v3_prod_analysis_20260126_151129.md
 - 2026-01-26 OK returns_matrix tracking wired for PBO (Agent: Jordan) -> crypto_backtest/optimization/parallel_optimizer.py; scripts/run_guards_multiasset.py; scripts/run_full_pipeline.py
