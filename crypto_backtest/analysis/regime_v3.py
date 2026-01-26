@@ -831,8 +831,8 @@ def regime_aware_position_sizing(
     if stability > 10:
         multiplier *= 1.1
 
-    adjusted = base_size * np.clip(multiplier, min_size, max_size)
-    return adjusted
+    adjusted = base_size * multiplier
+    return float(np.clip(adjusted, min_size, max_size))
 
 
 # ============================================================================

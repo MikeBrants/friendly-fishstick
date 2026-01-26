@@ -33,14 +33,20 @@ def load_asset_data(asset: str) -> pd.DataFrame:
     """Load OHLCV data for an asset."""
     # Try multiple data paths
     data_paths = [
+        project_root / f"data/{asset}_1H.parquet",
+        project_root / f"data/{asset}_1h.parquet",
         project_root / f"data/{asset}USDT_1h.parquet",
         project_root / f"data/{asset}_USDT_1h.parquet",
         project_root / f"data/{asset.lower()}_usdt_1h.parquet",
+        project_root / f"data/Binance_{asset}USDT_1h.csv",
     ]
 
     for path in data_paths:
         if path.exists():
-            df = pd.read_parquet(path)
+            if path.suffix.lower() == ".csv":
+                df = pd.read_csv(path)
+            else:
+                df = pd.read_parquet(path)
             # Ensure required columns
             required = ["open", "high", "low", "close"]
             if all(c in df.columns for c in required):
