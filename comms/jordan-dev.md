@@ -1,5 +1,45 @@
 # Jordan (Developer) — Task Log
 
+## 2026-01-26 17:10 UTC — Issue #17 TASK 3 COMPLETE — All Jordan Tasks Done
+
+**Status**: ✅ ALL TASKS COMPLETE  
+**Issue**: #17 (Regime-Robust Validation Framework)  
+**Progress**: TASK 3 (Jordan) = 100% DONE
+
+### Summary of Completed Work
+
+**TASK 3: Isolated Regime Stress Tests** ✅
+- Script created: `scripts/run_regime_stress_test.py`
+- Tested 14 PROD assets on MARKDOWN and SIDEWAYS regimes
+- Results: 12/14 PASS SIDEWAYS, EGLD/AVAX FAIL
+- Reports generated: `STRESS_TEST_REPORT_20260126.md`
+
+**EGLD/AVAX Exclusion** ✅
+- Decision: Option A (EXCLUDE from PROD)
+- `project-state.md` updated (14 → 12 assets)
+- `asset_config.py` updated with Regime Stress Test FAIL notes
+- `scan_assets.py` updated (EXCLUDED_ASSETS list)
+- All changes committed and pushed
+
+**Data Correction** ✅
+- Fixed obsolete "79.5% SIDEWAYS profit" in 6 critical files
+- Documentation: `REGIME_DATA_CORRECTION_20260126.md`
+
+### Commits
+- `2048c19` - TASK 3 complete + data correction
+- `e5db23f` - project-state.md update (EGLD/AVAX excluded)
+- `7b77a6e` - asset_config.py update
+
+### Current Status
+- ✅ All assigned tasks complete
+- ✅ All changes committed and pushed
+- ✅ Documentation updated
+- 🔵 **Standby** — Waiting for new assignments
+
+**Next**: Issue #17 TASK 1+2 assigned to Alex (CPCV Full Activation + Regime-Stratified Walk-Forward)
+
+---
+
 ## 2026-01-26 17:00 UTC — Asset Config Update: EGLD/AVAX Exclusion
 
 **Status**: DONE  
@@ -15,7 +55,7 @@
 - AVAX: Marked as EXCLUDED with SIDEWAYS Sharpe -0.36 note
 - Both assets retain their config params for reference (not deleted)
 
-**Next**: Commit and push these changes
+**Commits**: `7b77a6e` - Pushed to origin/main
 
 ---
 
