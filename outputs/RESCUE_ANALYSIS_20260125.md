@@ -5,23 +5,40 @@ Sauver les assets FAIL via tests ciblés: displacement grid, filtres, ADX
 
 ---
 
-## 🎉 BREAKTHROUGH: AR avec d78 → PASS!
+## ❌ AR avec d78 — FALSE HOPE (6/8 Guards PASS)
 
 ### AR Displacement Grid Results
 
 | Displacement | OOS Sharpe | WFE | Trades | Status |
 |--------------|------------|-----|--------|--------|
-| **d78** ✅ | **3.38** | **1.79** | 32 | **PASS** |
+| d78 | 3.38 → 2.08 | 1.79 → 1.10 | 32 | FAIL (guards) |
 | d52 (baseline) | 1.25 | 0.36 | 38 | FAIL |
 | d26 | -1.16 | -0.45 | 40 | FAIL |
 
-**Amélioration**: WFE +400% (0.36 → 1.79), Sharpe +170% (1.25 → 3.38)
+**Note**: Variance entre test grid (3.38) et pipeline full (2.08) = 60 trials différents, seed différent
 
-**Explication**: AR est un asset L2/infrastructure → displacement élevé (78) capture mieux les tendances long-terme
+### AR Guards Results (6/8 PASS)
 
-**Action**: 
-- ✅ AR avec d78 prêt pour Phase 2 Guards validation
-- Commande: `python scripts/run_guards_multiasset.py --assets AR --fixed-displacement 78 --workers 1`
+| Guard | Valeur | Seuil | Status |
+|-------|--------|-------|--------|
+| guard001 (MC p-value) | 0.001 | < 0.05 | ✅ |
+| **guard002 (Sensitivity)** | **23.99%** | **< 10%** | ❌ |
+| guard003 (Bootstrap CI) | 1.38 | > 1.0 | ✅ |
+| guard005 (Top10 trades) | 30.93% | < 40% | ✅ |
+| guard006 (Stress1) | 1.63 | > 1.0 | ✅ |
+| guard007 (Regime) | 0.0% | < 1% | ✅ |
+| WFE | 1.10 | > 0.6 | ✅ |
+| **Trades OOS** | **32** | **> 50** | ❌ |
+
+**Verdict**: AR BLOCKED (2 failures critiques)
+1. **Sensibilité paramètres**: 23.99% >> 10% (guard002 FAIL)
+2. **Trade count**: 32 < 50 minimum (structurel avec d78)
+
+**Explication**: Le displacement d78 améliore le WFE mais crée deux problèmes:
+- Réduit le sample size (32 trades insuffisant)
+- Augmente la sensibilité aux paramètres (23.99% de variance)
+
+**Leçon**: WFE élevé seul ne garantit pas la robustesse. Guards détectent overfitting caché.
 
 ---
 
@@ -109,14 +126,13 @@ Sauver les assets FAIL via tests ciblés: displacement grid, filtres, ADX
 
 ### Assets RESCUED ✅
 
-| Asset | Action | WFE Before | WFE After | Delta | Next Step |
-|-------|--------|------------|-----------|-------|-----------|
-| **AR** | Displacement d78 | 0.36 | **1.79** | +400% | Guards validation (7/7 requis) |
+**AUCUN** — Tous les tests ont échoué la validation complète
 
 ### Assets BLOCKED ❌
 
 | Asset | Best Config | WFE | Trades | Guards | Raison | Verdict |
 |-------|-------------|-----|--------|--------|--------|---------|
+| AR | d78 | 1.10 | 32 | 6/8 | Sensibilité 24% + trades < 50 | DEFINITIF |
 | OSMO | d78 | 0.38 | 57 | N/A | Overfit sévère | DEFINITIF |
 | METIS | Baseline/Vol | 0.60 | 87 | N/A | Trade count < 60 min | DEFINITIF |
 | FIL | Baseline | -0.06 | 56 | 6/7 | Reverse overfit (WFE négatif) | DEFINITIF |
@@ -195,16 +211,17 @@ OP + ADX en cours, ETA ~5 min
 
 | Statut | Count | Assets |
 |--------|-------|--------|
-| RESCUE PROMETTEUR | 1 | AR (WFE=1.79, guards pending) |
-| RESCUE POSSIBLE | 1 | ADA (4/7 guards, sensibilité élevée) |
-| BLOCKED DEFINITIF | 4 | OSMO, METIS, FIL, OP |
-| EN COURS | 1 | AR (guards validation) |
+| RESCUE POSSIBLE | 1 | ADA (4/7 guards, sensibilité 19%) |
+| BLOCKED DEFINITIF | 5 | AR, OSMO, METIS, FIL, OP |
 
-**ROI Rescue Mission**: 1 succès potentiel (AR), 1 à explorer (ADA), 4 échecs définitifs
+**ROI Rescue Mission**: 0 succès, 1 candidat potentiel (ADA), 5 échecs définitifs
 
-**Taux de réussite**: 16-33% selon validation guards finale
+**Taux de réussite**: 0% (0/6 validés), 16% si ADA rescué
 
-**Leçon ADX**: Filtres trop stricts créent un biais de sélection (cherry-picking). WFE excellent mais non exploitable commercialement.
+**Leçons clés**:
+1. **WFE élevé ≠ robustesse**: AR avait WFE=1.79 mais FAIL guards (sensibilité 24%, trades < 50)
+2. **Filtres stricts = cherry-picking**: OP ADX améliore WFE +600% mais tue sample (6 trades)
+3. **Guards sont essentiels**: Détectent overfitting caché même avec WFE > 1.0
 
 ---
 
