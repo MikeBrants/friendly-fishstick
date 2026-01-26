@@ -39,8 +39,8 @@ Tâche: [NOM DE LA TÂCHE]
 ```
 
 ### 6. Mettre à jour après complétion
-Dans `comms/[agent].md`, ajoute :
 
+#### 6a. Fichier agent `comms/[agent].md`
 ```markdown
 ## [DATE] [HEURE] UTC — [NOM TÂCHE]
 
@@ -48,6 +48,18 @@ Dans `comms/[agent].md`, ajoute :
 **Output**: [fichiers créés/modifiés]
 **Summary**: [résumé en 2-3 lignes]
 **Next**: [prochaine tâche ou agent]
+```
+
+#### 6b. Fichier global `status/project-state.md`
+Met à jour la section correspondante :
+- Si tâche Alex → section `## Alex Tasks`
+- Si nouvel asset PROD → section `## Production Assets`
+- Si nouveau fichier créé → section `## Recent Changes`
+
+Format d'ajout dans project-state.md :
+```markdown
+### Recent Activity
+- [DATE] ✅ [TÂCHE] (Agent: [nom]) → [output]
 ```
 
 ### 7. Boucler
@@ -72,7 +84,9 @@ Stop la boucle si :
 ✅ DONE: [Nom de la tâche]
    Agent: [Alex/Jordan/Sam]
    Output: [fichier créé]
-   Updated: comms/[agent].md
+   Updated: 
+     - comms/[agent].md
+     - status/project-state.md
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ⏭️  NEXT: [Prochaine tâche] ([Agent])
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -87,13 +101,27 @@ Stop la boucle si :
 🏁 LOOP TERMINÉE
 ═══════════════════════════════════════
 Tâches complétées: X
-Fichiers modifiés: [liste]
+Fichiers modifiés: 
+  - comms/alex-lead.md
+  - comms/jordan-dev.md
+  - status/project-state.md
 Status: [DONE / BLOCKED / LIMIT]
 
 Prochaine action recommandée:
 → [action ou "Relance /loop pour continuer"]
 ═══════════════════════════════════════
 ```
+
+---
+
+## Fichiers à mettre à jour
+
+| Quand | Fichier | Quoi |
+|-------|---------|------|
+| Après CHAQUE tâche | `comms/[agent].md` | Détails de la tâche |
+| Après CHAQUE tâche | `status/project-state.md` | Recent Activity + sections pertinentes |
+| Si nouvel asset PROD | `status/project-state.md` | Section Production Assets |
+| Si code modifié | `status/project-state.md` | Section Recent Changes |
 
 ---
 
@@ -142,7 +170,9 @@ Prochaine action recommandée:
 ✅ DONE: WFE Audit
    Agent: Alex
    Output: reports/wfe-audit-2026-01-26.md
-   Updated: comms/alex-lead.md
+   Updated: 
+     - comms/alex-lead.md
+     - status/project-state.md
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ⏭️  NEXT: PBO Implementation (Alex)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
