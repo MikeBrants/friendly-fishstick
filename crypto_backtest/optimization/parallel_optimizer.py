@@ -132,8 +132,10 @@ class AssetScanResult:
     oos_trades: int = 0
     oos_max_dd: float = 0.0
     oos_pf: float = 0.0
-    # Validation
-    wfe: float = 0.0
+    # Validation (WFE DUAL metrics)
+    wfe_pardo: float = 0.0  # Standard WFE (OOS_Sharpe / IS_Sharpe)
+    return_efficiency: float = 0.0  # Return ratio (OOS_Return / IS_Return)
+    degradation_pct: float = 0.0  # Display-friendly degradation percentage
     mc_p: float = 1.0
     # Error info
     error: str = ""
@@ -188,7 +190,9 @@ def _result_to_row(result: AssetScanResult) -> dict[str, Any]:
         "oos_trades": result.oos_trades,
         "oos_max_dd": result.oos_max_dd,
         "oos_pf": result.oos_pf,
-        "wfe": result.wfe,
+        "wfe_pardo": result.wfe_pardo,
+        "return_efficiency": result.return_efficiency,
+        "degradation_pct": result.degradation_pct,
         "mc_p": result.mc_p,
         "error": result.error,
     }
@@ -963,8 +967,10 @@ def optimize_single_asset(
         val_results = run_backtest(df_val, final_params)
         oos_results = run_backtest(df_oos, final_params)
 
-        # 6. Calculate WFE
-        wfe = oos_results["sharpe"] / is_results["sharpe"] if is_results["sharpe"] > 0 else 0
+        # 6. Calculate WFE DUAL metrics (Pardo 2008 standard)
+        wfe_pardo = oos_results["sharpe"] / is_results["sharpe"] if is_results["sharpe"] > 0 else 0
+        return_efficiency = oos_results["total_return"] / is_results["total_return"] if is_results["total_return"] != 0 else 0
+        degradation_pct = (1 - wfe_pardo) * 100.0 if wfe_pardo < 1 else 0.0
 
         # 7. Monte Carlo p-value
         _log_progress(asset, "MC")
@@ -979,8 +985,8 @@ def optimize_single_asset(
 
         if oos_results["sharpe"] < PASS_CRITERIA["oos_sharpe_min"]:
             fail_reasons.append(f"OOS_SHARPE<{PASS_CRITERIA['oos_sharpe_min']}")
-        if wfe < PASS_CRITERIA["wfe_min"]:
-            fail_reasons.append(f"WFE<{PASS_CRITERIA['wfe_min']}")
+        if wfe_pardo < PASS_CRITERIA["wfe_min"]:
+            fail_reasons.append(f"WFE_PARDO<{PASS_CRITERIA['wfe_min']}")
         if oos_results["trades"] < PASS_CRITERIA["oos_trades_min"]:
             fail_reasons.append(f"TRADES<{PASS_CRITERIA['oos_trades_min']}")
         if abs(oos_results["max_drawdown"]) > PASS_CRITERIA["max_dd_max"] * 100:
@@ -988,7 +994,7 @@ def optimize_single_asset(
 
         if fail_reasons:
             status = "FAIL"
-        if wfe < 0.6:
+        if wfe_pardo < 0.6:
             fail_reasons.append("OVERFIT")
             if status == "SUCCESS":
                 status = "FAIL"
@@ -1029,12 +1035,14 @@ def optimize_single_asset(
             oos_trades=oos_results["trades"],
             oos_max_dd=oos_results["max_drawdown"],
             oos_pf=oos_results["profit_factor"],
-            wfe=wfe,
+            wfe_pardo=wfe_pardo,
+            return_efficiency=return_efficiency,
+            degradation_pct=degradation_pct,
             mc_p=mc_p,
         )
 
         _log_progress(asset, "DONE")
-        print(f"[{asset}] OK Complete: OOS Sharpe={oos_results['sharpe']:.2f}, WFE={wfe:.2f}, Status={status}")
+        print(f"[{asset}] OK Complete: OOS Sharpe={oos_results['sharpe']:.2f}, WFE_Pardo={wfe_pardo:.2f}, Status={status}")
         try:
             append_partial_result(result)
         except Exception as append_error:
@@ -1162,12 +1170,12 @@ def run_parallel_scan(
     success_df = df[df["status"].str.startswith("SUCCESS")]
     if len(success_df) > 0:
         print("\nPASSED ASSETS:")
-        print(success_df[["asset", "oos_sharpe", "oos_trades", "wfe"]].to_string(index=False))
+        print(success_df[["asset", "oos_sharpe", "oos_trades", "wfe_pardo"]].to_string(index=False))
 
     failed_df = df[~df["status"].str.startswith("SUCCESS")]
     if len(failed_df) > 0:
         print("\nFAILED ASSETS:")
-        print(failed_df[["asset", "status", "oos_sharpe", "wfe"]].to_string(index=False))
+        print(failed_df[["asset", "status", "oos_sharpe", "wfe_pardo"]].to_string(index=False))
 
     print(f"\nResults saved to: {output_path}")
     print(f"Debug copy saved to: {debug_output_path}")

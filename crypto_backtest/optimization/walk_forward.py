@@ -33,7 +33,12 @@ class WalkForwardAnalyzer:
     def analyze(self, data: pd.DataFrame, strategy_class, param_space) -> WalkForwardResult:
         """Run walk-forward optimization and return combined results."""
         if data.empty:
-            return WalkForwardResult(combined_metrics={}, efficiency_ratio=0.0, degradation_ratio=0.0)
+            return WalkForwardResult(
+                combined_metrics={},
+                return_efficiency=0.0,
+                wfe_pardo=0.0,
+                degradation_pct=0.0,
+            )
 
         base_params = param_space.get("base_params")
         search_space = param_space.get("search_space")
