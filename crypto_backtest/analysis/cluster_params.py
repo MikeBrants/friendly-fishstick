@@ -105,7 +105,7 @@ def run_clustering(df: pd.DataFrame, n_clusters: int = None) -> Dict:
             "params": cluster_params,
             "avg_oos_sharpe": float(cluster_df["oos_sharpe"].mean()),
             "avg_oos_trades": float(cluster_df["oos_trades"].mean()),
-            "avg_wfe": float(cluster_df["wfe"].mean()),
+            "avg_wfe": float(cluster_df["wfe_pardo"].mean()),
         }
 
     return {
