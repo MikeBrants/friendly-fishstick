@@ -1,6 +1,6 @@
 # PROJECT STATE - FINAL TRIGGER v2 Backtest System
 
-**Last Updated**: 26 janvier 2026, 19:10 UTC
+**Last Updated**: 26 janvier 2026, 19:27 UTC
 **Phase**: 🔴 **RESET COMPLET** — PR#19 Bug Fix → Revalidation from Scratch
 **Status**: ⚠️ **0 PROD ASSETS** — All 26 assets pending revalidation
 
@@ -66,7 +66,8 @@ DATA             SCREENING       VALIDATION       REGIME STRESS    RESCUE
               │Sharpe>0.8│    │PBO<0.50  │    │SIDEWAYS  │    │          │
               │Trades>50 │    │DSR>85%   │    │          │    │          │
               │SHORT 25% │    │CPCV OK   │    └──────────┘    └──────────┘
-              └──────────┘    └──────────┘
+              └──────────┘    │PSR>95%   │
+                              └──────────┘
                                               
 Phase 4              Phase 5              Phase 6
 PINE PARITY          PORTFOLIO            PRODUCTION
@@ -85,17 +86,17 @@ PINE PARITY          PORTFOLIO            PRODUCTION
 |:-----:|-----|--------|---------------|--------|
 | **0** | Data Download | 26 assets | ≥8000 bars, no gaps >4h | `data/*.parquet` |
 | **1** | Screening | 200 trials, workers=4-8, guards OFF | WFE>0.5, Sharpe>0.8, Trades>50, **SHORT ratio 25-75%** | Candidats |
-| **2** | Validation | 300 trials, **workers=1**, 7 guards ON | 7/7 hard guards PASS, PBO<0.50, DSR>85%, CPCV OK | WINNERS + PENDING |
+| **2** | Validation | 300 trials, **workers=1**, 7 guards ON | 7/7 hard guards PASS, PBO<0.50, DSR>85%, PSR>95%, CPCV OK | WINNERS + PENDING |
 | **2B** | Regime Stress | MARKDOWN + SIDEWAYS test | MARKDOWN: <10 trades OR Sharpe>-2; SIDEWAYS: Sharpe≥0 | PASS/EXCLUDE |
 | **3A** | Rescue Disp | PENDING: d26/d52/d78 | 7/7 PASS → WINNERS | Récupération |
-| **3B** | Optim Disp | WINNERS: test +10% | 7/7 PASS ET +10% → remplace | Amélioration |
+| **3B** | Optim Disp | WINNERS: test +10% | 7/7 PASS ET +10% Sharpe improvement → remplace | Amélioration |
 | **4** | Signal Parity | Python vs Pine | **100% match** | Validation |
 | **5** | Portfolio | 4 méthodes | Max Sharpe sélectionné | Weights |
 | **6** | Production | `asset_config.py` + Pine export | Frozen params | PROD |
 
 ---
 
-## 🔬 GUARDS COMPLETS — 10 VALIDATIONS
+## 🔬 GUARDS COMPLETS — 11 VALIDATIONS
 
 ### 7 Hard Guards (Must PASS)
 
@@ -109,13 +110,14 @@ PINE PARITY          PORTFOLIO            PRODUCTION
 | 006 | Trades OOS | Nombre trades | **≥60** | pipeline |
 | 007 | Bars IS | Données suffisantes | **≥8000** | pipeline |
 
-### 3 Soft Guards (Report + Rescue if FAIL)
+### 4 Soft Guards (Report + Rescue if FAIL)
 
 | # | Guard | Métrique | Seuil | Fichier |
 |:-:|-------|----------|-------|---------|
 | 008 | PBO | Prob. Backtest Overfit | **<0.50** | `validation/pbo.py` |
 | 009 | DSR | Deflated Sharpe Ratio | **>85%** | `validation/deflated_sharpe.py` |
 | 010 | CPCV | Sharpe all folds | **>0.8** | `validation/cpcv.py` |
+| 011 | PSR | Probabilistic Sharpe Ratio | **>95%** | `validation/overfitting.py` |
 
 ### DSR Verdicts
 
@@ -124,6 +126,14 @@ PINE PARITY          PORTFOLIO            PRODUCTION
 | > 95% | **STRONG** — Edge significatif |
 | 85-95% | **MARGINAL** — Acceptable si autres guards OK |
 | < 85% | **FAIL** — Probablement overfitting |
+
+### PSR Verdicts
+
+| PSR | Verdict |
+|-----|---------|
+| > 95% | **STRONG** — Sharpe statistiquement significatif |
+| 90-95% | **MARGINAL** — Acceptable avec prudence |
+| < 90% | **FAIL** — Sharpe peut être dû au hasard |
 
 ---
 
@@ -383,6 +393,7 @@ Asset FAIL baseline (sensitivity > 15%)
 - [ ] 7 guards hard PASS
 - [ ] PBO <0.50
 - [ ] DSR >85%
+- [ ] PSR >95%
 - [ ] CPCV all folds >0.8
 - [ ] returns_matrix sauvegardé
 
@@ -467,7 +478,7 @@ done
 |-------|------|-------|
 | **Casey** | Orchestrator | Coordination runs, priorisation, décisions pipeline |
 | **Jordan** | Dev/Backtest | Exécution runs, code, PRs |
-| **Sam** | QA/Guards | Validation 10 guards, verdicts PASS/FAIL |
+| **Sam** | QA/Guards | Validation 11 guards, verdicts PASS/FAIL |
 | **Alex** | Lead Quant | Recherche, expérimentations, nouvelles features |
 
 ---
@@ -544,6 +555,6 @@ def build_params_for_asset(asset: str) -> FinalTriggerParams:
 
 ---
 
-**LAST UPDATED**: 26 janvier 2026, 19:10 UTC
+**LAST UPDATED**: 26 janvier 2026, 19:27 UTC
 **STATUS**: 🔴 **RESET IN PROGRESS** — 0/26 assets validated
 **NEXT CHECKPOINT**: Phase 1 Screening (26 assets)
