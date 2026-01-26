@@ -1,7 +1,66 @@
 # Jordan (Developer) — Task Log
 
-**Last Updated:** 25 janvier 2026, 14:35 UTC  
-**Status:** 🟡 RESET IN PROGRESS — Migration Systeme Filtres v2
+**Last Updated:** 25 janvier 2026, 10:30 UTC
+**Status:** 🟡 STANDBY — En attente résultat WFE Audit
+
+---
+
+## 🔴 NOUVELLES TÂCHES — PBO/CPCV Integration (25 Jan 2026, 10:00 UTC)
+
+**From:** Casey (Orchestrator)
+**Priority:** P1 (après WFE audit)
+**Blocking:** Attend résultat TASK 0 d'Alex
+
+### CONTEXTE
+
+Alex implémente PBO et CPCV. Jordan doit intégrer ces modules dans le pipeline de validation.
+
+### TÂCHES ASSIGNÉES
+
+| # | Task | Status | Blocking |
+|---|------|--------|----------|
+| J1 | Intégrer `pbo.py` dans guards pipeline | 🔵 PENDING | WFE Audit |
+| J2 | Intégrer `cpcv.py` dans walk-forward | 🔵 PENDING | WFE Audit |
+| J3 | Ajouter GUARD-008 (PBO < 0.30) | 🔵 PENDING | J1 |
+| J4 | Modifier WFE calculation si nécessaire | 🔵 PENDING | WFE Audit |
+
+### FICHIERS À MODIFIER
+
+```
+crypto_backtest/validation/pbo.py     ← Alex crée
+crypto_backtest/validation/cpcv.py    ← Alex crée
+scripts/run_guards_multiasset.py      ← Jordan ajoute PBO guard
+crypto_backtest/optimization/walk_forward.py ← Jordan modifie si WFE fix
+```
+
+### INTÉGRATION PBO
+
+```python
+# Dans scripts/run_guards_multiasset.py
+from crypto_backtest.validation.pbo import guard_pbo
+
+def run_all_guards(returns_matrix, ...):
+    results = {}
+    # ... existing guards ...
+
+    # NEW: GUARD-008 PBO
+    results["guard008_pbo"] = guard_pbo(
+        returns_matrix,
+        threshold=0.30,
+        n_splits=16
+    )
+    return results
+```
+
+### ATTENTE
+
+⏸️ **EN PAUSE** jusqu'à:
+1. Alex complète TASK 0 (WFE audit)
+2. Casey donne GO pour intégration
+
+---
+
+## ARCHIVE — Tâches Précédentes
 
 ---
 
