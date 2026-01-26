@@ -376,9 +376,7 @@ def run_backtest(
     config: BacktestConfig = BASE_CONFIG,
 ) -> dict[str, float]:
     """Run backtest and return metrics dict."""
-    strategy = _instantiate_strategy(FinalTriggerStrategy, params)
-    backtester = VectorizedBacktester(config)
-    result = backtester.run(data, strategy)
+    result = _run_backtest_result(data, params, config)
     metrics = compute_metrics(result.equity_curve, result.trades)
 
     return {
@@ -389,6 +387,40 @@ def run_backtest(
         "trades": int(len(result.trades)),
         "win_rate": float(metrics.get("win_rate", 0.0) * 100.0),
     }
+
+
+def _run_backtest_result(
+    data: pd.DataFrame,
+    params: dict[str, Any],
+    config: BacktestConfig = BASE_CONFIG,
+):
+    strategy = _instantiate_strategy(FinalTriggerStrategy, params)
+    backtester = VectorizedBacktester(config)
+    return backtester.run(data, strategy)
+
+
+def _stack_returns_matrix(returns_matrix: list[np.ndarray]) -> np.ndarray:
+    if not returns_matrix:
+        return np.empty((0, 0), dtype=np.float32)
+    lengths = {len(series) for series in returns_matrix}
+    if len(lengths) > 1:
+        min_len = min(lengths)
+        stacked = np.stack([series[:min_len] for series in returns_matrix], axis=0)
+    else:
+        stacked = np.stack(returns_matrix, axis=0)
+    return stacked.astype(np.float32, copy=False)
+
+
+def _save_returns_matrix(
+    asset: str,
+    run_id: str,
+    returns_matrix: np.ndarray,
+    output_dir: str,
+) -> str:
+    output_path = Path(output_dir) / f"returns_matrix_{asset}_{run_id}.npy"
+    output_path.parent.mkdir(exist_ok=True)
+    np.save(output_path, returns_matrix)
+    return str(output_path)
 
 
 def optimize_atr(
@@ -500,6 +532,7 @@ def optimize_ichimoku(
     min_trades: int = 50,
     fixed_displacement: int | None = None,
     filter_config: dict[str, bool] | None = None,
+    returns_matrix: list[np.ndarray] | None = None,
 ) -> tuple[dict[str, int], float]:
     """Optimize Ichimoku parameters."""
     import optuna
@@ -527,12 +560,20 @@ def optimize_ichimoku(
             filter_config=filter_config,
         )
 
-        result = run_backtest(data, params)
+        if returns_matrix is None:
+            result = run_backtest(data, params)
+            if result["trades"] < min_trades:
+                return -10.0
+            return result["sharpe"]
 
-        if result["trades"] < min_trades:
+        result = _run_backtest_result(data, params, BASE_CONFIG)
+        metrics = compute_metrics(result.equity_curve, result.trades)
+        returns_series = result.equity_curve.pct_change().fillna(0.0)
+        returns_matrix.append(returns_series.to_numpy(dtype=np.float32, copy=False))
+        sharpe = float(metrics.get("sharpe_ratio", 0.0))
+        if len(result.trades) < min_trades:
             return -10.0
-
-        return result["sharpe"]
+        return sharpe
 
     sampler = create_sampler()
     storage = optuna.storages.InMemoryStorage()
@@ -549,6 +590,7 @@ def optimize_ichimoku_conservative(
     min_trades: int = 50,
     fixed_displacement: int | None = None,
     filter_config: dict[str, bool] | None = None,
+    returns_matrix: list[np.ndarray] | None = None,
 ) -> tuple[dict[str, int], float]:
     """Optimize Ichimoku parameters with a discrete grid."""
     import optuna
@@ -579,12 +621,20 @@ def optimize_ichimoku_conservative(
             filter_config=filter_config,
         )
 
-        result = run_backtest(data, params)
+        if returns_matrix is None:
+            result = run_backtest(data, params)
+            if result["trades"] < min_trades:
+                return -10.0
+            return result["sharpe"]
 
-        if result["trades"] < min_trades:
+        result = _run_backtest_result(data, params, BASE_CONFIG)
+        metrics = compute_metrics(result.equity_curve, result.trades)
+        returns_series = result.equity_curve.pct_change().fillna(0.0)
+        returns_matrix.append(returns_series.to_numpy(dtype=np.float32, copy=False))
+        sharpe = float(metrics.get("sharpe_ratio", 0.0))
+        if len(result.trades) < min_trades:
             return -10.0
-
-        return result["sharpe"]
+        return sharpe
 
     sampler = create_sampler()
     storage = optuna.storages.InMemoryStorage()
@@ -831,6 +881,9 @@ def optimize_single_asset(
     atr_search_space: dict[str, tuple[float, float]] | None = None,
     filter_config: dict[str, bool] | None = None,
     use_vol_profile: bool = False,
+    run_id: str | None = None,
+    track_returns_matrix: bool = True,
+    returns_matrix_dir: str = "outputs",
 ) -> AssetScanResult:
     """Full optimization pipeline for one asset.
     
@@ -873,6 +926,7 @@ def optimize_single_asset(
     start_date = ""
     end_date = ""
     total_bars_raw = 0
+    returns_matrix = [] if track_returns_matrix else None
 
     _log_progress(asset, "START")
 
@@ -923,6 +977,7 @@ def optimize_single_asset(
                 min_trades,
                 fixed_displacement,
                 filter_config,
+                returns_matrix=returns_matrix,
             )
         else:
             ichi_params, ichi_sharpe = optimize_ichimoku(
@@ -932,8 +987,21 @@ def optimize_single_asset(
                 min_trades,
                 fixed_displacement,
                 filter_config,
+                returns_matrix=returns_matrix,
             )
         print(f"[{asset}] Ichi done: Sharpe={ichi_sharpe:.2f}, params={ichi_params}")
+        if returns_matrix is not None:
+            returns_array = _stack_returns_matrix(returns_matrix)
+            if run_id and returns_matrix_dir:
+                try:
+                    saved_path = _save_returns_matrix(
+                        asset, run_id, returns_array, returns_matrix_dir
+                    )
+                    print(f"[{asset}] Returns matrix saved: {saved_path}")
+                except Exception as save_error:
+                    print(f"[{asset}] Returns matrix save failed: {save_error}")
+            returns_matrix = None
+            returns_array = None
 
         # 4. Build final params
         final_params = build_strategy_params(
@@ -1084,6 +1152,8 @@ def run_parallel_scan(
     optimization_mode: str | None = None,
     output_prefix: str | None = None,
     use_vol_profile: bool = False,
+    track_returns_matrix: bool = True,
+    returns_matrix_dir: str = "outputs",
 ) -> tuple[pd.DataFrame, str]:
     """Run optimization for all assets in parallel.
     
@@ -1127,6 +1197,8 @@ def run_parallel_scan(
         print(f"Fixed displacement: {fixed_displacement}")
     print("=" * 60)
 
+    run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+
     # Run in parallel
     results = Parallel(n_jobs=n_workers)(
         delayed(optimize_single_asset)(
@@ -1141,6 +1213,9 @@ def run_parallel_scan(
             atr_search_space,
             filter_config,
             use_vol_profile,
+            run_id,
+            track_returns_matrix,
+            returns_matrix_dir,
         )
         for asset in assets
     )
@@ -1151,14 +1226,13 @@ def run_parallel_scan(
     df = pd.DataFrame(rows)
 
     # Save results
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     Path("outputs").mkdir(exist_ok=True)
     if output_prefix:
-        output_path = f"outputs/{output_prefix}_multiasset_scan_{timestamp}.csv"
-        debug_output_path = f"outputs/{output_prefix}_multi_asset_scan_{timestamp}.csv"
+        output_path = f"outputs/{output_prefix}_multiasset_scan_{run_id}.csv"
+        debug_output_path = f"outputs/{output_prefix}_multi_asset_scan_{run_id}.csv"
     else:
-        output_path = f"outputs/multiasset_scan_{timestamp}.csv"
-        debug_output_path = f"outputs/multi_asset_scan_{timestamp}.csv"
+        output_path = f"outputs/multiasset_scan_{run_id}.csv"
+        debug_output_path = f"outputs/multi_asset_scan_{run_id}.csv"
     df.to_csv(output_path, index=False)
     df.to_csv(debug_output_path, index=False)
 
@@ -1233,7 +1307,26 @@ def main():
         action="store_true",
         help="Use volatility-profiled ATR ranges (HIGH/MED/LOW_VOL per asset)",
     )
+    parser.add_argument(
+        "--track-returns-matrix",
+        action="store_true",
+        dest="track_returns_matrix",
+        help="Track per-trial returns matrix for PBO guard (default: on)",
+    )
+    parser.add_argument(
+        "--no-track-returns-matrix",
+        action="store_false",
+        dest="track_returns_matrix",
+        help="Disable returns matrix tracking",
+    )
+    parser.add_argument(
+        "--returns-matrix-dir",
+        type=str,
+        default="outputs",
+        help="Output directory for returns matrix files",
+    )
     parser.set_defaults(enforce_tp_progression=True)
+    parser.set_defaults(track_returns_matrix=True)
     args = parser.parse_args()
 
     assets = args.assets or SCAN_ASSETS
@@ -1251,6 +1344,8 @@ def main():
         fixed_displacement=args.fixed_displacement,
         optimization_mode=args.optimization_mode,
         use_vol_profile=args.use_vol_profile,
+        track_returns_matrix=args.track_returns_matrix,
+        returns_matrix_dir=args.returns_matrix_dir,
     )
 
 

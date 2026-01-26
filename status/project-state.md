@@ -1,16 +1,16 @@
 # PROJECT STATE - FINAL TRIGGER v2 Backtest System
 
-**Last Updated**: 26 janvier 2026, 13:30 UTC
+**Last Updated**: 26 janvier 2026, 14:55 UTC
 **Phase**: POST-AUDIT — WFE VALIDATION COMPLETE
 **Status**: 🟢 7/7 SUSPECT ASSETS VALIDATED (Period effect confirmed, WFE DUAL deployed)
 
 ## Recent Activity
+- 2026-01-26 OK returns_matrix tracking wired for PBO (Agent: Jordan) -> crypto_backtest/optimization/parallel_optimizer.py; scripts/run_guards_multiasset.py; scripts/run_full_pipeline.py
 - 2026-01-26 OK TON guards run (Agent: Jordan) -> outputs/REVALIDATION_TON_guards_20260126_131616.csv
 - 2026-01-26 OK PR15 regime analysis v3 merged + fixes (Agent: Jordan) -> crypto_backtest/analysis/regime_v3.py; scripts/run_regime_analysis.py
 - 2026-01-26 OK Regime analysis v3 run (Agent: Jordan) -> outputs/regime_analysis/*.csv; reports/regime_analysis_*_20260126.md
 - 2026-01-26 OK PBO/CPCV unit tests added (Agent: Sam) -> tests/validation/test_pbo.py; tests/validation/test_cpcv.py
 - 2026-01-26 OK OSMO Phase 3A rescue d78 FAIL (Agent: Jordan) -> outputs/rescue_OSMO_d78_20260126_guards_summary_20260126_141934.csv
-- 2026-01-26 BLOCKED PBO asset validation (Agent: Sam) -> returns_matrix not tracked
 
 ---
 
@@ -58,9 +58,9 @@ After comprehensive investigation triggered by external quant audit:
    - `degradation_pct`: Display-friendly percentage
 
 4. **GUARD-008 PBO Integration**
-   - Gracefully fails with explicit message (returns_matrix not tracked)
+   - Loads per-trial returns when available; otherwise fails with explicit message
    - Does NOT affect `all_pass` status
-   - Full activation requires returns_matrix tracking (7-9h effort)
+   - returns_matrix tracking now available in optimizer outputs
 
 ### Live Deployment Recommendations
 
@@ -232,19 +232,19 @@ degradation_pct: float   # Display-friendly (1 - wfe_pardo) × 100
 
 **Changement:** Probability of Backtest Overfitting (PBO) guard integrated
 
-**Status:** ⚠️ **Graceful failure mode** (returns_matrix not tracked)
+**Status:** ✅ **Active** (returns_matrix tracked in optimizer outputs)
 
 **Implementation:**
-- Guard fails with explicit error message
+- Per-trial returns saved to `outputs/returns_matrix_<asset>_<run_id>.npy`
+- Guard loads returns_matrix when available (falls back with explicit message if missing)
 - Does NOT affect `all_pass` status
-- Full activation requires returns_matrix tracking (7-9h effort)
 
 **Rationale:**
 - PBO requires per-trial returns matrix (shape: 300 × 8000 ≈ 19 MB/asset)
-- Not currently tracked in optimization pipeline
-- Graceful failure allows pipeline to continue without breaking
+- Stored as `.npy` to keep I/O fast and avoid extra dependencies
+- Guard can be enabled with `--guards ... pbo` plus `--returns-matrix-run-id`
 
-**Future Work:** Implement returns_matrix tracking in parallel_optimizer.py
+**Future Work:** Add critical PBO edge case tests (GAP-1, GAP-2, GAP-3)
 
 ---
 
@@ -403,8 +403,8 @@ Avec le nouveau seuil 15%, ETH baseline passe directement **sans filter grid**:
 ### Task 3: PBO Integration — DONE ✅ (26 Jan 2026)
 - ✅ GUARD-008 integrated with graceful failure
 - ✅ 8/8 tests PASS
-- ⚠️ Full activation blocked (requires returns_matrix tracking)
-- **Effort remaining**: 7-9h for full activation
+- ✅ returns_matrix tracking wired for full activation
+- **Next**: Run guards with `pbo` enabled and returns_matrix run id
 
 ### Task 4: DSR Integration — DONE ✅ (24 Jan 2026)
 - ✅ Fichier: `crypto_backtest/validation/deflated_sharpe.py`
@@ -753,7 +753,7 @@ C. **HYBRID** - Keep high-confidence (JOE, OSMO), re-validate questionable (BTC)
 - ✅ **Test Coverage** - 12/12 tests PASS for WFE DUAL and GUARD-008
 
 ### Remaining Tasks (Optional)
-- [ ] **PBO Full Activation** - Implement returns_matrix tracking (7-9h)
+- [x] **PBO Full Activation** - Implement returns_matrix tracking
 - [ ] **3 Critical PBO Tests** - Add GAP-1, GAP-2, GAP-3 edge case tests (30 min)
 - [ ] **Phase 3A Rescue** - OSMO, AR, METIS displacement optimization
 - [ ] **REGIME TEST** — Re-run regime analysis with updated parameters
@@ -826,10 +826,9 @@ python regime_analysis_v2.py --assets SHIB DOT NEAR DOGE ETH ANKR JOE
 
 ### Optional Enhancements (Not Blocking Production)
 
-1. **PBO Full Activation** (7-9h effort)
-   - Implement returns_matrix tracking in parallel_optimizer.py
-   - Store per-trial returns (300 trials × 8000 periods ≈ 19 MB/asset)
-   - Enable full PBO calculation in GUARD-008
+1. **PBO Full Activation** — DONE
+   - returns_matrix saved to `outputs/returns_matrix_<asset>_<run_id>.npy`
+   - Enable guard with `--guards ... pbo` + `--returns-matrix-run-id`
 
 2. **Critical PBO Tests** (30 min effort)
    - GAP-1: Empty returns matrix handling

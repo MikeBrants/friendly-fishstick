@@ -62,6 +62,25 @@ def _safe_float(value: Any, default: float = 0.0) -> float:
         return default
 
 
+def _load_returns_matrix(
+    asset: str,
+    returns_matrix_dir: str | None,
+    returns_matrix_run_id: str | None,
+) -> np.ndarray | None:
+    if not returns_matrix_dir:
+        return None
+    output_dir = Path(returns_matrix_dir)
+    if returns_matrix_run_id:
+        path = output_dir / f"returns_matrix_{asset}_{returns_matrix_run_id}.npy"
+        if path.exists():
+            return np.load(path)
+        return None
+    matches = sorted(output_dir.glob(f"returns_matrix_{asset}_*.npy"))
+    if not matches:
+        return None
+    return np.load(matches[-1])
+
+
 def _force_real_array(arr):
     """Force array to be real-valued, handling complex edge cases."""
     if arr is None:
@@ -931,6 +950,8 @@ def _asset_guard_worker(
     bootstrap_samples: int,
     sensitivity_range: int,
     stress_scenarios: list[tuple[float, float]],
+    returns_matrix_dir: str | None,
+    returns_matrix_run_id: str | None,
     overfit_trials: int | None = None,
 ) -> dict[str, Any]:
     data = load_data(asset, data_dir)
@@ -982,7 +1003,13 @@ def _asset_guard_worker(
         raise RuntimeError("No trades for guard calculations.")
 
     # ===== PARALLEL EXECUTION OF GUARDS =====
-    # NOTE: returns_matrix not available - PBO will be skipped unless implemented
+    returns_matrix = None
+    if "pbo" in guards:
+        returns_matrix = _load_returns_matrix(
+            asset,
+            returns_matrix_dir,
+            returns_matrix_run_id,
+        )
     guard_results = _run_guards_parallel(
         data=data,
         params=params,
@@ -999,7 +1026,7 @@ def _asset_guard_worker(
         stress_scenarios=stress_scenarios,
         wfe_value=wfe_value,
         n_jobs=4,
-        returns_matrix=None,  # TODO: Track per-trial returns for PBO
+        returns_matrix=returns_matrix,
         pbo_n_splits=16,
         pbo_threshold=0.30,
     )
@@ -1147,6 +1174,16 @@ def main() -> None:
         default=[],
         help="Stress scenarios as 'fees,slip' pairs",
     )
+    parser.add_argument(
+        "--returns-matrix-dir",
+        default="outputs",
+        help="Directory containing returns_matrix_<asset>_<run_id>.npy files",
+    )
+    parser.add_argument(
+        "--returns-matrix-run-id",
+        default=None,
+        help="Run ID suffix used in returns matrix filenames (defaults to latest)",
+    )
     args = parser.parse_args()
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     print(f"[GUARDS] Run ID: {run_id}")
@@ -1194,6 +1231,8 @@ def main() -> None:
                 args.bootstrap_samples,
                 args.sensitivity_range,
                 stress_scenarios,
+                args.returns_matrix_dir,
+                args.returns_matrix_run_id,
                 args.overfit_trials,
             )] = asset
 

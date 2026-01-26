@@ -1,5 +1,12 @@
 # Jordan (Developer) — Task Log
 
+## 2026-01-26 14:55 UTC — returns_matrix tracking for PBO
+
+**Status**: TODO → DONE
+**Output**: crypto_backtest/optimization/parallel_optimizer.py; scripts/run_guards_multiasset.py; scripts/run_full_pipeline.py
+**Summary**: Added per-trial returns capture during Ichimoku optimization, saved as outputs/returns_matrix_<asset>_<run_id>.npy, and wired guard loading via --returns-matrix-run-id.
+**Next**: Run guards with `pbo` enabled to validate PBO outputs on target assets.
+
 ## 2026-01-26 10:33 UTC — OSMO Phase 3A rescue d78
 
 **Status**: TODO → DONE

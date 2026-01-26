@@ -12,6 +12,7 @@ Usage:
     # Specific assets only
     python scripts/run_full_pipeline.py --assets HYPE AVAX SUI --workers 4
 """
+import re
 import sys
 import subprocess
 from pathlib import Path
@@ -262,6 +263,11 @@ def main():
         print("\n" + "=" * 70)
         print("[POST] RUNNING GUARDS")
         print("=" * 70)
+        returns_matrix_run_id = None
+        stem = Path(scan_path).stem
+        match = re.search(r"(?:multiasset_scan|multi_asset_scan)_(\d{8}_\d{6})", stem)
+        if match:
+            returns_matrix_run_id = match.group(1)
         guard_workers = args.guards_workers or min(6, len(optimize_assets))
         summary_output = None
         if args.output_prefix:
@@ -280,6 +286,8 @@ def main():
             "--workers",
             str(guard_workers),
         ]
+        if returns_matrix_run_id:
+            guard_cmd.extend(["--returns-matrix-run-id", returns_matrix_run_id])
         if summary_output:
             guard_cmd.extend(["--summary-output", summary_output])
         subprocess.run(guard_cmd, check=False)
