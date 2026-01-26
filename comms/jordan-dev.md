@@ -1,5 +1,24 @@
 # Jordan (Developer) — Task Log
 
+## 2026-01-26 17:00 UTC — Asset Config Update: EGLD/AVAX Exclusion
+
+**Status**: DONE  
+**Action**: Updated asset_config.py and scan_assets.py per Casey decision (Option A)
+
+**Changes**:
+- `asset_config.py`: Added Regime Stress Test FAIL notes to EGLD and AVAX entries
+- `scan_assets.py`: Removed TIA from EXCLUDED_ASSETS (was incorrectly listed, TIA is PROD)
+- Updated header comment in asset_config.py (26 Jan 16:30 UTC)
+
+**Details**:
+- EGLD: Marked as EXCLUDED with SIDEWAYS Sharpe -4.59 note
+- AVAX: Marked as EXCLUDED with SIDEWAYS Sharpe -0.36 note
+- Both assets retain their config params for reference (not deleted)
+
+**Next**: Commit and push these changes
+
+---
+
 ## 2026-01-26 16:50 UTC — Git Push: TASK 3 + Data Correction
 
 **Status**: DONE  

@@ -1,17 +1,19 @@
 """Production asset configuration for the validated portfolio.
 
-Updated: 2026-01-25 15:30 UTC
+Updated: 2026-01-26 16:30 UTC
 All TP values are progressive: TP1 < TP2 < TP3 with min gap 0.5
 
 NOTE: TIA and CAKE reclassified from Phase 4 to Phase 2 post-PR#8 (guard002 threshold 15%)
 
 ✅ RESET COMPLETE (25 Jan 2026, 15:30 UTC):
 - ETH: baseline PASS (Sharpe 3.22, WFE 1.22)
-- AVAX: moderate PASS (Sharpe 2.00, WFE 0.66) — baseline failed WFE
 - MINA: baseline PASS (Sharpe 2.58, WFE 1.13) — NEW params
 - YGG: baseline PASS (Sharpe 3.11, WFE 0.78) — NEW params
 - RUNE: baseline PASS (Sharpe 2.42, WFE 0.61) — params completed
-- EGLD: baseline PASS (Sharpe 2.13, WFE 0.69) — params completed
+
+❌ EXCLUDED (26 Jan 2026, 16:30 UTC) — Regime Stress Test FAIL:
+- EGLD: SIDEWAYS Sharpe -4.59 (Issue #17 TASK 3)
+- AVAX: SIDEWAYS Sharpe -0.36 (Issue #17 TASK 3)
 
 ❌ FAILED RE-VALIDATION (need Phase 3A rescue or EXCLU):
 - OSMO: Sharpe 0.68, WFE 0.19 — SEVERE OVERFIT
@@ -105,9 +107,11 @@ ASSET_CONFIG = {
         "filter_mode": "baseline",
     },
     "AVAX": {
-        # ✅ RESET COMPLETE (25 Jan 2026, 15:25 UTC)
-        # Baseline FAILED (WFE 0.51), MODERATE PASSED
+        # ❌ EXCLUDED (26 Jan 2026, 16:30 UTC) — Regime Stress Test FAIL
+        # Baseline FAILED (WFE 0.51), MODERATE PASSED (25 Jan 2026)
         # Results: OOS Sharpe 2.00, WFE 0.66, Trades 81, Sensitivity 2.77%
+        # ⚠️ REGIME STRESS TEST FAIL: SIDEWAYS Sharpe -0.36 (75 trades, 25.3% win rate)
+        # Decision: EXCLUDED from PROD portfolio (Issue #17 TASK 3)
         "pair": "AVAX/USDT",
         "atr": {
             "sl_mult": 3.0,
@@ -271,10 +275,13 @@ ASSET_CONFIG = {
         "filter_mode": "baseline",
     },
     "EGLD": {
-        # ✅ RESET COMPLETE (25 Jan 2026, 14:10 UTC)
-        # Phase 2 validation: 7/7 guards PASS
+        # ❌ EXCLUDED (26 Jan 2026, 16:30 UTC) — Regime Stress Test FAIL
+        # Phase 2 validation: 7/7 guards PASS (baseline)
         # Variance: 5.01% < 15% → PASS
         # OOS Sharpe: 2.13, WFE: 0.69, Trades: 91, MC p=0.01
+        # ⚠️ REGIME STRESS TEST FAIL: SIDEWAYS Sharpe -4.59 (60 trades, 35% win rate)
+        # ⚠️ MARKDOWN also negative: -5.15 Sharpe (6 trades)
+        # Decision: EXCLUDED from PROD portfolio (Issue #17 TASK 3)
         "pair": "EGLD/USDT",
         "atr": {
             "sl_mult": 5.0,
