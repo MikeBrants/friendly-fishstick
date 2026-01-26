@@ -4,15 +4,16 @@ globs: ["scripts/**", "outputs/**"]
 alwaysApply: true
 ---
 
-# Pipeline FINAL TRIGGER v2 (6 Phases)
+# Pipeline FINAL TRIGGER v2 (7 Phases) ⚡ UPDATED 26 Jan 2026
 
 | Phase | Nom | Criteres/Output |
 |-------|-----|-----------------|
 | 0 | Download | `data/*.parquet` |
 | 1 | Screening | 200 trials, guards OFF, WFE>0.5, Sharpe>0.8, Trades>50 |
 | 2 | Validation | 300 trials, 7 guards ON -> WINNERS + PENDING |
-| 3A | Rescue | PENDING: d26/d52/d78, 7/7 PASS -> WINNERS |
-| 3B | Optimization | WINNERS: d26/d52/d78, +10% ET 7/7 PASS -> remplace |
+| **2B** | **Regime Stress** | **MARKDOWN + SIDEWAYS test -> PASS/EXCLU** ⚡ NEW |
+| 3A | Rescue | PENDING: d26/d52/d78, 8/8 PASS -> WINNERS |
+| 3B | Optimization | WINNERS: d26/d52/d78, +10% ET 8/8 PASS -> remplace |
 | 4 | Filter Rescue | PENDING: baseline → moderate → conservative |
 | 5 | Production | `asset_config.py` + `project-state.md` |
 
@@ -59,6 +60,10 @@ python scripts/run_full_pipeline.py --assets ALL --workers 6 \
 # Phase 2: Validation
 python scripts/run_full_pipeline.py --assets WINNERS --workers 1 \
     --trials-atr 300 --trials-ichi 300 --enforce-tp-progression --run-guards
+
+# Phase 2B: Regime Stress (NEW)
+python scripts/run_regime_stress_test.py --asset ASSET --regime SIDEWAYS
+python scripts/run_regime_stress_test.py --asset ASSET --regime MARKDOWN
 
 # Phase 3A: Rescue (displacement grid)
 python scripts/run_displacement_grid.py --assets PENDING

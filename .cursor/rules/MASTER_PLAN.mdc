@@ -25,7 +25,7 @@ Systeme de trading quant crypto valide statistiquement, deploye via pipeline mul
 **2026-01-22 12:00 UTC** — Tout resultat anterieur est INVALIDE (bug TP non-progressif).
 **2026-01-25** — Reset complet avec systeme deterministe (workers=1).
 
-### Assets PROD (7/7 Guards PASS) — 14 assets
+### Assets PROD (8/8 Guards PASS) — 12 assets ⚡ UPDATED 26 Jan
 
 | Asset | Mode | Disp | OOS Sharpe | WFE | Validation |
 |:------|:-----|:-----|:-----------|:----|:-----------|
@@ -41,8 +41,8 @@ Systeme de trading quant crypto valide statistiquement, deploye via pipeline mul
 | MINA | baseline | 52 | 2.58 | 1.13 | **25 Jan reset** |
 | CAKE | baseline | 52 | 2.46 | 0.81 | PR#8 |
 | RUNE | baseline | 52 | 2.42 | 0.61 | **25 Jan reset** |
-| EGLD | baseline | 52 | 2.13 | 0.69 | **25 Jan reset** |
-| AVAX | **moderate** | 52 | 2.00 | 0.66 | **25 Jan rescue** |
+| ~~EGLD~~ | ~~baseline~~ | ~~52~~ | ~~2.13~~ | ~~0.69~~ | **26 Jan EXCLU** (SIDEWAYS -4.59) |
+| ~~AVAX~~ | ~~moderate~~ | ~~52~~ | ~~2.00~~ | ~~0.66~~ | **26 Jan EXCLU** (SIDEWAYS -0.36) |
 
 ### Assets Pending Rescue (Phase 3A required)
 
@@ -62,7 +62,9 @@ Systeme de trading quant crypto valide statistiquement, deploye via pipeline mul
 
 ## Objectif Q1 2026
 
-Valider 20+ assets en PROD avec 7/7 guards, prets pour paper trading.
+Valider 20+ assets en PROD avec 8/8 guards (incluant Regime Stress), prets pour paper trading.
+
+**Progress actuel:** 12/20 assets (60%)
 **Progres: 14/20 (70%)**
 
 ---
@@ -191,6 +193,38 @@ Chaque agent applique ce cycle:
 3. Ecrire verdict dans `comms/sam-qa.md`
 4. Signaler Casey
 
+### Phase 3B — Regime Stress Test (Jordan) ⚡ NEW 26 Jan 2026
+
+**Trigger:** Asset PASS Phase 3 (7/7 guards)  
+**Owner:** Jordan  
+**Validator:** Sam
+
+#### Workflow
+1. Jordan exécute stress test sur régimes critiques:
+   ```bash
+   python scripts/run_regime_stress_test.py --asset [ASSET] --regime MARKDOWN
+   python scripts/run_regime_stress_test.py --asset [ASSET] --regime SIDEWAYS
+   ```
+
+2. Critères PASS:
+   | Régime | Critère | Action si FAIL |
+   |--------|---------|----------------|
+   | MARKDOWN | Trades < 10 OR Sharpe ≥ 0 | Si Sharpe < -1.0 sur >10 trades → REVIEW |
+   | SIDEWAYS | Sharpe > 0 | Si Sharpe < 0 → EXCLU ou position réduite |
+
+3. Sam valide les résultats dans `comms/sam-qa.md`
+
+4. Verdicts possibles:
+   - **PASS** → Phase 4 (PROD)
+   - **REVIEW** → Casey décide (exclu vs position réduite)
+   - **FAIL** → EXCLU définitif
+
+#### Outputs
+- `outputs/stress_test_MARKDOWN_{ASSET}_{timestamp}.csv`
+- `outputs/stress_test_SIDEWAYS_{ASSET}_{timestamp}.csv`
+
+**Note:** Stratégie Ichimoku évite naturellement MARKDOWN (0-9 trades). Focus critique = SIDEWAYS.
+
 ### Phase 4 — Verdict (Casey)
 
 1. Lire validation dans `comms/sam-qa.md`
@@ -221,6 +255,9 @@ Quel guard?
 ├── MC p > 0.05 ────────> Plus de donnees ou trials
 ├── Sensitivity > 15% ──> Filter Rescue (baseline → moderate → conservative)
 ├── Top10 > 40% ────────> Donnees insuffisantes
+├── **Regime Stress FAIL** ─> EXCLU ou position réduite (Casey decide)
+│     ├── SIDEWAYS Sharpe < -1.0 ──> EXCLU définitif
+│     └── SIDEWAYS Sharpe [-1, 0] ──> Position 0.5× ou EXCLU
 └── Autre ──────────────> BLOCKED, documenter raison
 ```
 
@@ -270,7 +307,7 @@ python scripts/run_filter_rescue.py ETH --trials 300
 
 ---
 
-## PRIORITES ACTUELLES (25 Jan 2026)
+## PRIORITES ACTUELLES (26 Jan 2026)
 
 ### P0 — Phase 3A Rescue (Required)
 
@@ -278,25 +315,23 @@ python scripts/run_filter_rescue.py ETH --trials 300
 - [ ] AR — displacement rescue (try d26, d78)
 - [ ] METIS — displacement rescue (try d26, d78)
 
-### P1 — Phase 1 Screening (In Progress)
+### P1 — Phase 1 Screening (Optional)
 
-- [x] Phase 1 Batch 1 lancé (15 assets: XRP, BNB, ADA, etc.)
-- [ ] Analyser résultats screening
-- [ ] Phase 2 validation des candidats
+- [x] Phase 1 Batch 1 complete (15 assets: 0 PASS)
+- [ ] Phase 1 Batch 2 (VET, MKR, ALGO, FTM, etc.)
 
-### P2 — Old PROD Re-validation (Optional)
+### P2 — Regime Test (Optional)
 
-- [ ] BTC — re-valider avec workers=1 (may fail like before)
-- [ ] DOT, SHIB, NEAR, ANKR, DOGE — re-valider si nécessaire
+- [ ] Test 12 assets PROD restants avec nouveaux params
 
-### Completed (25 Jan)
+### Completed (25-26 Jan)
 
-- [x] ETH — baseline PASS (Sharpe 3.22)
-- [x] AVAX — moderate PASS (Sharpe 2.00)
+- [x] ETH — baseline PASS (Sharpe 3.22) + Regime PASS
 - [x] MINA — baseline PASS (Sharpe 2.58)
 - [x] YGG — baseline PASS (Sharpe 3.11)
 - [x] RUNE — baseline PASS (Sharpe 2.42)
-- [x] EGLD — baseline PASS (Sharpe 2.13)
+- [x] AVAX — moderate PASS (Sharpe 2.00) → **EXCLU 26 Jan** (Regime FAIL)
+- [x] EGLD — baseline PASS (Sharpe 2.13) → **EXCLU 26 Jan** (Regime FAIL)
 
 ---
 
@@ -347,9 +382,9 @@ python scripts/download_data.py --assets [ASSET_LIST]
 
 | Metrique | Cible | Actuel |
 |----------|-------|--------|
-| Assets PROD | 20+ | **14** |
-| Guards pass rate | 100% | 100% |
-| Avg Sharpe OOS | > 1.5 | ~3.2 |
+| Assets PROD | 20+ | **12** |
+| Guards pass rate | 100% | 100% (8/8) |
+| Avg Sharpe OOS | > 1.5 | 3.35 |
 | Avg MaxDD | < 10% | ~2% |
 
 ---

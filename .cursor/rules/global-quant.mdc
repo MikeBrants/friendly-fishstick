@@ -10,18 +10,19 @@ alwaysApply: true
 Tous les resultats datant d'AVANT 2026-01-22 12H00 sont INVALIDES.
 Le bug TP progression est maintenant fixe (--enforce-tp-progression).
 
-## 7 GUARDS OBLIGATOIRES (validation avant merge)
-| Guard | Seuil | Critique |
-|-------|-------|----------|
-| WFE (Walk-Forward Efficiency) | >=0.6 | OUI |
-| Monte Carlo p-value | <0.05 | OUI |
-| Sensitivity variance | <15% | OUI |
-| Bootstrap CI lower bound | >1.0 | OUI |
-| Top 10 trades contribution | <40% | OUI |
-| Min trades OOS | >=60 | OUI |
-| Min bars IS | >=8000 | OUI |
+## 8 GUARDS OBLIGATOIRES (validation avant merge) ⚡ UPDATED 26 Jan 2026
+| Guard | ID | Seuil | Critique |
+|-------|:---|-------|----------|
+| WFE (Walk-Forward Efficiency) | - | >=0.6 | OUI |
+| Monte Carlo p-value | guard001 | <0.05 | OUI |
+| Sensitivity variance | guard002 | <15% | OUI |
+| Bootstrap CI lower bound | guard003 | >1.0 | OUI |
+| Top 10 trades contribution | guard005 | <40% | OUI |
+| Stress1 Sharpe | guard006 | >1.0 | OUI |
+| Regime mismatch | guard007 | <1% | OUI |
+| **Regime Stress (SIDEWAYS)** | **guard008** | **Sharpe > 0** | **OUI** ⚡ NEW |
 
-**GATE: 7/7 PASS obligatoire avant tout merge.**
+**GATE: 8/8 PASS obligatoire avant tout merge.**
 
 ## PATTERNS PYTHON OBLIGATOIRES
 
@@ -59,10 +60,38 @@ regime = get_regime_at(entry_time)  # CORRECT
 - Min 100 trades IS, 60 OOS
 - Slippage fixe 2bps -> devrait etre f(volume) pour altcoins
 
+## GUARD-008: Regime Stress Test ⚡ NEW 26 Jan 2026
+
+**Script:** `scripts/run_regime_stress_test.py`  
+**Ajouté:** 26 Jan 2026 (Issue #17 TASK 3)
+
+### Critères
+| Régime | PASS | REVIEW | FAIL |
+|--------|------|--------|------|
+| MARKDOWN | Trades < 10 OR Sharpe ≥ 0 | Sharpe ∈ [-1, 0) sur >10 trades | Sharpe < -1.0 sur >10 trades |
+| SIDEWAYS | Sharpe > 0 | Sharpe ∈ [-0.5, 0] | Sharpe < -0.5 |
+
+### Commande
+```bash
+# Test single asset
+python scripts/run_regime_stress_test.py --asset ETH --regime SIDEWAYS
+
+# Test all PROD assets
+python scripts/run_regime_stress_test.py --all-assets --regime SIDEWAYS
+```
+
+### Cas exclus par ce guard (26 Jan 2026)
+| Asset | Régime | Sharpe | Verdict |
+|-------|--------|--------|---------|
+| EGLD | SIDEWAYS | -4.59 | EXCLU |
+| AVAX | SIDEWAYS | -0.36 | EXCLU |
+
+---
+
 ## WORKFLOW RESCUE (CRITICAL - Ne jamais skip)
 **Reference obligatoire:** `docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md`
 
-**Si guards FAIL (<7/7 PASS):**
+**Si guards FAIL (<8/8 PASS):**
 ```
 Phase 2 (FAIL) → Phase 3A (displacement rescue d26/d52/d78)
                      ↓ FAIL
