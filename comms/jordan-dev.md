@@ -1,114 +1,169 @@
 # Jordan Dev Log — FINAL TRIGGER v2
 
-**Last Updated**: 26 Jan 2026, 22:30 UTC
+**Last Updated**: 26 Jan 2026, 23:30 UTC
 
 ---
 
-## 2230 DONE jordan-dev -> casey-quant: PR#19 Integration Complete
+## 2330 READY jordan-dev -> casey-quant: PR#20 Revalidation Plan READY
 
-**Task**: Integrate PR#19 (Short Signal Parity Fix) into pipeline
+**Task**: Prepare PR#20 revalidation after SHORT signal parity fix  
+**Status**: ✅ READY TO EXECUTE
 
-**Status**: ✅ COMPLETE
+### Executive Summary
 
-### Changes Made
+**Objective**: Revalidate 12 PROD assets + 1 rescue candidate (OSMO) with PR#19 fix integrated.
 
-1. **Fixed `configs/asset_config.py` (line 140-142)**
-   - Changed `tenkan_period` → `tenkan`
-   - Changed `kijun_period` → `kijun`
-   - Matches `IchimokuConfig` dataclass field names
+**Critical Issue**: All current PROD assets were validated PRE-PR#19. The fix changes how `tenkan_5`/`kijun_5` are propagated to `FiveInOneConfig`, which affects SHORT signal generation.
 
-2. **Fixed `tests/test_short_signal_parity.py` (line 70-71)**
-   - Updated assertions to use correct field names
-   - Tests now pass: 10/10 PASSED, 1 SKIPPED
+**Expected Impact**:
+- ✅ SHORT signals should appear (was potentially 0% before)
+- ✅ Sharpe: Neutral to slight positive (better signal balance)
+- ⚠️ WFE: Slight drop expected (-0.1 to -0.2) due to more balanced strategy
+- ✅ Trade count: Stable or slight increase
 
-3. **Fixed `scripts/validate_signal_parity.py` (line 282-287)**
-   - Replaced Unicode emojis (✅❌) with ASCII (OK/FAIL)
-   - Resolves PowerShell cp1252 encoding error
+### Assets to Revalidate
 
-### Validation Results
+**12 PROD Assets** (Priority 1):
+1. SHIB (5.67 Sharpe, 2.27 WFE)
+2. DOT (4.82 Sharpe, 1.74 WFE)
+3. TIA (5.16 Sharpe, 1.36 WFE)
+4. NEAR (4.26 Sharpe, 1.69 WFE)
+5. DOGE (3.88 Sharpe, 1.55 WFE)
+6. ANKR (3.48 Sharpe, 0.86 WFE)
+7. ETH (3.22 Sharpe, 1.22 WFE)
+8. JOE (3.16 Sharpe, 0.73 WFE)
+9. YGG (3.11 Sharpe, 0.78 WFE)
+10. MINA (2.58 Sharpe, 1.13 WFE)
+11. CAKE (2.46 Sharpe, 0.81 WFE)
+12. RUNE (2.42 Sharpe, 0.61 WFE)
+
+**1 Rescue Candidate** (Priority 2):
+- OSMO (0.68 Sharpe, 0.19 WFE) - Test d26/d78 rescue
+
+### Pre-Flight Checklist
+
+- [x] PR#19 integrated and tested (10/10 tests PASS)
+- [x] Data availability verified (13/13 assets, ≥17520 bars each)
+- [x] Revalidation plan documented (`docs/REVALIDATION_PLAN_PR20.md`)
+- [x] Execution script prepared (`scripts/run_pr20_revalidation.sh`)
+- [x] Output structure designed
+- [ ] Execution approval from Casey
+
+### Execution Plan
+
+**Phase 1: PROD Revalidation** (8-10h)
+- Batch 1: SHIB, DOT, TIA, NEAR (3-4h)
+- Batch 2: DOGE, ANKR, ETH, JOE (3-4h)
+- Batch 3: YGG, MINA, CAKE, RUNE (2-3h)
+
+**Phase 2: Regime Stress Test** (2h)
+- SIDEWAYS test for all Phase 1 passing assets
+- Criteria: Sharpe ≥ 0 (PASS), Sharpe < 0 (EXCLUDE)
+
+**Phase 3: OSMO Rescue** (2h)
+- Displacement variants: d26, d78
+- Target: WFE ≥ 0.6, Trades OOS ≥ 60
+
+**Phase 4: Analysis** (1h)
+- Compare pre/post PR#19 metrics
+- Generate impact report
+- Update project-state.md
+
+**Total Estimated Duration**: 13-15h (spread over 2 working days)
+
+### Success Criteria
+
+| Metric | Target | Acceptable | FAIL |
+|--------|--------|------------|------|
+| PROD Pass Rate | ≥10/12 (83%) | ≥9/12 (75%) | <9/12 |
+| Mean Sharpe | ≥3.0 | ≥2.5 | <2.5 |
+| Mean WFE | ≥0.6 | ≥0.55 | <0.55 |
+| SHORT Ratio | 25-75% | 20-80% | <20% or >80% |
+| Regime SIDEWAYS | All ≥0 | ≥90% ≥0 | <90% |
+
+### Risk Mitigation
+
+**Risk 1**: Massive degradation (>50% fail)
+- **Action**: STOP after Batch 1, full debug session
+- **Probability**: Low (<10%)
+
+**Risk 2**: No SHORT signals
+- **Action**: Debug FiveInOneConfig propagation
+- **Probability**: Very Low (<5%)
+
+**Risk 3**: Time overrun
+- **Action**: Stop after each batch, reassess
+- **Probability**: Medium (30%)
+
+### Output Files
+
+```
+outputs/
+├── pr20_batch1_multiasset_scan_*.csv
+├── pr20_batch1_guards_summary_*.csv
+├── pr20_batch2_multiasset_scan_*.csv
+├── pr20_batch2_guards_summary_*.csv
+├── pr20_batch3_multiasset_scan_*.csv
+├── pr20_batch3_guards_summary_*.csv
+├── pr20_regime_stress_*.csv
+├── pr20_osmo_d26_scan_*.csv
+├── pr20_osmo_d78_scan_*.csv
+├── PR20_CONSOLIDATED_RESULTS.csv
+└── returns_matrix_*_*.npy
+
+reports/
+├── PR20_IMPACT_ANALYSIS.csv
+└── PR20_REVALIDATION_REPORT.md
+```
+
+### Execution Command
 
 ```bash
-pytest tests/test_short_signal_parity.py -v
-# Result: ======================== 10 passed, 1 skipped in 0.86s ========================
+# Bash (Linux/Mac)
+bash scripts/run_pr20_revalidation.sh
 
-python scripts/validate_signal_parity.py --all
-# Result: Script runs without encoding errors (though 0 signals with synthetic data - expected)
+# Manual execution (Windows PowerShell)
+# Phase 1 Batch 1
+python scripts/run_full_pipeline.py --assets SHIB DOT TIA NEAR --optimization-mode baseline --trials-atr 300 --trials-ichi 300 --run-guards --workers 1 --output-prefix pr20_batch1
+
+# Phase 1 Batch 2
+python scripts/run_full_pipeline.py --assets DOGE ANKR ETH JOE --optimization-mode baseline --trials-atr 300 --trials-ichi 300 --run-guards --workers 1 --output-prefix pr20_batch2
+
+# Phase 1 Batch 3
+python scripts/run_full_pipeline.py --assets YGG MINA CAKE RUNE --optimization-mode baseline --trials-atr 300 --trials-ichi 300 --run-guards --workers 1 --output-prefix pr20_batch3
 ```
-
-### Commit
-
-```
-commit 56ed34b
-Author: Jordan (via Cursor)
-Date: 26 Jan 2026
-
-fix: correct IchimokuConfig parameter names in PR#19
-
-Fixes parameter naming mismatch after PR#19 merge:
-- configs/asset_config.py: use tenkan/kijun (not tenkan_period/kijun_period)
-- tests/test_short_signal_parity.py: update assertions
-- scripts/validate_signal_parity.py: ASCII for PowerShell compatibility
-```
-
-### Pipeline Integration Analysis
-
-**Current State:**
-- ✅ `parallel_optimizer.py` already optimizes `tenkan_5`/`kijun_5` correctly
-- ✅ `run_guards_multiasset.py` already uses these params from CSV
-- ✅ `build_strategy_params()` correctly creates nested dicts with `five_in_one.tenkan_5/kijun_5`
-- ✅ `_instantiate_strategy()` correctly converts dicts to `FinalTriggerParams`
-
-**No pipeline changes required** - the existing code already propagates TS5/KS5 correctly during optimization and validation.
-
-### Asset Config Coverage
-
-**Configured Assets (5):**
-- BTC (tenkan=6, kijun=37, TS5=9, KS5=29)
-- ETH (tenkan=17, kijun=31, TS5=13, KS5=20) ← Pine-aligned
-- AVAX (tenkan=20, kijun=23, TS5=12, KS5=16)
-- UNI (tenkan=7, kijun=23, TS5=8, KS5=28)
-- SEI (tenkan=20, kijun=33, TS5=8, KS5=28)
-- DEFAULT (tenkan=9, kijun=26, TS5=9, KS5=26) ← Fallback
-
-**PROD Assets Not in Config (7):**
-- SHIB, TIA, DOT, NEAR, DOGE, ANKR, JOE, YGG, MINA, CAKE, RUNE, EGLD
-
-**Recommendation:**
-To enable Pine parity validation for all PROD assets, add their optimized params to `configs/asset_config.py`. Otherwise, `build_params_for_asset()` falls back to DEFAULT which may not generate realistic signals.
 
 ### Next Steps
 
-1. ✅ **PR#19 fixes committed and pushed** (commit 56ed34b)
-2. ⏸️ **Add PROD asset configs** (optional - only needed for Pine parity validation)
-3. ⏸️ **Revalidate 12 PROD assets** (requires step 2 OR use existing optimized params from CSVs)
+**Immediate** (Awaiting Casey approval):
+1. Execute Phase 1 Batch 1 (SHIB, DOT, TIA, NEAR)
+2. Analyze results after 4h
+3. Decide: Continue Batch 2-3 OR stop/debug
 
-### Usage
+**After Completion**:
+1. Generate PR#20 impact analysis
+2. Update project-state.md
+3. Update asset_config.py if needed
+4. Create PR#20 summary document
+5. OPTIONAL: Test AR/METIS rescue if OSMO succeeds
 
-**For assets with Pine presets (BTC, ETH, AVAX, UNI, SEI):**
-```python
-from configs.asset_config import build_params_for_asset
-params = build_params_for_asset("ETH")  # Guaranteed Pine parity
-```
+### References
 
-**For other assets (pipeline optimization):**
-```python
-from crypto_backtest.optimization.parallel_optimizer import build_strategy_params
-params = build_strategy_params(
-    sl_mult=4.5, tp1_mult=4.75, tp2_mult=3.0, tp3_mult=4.5,
-    tenkan=17, kijun=31,
-    tenkan_5=13, kijun_5=20,  # ← Already correctly propagated
-    displacement=52
-)
-```
-
-**Pipeline continues to work as before** - no changes needed for normal operation.
+- **Plan**: `docs/REVALIDATION_PLAN_PR20.md`
+- **Script**: `scripts/run_pr20_revalidation.sh`
+- **PR#19 Fix**: commit 56ed34b
+- **PR#19 Integration**: `docs/PR19_INTEGRATION_SUMMARY.md`
 
 ---
 
-**Files Modified:**
-- configs/asset_config.py
-- tests/test_short_signal_parity.py
-- scripts/validate_signal_parity.py
+**Status**: ⏸️ STANDBY — Awaiting execution approval  
+**Estimated Start**: 27 Jan 2026, 09:00 UTC  
+**Estimated Completion**: 28 Jan 2026, 18:00 UTC
 
-**Duration:** 45 minutes
-**Outcome:** Integration complete, all tests pass, pipeline unchanged
+---
+
+## Previous Entries
+
+### 2230 DONE jordan-dev -> casey-quant: PR#19 Integration Complete
+
+[See previous entry in document history]
