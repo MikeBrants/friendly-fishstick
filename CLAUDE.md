@@ -318,7 +318,7 @@ pytest -v
 - MaxDD: ×2-3 vs backtest
 
 ### DO NOT
-- Filter SIDEWAYS regime (79.5% of profit historically)
+- Filter SIDEWAYS regime without regime analysis (distribution variable by asset)
 - Use obsolete filter modes (`medium_distance_volume`, etc.)
 - Declare assets "PROD ready" without PBO validation
 - Trust WFE > 1.0 without investigation

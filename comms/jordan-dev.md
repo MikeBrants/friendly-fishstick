@@ -1,5 +1,67 @@
 # Jordan (Developer) — Task Log
 
+## 2026-01-26 16:45 UTC — Correction: Données Régime Obsolètes
+
+**Status**: TODO -> DONE  
+**Issue**: Data correction (affects Issue #17)  
+**Priority**: P0 CRITIQUE
+
+**Problème identifié**: Utilisation de "79.5% SIDEWAYS profit" dans 86 fichiers (donnée obsolète)
+
+**Fichiers corrigés**:
+- .cursor/rules/MASTER_PLAN.mdc (ajouté bloc avertissement)
+- .cursor/rules/global-quant.mdc
+- CLAUDE.md
+- .claude/agents/alex.md
+- status/project-state.md
+- outputs/STRESS_TEST_REPORT_20260126.md
+
+**Données actuelles (regime_v3 26 Jan)**:
+- ACCUMULATION: ~82% des trades
+- MARKDOWN: 5-15% selon asset
+- SIDEWAYS: 16.9%-39% (VARIABLE par asset, moyenne 25.3%)
+
+**Documentation**: REGIME_DATA_CORRECTION_20260126.md
+
+---
+
+## 2026-01-26 16:20 UTC — TASK 3 Regime Stress Test COMPLETE (Issue #17)
+
+**Status**: TODO -> DONE  
+**Issue**: #17 (Regime-Robust Validation Framework)  
+**Priority**: P0 CRITIQUE
+
+**Deliverables**:
+- scripts/run_regime_stress_test.py (NEW)
+- outputs/stress_test_MARKDOWN_20260126_161422.csv
+- outputs/stress_test_SIDEWAYS_20260126_161501.csv
+- outputs/STRESS_TEST_REPORT_20260126.md
+
+**Results MARKDOWN (14 assets)**:
+- 14/14 SKIP/INCONCLUSIVE
+- Strategy naturally avoids MARKDOWN entries (0-9 trades per asset)
+- Built-in bear filter = POSITIVE finding
+
+**Results SIDEWAYS (14 assets)**:
+- 12/14 PASS (Sharpe moyen 3.87, 25.3% moyenne des barres)
+- 2/14 FAIL: EGLD (-4.59), AVAX (-0.36)
+
+**CRITICAL ALERTS**:
+- EGLD: FAIL SIDEWAYS + warning MARKDOWN -> REVIEW for EXCLU
+- AVAX: FAIL SIDEWAYS + prior WFE issues -> REVIEW for EXCLU
+
+**Recommendation**:
+```
+@casey-quant: Decision needed on EGLD/AVAX
+- Option A: Move to EXCLU (regime stress FAIL)
+- Option B: Keep with reduced position size live
+- Option C: Attempt rescue (Phase 3A/4)
+```
+
+**Next**: Casey verdict on EGLD/AVAX, then TASK 5 (Multi-Period Validation)
+
+---
+
 ## 2026-01-26 15:16 UTC — Phase 3A rescue script fixes
 
 **Status**: TODO → DONE

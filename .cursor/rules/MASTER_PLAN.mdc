@@ -146,7 +146,19 @@ Chaque agent applique ce cycle:
    regime = get_regime_at(exit_time)   # INTERDIT
    ```
 
-4. **Filtrer SIDEWAYS** — c'est 79.5% du profit
+4. **NE PAS filtrer SIDEWAYS sans analyse** — distribution variable par asset
+
+### ⚠️ REGIME DATA UPDATE (26 Jan 2026)
+
+**OBSOLETE:** "SIDEWAYS fait 79.5% du profit" (ancienne analyse ETH single-asset)
+
+**ACTUEL (regime_v3 multi-asset):**
+- ACCUMULATION: ~82% des trades (biais période 2020-2024)
+- MARKDOWN: 5-15% selon asset (régimes bear)
+- SIDEWAYS: variable par asset (16.9%-39% des barres)
+
+**Action:** Consulter `outputs/regime_analysis/{ASSET}_regimes.csv` pour données actuelles  
+**Référence:** Issue #17 TASK 3 stress test validé 26 Jan 2026
 
 ### Resultats Suspects (CHALLENGER)
 

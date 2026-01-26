@@ -54,7 +54,7 @@ regime = get_regime_at(entry_time)  # CORRECT
 | Slow | 65-78 | OSMO, MINA, OP |
 
 ## PIEGES CRITIQUES
-- NE PAS filtrer SIDEWAYS -> c'est 79.5% du profit
+- NE PAS filtrer SIDEWAYS sans analyse -> distribution variable par asset (voir regime_v3)
 - Sharpe >4 ou WFE >2 = SUSPECT -> demander reconciliation
 - Min 100 trades IS, 60 OOS
 - Slippage fixe 2bps -> devrait etre f(volume) pour altcoins

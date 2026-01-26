@@ -1,0 +1,15 @@
+asset,regime,status,reason,bars,pct,sharpe,max_dd,n_trades,win_rate,total_return,verdict
+SHIB,MARKDOWN,SKIP,Insufficient trades (0 < 5 minimum),1587,9.058219178082192,,,0,,,
+DOT,MARKDOWN,SKIP,Insufficient trades (3 < 5 minimum),1582,9.029680365296803,,,3,,,
+TIA,MARKDOWN,INCONCLUSIVE,,2508,14.3,9.76,0.01,6,33.3,0.47,INCONCLUSIVE - Insufficient trades (< 10)
+NEAR,MARKDOWN,SKIP,Insufficient trades (3 < 5 minimum),1929,11.01027397260274,,,3,,,
+DOGE,MARKDOWN,SKIP,Insufficient trades (0 < 5 minimum),1598,9.121004566210047,,,0,,,
+ANKR,MARKDOWN,SKIP,Insufficient trades (3 < 5 minimum),1785,10.188356164383562,,,3,,,
+ETH,MARKDOWN,SKIP,Insufficient trades (0 < 5 minimum),1063,6.067351598173516,,,0,,,
+JOE,MARKDOWN,SKIP,Insufficient trades (0 < 5 minimum),1983,11.318493150684931,,,0,,,
+YGG,MARKDOWN,SKIP,Insufficient trades (3 < 5 minimum),2163,12.345890410958905,,,3,,,
+MINA,MARKDOWN,SKIP,Insufficient trades (3 < 5 minimum),2027,11.569634703196346,,,3,,,
+CAKE,MARKDOWN,INCONCLUSIVE,,1639,9.4,2.21,1.55,9,33.3,0.84,INCONCLUSIVE - Insufficient trades (< 10)
+RUNE,MARKDOWN,SKIP,Insufficient trades (3 < 5 minimum),1853,10.57648401826484,,,3,,,
+EGLD,MARKDOWN,INCONCLUSIVE,,1794,10.2,-5.15,1.03,6,50.0,-0.57,INCONCLUSIVE - Insufficient trades (< 10)
+AVAX,MARKDOWN,SKIP,Insufficient trades (3 < 5 minimum),1730,9.874429223744292,,,3,,,

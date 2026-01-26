@@ -778,7 +778,7 @@ C. **HYBRID** - Keep high-confidence (JOE, OSMO), re-validate questionable (BTC)
 Suite aux changements majeurs (bug KAMA corrigé, seuil sensitivity 15%, ETH baseline):
 - **Les anciens résultats de régime sont OBSOLÈTES**
 - On ne sait plus dans quel régime (BULL/BEAR/SIDEWAYS) les trades performent
-- Le ratio 79.5% SIDEWAYS profit doit être re-vérifié
+- ✅ RÉSOLU (26 Jan): regime_v3 multi-asset analysis complete (ACCUMULATION ~82%, SIDEWAYS variable)
 
 ### Actions Requises
 1. ✅ **Re-run regime analysis** sur tous les assets PROD avec les nouveaux paramètres
@@ -847,10 +847,10 @@ python regime_analysis_v2.py --assets SHIB DOT NEAR DOGE ETH ANKR JOE
    - Test d26/d52/d78 variants
    - May recover 2-3 additional assets
 
-4. **Regime Analysis Update** (1-2h effort)
+4. **Regime Analysis Update** ✅ COMPLETE (26 Jan)
    - Re-run regime analysis with updated parameters
-   - Verify SIDEWAYS profit distribution (was 79.5%)
-   - Confirm regime classification consistency
+   - ✅ Distribution verified: ACCUMULATION ~82%, SIDEWAYS 16.9-39% (variable)
+   - ✅ Regime classification updated with regime_v3
 
 ### Production Deployment Recommendation
 

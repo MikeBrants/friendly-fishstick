@@ -91,4 +91,4 @@ Action: @[Agent] [commande]
 - ❌ Ne JAMAIS approuver sans 7/7 guards PASS
 - ❌ Ne JAMAIS ignorer résultats pré-2026-01-22 12H00
 - ❌ Ne JAMAIS créer des exceptions non documentées
-- ❌ Ne JAMAIS filtrer SIDEWAYS (79.5% du profit!)
+- ❌ Ne JAMAIS filtrer SIDEWAYS sans analyse regime_v3 (distribution variable)
