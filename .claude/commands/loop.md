@@ -2,6 +2,28 @@
 
 Exécute le workflow en boucle jusqu'à complétion ou blocker.
 
+## Usage
+
+```
+/loop          → 5 tâches max (défaut, safe)
+/loop 10       → 10 tâches max
+/loop max      → Pas de limite (jusqu'à DONE ou BLOCKER)
+```
+
+**Argument reçu**: $ARGUMENTS
+
+---
+
+## Interprétation de $ARGUMENTS
+
+| Valeur | Limite |
+|--------|--------|
+| (vide) | 5 tâches |
+| `5` | 5 tâches |
+| `10` | 10 tâches |
+| `max` ou `unlimited` | Pas de limite |
+| Autre nombre | Ce nombre |
+
 ---
 
 ## Étapes
@@ -62,7 +84,14 @@ Format d'ajout dans project-state.md :
 - [DATE] ✅ [TÂCHE] (Agent: [nom]) → [output]
 ```
 
-### 7. Boucler
+### 7. Incrémenter compteur et vérifier limite
+```
+tasks_completed += 1
+if tasks_completed >= LIMIT:
+    STOP avec status "LIMIT"
+```
+
+### 8. Boucler
 Retourne à l'étape 1.
 
 ---
@@ -72,7 +101,7 @@ Retourne à l'étape 1.
 Stop la boucle si :
 - ✅ Toutes les tâches sont DONE
 - 🚫 Un BLOCKER est rencontré (demande intervention humaine)
-- 🔢 5 tâches complétées (safety limit — relance /loop pour continuer)
+- 🔢 Limite atteinte (5, 10, ou custom)
 - ❌ Erreur non récupérable
 
 ---
@@ -81,7 +110,7 @@ Stop la boucle si :
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✅ DONE: [Nom de la tâche]
+✅ DONE: [Nom de la tâche] (X/LIMIT)
    Agent: [Alex/Jordan/Sam]
    Output: [fichier créé]
    Updated: 
@@ -100,7 +129,7 @@ Stop la boucle si :
 ═══════════════════════════════════════
 🏁 LOOP TERMINÉE
 ═══════════════════════════════════════
-Tâches complétées: X
+Tâches complétées: X / LIMIT
 Fichiers modifiés: 
   - comms/alex-lead.md
   - comms/jordan-dev.md
@@ -153,32 +182,35 @@ Prochaine action recommandée:
 
 ---
 
-## Exemple de run
+## Exemples
 
+### /loop (défaut = 5)
 ```
 /loop
 
+→ Limite: 5 tâches
 → Lecture status/project-state.md...
-→ Scan comms/*.md...
-→ Prochaine tâche: "WFE Audit" (Alex, 🔴🔴🔴 BLOQUANT)
-
-[Lance subagent Alex]
 ...
-[Alex termine]
+🏁 LOOP TERMINÉE (5/5) - Status: LIMIT
+→ Relance /loop pour continuer
+```
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✅ DONE: WFE Audit
-   Agent: Alex
-   Output: reports/wfe-audit-2026-01-26.md
-   Updated: 
-     - comms/alex-lead.md
-     - status/project-state.md
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⏭️  NEXT: PBO Implementation (Alex)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+### /loop 10
+```
+/loop 10
 
-→ Prochaine tâche: "PBO Implementation" (Alex, 🔴🔴)
-
-[Lance subagent Alex]
+→ Limite: 10 tâches
+→ Lecture status/project-state.md...
 ...
+```
+
+### /loop max
+```
+/loop max
+
+→ Limite: AUCUNE (jusqu'à DONE ou BLOCKER)
+⚠️  Mode sans limite activé
+→ Lecture status/project-state.md...
+...
+🏁 LOOP TERMINÉE - Status: DONE (toutes tâches complétées)
 ```
