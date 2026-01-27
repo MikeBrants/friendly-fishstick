@@ -1,6 +1,6 @@
 # PROJECT STATE — FINAL TRIGGER v2
 
-**Updated**: 26 Jan 2026, 20:57 UTC  
+**Updated**: 27 Jan 2026, 04:33 UTC  
 **Phase**: 🟡 **PHASE 1 SCREENING** en cours  
 **Status**: 0/26 PROD
 
@@ -100,6 +100,7 @@ EGLD AVAX HBAR TON SUSHI CRV BTC ONE SEI AXS SOL AAVE ZIL GALA
 
 | Date | Action |
 |------|--------|
+| 27 Jan 04:33 | GitHub cleanup: branches obsol?tes supprim?es; Issue #21 + PR #13/#14 ? fermer via Web UI; fichiers untracked conserv?s (PID 159404 actif) |
 | 26 Jan 20:57 | Ajout règles MAJ dans 3 fichiers |
 | 26 Jan 20:52 | Doc refonte (MASTER_PLAN, WORKFLOW_PIPELINE, project-state) |
 | 26 Jan 19:27 | PR#20 mergé — Reset 0 PROD |

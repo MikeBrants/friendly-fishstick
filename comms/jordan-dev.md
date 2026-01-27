@@ -156,24 +156,30 @@ python scripts/run_full_pipeline.py --assets YGG MINA CAKE RUNE --optimization-m
 
 ---
 
-**Status**: 🔄 IN PROGRESS — Batch 1 RUNNING  
-**Started**: 27 Jan 2026, 07:27 UTC  
-**PID**: 156312  
-**Expected Completion**: ~11:30 UTC (Batch 1)
+**Status**: 🔄 IN PROGRESS — MEGA BATCH RUNNING (18 assets)  
+**Started**: 27 Jan 2026, 04:26 UTC  
+**PID**: 160712  
+**Expected Completion**: ~08:30 UTC (3.5-4 hours)
 
-## 0727 INPROGRESS jordan-dev -> casey-quant: PR#20 BATCH 1 STARTED
+## 0426 INPROGRESS jordan-dev -> casey-quant: PR#20 MEGA BATCH STARTED
 
-**Assets**: SHIB, DOT, TIA, NEAR (4 high-priority assets)  
+**Decision**: Skip Phase 1 screening, go direct to Phase 2 validation (Option A)  
+**Rationale**: Coherence with Batch 1-2, prioritize PROD candidates, comparable results
+
+**Assets**: 18 total (4 PROD + 14 supplementary)
+- **PROD Priority**: YGG, MINA, CAKE, RUNE
+- **Ex-PROD**: EGLD, AVAX (regime exclusion, worth retesting)
+- **Majors**: BTC, SOL
+- **Candidates**: HBAR, TON, SUSHI, CRV, ONE, SEI, AXS, AAVE, ZIL, GALA
+
 **Configuration**: baseline, 300 trials ATR/Ichi, workers=1, guards ON  
-**Context**: Batch 2 completed (3/4 PASS), now running Batch 1
+**Context**: Batch 1 (4/4 PASS) + Batch 2 (3/4 PASS) completed
 
-**Batch 2 Results Summary**:
-- ETH: 4.18 Sharpe (+29.8% vs Pre-PR#19) ✅
-- ANKR: 3.35 Sharpe ✅
-- DOGE: 3.05 Sharpe ✅
-- JOE: 2.12 Sharpe, WFE 0.56 ❌ (FAIL - overfit)
+**Previous Results Summary**:
+- **Batch 1**: SHIB 5.05, DOT 2.67, TIA 2.86, NEAR 3.11 ✅
+- **Batch 2**: ETH 4.18, ANKR 3.35, DOGE 3.05 ✅ | JOE 2.12 ❌
 
-**Next**: Batch 3 (YGG, MINA, CAKE, RUNE) after Batch 1 completes
+**Next**: Mid-batch checkpoint at 50% (~06:30 UTC)
 
 ---
 
