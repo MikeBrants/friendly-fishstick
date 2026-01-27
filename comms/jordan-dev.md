@@ -4,10 +4,10 @@
 
 ---
 
-## 1015 INPROGRESS jordan-dev -> system: PR#20 MEGA BATCH RE-RUN (PBO FIX)
+## 1045 INPROGRESS jordan-dev -> system: PR#20 MEGA BATCH RE-RUN (PBO FIX)
 
-**Task**: Re-run PR#20 MEGA BATCH with PBO calculations enabled
-**Status**: ✅ BUG FIXED, RE-RUN STARTING
+**Task**: Re-run PR#20 MEGA BATCH with PBO calculations enabled (3 batches in parallel)
+**Status**: ✅ BUG FIXED, BATCHES 2-3 LAUNCHED IN PARALLEL
 
 ### Issue Found & Fixed
 
@@ -34,13 +34,30 @@
 # Total: 18 assets, ~4-5 hours estimated
 ```
 
+### Execution Status (27 Jan 2026)
+
+**Batch 1** (4 assets: YGG, MINA, CAKE, RUNE)
+- Status: ✅ COMPLETE (~13:30 UTC)
+- Task ID: b79322e (previous)
+- Results: Returns_matrix files generated ✓
+
+**Batch 2 + Batch 3 LAUNCHED IN PARALLEL** (14 assets total)
+- Batch 2: Task ID `b59215d` (EGLD, AVAX, BTC, SOL)
+- Batch 3: Task ID `b068ecd` (HBAR, TON, SUSHI, CRV, ONE, SEI, AXS, AAVE, ZIL, GALA)
+- Status: 🔄 RUNNING (parallel execution)
+- Started: 27 Jan ~10:45 UTC
+- Expected Completion: ~17:00-18:00 UTC (parallel saves ~4-5h)
+- Output: PBO values will be present in all guard CSVs
+
 ### Next Steps
-1. ✅ Re-run all 18 assets with PBO enabled
-2. Analyze guard results and identify assets passing 8/8 guards
-3. Classify assets:
+1. ✅ Batch 1 complete (YGG, MINA, CAKE, RUNE with PBO)
+2. ⏳ Wait for Batch 2-3 to complete (~7h from now)
+3. Analyze guard results and identify assets passing 8/8 guards
+4. Classify assets:
    - **TIER 1**: All 8 guards PASS → Production ready
    - **TIER 2**: 7/8 guards PASS → Rescue candidates
    - **TIER 3**: <7/8 guards PASS → Further analysis needed
+5. Make Phase 3 rescue decision (expected: GO for 4 TIER-2 assets)
 
 ---
 
