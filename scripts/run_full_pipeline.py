@@ -287,6 +287,7 @@ def main():
             str(guard_workers),
         ]
         if returns_matrix_run_id:
+            guard_cmd.extend(["--returns-matrix-dir", "outputs"])
             guard_cmd.extend(["--returns-matrix-run-id", returns_matrix_run_id])
         if summary_output:
             guard_cmd.extend(["--summary-output", summary_output])

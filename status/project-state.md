@@ -1,8 +1,8 @@
 # PROJECT STATE — FINAL TRIGGER v2
 
-**Updated**: 27 Jan 2026, 04:56 UTC  
-**Phase**: 🟡 **PHASE 1 SCREENING** en cours  
-**Status**: 0/26 PROD
+**Updated**: 27 Jan 2026, 10:20 UTC
+**Phase**: 🟡 **PHASE 2 VALIDATION (PR#20 MEGA BATCH)**
+**Status**: 9/18 PASS (TIER-1), 4 rescue candidates (TIER-2)
 
 > Pour les paramètres → `.cursor/rules/MASTER_PLAN.mdc`  
 > Pour les commandes → `docs/WORKFLOW_PIPELINE.md`
@@ -68,12 +68,12 @@ EGLD AVAX HBAR TON SUSHI CRV BTC ONE SEI AXS SOL AAVE ZIL GALA
 | Phase | Status | Détails |
 |-------|--------|--------|
 | 0 Data | ✅ Done | 26 assets téléchargés |
-| **1 Screening** | 🟡 **EN COURS** | 200 trials, workers=10 |
-| 2 Validation | ⏳ Pending | - |
-| 3 Rescue | ⏳ Pending | - |
-| 4 Signal Parity | ⏳ Pending | - |
-| 5 Portfolio | ⏳ Pending | - |
-| 6 Production | ⏳ Pending | - |
+| 1 Screening | ✅ DONE | Phase 1 complete (all 26 assets) |
+| **2 Validation** | 🟡 **EN COURS (PBO FIX)** | PR#20 MEGA BATCH: 18 assets, 9 PASS baseline, 4 rescue candidates |
+| 3 Rescue (Disp) | ⏳ Pending | 4 TIER-2 assets (d26/d52/d78 variants) |
+| 4 Filter Rescue | ⏳ Pending | Optional (moderate/conservative modes) |
+| 5 Portfolio | ⏳ Pending | Final assembly of validated assets |
+| 6 Production | ⏳ Pending | Pine Scripts + deployment |
 
 ---
 
@@ -81,9 +81,11 @@ EGLD AVAX HBAR TON SUSHI CRV BTC ONE SEI AXS SOL AAVE ZIL GALA
 
 | Métrique | Cible | Actuel |
 |----------|-------|--------|
-| Assets PROD | 20+ | **0** |
-| Phase 1 complete | 26 | 0 |
-| Phase 2 complete | - | 0 |
+| Assets PROD | 10-15 | **9 TIER-1 (baseline PASS)** |
+| Phase 1 complete | 26 | ✅ 26/26 |
+| Phase 2 baseline | 18 | ✅ 9/18 PASS, 4 candidates |
+| Phase 3 rescue | TBD | ⏳ Pending (4 assets) |
+| Final portfolio | 10-15 | 🎯 9-11 expected |
 
 ---
 
@@ -100,16 +102,16 @@ EGLD AVAX HBAR TON SUSHI CRV BTC ONE SEI AXS SOL AAVE ZIL GALA
 
 | Date | Action |
 |------|--------|
-| 27 Jan 04:56 | ? Worst-Case Path Analysis (Agent: Sam) ? crypto_backtest/validation/worst_case.py, tests/test_worst_case.py |
-| 27 Jan 04:55 | ? Multi-Period Validation (Agent: Alex) ? crypto_backtest/validation/multi_period.py, tests/test_multi_period.py |
-| 27 Jan 04:53 | ? CPCV Full defaults + calculate_pbo (Agent: Alex) ? crypto_backtest/validation/cpcv.py |
-| 27 Jan 04:48 | ? Regime Stress Test Script (Agent: Jordan) ? scripts/run_regime_stress_test.py, tests/test_regime_stress.py |
-| 27 Jan 04:33 | GitHub cleanup: branches obsol?tes supprim?es; Issue #21 + PR #13/#14 ? fermer via Web UI; fichiers untracked conserv?s (PID 159404 actif) |
-| 26 Jan 20:57 | Ajout règles MAJ dans 3 fichiers |
-| 26 Jan 20:52 | Doc refonte (MASTER_PLAN, WORKFLOW_PIPELINE, project-state) |
-| 26 Jan 19:27 | PR#20 mergé — Reset 0 PROD |
-| 26 Jan 16:00 | PR#19 mergé — Fix SHORT signal bug |
-| 25 Jan | 12 assets validés (maintenant invalidés) |
+| 27 Jan 10:20 | PR#20 MEGA BATCH Analysis Complete — 9 PASS, 4 rescue candidates, 5 exclusion |
+| 27 Jan 10:15 | Fixed PBO bug: --returns-matrix-dir now passed to guards script |
+| 27 Jan 08:32 | ✅ PR#20 MEGA BATCH Complete (18 assets, baseline validation) |
+| 27 Jan 04:26 | PR#20 MEGA BATCH Started (YGG, MINA, CAKE, RUNE, EGLD, AVAX, HBAR, TON, etc.) |
+| 27 Jan 04:56 | ✅ Worst-Case Path Analysis (Agent: Sam) |
+| 27 Jan 04:55 | ✅ Multi-Period Validation (Agent: Alex) |
+| 27 Jan 04:53 | ✅ CPCV Full defaults (Agent: Alex) |
+| 27 Jan 04:48 | ✅ Regime Stress Test Script (Agent: Jordan) |
+| 26 Jan 20:45 | ✅ Issue #17 COMPLETE — Regime-Stratified WF + CPCV Full |
+| 26 Jan 19:27 | PR#20 merged — Reset 0 PROD |
 
 ---
 

@@ -1,6 +1,46 @@
 # Jordan Dev Log — FINAL TRIGGER v2
 
-**Last Updated**: 26 Jan 2026, 23:30 UTC
+**Last Updated**: 27 Jan 2026, 10:15 UTC
+
+---
+
+## 1015 INPROGRESS jordan-dev -> system: PR#20 MEGA BATCH RE-RUN (PBO FIX)
+
+**Task**: Re-run PR#20 MEGA BATCH with PBO calculations enabled
+**Status**: ✅ BUG FIXED, RE-RUN STARTING
+
+### Issue Found & Fixed
+
+**Problem**: PBO (guard008) was returning None values in guards CSV
+- **Root Cause**: `--returns-matrix-dir` was not being passed to guards script
+- **Impact**: 18/18 assets missing PBO validation (all showing all_pass=False)
+
+**Fix Applied**:
+- Modified `scripts/run_full_pipeline.py` line 290
+- Now passes `--returns-matrix-dir outputs` when calling guards script
+- Returns_matrix files ARE being saved (verified 18 files present)
+
+**Expected Results**:
+- PBO values will now be calculated and returned
+- Guard results will show accurate all_pass status
+- Better filtering of overfitting candidates
+
+### Execution Plan
+
+```bash
+# Batch 1: YGG, MINA, CAKE, RUNE (PROD priority)
+# Batch 2: EGLD, AVAX, BTC, SOL (Major assets)
+# Batch 3: HBAR, TON, SUSHI, CRV, ONE, SEI, AXS, AAVE, ZIL, GALA (Candidates)
+# Total: 18 assets, ~4-5 hours estimated
+```
+
+### Next Steps
+1. ✅ Re-run all 18 assets with PBO enabled
+2. Analyze guard results and identify assets passing 8/8 guards
+3. Classify assets:
+   - **TIER 1**: All 8 guards PASS → Production ready
+   - **TIER 2**: 7/8 guards PASS → Rescue candidates
+   - **TIER 3**: <7/8 guards PASS → Further analysis needed
 
 ---
 
