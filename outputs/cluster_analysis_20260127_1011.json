@@ -1,0 +1,98 @@
+{
+  "n_clusters": 4,
+  "clusters": {
+    "cluster_0": {
+      "assets": [
+        "YGG",
+        "EGLD",
+        "SOL"
+      ],
+      "size": 3,
+      "params": {
+        "sl_mult": 4.5,
+        "tp1_mult": 2.25,
+        "tp2_mult": 4.5,
+        "tp3_mult": 7.0,
+        "tenkan": 8,
+        "kijun": 22,
+        "tenkan_5": 8,
+        "kijun_5": 20
+      },
+      "avg_oos_sharpe": 2.9148977179945077,
+      "avg_oos_trades": 87.33333333333333,
+      "avg_wfe": 0.9229848834244777
+    },
+    "cluster_1": {
+      "assets": [
+        "CAKE",
+        "TON"
+      ],
+      "size": 2,
+      "params": {
+        "sl_mult": 3.5,
+        "tp1_mult": 3.0,
+        "tp2_mult": 8.5,
+        "tp3_mult": 10.0,
+        "tenkan": 19,
+        "kijun": 38,
+        "tenkan_5": 9,
+        "kijun_5": 23
+      },
+      "avg_oos_sharpe": 1.7754591554093597,
+      "avg_oos_trades": 76.5,
+      "avg_wfe": 0.7797053190446628
+    },
+    "cluster_2": {
+      "assets": [
+        "MINA",
+        "CRV"
+      ],
+      "size": 2,
+      "params": {
+        "sl_mult": 3.0,
+        "tp1_mult": 3.5,
+        "tp2_mult": 7.0,
+        "tp3_mult": 9.0,
+        "tenkan": 14,
+        "kijun": 24,
+        "tenkan_5": 14,
+        "kijun_5": 27
+      },
+      "avg_oos_sharpe": 1.8687296609389423,
+      "avg_oos_trades": 78.0,
+      "avg_wfe": 1.1506365301472292
+    },
+    "cluster_3": {
+      "assets": [
+        "HBAR",
+        "ONE"
+      ],
+      "size": 2,
+      "params": {
+        "sl_mult": 1.5,
+        "tp1_mult": 3.75,
+        "tp2_mult": 5.5,
+        "tp3_mult": 9.0,
+        "tenkan": 7,
+        "kijun": 24,
+        "tenkan_5": 11,
+        "kijun_5": 16
+      },
+      "avg_oos_sharpe": 2.4744050501721673,
+      "avg_oos_trades": 114.0,
+      "avg_wfe": 0.8758651555489153
+    }
+  },
+  "asset_assignments": {
+    "YGG": 0,
+    "MINA": 2,
+    "CAKE": 1,
+    "EGLD": 0,
+    "HBAR": 3,
+    "TON": 1,
+    "CRV": 2,
+    "ONE": 3,
+    "SOL": 0
+  },
+  "silhouette_score": 0.29133599820594697
+}

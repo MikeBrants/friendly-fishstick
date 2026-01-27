@@ -1,0 +1,50 @@
+{
+  "n_clusters": 2,
+  "clusters": {
+    "cluster_0": {
+      "assets": [
+        "DOGE",
+        "ANKR"
+      ],
+      "size": 2,
+      "params": {
+        "sl_mult": 2.5,
+        "tp1_mult": 3.25,
+        "tp2_mult": 7.0,
+        "tp3_mult": 10.0,
+        "tenkan": 11,
+        "kijun": 32,
+        "tenkan_5": 9,
+        "kijun_5": 16
+      },
+      "avg_oos_sharpe": 3.202201246874184,
+      "avg_oos_trades": 87.0,
+      "avg_wfe": 1.103095674387773
+    },
+    "cluster_1": {
+      "assets": [
+        "ETH"
+      ],
+      "size": 1,
+      "params": {
+        "sl_mult": 4.25,
+        "tp1_mult": 2.25,
+        "tp2_mult": 5.5,
+        "tp3_mult": 10.0,
+        "tenkan": 6,
+        "kijun": 34,
+        "tenkan_5": 14,
+        "kijun_5": 23
+      },
+      "avg_oos_sharpe": 4.184365637891097,
+      "avg_oos_trades": 78.0,
+      "avg_wfe": 1.9877642654960617
+    }
+  },
+  "asset_assignments": {
+    "DOGE": 0,
+    "ANKR": 0,
+    "ETH": 1
+  },
+  "silhouette_score": 0.13348447174458922
+}

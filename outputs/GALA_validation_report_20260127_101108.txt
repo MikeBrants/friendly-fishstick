@@ -1,0 +1,17 @@
+GUARDS VALIDATION REPORT: GALA
+======================================================================
+GUARD-001 Monte Carlo p-value: 0.0080 -> PASS
+GUARD-002 Sensitivity variance: 17.56% -> FAIL
+GUARD-003 Bootstrap Sharpe CI lower: 0.55 -> FAIL
+GUARD-005 Trade distribution top10: 28.07% -> PASS
+GUARD-006 Stress1 Sharpe: 1.15 -> PASS
+GUARD-007 Regime reconciliation mismatch: 0.00% -> PASS
+GUARD-008 PBO (Probability of Backtest Overfitting): n/a -> PASS
+GUARD-WFE: n/a -> FAIL
+----------------------------------------------------------------------
+OVERFITTING (report-only):
+PSR (P[SR>0]): 0.9693
+DSR (deflated): n/a
+SR* (deflated threshold): n/a
+----------------------------------------------------------------------
+ALL PASS: NO

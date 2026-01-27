@@ -1,0 +1,5 @@
+asset,base_sharpe,guard001_p_value,guard001_pass,guard002_variance_pct,guard002_pass,guard003_sharpe_ci_lower,guard003_pass,guard005_top10_pct,guard005_pass,guard006_stress1_sharpe,guard006_pass,guard007_mismatch_pct,guard007_pass,guard008_pbo,guard008_pass,guard_wfe,guard_wfe_pass,overfit_psr,overfit_dsr,overfit_sr_star,all_pass,error
+DOGE,2.03441917587903,0.0,True,7.408636719066024,True,1.6869706042503194,True,20.3610287320674,True,1.5398304704420687,True,1.167415802435242e-14,True,,True,,False,0.9976211943376903,,,False,
+ANKR,3.2546389310634893,0.0,True,4.613509571808427,True,3.730001367902269,True,16.088716664992127,True,2.7960444216058966,True,0.0,True,,True,,False,0.9999979345934975,,,False,
+JOE,3.229592104614812,0.0,True,4.256215187924017,True,3.97237463111293,True,12.393764274187344,True,3.011383523399853,True,0.0,True,,True,,False,0.9999918682737743,,,False,
+ETH,2.0229950080245507,0.001,True,15.61433205540596,False,1.7778923139535943,True,20.890349921386285,True,1.4570124562490863,True,2.0424272290082813e-14,True,,True,,False,0.9950450187814609,,,False,
