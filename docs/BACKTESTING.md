@@ -119,6 +119,7 @@ Baseline is used unless you explicitly select moderate or conservative:
 ## Issues and challenges
 - Guard errors (complex numbers): YGG, ARKM, STRK, METIS, AEVO in `outputs/multiasset_guards_summary_20260121_201821.csv`.
   Likely from metrics or data anomalies; needs targeted debug.
+- Guard001 Monte Carlo p-value should never be exactly 0.0000; use (count+1)/(n+1) minimum bound and log max shuffled Sharpe for audits.
 - Guard002 variance > 10% still blocks CAKE (20.70%) and ETH (12.96%) after TP enforcement reruns.
 - Console encoding: `parallel_optimizer.py` prints unicode arrows/checks; when console is cp1252, it can crash.
   Workaround: run with `chcp 65001` and `PYTHONIOENCODING=utf-8`.

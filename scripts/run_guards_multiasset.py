@@ -4,6 +4,7 @@ Run full production guards for multiple assets using per-asset params.
 from __future__ import annotations
 
 import argparse
+import logging
 import os
 import sys
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -39,6 +40,16 @@ BASE_CONFIG = BacktestConfig(
 )
 
 SEED = 42
+
+logger = logging.getLogger(__name__)
+
+
+def _mc_pvalue(shuffled_sharpes: np.ndarray, actual_sharpe: float) -> float:
+    """Conservative Monte Carlo p-value with minimum bound."""
+    if shuffled_sharpes is None or len(shuffled_sharpes) == 0:
+        return 1.0
+    count_better = np.sum(shuffled_sharpes >= actual_sharpe)
+    return float((count_better + 1) / (len(shuffled_sharpes) + 1))
 
 
 def _safe_float(value: Any, default: float = 0.0) -> float:
@@ -198,6 +209,8 @@ def _monte_carlo_permutation(
 
     actual_metrics = compute_metrics(result.equity_curve, result.trades)
     actual_sharpe = _safe_float(actual_metrics.get("sharpe_ratio", 0.0) or 0.0)
+    if actual_sharpe > 4.0:
+        logger.warning("MC: high Sharpe detected (%.3f) in Monte Carlo guard", actual_sharpe)
 
     rng = np.random.default_rng(seed)
     rows = []
@@ -245,8 +258,11 @@ def _monte_carlo_permutation(
     sharpe_col = df["sharpe"].apply(_safe_float)
     df["sharpe"] = sharpe_col
     
-    p_value = _safe_float((df["sharpe"] >= actual_sharpe).mean())
+    p_value = _mc_pvalue(df["sharpe"].to_numpy(), actual_sharpe)
     df["p_value"] = p_value
+    if not df["sharpe"].empty:
+        max_shuffled = _safe_float(df["sharpe"].max())
+        logger.info("MC: max_shuffled=%.3f", max_shuffled)
     return df, p_value
 
 

@@ -67,6 +67,7 @@ alwaysApply: true
 | 2 | Sensitivity | <15% |
 | 3 | Bootstrap CI | >1.0 |
 | 4 | Monte Carlo | p<0.05 |
+Note: Monte Carlo p_value must use (count+1)/(n+1) minimum bound; never return 0.0000.
 | 5 | Top10 Concentration | <40% |
 | 6 | Trades OOS | ≥60 |
 | 7 | Bars IS | ≥8000 |

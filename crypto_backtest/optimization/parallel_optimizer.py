@@ -866,7 +866,9 @@ def monte_carlo_pvalue(
         metrics = compute_metrics(equity_series, pd.DataFrame())
         sharpe_values.append(float(metrics.get("sharpe_ratio", 0.0)))
 
-    return float((np.array(sharpe_values) >= actual_sharpe).mean())
+    sharpe_arr = np.array(sharpe_values, dtype=float)
+    count_better = int((sharpe_arr >= actual_sharpe).sum())
+    return float((count_better + 1) / (len(sharpe_arr) + 1))
 
 
 def optimize_single_asset(
