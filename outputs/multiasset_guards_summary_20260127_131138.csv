@@ -1,0 +1,5 @@
+asset,base_sharpe,guard001_p_value,guard001_pass,guard002_variance_pct,guard002_pass,guard003_sharpe_ci_lower,guard003_pass,guard005_top10_pct,guard005_pass,guard006_stress1_sharpe,guard006_pass,guard007_mismatch_pct,guard007_pass,guard008_pbo,guard008_pass,guard_wfe,guard_wfe_pass,overfit_psr,overfit_dsr,overfit_sr_star,all_pass,error
+YGG,2.797898046505659,,True,,True,,True,,True,,True,,True,0.8413,False,0.8489732752167541,True,0.9998590472839548,,,False,
+MINA,2.165699083781312,,True,,True,,True,,True,,True,,True,0.7023,False,1.0314945379360918,True,0.9981047561672742,,,False,
+CAKE,2.350181843879978,,True,,True,,True,,True,,True,,True,0.9821,False,0.7051566912711196,True,0.99982170732352,,,False,
+RUNE,2.7399692959450803,,True,,True,,True,,True,,True,,True,0.9858,False,0.4672872694990141,True,0.999991247032751,,,False,

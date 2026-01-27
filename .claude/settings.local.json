@@ -13,7 +13,10 @@
       "Bash(git checkout:*)",
       "Bash(git push:*)",
       "Bash(pytest:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(git rebase:*)",
+      "Bash(git -c core.editor=true rebase:*)",
+      "Bash(GIT_EDITOR=true git rebase:*)"
     ]
   }
 }
