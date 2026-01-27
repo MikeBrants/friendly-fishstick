@@ -15,6 +15,9 @@ comms/*.md
 !comms/README.md
 status/*.json
 !status/README.md
+# Large binary files (generated locally, not tracked)
+*.npy
+outputs/returns_matrix_*.npy
 .cursor/*
 !.cursor/rules/
 !.cursor/skills/
