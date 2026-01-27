@@ -30,6 +30,7 @@ __all__ = [
     "CPCVPBOResult",
     "validate_with_cpcv",
     "pbo_with_cpcv",
+    "calculate_pbo",
     "guard_cpcv_pbo",
 ]
 
@@ -54,7 +55,7 @@ class CombinatorialPurgedKFold:
     Args:
         n_splits: Total number of time-based splits (default 6)
         n_test_splits: Number of splits to use for testing (default 2)
-        purge_gap: Number of observations to purge around test boundaries (default 0)
+        purge_gap: Number of observations to purge around test boundaries (default 3)
         embargo_pct: Percentage of data to embargo after test set (default 0.01)
 
     Example:
@@ -68,7 +69,7 @@ class CombinatorialPurgedKFold:
         self,
         n_splits: int = 6,
         n_test_splits: int = 2,
-        purge_gap: int = 0,
+        purge_gap: int = 3,
         embargo_pct: float = 0.01,
     ):
         if n_test_splits >= n_splits:
@@ -196,7 +197,7 @@ def validate_with_cpcv(
     strategy_func,
     n_splits: int = 6,
     n_test_splits: int = 2,
-    purge_gap: int = 5,
+    purge_gap: int = 3,
     embargo_pct: float = 0.01,
 ) -> dict:
     """
@@ -275,7 +276,7 @@ def pbo_with_cpcv(
     returns_matrix: np.ndarray,
     n_splits: int = 6,
     n_test_splits: int = 2,
-    purge_gap: int = 0,
+    purge_gap: int = 3,
     embargo_pct: float = 0.01,
     threshold: float = 0.15,
 ) -> CPCVPBOResult:
@@ -297,7 +298,7 @@ def pbo_with_cpcv(
         returns_matrix: Shape (n_trials, n_periods) - returns for each trial/strategy
         n_splits: Total number of time-based splits (default 6)
         n_test_splits: Number of splits for testing (default 2, gives C(6,2)=15)
-        purge_gap: Number of observations to purge around test boundaries (default 0)
+        purge_gap: Number of observations to purge around test boundaries (default 3)
         embargo_pct: Percentage of data to embargo after test set (default 0.01)
         threshold: Maximum acceptable PBO (default 0.15)
 
@@ -408,12 +409,30 @@ def _compute_sharpes_from_returns(
     return means / stds
 
 
+
+def calculate_pbo(
+    returns_matrix: np.ndarray | pd.DataFrame,
+    n_splits: int = 6,
+    n_test_splits: int = 2,
+    purge_gap: int = 3,
+    embargo_pct: float = 0.01,
+) -> float:
+    """Return the PBO score for a returns matrix using CPCV."""
+    result = pbo_with_cpcv(
+        returns_matrix,
+        n_splits=n_splits,
+        n_test_splits=n_test_splits,
+        purge_gap=purge_gap,
+        embargo_pct=embargo_pct,
+    )
+    return result.pbo
+
 def guard_cpcv_pbo(
     returns_matrix: np.ndarray,
     threshold: float = 0.15,
     n_splits: int = 6,
     n_test_splits: int = 2,
-    purge_gap: int = 0,
+    purge_gap: int = 3,
     embargo_pct: float = 0.01,
 ) -> dict:
     """

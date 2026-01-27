@@ -1,5 +1,42 @@
 # Alex Lead — Communications
 
+## TODO ?????? ? CPCV Full Implementation
+**Assign?**: Alex
+**Fichier**: crypto_backtest/validation/cpcv.py (expand stub)
+**Spec**:
+- CombinatorialPurgedCV: n_splits=6, n_test_splits=2 ? 15 combinaisons
+- purge_gap=3 bars, embargo_pct=0.01
+- calculate_pbo(returns_matrix) ? PBO score
+- Seuils: <0.15 ROBUST, 0.15-0.30 MARGINAL, >0.30 OVERFITTING
+**R?f?rence**: L?pez de Prado (2014) "Probability of Backtest Overfitting"
+**Tests**: tests/test_cpcv.py
+
+## TODO ???? ? Multi-Period Validation (34 windows)
+**Assign?**: Alex
+**Fichier**: crypto_backtest/validation/multi_period.py
+**Spec**:
+- 34 rolling independent IS?OOS windows
+- Consistency ratio = % windows avec Sharpe OOS > 0
+- Seuils: >80% ROBUST, 60-80% REGIME-DEPENDENT, <60% FRAGILE
+**R?f?rence**: Deep et al. (2025)
+**Tests**: tests/test_multi_period.py
+
+## 27 Jan 2026 ? CPCV Full Implementation
+**Status**: TODO ? DONE
+**Output**: crypto_backtest/validation/cpcv.py
+**Summary**: Ajust des param?tres par d?faut (purge_gap=3, embargo_pct=0.01) et ajout d'un helper calculate_pbo() pour exposer le score PBO. Interface CPCV reste C(6,2)=15 combinaisons.
+**Next**: Multi-Period Validation (34 windows)
+
+## 27 Jan 2026 ? Multi-Period Validation (34 windows)
+**Status**: TODO ? DONE
+**Output**: crypto_backtest/validation/multi_period.py; tests/test_multi_period.py
+**Summary**: Impl?mentation de 34 fen?tres IS?OOS ind?pendantes avec ratio de consistance bas? sur Sharpe OOS > 0 et verdicts ROBUST/REGIME-DEPENDENT/FRAGILE. Tests couvrent robustesse, d?pendance r?gime et donn?es insuffisantes.
+**Next**: Sam ? Worst-Case Path Analysis
+
+
+
+
+
 ## 2026-01-26 20:45 UTC — Issue #17 COMPLETE ✅
 
 ### FROM: Casey (Orchestrator)

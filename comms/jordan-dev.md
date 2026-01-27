@@ -4,6 +4,26 @@
 
 ---
 
+## TODO 🔴🔴🔴 — Regime Stress Test Script
+**Assigné**: Jordan
+**Fichier**: scripts/run_regime_stress_test.py
+**Spec**:
+- CLI: --asset, --regimes (MARKDOWN, SIDEWAYS), --output
+- Filtrer bars par ENTRY regime (pas exit) via regime_v3.py
+- Critères PASS/FAIL:
+  - MARKDOWN: ≤10 trades OU Sharpe ≥ -2
+  - SIDEWAYS: Sharpe ≥ 0, sinon EXCLU
+- Output CSV: asset, regime, trades, sharpe, max_dd, verdict
+**Tests**: tests/test_regime_stress.py
+**Validation**: python scripts/run_regime_stress_test.py --asset ETH --regimes MARKDOWN SIDEWAYS
+
+## 27 Jan 2026 ? Regime Stress Test Script
+**Status**: TODO ? DONE
+**Output**: scripts/run_regime_stress_test.py; tests/test_regime_stress.py
+**Summary**: Mise ? jour du script pour filtrer les trades par r?gime d'entr?e (MARKDOWN/SIDEWAYS) via regime_v3, nouveaux crit?res PASS/FAIL, CLI conforme et export CSV standard. Ajout de tests unitaires pour mapping r?gimes, filtre d'entr?e, verdicts et stats.
+**Next**: Alex ? CPCV Full Implementation (comms/alex-lead.md)
+
+
 ## 2330 READY jordan-dev -> casey-quant: PR#20 Revalidation Plan READY
 
 **Task**: Prepare PR#20 revalidation after SHORT signal parity fix  

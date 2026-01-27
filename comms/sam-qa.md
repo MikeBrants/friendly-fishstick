@@ -1,5 +1,24 @@
 # Sam (QA Validator) — Validation Log
 
+## TODO ???? ? Worst-Case Path Analysis
+**Assign?**: Sam
+**Fichier**: crypto_backtest/validation/worst_case.py
+**Spec**:
+- Identifier worst path parmi 15 combinaisons CPCV
+- fragility_score = std(sharpes) / mean(sharpes)
+- Seuils: <0.3 ROBUST, 0.3-0.5 ACCEPTABLE, >0.5 FRAGILE
+**D?pend de**: CPCV Implementation (Alex)
+**Tests**: tests/test_worst_case.py
+
+## 27 Jan 2026 ? Worst-Case Path Analysis
+**Status**: TODO ? DONE
+**Output**: crypto_backtest/validation/worst_case.py; tests/test_worst_case.py
+**Summary**: Ajout d'une analyse worst-path bas?e CPCV (15 combinaisons) avec fragility_score = std/mean des Sharpes OOS et verdicts ROBUST/ACCEPTABLE/FRAGILE. Tests couvrent cas robustes et fragiles.
+**Next**: Casey ? lancer validation: python scripts/run_regime_stress_test.py --asset ETH --regimes MARKDOWN SIDEWAYS
+
+
+
+
 ## 2026-01-26 15:14 UTC — PBO edge case tests added
 
 **Status**: TODO → DONE

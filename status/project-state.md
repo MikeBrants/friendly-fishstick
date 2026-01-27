@@ -1,6 +1,6 @@
 # PROJECT STATE — FINAL TRIGGER v2
 
-**Updated**: 27 Jan 2026, 04:33 UTC  
+**Updated**: 27 Jan 2026, 04:56 UTC  
 **Phase**: 🟡 **PHASE 1 SCREENING** en cours  
 **Status**: 0/26 PROD
 
@@ -100,6 +100,10 @@ EGLD AVAX HBAR TON SUSHI CRV BTC ONE SEI AXS SOL AAVE ZIL GALA
 
 | Date | Action |
 |------|--------|
+| 27 Jan 04:56 | ? Worst-Case Path Analysis (Agent: Sam) ? crypto_backtest/validation/worst_case.py, tests/test_worst_case.py |
+| 27 Jan 04:55 | ? Multi-Period Validation (Agent: Alex) ? crypto_backtest/validation/multi_period.py, tests/test_multi_period.py |
+| 27 Jan 04:53 | ? CPCV Full defaults + calculate_pbo (Agent: Alex) ? crypto_backtest/validation/cpcv.py |
+| 27 Jan 04:48 | ? Regime Stress Test Script (Agent: Jordan) ? scripts/run_regime_stress_test.py, tests/test_regime_stress.py |
 | 27 Jan 04:33 | GitHub cleanup: branches obsol?tes supprim?es; Issue #21 + PR #13/#14 ? fermer via Web UI; fichiers untracked conserv?s (PID 159404 actif) |
 | 26 Jan 20:57 | Ajout règles MAJ dans 3 fichiers |
 | 26 Jan 20:52 | Doc refonte (MASTER_PLAN, WORKFLOW_PIPELINE, project-state) |
