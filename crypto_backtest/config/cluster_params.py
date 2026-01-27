@@ -1,48 +1,46 @@
 """
 Auto-generated Cluster Configuration
-Generated: 2026-01-24T04:16:11.280098
+Generated: 2026-01-27T07:49:46.127816
 Clusters found via K-means on optimized parameters
 """
 
 CLUSTER_PARAMS = {
     "cluster_0": {
-        "assets": ['TIA', 'CAKE', 'TON'],
+        "assets": ['DOT', 'TIA', 'NEAR'],
         "atr": {
-            "sl_mult": 3.25,
-            "tp1_mult": 2.75,
-            "tp2_mult": 8.5,
-            "tp3_mult": 9.5,
+            "sl_mult": 4.5,
+            "tp1_mult": 3.0,
+            "tp2_mult": 7.5,
+            "tp3_mult": 8.5,
         },
-        "ichimoku": {"tenkan": 17, "kijun": 38},
-        "five_in_one": {"tenkan_5": 10, "kijun_5": 21},
+        "ichimoku": {"tenkan": 7, "kijun": 34},
+        "five_in_one": {"tenkan_5": 9, "kijun_5": 23},
         "displacement": 52,
-        "avg_sharpe": 3.39,
-        "avg_trades": 78,
+        "avg_sharpe": 2.88,
+        "avg_trades": 80,
     },
     "cluster_1": {
-        "assets": ['CRV', 'SUSHI', 'RUNE'],
+        "assets": ['SHIB'],
         "atr": {
-            "sl_mult": 2.5,
-            "tp1_mult": 4.0,
-            "tp2_mult": 6.5,
+            "sl_mult": 1.5,
+            "tp1_mult": 4.75,
+            "tp2_mult": 6.0,
             "tp3_mult": 8.0,
         },
-        "ichimoku": {"tenkan": 8, "kijun": 36},
-        "five_in_one": {"tenkan_5": 12, "kijun_5": 17},
+        "ichimoku": {"tenkan": 19, "kijun": 26},
+        "five_in_one": {"tenkan_5": 14, "kijun_5": 18},
         "displacement": 52,
-        "avg_sharpe": 1.78,
-        "avg_trades": 106,
+        "avg_sharpe": 5.05,
+        "avg_trades": 99,
     },
 }
 
 # Asset to cluster mapping
 ASSET_CLUSTER = {
-    "CRV": "cluster_1",
-    "SUSHI": "cluster_1",
-    "RUNE": "cluster_1",
+    "SHIB": "cluster_1",
+    "DOT": "cluster_0",
     "TIA": "cluster_0",
-    "CAKE": "cluster_0",
-    "TON": "cluster_0",
+    "NEAR": "cluster_0",
 }
 
 
