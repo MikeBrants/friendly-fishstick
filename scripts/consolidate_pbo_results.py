@@ -114,7 +114,11 @@ def consolidate_pbo_results(
         pbo_value = data.get("pbo")
         pass_guard = data.get("pass", False)
         n_combinations = data.get("n_combinations")
-        interpretation = data.get("interpretation", "")
+        if n_combinations is None:
+            n_combinations = data.get("n_paths")
+        interpretation = data.get("interpretation")
+        if not interpretation:
+            interpretation = data.get("method", "")
         
         verdict, emoji = classify_pbo(pbo_value, threshold_pass, threshold_exclu)
         

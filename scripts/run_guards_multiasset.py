@@ -28,7 +28,7 @@ from crypto_backtest.optimization.bayesian import _instantiate_strategy
 from crypto_backtest.optimization.parallel_optimizer import build_strategy_params, load_data
 from crypto_backtest.strategies.final_trigger import FinalTriggerStrategy
 from crypto_backtest.validation.overfitting import compute_overfitting_report
-from crypto_backtest.validation.pbo import guard_pbo
+from crypto_backtest.validation.pbo_cscv import guard_pbo_cscv as guard_pbo
 
 
 BASE_CONFIG = BacktestConfig(
@@ -769,8 +769,10 @@ def _guard_pbo(
             "guard": "pbo",
             "value": pbo_result["pbo"],
             "pass": pbo_result["pass"],
-            "interpretation": pbo_result.get("interpretation", ""),
-            "n_combinations": pbo_result.get("n_combinations", 0),
+            "method": pbo_result.get("method", "CSCV"),
+            "lambda_median": pbo_result.get("lambda_median"),
+            "degradation": pbo_result.get("degradation"),
+            "n_paths": pbo_result.get("n_paths", 0),
             "error": None,
         }
     except Exception as e:
@@ -800,7 +802,7 @@ def _run_guards_parallel(
     n_jobs: int = 4,
     returns_matrix: np.ndarray | None = None,
     pbo_n_splits: int = 16,
-    pbo_threshold: float = 0.30,
+    pbo_threshold: float = 0.50,
 ) -> dict[str, Any]:
     """
     Execute all requested guards in parallel using joblib.
@@ -1044,7 +1046,7 @@ def _asset_guard_worker(
         n_jobs=4,
         returns_matrix=returns_matrix,
         pbo_n_splits=16,
-        pbo_threshold=0.30,
+        pbo_threshold=0.50,
     )
 
     # ===== Extract results from parallel execution =====

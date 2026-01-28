@@ -1,0 +1,10 @@
+{
+  "guard": "pbo",
+  "pass": true,
+  "pbo": 0.4,
+  "threshold": 0.5,
+  "interpretation": "ACCEPTABLE - Moderate confidence",
+  "trials": 100,
+  "source": "pr21_100trials",
+  "n_combinations": 100
+}

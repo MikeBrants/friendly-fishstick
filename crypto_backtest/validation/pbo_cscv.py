@@ -252,6 +252,7 @@ def guard_pbo_cscv(
         "method": "CSCV",
         "lambda_median": result["lambda_median"],
         "degradation": result["degradation"],
+        "threshold": threshold,
     }
 
 

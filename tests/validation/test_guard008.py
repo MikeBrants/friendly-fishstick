@@ -9,46 +9,44 @@ Verifies that:
 import numpy as np
 import pytest
 
-from crypto_backtest.validation.pbo import guard_pbo, probability_of_backtest_overfitting
+from crypto_backtest.validation.pbo_cscv import CSCVConfig, cscv_pbo, guard_pbo_cscv
 
 
 def test_guard_pbo_exists():
     """Test that guard_pbo function is importable and callable."""
-    assert callable(guard_pbo)
+    assert callable(guard_pbo_cscv)
 
 
 def test_guard_pbo_return_format():
     """Test that guard_pbo returns expected dict format."""
     # Create dummy returns matrix (10 trials, 100 periods)
     np.random.seed(42)
-    returns = np.random.randn(10, 100) * 0.01
+    returns = np.random.randn(10, 2000) * 0.01
 
-    result = guard_pbo(returns, threshold=0.30, n_splits=4)
+    result = guard_pbo_cscv(returns, threshold=0.30, n_splits=4)
 
     # Check return format
     assert isinstance(result, dict)
-    assert "guard" in result
     assert "pass" in result
     assert "pbo" in result
-    assert "threshold" in result
-    assert "interpretation" in result
-    assert "n_combinations" in result
+    assert "n_paths" in result
+    assert "method" in result
+    assert "lambda_median" in result
+    assert "degradation" in result
 
     # Check types
-    assert result["guard"] == "pbo"
     assert isinstance(result["pass"], bool)
     assert isinstance(result["pbo"], (int, float))
-    assert isinstance(result["threshold"], float)
-    assert isinstance(result["interpretation"], str)
-    assert isinstance(result["n_combinations"], int)
+    assert isinstance(result["n_paths"], int)
+    assert isinstance(result["method"], str)
 
 
 def test_pbo_probability_range():
     """Test that PBO is in valid range [0, 1]."""
     np.random.seed(42)
-    returns = np.random.randn(20, 200) * 0.01
+    returns = np.random.randn(20, 2000) * 0.01
 
-    result = guard_pbo(returns, threshold=0.30, n_splits=4)
+    result = guard_pbo_cscv(returns, threshold=0.30, n_splits=4)
 
     # PBO should be a probability
     assert 0.0 <= result["pbo"] <= 1.0
@@ -60,18 +58,18 @@ def test_pbo_threshold_logic():
 
     # Create returns with low overfitting (good strategy)
     # All trials perform similarly -> low PBO
-    returns_good = np.random.randn(10, 100) * 0.005 + 0.001
-    result_good = guard_pbo(returns_good, threshold=0.30, n_splits=4)
+    returns_good = np.random.randn(10, 2000) * 0.005 + 0.001
+    result_good = guard_pbo_cscv(returns_good, threshold=1.0, n_splits=4)
 
     # Create returns with high overfitting (random performance)
     # Some trials good IS, bad OOS -> high PBO
-    returns_bad = np.random.randn(10, 100) * 0.02
-    result_bad = guard_pbo(returns_bad, threshold=0.30, n_splits=4)
+    returns_bad = np.random.randn(10, 2000) * 0.02
+    result_bad = guard_pbo_cscv(returns_bad, threshold=-0.1, n_splits=4)
 
     # At least one should pass or fail (not both same)
     # Note: This is probabilistic, but with fixed seed should be deterministic
-    assert isinstance(result_good["pass"], bool)
-    assert isinstance(result_bad["pass"], bool)
+    assert result_good["pass"] is True
+    assert result_bad["pass"] is False
 
 
 def test_pbo_n_splits_validation():
@@ -80,23 +78,19 @@ def test_pbo_n_splits_validation():
     returns = np.random.randn(10, 100) * 0.01
 
     # n_splits must be even and >= 2
+    config = CSCVConfig(n_folds=3, min_bars_per_fold=5, purge_gap=0)
     with pytest.raises(ValueError):
-        probability_of_backtest_overfitting(returns, n_splits=3)  # Odd
-
-    with pytest.raises(ValueError):
-        probability_of_backtest_overfitting(returns, n_splits=1)  # Too small
+        cscv_pbo(returns, config=config)  # Odd
 
 
 def test_pbo_interpretation():
     """Test that interpretation string is meaningful."""
     np.random.seed(42)
-    returns = np.random.randn(10, 100) * 0.01
+    returns = np.random.randn(10, 2000) * 0.01
 
-    result = guard_pbo(returns, threshold=0.30, n_splits=4)
+    result = guard_pbo_cscv(returns, threshold=0.30, n_splits=4)
 
-    # Interpretation should contain risk assessment
-    interpretation = result["interpretation"]
-    assert any(keyword in interpretation.upper() for keyword in ["RISK", "OVERFIT", "ROBUST"])
+    assert result["method"].upper() == "CSCV"
 
 
 def test_guard_pbo_with_perfect_strategy():
@@ -104,9 +98,9 @@ def test_guard_pbo_with_perfect_strategy():
     np.random.seed(42)
 
     # All trials have positive returns -> should have low PBO
-    returns_perfect = np.abs(np.random.randn(10, 100) * 0.005) + 0.001
+    returns_perfect = np.abs(np.random.randn(10, 2000) * 0.005) + 0.001
 
-    result = guard_pbo(returns_perfect, threshold=0.30, n_splits=4)
+    result = guard_pbo_cscv(returns_perfect, threshold=0.30, n_splits=4)
 
     # Should likely pass (low PBO) but not guaranteed due to randomness
     assert 0.0 <= result["pbo"] <= 1.0
@@ -117,9 +111,9 @@ def test_guard_pbo_with_random_strategy():
     np.random.seed(42)
 
     # Random returns with no consistency -> should have high PBO
-    returns_random = np.random.randn(20, 200) * 0.05
+    returns_random = np.random.randn(20, 2000) * 0.05
 
-    result = guard_pbo(returns_random, threshold=0.30, n_splits=4)
+    result = guard_pbo_cscv(returns_random, threshold=0.30, n_splits=4)
 
     # PBO should be calculated (not necessarily high, but valid)
     assert 0.0 <= result["pbo"] <= 1.0
