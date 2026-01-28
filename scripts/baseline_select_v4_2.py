@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import statistics
 import sys
 from pathlib import Path
 
@@ -71,19 +72,56 @@ def _walk_forward_stats(
 ) -> dict:
     n = len(data_index)
     if n < 4 or n_splits <= 0:
-        return {"wfe": 0.0, "oos_sharpe": 0.0, "oos_trades": 0, "is_trades": 0, "splits": 0}
+        return {
+            "wfe": 0.0,
+            "wfe_mean_split": 0.0,
+            "wfe_median": 0.0,
+            "wfe_trimmed": 0.0,
+            "wfe_splits": [],
+            "wfe_skew_ratio": None,
+            "wfe_warnings": [],
+            "oos_sharpe": 0.0,
+            "oos_trades": 0,
+            "is_trades": 0,
+            "splits": 0,
+        }
 
     train_size = int(n * train_ratio)
     remaining = n - train_size
     if train_size < 2 or remaining < 2:
-        return {"wfe": 0.0, "oos_sharpe": 0.0, "oos_trades": 0, "is_trades": 0, "splits": 0}
+        return {
+            "wfe": 0.0,
+            "wfe_mean_split": 0.0,
+            "wfe_median": 0.0,
+            "wfe_trimmed": 0.0,
+            "wfe_splits": [],
+            "wfe_skew_ratio": None,
+            "wfe_warnings": [],
+            "oos_sharpe": 0.0,
+            "oos_trades": 0,
+            "is_trades": 0,
+            "splits": 0,
+        }
 
     split_size = remaining // n_splits
     if split_size < 2:
-        return {"wfe": 0.0, "oos_sharpe": 0.0, "oos_trades": 0, "is_trades": 0, "splits": 0}
+        return {
+            "wfe": 0.0,
+            "wfe_mean_split": 0.0,
+            "wfe_median": 0.0,
+            "wfe_trimmed": 0.0,
+            "wfe_splits": [],
+            "wfe_skew_ratio": None,
+            "wfe_warnings": [],
+            "oos_sharpe": 0.0,
+            "oos_trades": 0,
+            "is_trades": 0,
+            "splits": 0,
+        }
 
     is_sharpes: list[float] = []
     oos_sharpes: list[float] = []
+    wfe_splits: list[float] = []
     is_trades = 0
     oos_trades = 0
     splits_run = 0
@@ -116,8 +154,12 @@ def _walk_forward_stats(
         is_metrics = is_result.get("metrics", {})
         oos_metrics = oos_result.get("metrics", {})
 
-        is_sharpes.append(_extract_sharpe(is_metrics))
-        oos_sharpes.append(_extract_sharpe(oos_metrics))
+        is_sharpe = _extract_sharpe(is_metrics)
+        oos_sharpe = _extract_sharpe(oos_metrics)
+        is_sharpes.append(is_sharpe)
+        oos_sharpes.append(oos_sharpe)
+        wfe_split = oos_sharpe / is_sharpe if is_sharpe > 0 else 0.0
+        wfe_splits.append(float(wfe_split))
         is_trades += _trade_count_from_result(is_result)
         oos_trades += _trade_count_from_result(oos_result)
         splits_run += 1
@@ -125,9 +167,29 @@ def _walk_forward_stats(
     mean_is = float(np.mean(is_sharpes)) if is_sharpes else 0.0
     mean_oos = float(np.mean(oos_sharpes)) if oos_sharpes else 0.0
     wfe = mean_oos / mean_is if mean_is > 0 else 0.0
+    wfe_mean_split = statistics.mean(wfe_splits) if wfe_splits else 0.0
+    wfe_median = statistics.median(wfe_splits) if wfe_splits else 0.0
+    if len(wfe_splits) > 2:
+        trimmed = sorted(wfe_splits)[1:-1]
+        wfe_trimmed = statistics.mean(trimmed) if trimmed else wfe_mean_split
+    else:
+        wfe_trimmed = wfe_mean_split
+
+    wfe_skew_ratio = None
+    wfe_warnings: list[str] = []
+    if wfe_median not in (0.0, 0):
+        wfe_skew_ratio = abs(wfe_mean_split - wfe_median) / abs(wfe_median)
+        if wfe_skew_ratio > 0.5:
+            wfe_warnings.append("WFE_SKEWED")
 
     return {
         "wfe": wfe,
+        "wfe_mean_split": wfe_mean_split,
+        "wfe_median": wfe_median,
+        "wfe_trimmed": wfe_trimmed,
+        "wfe_splits": wfe_splits,
+        "wfe_skew_ratio": wfe_skew_ratio,
+        "wfe_warnings": wfe_warnings,
         "oos_sharpe": mean_oos,
         "oos_trades": int(oos_trades),
         "is_trades": int(is_trades),
@@ -214,6 +276,12 @@ def main() -> None:
     best.update(
         {
             "wfe": wf_stats.get("wfe"),
+            "wfe_mean_split": wf_stats.get("wfe_mean_split"),
+            "wfe_median": wf_stats.get("wfe_median"),
+            "wfe_trimmed": wf_stats.get("wfe_trimmed"),
+            "wfe_splits": wf_stats.get("wfe_splits"),
+            "wfe_skew_ratio": wf_stats.get("wfe_skew_ratio"),
+            "wfe_warnings": wf_stats.get("wfe_warnings"),
             "oos_sharpe": wf_stats.get("oos_sharpe"),
             "oos_trades": wf_stats.get("oos_trades"),
             "is_trades": wf_stats.get("is_trades"),
