@@ -1,5 +1,5 @@
 # =============================================================================
-# families.yaml — Model Families + Rescues (v4.2 FINAL, 1H)
+# families.yaml ï¿½ Model Families + Rescues (v4.2 FINAL, 1H)
 # =============================================================================
 meta:
   owner: "Alex"
@@ -40,9 +40,19 @@ policy:
 
   coupling:
     method: "top_k_cross"
-    k_long: 10
-    k_short: 10
-    max_couples: 100
+    # ==========================================================================
+    # DOF (Degrees of Freedom) Options:
+    # - k=10: 100 couples tested (current default, higher overfitting risk)
+    # - k=5:  25 couples tested (reduced DOF, recommended if PBO > 0.6)
+    # ==========================================================================
+    # To switch: just change k_long, k_short, max_couples below
+    # TEST PLAN:
+    # 1. Run batch with k=10 (current)
+    # 2. If PBO > 0.6 for multiple assets, switch to k=5 and re-run
+    # ==========================================================================
+    k_long: 5     # LOW DOF MODE - reduced from 10
+    k_short: 5    # LOW DOF MODE - reduced from 10
+    max_couples: 25   # LOW DOF MODE - reduced from 100 (5Ã—5=25)
 
   budgets:
     max_families_per_asset: 3
@@ -114,8 +124,9 @@ policy:
 
   pbo:
     annualization_factor: 8760
+    # DEPRECATED: PBO proxy removed in v4.2 - only use CSCV
     proxy:
-      enabled: true
+      enabled: false  # DISABLED - use CSCV only
       folds: 8
       purge_bars: 120
       embargo_bars: 240
@@ -123,6 +134,9 @@ policy:
       folds: 10
       purge_bars: 120
       embargo_bars: 240
+    # Soft thresholds (log warning, don't block)
+    threshold_warning: 0.60
+    threshold_high_risk: 0.70
 
 filter_presets:
   baseline:

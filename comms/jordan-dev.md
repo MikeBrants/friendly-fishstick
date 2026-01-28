@@ -1,8 +1,15 @@
 # Jordan Dev Log — FINAL TRIGGER v2
 
-**Last Updated**: 28 Jan 2026, 10:39 UTC
+**Last Updated**: 28 Jan 2026, 18:20 UTC
 
 ---
+
+## 2026-01-28 - v4.2 batch01 pilot (k=5 coupling)
+**Status**: TODO -> DONE
+**Output**: runs/v4_2/*/v4.2_batch01_k5/archive/summary.json; logs/orchestrator_*_v4.2_batch01_k5_*.log; runs/v4_2/batch01_pilot_summary.md
+**Summary**: Batch pilot with k=5 completed. BTC and SHIB blocked by guards (WFE, top10). DOT and ANKR reached PROD_READY with moderate preset; PBO CSCV remains elevated (0.58-0.63).
+**Next**: Decide PBO policy or reduce search complexity further (k=3).
+
 
 ## 2026-01-28 - v4.2 pipeline fix + ETH PROD_READY
 **Status**: TODO -> DONE

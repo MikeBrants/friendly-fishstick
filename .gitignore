@@ -24,3 +24,7 @@ outputs/returns_matrix_*.npy
 .cursor/rules/.DS_Store
 # Watcher seen tasks cache
 tools/.watcher_seen_tasks.txt
+
+# Runtime artifacts
+logs/
+runs/
