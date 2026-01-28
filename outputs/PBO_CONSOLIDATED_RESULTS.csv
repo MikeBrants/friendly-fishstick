@@ -1,0 +1,5 @@
+asset,pbo,verdict,pass,threshold,n_combinations,interpretation,file,timestamp
+MINA,0.7023,EXCLU,False,0.3,12870,CRITICAL - Best IS params almost certainly overfit,MINA_pbo_20260127_131138.json,20260127_131138
+YGG,0.8413,EXCLU,False,0.3,12870,CRITICAL - Best IS params almost certainly overfit,YGG_pbo_20260127_131138.json,20260127_131138
+CAKE,0.9821,EXCLU,False,0.3,12870,CRITICAL - Best IS params almost certainly overfit,CAKE_pbo_20260127_131138.json,20260127_131138
+RUNE,0.9858,EXCLU,False,0.3,12870,CRITICAL - Best IS params almost certainly overfit,RUNE_pbo_20260127_131138.json,20260127_131138

@@ -1,0 +1,62 @@
+{
+  "n_clusters": 2,
+  "clusters": {
+    "cluster_0": {
+      "assets": [
+        "EGLD",
+        "TON",
+        "SUSHI",
+        "MINA",
+        "YGG",
+        "CAKE"
+      ],
+      "size": 6,
+      "params": {
+        "sl_mult": 4.0,
+        "tp1_mult": 3.0,
+        "tp2_mult": 7.0,
+        "tp3_mult": 8.5,
+        "tenkan": 8,
+        "kijun": 32,
+        "tenkan_5": 8,
+        "kijun_5": 22
+      },
+      "avg_oos_sharpe": 2.3536456957983316,
+      "avg_oos_trades": 78.5,
+      "avg_wfe": 0.8173068314382412
+    },
+    "cluster_1": {
+      "assets": [
+        "ETH",
+        "HBAR",
+        "CRV"
+      ],
+      "size": 3,
+      "params": {
+        "sl_mult": 2.5,
+        "tp1_mult": 2.5,
+        "tp2_mult": 6.0,
+        "tp3_mult": 9.5,
+        "tenkan": 14,
+        "kijun": 25,
+        "tenkan_5": 13,
+        "kijun_5": 19
+      },
+      "avg_oos_sharpe": 2.621405478432793,
+      "avg_oos_trades": 93.0,
+      "avg_wfe": 5.010465529369841
+    }
+  },
+  "asset_assignments": {
+    "ETH": 1,
+    "EGLD": 0,
+    "TON": 0,
+    "HBAR": 1,
+    "SUSHI": 0,
+    "CRV": 1,
+    "MINA": 0,
+    "YGG": 0,
+    "CAKE": 0
+  },
+  "silhouette_score": 0.1289954962402714
+}

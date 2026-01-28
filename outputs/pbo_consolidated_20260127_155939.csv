@@ -1,0 +1,19 @@
+asset,pbo,pass_guard,n_combinations,interpretation,verdict,file
+AAVE,0.8,False,300,CRITICAL - Best IS params almost certainly overfit,EXCLU,AAVE_pbo_20260127_155758.json
+AVAX,0.7333,False,300,CRITICAL - Best IS params almost certainly overfit,EXCLU,AVAX_pbo_20260127_155440.json
+AXS,0.3333,True,300,ACCEPTABLE - Moderate confidence,PASS,AXS_pbo_20260127_155739.json
+BTC,0.9333,False,300,CRITICAL - Best IS params almost certainly overfit,EXCLU,BTC_pbo_20260127_155532.json
+CAKE,0.9821,False,12870,CRITICAL - Best IS params almost certainly overfit,EXCLU,CAKE_pbo_20260127_131138.json
+CRV,0.9333,False,300,CRITICAL - Best IS params almost certainly overfit,EXCLU,CRV_pbo_20260127_155649.json
+EGLD,0.6667,False,300,ELEVATED - Overfitting concerns,QUARANTINE,EGLD_pbo_20260127_155424.json
+GALA,0.4667,True,300,ACCEPTABLE - Moderate confidence,PASS,GALA_pbo_20260127_155832.json
+HBAR,0.8667,False,300,CRITICAL - Best IS params almost certainly overfit,EXCLU,HBAR_pbo_20260127_155605.json
+MINA,0.7023,False,12870,CRITICAL - Best IS params almost certainly overfit,EXCLU,MINA_pbo_20260127_131138.json
+ONE,0.6,False,300,ELEVATED - Overfitting concerns,QUARANTINE,ONE_pbo_20260127_155705.json
+RUNE,0.9858,False,12870,CRITICAL - Best IS params almost certainly overfit,EXCLU,RUNE_pbo_20260127_131138.json
+SEI,0.8667,False,300,CRITICAL - Best IS params almost certainly overfit,EXCLU,SEI_pbo_20260127_155722.json
+SOL,0.7333,False,300,CRITICAL - Best IS params almost certainly overfit,EXCLU,SOL_pbo_20260127_155549.json
+SUSHI,0.7333,False,300,CRITICAL - Best IS params almost certainly overfit,EXCLU,SUSHI_pbo_20260127_155632.json
+TON,0.6667,False,300,ELEVATED - Overfitting concerns,QUARANTINE,TON_pbo_20260127_155615.json
+YGG,0.8413,False,12870,CRITICAL - Best IS params almost certainly overfit,EXCLU,YGG_pbo_20260127_131138.json
+ZIL,0.4667,True,300,ACCEPTABLE - Moderate confidence,PASS,ZIL_pbo_20260127_155815.json

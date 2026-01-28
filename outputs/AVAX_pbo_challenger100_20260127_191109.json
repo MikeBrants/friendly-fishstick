@@ -1,0 +1,9 @@
+{
+  "guard": "pbo",
+  "pass": true,
+  "pbo": 0.1333,
+  "threshold": 0.5,
+  "interpretation": "LOW - Strong evidence against overfitting",
+  "trials": 100,
+  "n_combinations": 100
+}

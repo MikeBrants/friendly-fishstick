@@ -1,0 +1,8 @@
+{
+  "guard": "pbo",
+  "pass": true,
+  "pbo": 0.3333,
+  "threshold": 0.5,
+  "interpretation": "ACCEPTABLE - Moderate confidence",
+  "n_combinations": 300
+}

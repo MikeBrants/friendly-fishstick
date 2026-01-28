@@ -36,7 +36,7 @@ def load_pbo_json(filepath: Path) -> dict[str, Any] | None:
             data = json.load(f)
         return data
     except (json.JSONDecodeError, IOError) as e:
-        print(f"⚠️  Error loading {filepath}: {e}")
+        print(f"[WARN] Error loading {filepath}: {e}")
         return None
 
 
@@ -53,15 +53,15 @@ def classify_pbo(
     threshold_pass: float,
     threshold_exclu: float,
 ) -> tuple[str, str]:
-    """Classify PBO value into verdict and emoji."""
+    """Classify PBO value into verdict and marker."""
     if pbo_value is None:
-        return "ERROR", "❓"
+        return "ERROR", "[?]"
     if pbo_value < threshold_pass:
-        return "PASS", "✅"
+        return "PASS", "[OK]"
     elif pbo_value < threshold_exclu:
-        return "QUARANTINE", "⚠️"
+        return "QUARANTINE", "[!]"
     else:
-        return "EXCLU", "🔴"
+        return "EXCLU", "[X]"
 
 
 def scan_pbo_files(outputs_dir: Path) -> list[Path]:
@@ -80,18 +80,18 @@ def consolidate_pbo_results(
     outputs_path = Path(outputs_dir)
     
     if not outputs_path.exists():
-        print(f"❌ Directory not found: {outputs_dir}")
+        print(f"[ERROR] Directory not found: {outputs_dir}")
         sys.exit(1)
     
     pbo_files = scan_pbo_files(outputs_path)
     
     if not pbo_files:
-        print(f"❌ No PBO files found in {outputs_dir}")
+        print(f"[ERROR] No PBO files found in {outputs_dir}")
         print(f"   Expected pattern: *_pbo_*.json")
         sys.exit(1)
     
-    print(f"📁 Found {len(pbo_files)} PBO files")
-    print(f"📊 Thresholds: PASS < {threshold_pass}, EXCLU > {threshold_exclu}")
+    print(f"[INFO] Found {len(pbo_files)} PBO files")
+    print(f"[INFO] Thresholds: PASS < {threshold_pass}, EXCLU > {threshold_exclu}")
     print("=" * 60)
     
     rows = []
@@ -139,15 +139,15 @@ def consolidate_pbo_results(
 def print_summary(df: pd.DataFrame) -> None:
     """Print categorized summary."""
     print("\n" + "=" * 60)
-    print("📊 SUMMARY BY VERDICT")
+    print("[SUMMARY] BY VERDICT")
     print("=" * 60)
     
     for verdict in ["PASS", "QUARANTINE", "EXCLU", "ERROR"]:
         subset = df[df["verdict"] == verdict]
         if len(subset) > 0:
             assets = ", ".join(subset["asset"].tolist())
-            emoji = {"PASS": "✅", "QUARANTINE": "⚠️", "EXCLU": "🔴", "ERROR": "❓"}[verdict]
-            print(f"{emoji} {verdict:12s} ({len(subset):2d}): {assets}")
+            marker = {"PASS": "[OK]", "QUARANTINE": "[!]", "EXCLU": "[X]", "ERROR": "[?]"}[verdict]
+            print(f"{marker} {verdict:12s} ({len(subset):2d}): {assets}")
     
     # Stats
     print("\n" + "-" * 60)
@@ -162,7 +162,7 @@ def print_summary(df: pd.DataFrame) -> None:
     print(f"  EXCLU:      {exclu_count:3d} ({exclu_count/total*100:.1f}%)")
     
     if pass_count > 0:
-        print(f"\n🎯 Candidats PROD: {', '.join(df[df['verdict'] == 'PASS']['asset'].tolist())}")
+        print(f"\n[TARGET] Candidats PROD: {', '.join(df[df['verdict'] == 'PASS']['asset'].tolist())}")
 
 
 def main() -> None:
@@ -200,7 +200,7 @@ def main() -> None:
     args = parser.parse_args()
     
     print("\n" + "=" * 60)
-    print("🔍 PBO CONSOLIDATION REPORT")
+    print("[PBO] CONSOLIDATION REPORT")
     print("=" * 60 + "\n")
     
     df = consolidate_pbo_results(
@@ -220,10 +220,10 @@ def main() -> None:
             output_path = Path(args.outputs_dir) / f"pbo_consolidated_{timestamp}.csv"
         
         df.to_csv(output_path, index=False)
-        print(f"\n💾 Saved: {output_path}")
+        print(f"\n[OK] Saved: {output_path}")
     
     print("\n" + "=" * 60)
-    print("✅ Consolidation complete")
+    print("[OK] Consolidation complete")
     print("=" * 60)
 
 

@@ -1,0 +1,9 @@
+{
+  "guard": "pbo",
+  "pass": false,
+  "pbo": 0.9333,
+  "threshold": 0.5,
+  "interpretation": "CRITICAL - Best IS params almost certainly overfit",
+  "trials": 100,
+  "n_combinations": 100
+}

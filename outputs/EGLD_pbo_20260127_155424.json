@@ -1,0 +1,8 @@
+{
+  "guard": "pbo",
+  "pass": false,
+  "pbo": 0.6667,
+  "threshold": 0.5,
+  "interpretation": "ELEVATED - Overfitting concerns",
+  "n_combinations": 300
+}
