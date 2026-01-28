@@ -1,8 +1,15 @@
 # Jordan Dev Log — FINAL TRIGGER v2
 
-**Last Updated**: 28 Jan 2026, 09:07 UTC
+**Last Updated**: 28 Jan 2026, 10:39 UTC
 
 ---
+
+## 2026-01-28 - v4.2 pipeline fix + ETH PROD_READY
+**Status**: TODO -> DONE
+**Output**: configs/families.yaml; crypto_backtest/v4/backtest_adapter.py; scripts/baseline_select_v4_2.py; scripts/run_guards_v4_2.py; scripts/portfolio_check_v4_2.py; runs/v4_2/ETH/v4.2_pilot_fix03/*
+**Summary**: Added WFE/trades/bars + top10 to baseline, fixed guard metric mapping, added portfolio debug counts, lowered active bars thresholds. ETH pilot fix03 reached PROD_READY (guards+portfolio PASS).
+**Next**: Launch Tier 1 batch (BTC SOL AVAX AXS DOT SHIB ANKR).
+
 
 ## 2026-01-28 — PROMPT 01 Audit Repo + Contract
 **Status**: TODO → DONE
@@ -124,10 +131,12 @@
 **Summary**: Added run summary archiver and definition-of-done checklist tooling for v4.2 runs.
 **Next**: DONE
 
-## 1324 DONE jordan-dev -> system: CHALLENGER 100-TRIALS PIPELINE ✅
+## 1324 DONE jordan-dev -> system: CHALLENGER 100-TRIALS PIPELINE �
+
 
 **Task**: Test hypothesis that reducing trials (300→100) reduces PBO overfitting  
-**Status**: ✅ COMPLETE - HYPOTHESIS CONFIRMED
+**Status**: �
+ COMPLETE - HYPOTHESIS CONFIRMED
 
 ### Hypothesis
 PR#20 PBO revealed 66% EXCLU rate (12/18 assets) with PBO > 0.70. Theory: 300 trials = higher chance of finding overfitted params by random chance. Reducing to 100 trials should reduce PBO values.
@@ -171,15 +180,19 @@ python scripts/run_full_pipeline.py \
 | Asset | 300T PBO | 100T PBO | Change | Verdict Change |
 |-------|----------|----------|--------|----------------|
 | BTC | 0.9333 | 0.9333 | ±0% | EXCLU → EXCLU (no change) |
-| ETH | N/A | **0.1333** | New | **PASS** ✅ |
-| SOL | 0.7333 | **0.3333** | **-54.5%** | **EXCLU → PASS** ✅ |
-| AVAX | 0.7333 | **0.1333** | **-81.8%** | **EXCLU → PASS** ✅ |
+| ETH | N/A | **0.1333** | New | **PASS** �
+ |
+| SOL | 0.7333 | **0.3333** | **-54.5%** | **EXCLU → PASS** �
+ |
+| AVAX | 0.7333 | **0.1333** | **-81.8%** | **EXCLU → PASS** �
+ |
 
 **Key Findings**:
 - **Pass Rate**: 0% (300T) → **75% (100T)**
 - **Average PBO Reduction**: **-68.2%** (for improvable assets)
 - **Performance Trade-off**: -5% to -9% Sharpe reduction (acceptable)
-- **Verdict**: HYPOTHESIS CONFIRMED ✅
+- **Verdict**: HYPOTHESIS CONFIRMED �
+
 
 ### Decision
 
@@ -202,7 +215,8 @@ python scripts/run_full_pipeline.py \
 ## 1045 DONE jordan-dev -> system: PR#20 MEGA BATCH RE-RUN (PBO FIX)
 
 **Task**: Re-run PR#20 MEGA BATCH with PBO calculations enabled (3 batches in parallel)
-**Status**: ✅ COMPLETE - All batches finished, PBO calculated (18 assets)
+**Status**: �
+ COMPLETE - All batches finished, PBO calculated (18 assets)
 
 ### Issue Found & Fixed
 
@@ -232,7 +246,8 @@ python scripts/run_full_pipeline.py \
 ### Execution Status (27 Jan 2026)
 
 **Batch 1** (4 assets: YGG, MINA, CAKE, RUNE)
-- Status: ✅ COMPLETE (~13:30 UTC)
+- Status: �
+ COMPLETE (~13:30 UTC)
 - Task ID: b79322e (previous)
 - Results: Returns_matrix files generated ✓
 
@@ -245,7 +260,8 @@ python scripts/run_full_pipeline.py \
 - Output: PBO values will be present in all guard CSVs
 
 ### Next Steps
-1. ✅ Batch 1 complete (YGG, MINA, CAKE, RUNE with PBO)
+1. �
+ Batch 1 complete (YGG, MINA, CAKE, RUNE with PBO)
 2. ⏳ Wait for Batch 2-3 to complete (~7h from now)
 3. Analyze guard results and identify assets passing 8/8 guards
 4. Classify assets:
@@ -279,7 +295,8 @@ python scripts/run_full_pipeline.py \
 ## 2330 READY jordan-dev -> casey-quant: PR#20 Revalidation Plan READY
 
 **Task**: Prepare PR#20 revalidation after SHORT signal parity fix  
-**Status**: ✅ READY TO EXECUTE
+**Status**: �
+ READY TO EXECUTE
 
 ### Executive Summary
 
@@ -288,10 +305,13 @@ python scripts/run_full_pipeline.py \
 **Critical Issue**: All current PROD assets were validated PRE-PR#19. The fix changes how `tenkan_5`/`kijun_5` are propagated to `FiveInOneConfig`, which affects SHORT signal generation.
 
 **Expected Impact**:
-- ✅ SHORT signals should appear (was potentially 0% before)
-- ✅ Sharpe: Neutral to slight positive (better signal balance)
+- �
+ SHORT signals should appear (was potentially 0% before)
+- �
+ Sharpe: Neutral to slight positive (better signal balance)
 - ⚠️ WFE: Slight drop expected (-0.1 to -0.2) due to more balanced strategy
-- ✅ Trade count: Stable or slight increase
+- �
+ Trade count: Stable or slight increase
 
 ### Assets to Revalidate
 
@@ -448,8 +468,10 @@ python scripts/run_full_pipeline.py --assets YGG MINA CAKE RUNE --optimization-m
 **Context**: Batch 1 (4/4 PASS) + Batch 2 (3/4 PASS) completed
 
 **Previous Results Summary**:
-- **Batch 1**: SHIB 5.05, DOT 2.67, TIA 2.86, NEAR 3.11 ✅
-- **Batch 2**: ETH 4.18, ANKR 3.35, DOGE 3.05 ✅ | JOE 2.12 ❌
+- **Batch 1**: SHIB 5.05, DOT 2.67, TIA 2.86, NEAR 3.11 �
+
+- **Batch 2**: ETH 4.18, ANKR 3.35, DOGE 3.05 �
+ | JOE 2.12 ❌
 
 **Next**: Mid-batch checkpoint at 50% (~06:30 UTC)
 

@@ -1,6 +1,6 @@
 # PROJECT STATE ‚Äî FINAL TRIGGER v2
 
-**Updated**: 28 Jan 2026, 14:00 UTC+4
+**Updated**: 28 Jan 2026, 10:39 UTC
 **Phase**: üÜï v4.2 FRESH START
 **Pipeline**: v4.2 (100 trials, 12000 bars, calibrated CSCV PBO)
 
@@ -15,14 +15,15 @@
 | Status | Count | Assets |
 |--------|:-----:|--------|
 | ‚è≥ PENDING | 18 | All assets to reprocess with v4.2 |
-| ‚úÖ PROD | 0 | - |
+| ‚ú
+ PROD | 0 | - |
 | üî¥ EXCLU | 0 | - |
 
 ### Assets √† Traiter (18)
 
 **Tier 1 Priority (8):**
 ```
-ETH BTC SOL AVAX AXS DOT SHIB ANKR
+BTC SOL AVAX AXS DOT SHIB ANKR
 ```
 
 **Tier 2 Secondary (10):**
@@ -64,13 +65,20 @@ Phase 5: Production Config (asset_config.py)
 
 | Guard | Threshold | Critical |
 |-------|:---------:|:--------:|
-| PBO CSCV | < 0.50 | ‚úÖ |
-| WFE Pardo | > 0.60 | ‚úÖ |
-| Sensitivity | < 15% | ‚úÖ |
-| Bootstrap CI | > 1.0 | ‚úÖ |
-| Monte Carlo | p < 0.05 | ‚úÖ |
-| Top10 Trades | < 40% | ‚úÖ |
-| Min Trades OOS | ‚â• 60 | ‚úÖ |
+| PBO CSCV | < 0.50 | ‚ú
+ |
+| WFE Pardo | > 0.60 | ‚ú
+ |
+| Sensitivity | < 15% | ‚ú
+ |
+| Bootstrap CI | > 1.0 | ‚ú
+ |
+| Monte Carlo | p < 0.05 | ‚ú
+ |
+| Top10 Trades | < 40% | ‚ú
+ |
+| Min Trades OOS | ‚â• 60 | ‚ú
+ |
 
 ---
 
@@ -135,4 +143,4 @@ python scripts/pbo_v4_2.py --run-id pilot_eth
 ---
 
 **Version**: 4.2.0 (28 Jan 2026)
-**Status**: READY FOR PILOT
+**Status**: READY FOR TIER 1 BATCH
