@@ -1,6 +1,6 @@
 # Jordan Dev Log — FINAL TRIGGER v2
 
-**Last Updated**: 28 Jan 2026, 08:35 UTC
+**Last Updated**: 28 Jan 2026, 08:36 UTC
 
 ---
 
@@ -33,6 +33,12 @@
 **Output**: crypto_backtest/validation/pbo_cscv.py
 **Summary**: Verified CSCV module and added a compatibility wrapper to accept folds/purge_bars/embargo_bars/annualization_factor.
 **Next**: PROMPT 06 — Artifacts Layout
+
+## 2026-01-28 — PROMPT 06 Artifacts Layout
+**Status**: TODO → DONE
+**Output**: crypto_backtest/v4/artifacts.py; scripts/init_run_v4_2.py
+**Summary**: Added v4.2 run layout utilities (subdirs, metadata, snapshots) and an init script for run setup.
+**Next**: PROMPT 07 — Screening (L/S) 100 Trials
 
 ## 1324 DONE jordan-dev -> system: CHALLENGER 100-TRIALS PIPELINE ✅
 
