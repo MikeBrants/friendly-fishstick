@@ -12,11 +12,11 @@ All TP values are progressive: TP1 < TP2 < TP3 with min gap 0.5
 - YGG: PBO 0.40, Sharpe 3.40 (PR#21 100T, -52.5% vs 300T) ⭐
 - AXS: PBO 0.33, Sharpe 1.21 (PR#20 300T)
 
-⚠️ TIER 2 QUARANTINE (3 assets) — All guards PASS but PBO 0.50-0.70:
-- EGLD: PBO 0.53, Sharpe 2.08 (borderline)
-- SUSHI: PBO 0.60, Sharpe 2.51
-- MINA: PBO 0.53, Sharpe 2.12 (borderline)
-Decision: Accept avec allocation 0.5× or exclude?
+🔴 TIER 2 EXCLUDED (28 Jan 2026, 13:15 UTC) — Elevated PBO risk:
+- EGLD: PBO 0.53, Sharpe 2.08 (all guards PASS but PBO borderline)
+- SUSHI: PBO 0.60, Sharpe 2.51 (all guards PASS but PBO borderline)
+- MINA: PBO 0.53, Sharpe 2.12 (all guards PASS but PBO borderline)
+Decision: EXCLUDED - Conservative approach, strict PBO < 0.50 threshold
 
 🔴 TIER 3 EXCLU (4 assets) — PBO critical or guards FAIL:
 - CAKE: PBO 0.93 (critical overfitting)
@@ -113,10 +113,10 @@ ASSET_CONFIG = {
         "filter_mode": "baseline",
     },
     "MINA": {
-        # ⚠️ TIER 2 QUARANTINE (28 Jan 2026, PR#21 100T)
-        # PBO 0.53 (borderline 0.50-0.70), improved -24% vs 300T (0.70 → 0.53)
-        # All guards PASS, OOS Sharpe 2.12
-        # Decision pending: Accept avec allocation 0.5× or exclude?
+        # 🔴 TIER 2 EXCLUDED (28 Jan 2026, 13:15 UTC)
+        # PBO 0.53 (borderline, above 0.50 threshold)
+        # All guards PASS, OOS Sharpe 2.12, improved -24% vs 300T
+        # Decision: EXCLUDED - Conservative approach, elevated overfitting risk
         "pair": "MINA/USDT",
         "atr": {
             "sl_mult": 4.25,
@@ -296,10 +296,10 @@ ASSET_CONFIG = {
         "filter_mode": "baseline",
     },
     "EGLD": {
-        # ⚠️ TIER 2 QUARANTINE (28 Jan 2026, PR#21 100T)
-        # PBO 0.53 (borderline 0.50-0.70), improved -20% vs 300T (0.67 → 0.53)
-        # All guards PASS, OOS Sharpe 2.08
-        # Decision pending: Accept avec allocation 0.5× or exclude?
+        # 🔴 TIER 2 EXCLUDED (28 Jan 2026, 13:15 UTC)
+        # PBO 0.53 (borderline, above 0.50 threshold)
+        # All guards PASS, OOS Sharpe 2.08, improved -20% vs 300T
+        # Decision: EXCLUDED - Conservative approach, elevated overfitting risk
         # Note: Old params (26 Jan) FAILED Regime SIDEWAYS -4.59
         "pair": "EGLD/USDT",
         "atr": {
@@ -314,10 +314,10 @@ ASSET_CONFIG = {
         "filter_mode": "baseline",
     },
     "SUSHI": {
-        # ⚠️ TIER 2 QUARANTINE (28 Jan 2026, PR#21 100T)
-        # PBO 0.60 (elevated risk 0.50-0.70), improved -18% vs 300T (0.73 → 0.60)
-        # All guards PASS, OOS Sharpe 2.51
-        # Decision pending: Accept avec allocation 0.5× or exclude?
+        # 🔴 TIER 2 EXCLUDED (28 Jan 2026, 13:15 UTC)
+        # PBO 0.60 (elevated risk, above 0.50 threshold)
+        # All guards PASS, OOS Sharpe 2.51, improved -18% vs 300T
+        # Decision: EXCLUDED - Conservative approach, elevated overfitting risk
         "pair": "SUSHI/USDT",
         "atr": {
             "sl_mult": 3.5,

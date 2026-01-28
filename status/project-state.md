@@ -1,8 +1,8 @@
 # PROJECT STATE — FINAL TRIGGER v2
 
-**Updated**: 28 Jan 2026, 13:00 UTC+4
-**Phase**: 🎉 **PR#21 COMPLETE — 5 PROD VALIDATED**
-**Status**: 5 PROD (AXS/AVAX/ETH/SOL/YGG), 3 QUARANTINE (EGLD/SUSHI/MINA), 4 EXCLU PR#21
+**Updated**: 28 Jan 2026, 13:15 UTC+4
+**Phase**: 🎉 **PR#21 FINALIZED — 5 PROD PORTFOLIO**
+**Status**: 5 PROD (AXS/AVAX/ETH/SOL/YGG), 7 EXCLU (TIER 2+3 combined)
 
 > Pour les paramètres → `.cursor/rules/MASTER_PLAN.mdc`  
 > Pour les commandes → `docs/WORKFLOW_PIPELINE.md`
@@ -25,22 +25,26 @@
 
 ---
 
-## 🎉 PR#21 COMPLETE — 5 Assets PROD Ready
+## 🎉 PR#21 FINALIZED — Portfolio of 5
 
-**100 Trials Standard Validated** ✅
+**100 Trials Standard → FINAL DECISION: TIER 2 EXCLUDED**
 
-| Tier | Count | Assets | PBO Range | Guards |
-|:----:|:-----:|--------|:---------:|:------:|
-| ✅ **PROD** | **5** | **AXS, AVAX, ETH, SOL, YGG** | 0.13-0.40 | ALL PASS |
-| ⚠️ QUARANTINE | 3 | EGLD, SUSHI, MINA | 0.53-0.60 | ALL PASS |
-| 🔴 EXCLU | 4 | TON, HBAR, CRV, CAKE | 0.60-0.93 | FAIL or PBO critical |
+| Status | Count | Assets | PBO Range | Decision |
+|:------:|:-----:|--------|:---------:|:--------:|
+| ✅ **PROD** | **5** | **AXS, AVAX, ETH, SOL, YGG** | 0.13-0.40 | PRODUCTION |
+| 🔴 **EXCLU** | **7** | EGLD, SUSHI, MINA (TIER 2) + TON, HBAR, CRV, CAKE (TIER 3) | 0.53-0.93 | EXCLUDED |
 
-**TIER 1 Details**:
+**PROD Portfolio Details**:
 - **ETH**: PBO 0.13 (CSCV 0.24), Sharpe 3.21, WFE 1.81, Phase 4/5/6 ✅
-- **AVAX**: PBO 0.13 (Challenger), Sharpe 2.05
-- **SOL**: PBO 0.33 (Challenger), Sharpe 2.96
-- **YGG**: PBO 0.40 (PR#21 100T), Sharpe 3.40, **-52.5% vs 300T**
+- **AVAX**: PBO 0.13 (Challenger), Sharpe 2.05, WFE 0.42
+- **SOL**: PBO 0.33 (Challenger), Sharpe 2.96, WFE 1.27
+- **YGG**: PBO 0.40 (PR#21 100T), Sharpe 3.40, WFE 0.89, **Best improvement -52.5%**
 - **AXS**: PBO 0.33 (PR#20 300T), Sharpe 1.21
+
+**TIER 2 EXCLUDED (28 Jan 2026, 13:15 UTC):**
+- EGLD (PBO 0.53), SUSHI (PBO 0.60), MINA (PBO 0.53)
+- Reason: Elevated overfitting risk despite guards PASS
+- Decision: Conservative approach, strict PBO < 0.50 threshold
 
 ---
 
@@ -56,17 +60,16 @@ YGG (PBO 0.40, Sharpe 3.40) — Best improvement (-52.5% vs 300T)
 AXS (PBO 0.33, Sharpe 1.21)
 ```
 
-### ⚠️ TIER 2: QUARANTINE (3 assets)
+### 🔴 EXCLU PR#21 (7 assets total)
 
+**TIER 2 EXCLUDED (borderline PBO 0.53-0.60):**
 ```
-EGLD (PBO 0.53, Sharpe 2.08) — Borderline, all guards PASS
-MINA (PBO 0.53, Sharpe 2.12) — Borderline, all guards PASS
-SUSHI (PBO 0.60, Sharpe 2.51) — Borderline, all guards PASS
+EGLD (PBO 0.53, Sharpe 2.08) — Guards PASS but elevated risk
+MINA (PBO 0.53, Sharpe 2.12) — Guards PASS but elevated risk
+SUSHI (PBO 0.60, Sharpe 2.51) — Guards PASS but elevated risk
 ```
 
-**Decision**: Accept avec allocation 0.5× ou exclude?
-
-### 🔴 TIER 3: EXCLU PR#21 (4 assets)
+**TIER 3 EXCLUDED (critical PBO or guards FAIL):**
 
 ```
 CAKE (PBO 0.93) — Critical overfitting
@@ -128,11 +131,11 @@ python scripts/run_full_pipeline.py \
 
 | Métrique | Cible | Actuel |
 |----------|-------|--------|
-| Assets PROD (TIER 1) | 10-15 | **5** ✅ |
-| Assets QUARANTINE (TIER 2) | - | 3 (pending decision) |
-| Total Potential PROD | 8-12 | **8** (5+3) |
-| PR#21 PBO | 9 assets | ✅ **COMPLETE** |
+| Assets PROD | 10-15 | **5** ✅ |
+| PR#21 Success Rate | >50% | 55.6% (5/9) |
+| PBO Threshold | <0.50 | **STRICT** (conservative) |
 | Improvement Rate | >50% | 100% (8/8 improved) |
+| Assets Remaining | 9 | SHIB, DOT, TIA, NEAR, DOGE, ANKR, JOE, GALA, ZIL |
 
 ---
 
@@ -141,10 +144,11 @@ python scripts/run_full_pipeline.py \
 1. ✅ ~~Valider Plan A~~ — SUCCESS
 2. ✅ ~~Lancer PR#21~~ — **COMPLETE**
 3. ✅ ~~Consolider PBO PR#21~~ — **COMPLETE**
-4. 🎯 **DÉCISION TIER 2** — Accepter 3 QUARANTINE ou exclude?
-5. ⏳ MAJ asset_config.py avec 5 PROD configs
-6. ⏳ Test 9 assets restants (100T)
-7. ⏳ Phase 4/5 pour SOL, AVAX, YGG, AXS
+4. ✅ ~~DÉCISION TIER 2~~ — **EXCLUDED** (conservative)
+5. ✅ ~~MAJ asset_config.py~~ — **5 PROD finalized**
+6. 🎯 **Phase 4/5 pour 4 assets** — SOL, AVAX, YGG, AXS (regime + portfolio)
+7. ⏳ Test 9 assets restants (100T) — Optional expansion
+8. ⏳ Déploiement production — Paper trading setup
 
 ---
 
