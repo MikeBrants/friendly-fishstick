@@ -1,6 +1,6 @@
 # Jordan Dev Log — FINAL TRIGGER v2
 
-**Last Updated**: 28 Jan 2026, 08:58 UTC
+**Last Updated**: 28 Jan 2026, 08:59 UTC
 
 ---
 
@@ -93,6 +93,12 @@
 **Output**: crypto_backtest/v4/backtest_adapter.py
 **Summary**: Added backtest adapter with combined/long_only/short_only modes and time slicing support.
 **Next**: PROMPT 13D — Repro Check
+
+## 2026-01-28 — PROMPT 13D Repro Check
+**Status**: TODO → DONE
+**Output**: scripts/repro_check_v4_2.py
+**Summary**: Added reproducibility check that re-runs backtests and diffs bar_returns/trades/metrics.
+**Next**: PROMPT 13E — Portfolio Check
 
 ## 1324 DONE jordan-dev -> system: CHALLENGER 100-TRIALS PIPELINE ✅
 
