@@ -1,0 +1,8 @@
+{
+  "corr_policy": "max_positive",
+  "active_union_bars": 321,
+  "corr_union": null,
+  "threshold": 0.5,
+  "passed": false,
+  "reason": "ACTIVE_UNION_TOO_SMALL"
+}

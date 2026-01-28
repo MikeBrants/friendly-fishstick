@@ -1,0 +1,11 @@
+{
+  "K": 100,
+  "T": 17505,
+  "folds": 10,
+  "purge_bars": 120,
+  "embargo_bars": 240,
+  "pbo": 0.5833333333333334,
+  "warnings": [
+    "proxy_pbo ignores purge/embargo"
+  ]
+}

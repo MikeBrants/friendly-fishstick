@@ -1,0 +1,10 @@
+{
+  "pbo": 0.56006216006216,
+  "pass": false,
+  "n_paths": 12870,
+  "method": "CSCV",
+  "omega_median": 0.38613861386138615,
+  "lambda_median": -0.46357273891544515,
+  "degradation": 1.2561929501540048,
+  "threshold": 0.5
+}

@@ -12,12 +12,48 @@ from crypto_backtest.v4.artifacts import get_run_root, ensure_run_dirs
 from crypto_backtest.v4.config import load_yaml, get_policy
 
 
-def _get_metric(metrics: dict, keys: list[str]) -> float | None:
-    for key in keys:
-        value = metrics.get(key)
-        if value is not None:
-            return float(value)
-    return None
+def _safe_float(value: object) -> float | None:
+    if value is None:
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _load_baseline_metrics(baseline_best: dict) -> dict:
+    metrics = baseline_best.get("metrics", {}) or {}
+    sharpe = _safe_float(metrics.get("sharpe_ratio") or metrics.get("sharpe"))
+    max_dd = _safe_float(metrics.get("max_drawdown"))
+    if max_dd is not None:
+        max_dd = abs(max_dd)
+    profit_factor = _safe_float(metrics.get("profit_factor"))
+
+    return {
+        "bars": _safe_float(
+            baseline_best.get("bars")
+            or metrics.get("bars")
+            or metrics.get("n_bars")
+            or metrics.get("total_bars")
+        ),
+        "trades": _safe_float(
+            baseline_best.get("oos_trades")
+            or baseline_best.get("trade_count")
+            or metrics.get("trades")
+            or metrics.get("n_trades")
+            or metrics.get("total_trades")
+        ),
+        "sharpe": sharpe,
+        "max_drawdown": max_dd,
+        "profit_factor": profit_factor,
+        "wfe": _safe_float(baseline_best.get("wfe") or metrics.get("wfe") or metrics.get("wfe_pardo")),
+        "top10_concentration": _safe_float(
+            baseline_best.get("top10_concentration")
+            or metrics.get("top10_concentration")
+            or metrics.get("top10_pct")
+            or metrics.get("guard005_top10_pct")
+        ),
+    }
 
 
 def main() -> None:
@@ -45,15 +81,15 @@ def main() -> None:
     ensure_run_dirs(run_root)
     baseline_path = run_root / "baseline" / "baseline_best.json"
     baseline_best = json.loads(baseline_path.read_text())
-    metrics = baseline_best.get("metrics", {})
+    metrics = _load_baseline_metrics(baseline_best)
 
-    bars = _get_metric(metrics, ["bars", "n_bars", "total_bars"])
-    trades = _get_metric(metrics, ["trades", "n_trades", "total_trades"])
-    sharpe = _get_metric(metrics, ["sharpe", "sharpe_ratio"])
-    max_dd = _get_metric(metrics, ["max_drawdown", "max_dd"])
-    pf = _get_metric(metrics, ["profit_factor", "pf"])
-    wfe = _get_metric(metrics, ["wfe", "wfe_pardo"])
-    top10 = _get_metric(metrics, ["top10_concentration", "top10_pct", "guard005_top10_pct"])
+    bars = metrics.get("bars")
+    trades = metrics.get("trades")
+    sharpe = metrics.get("sharpe")
+    max_dd = metrics.get("max_drawdown")
+    pf = metrics.get("profit_factor")
+    wfe = metrics.get("wfe")
+    top10 = metrics.get("top10_concentration")
 
     guards = [
         {"name": "bars", "passed": bars is not None and bars >= bars_min, "value": bars, "threshold": bars_min},

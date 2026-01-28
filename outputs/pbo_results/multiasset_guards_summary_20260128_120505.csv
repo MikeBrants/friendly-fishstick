@@ -1,0 +1,9 @@
+asset,base_sharpe,guard001_p_value,guard001_pass,guard002_variance_pct,guard002_pass,guard003_sharpe_ci_lower,guard003_pass,guard005_top10_pct,guard005_pass,guard006_stress1_sharpe,guard006_pass,guard007_mismatch_pct,guard007_pass,guard008_pbo,guard008_pass,guard_wfe,guard_wfe_pass,overfit_psr,overfit_dsr,overfit_sr_star,all_pass,error
+YGG,2.788527524274207,,True,,True,,True,,True,,True,,True,0.6156954156954157,False,0.8489732752167541,True,0.9998496906869364,,,False,
+CRV,0.3835597635903481,,True,,True,,True,,True,,True,,True,0.8895104895104895,False,1.2697785223583669,True,0.7053514049072952,,,False,
+CAKE,2.3773919678295883,,True,,True,,True,,True,,True,,True,0.9326340326340327,False,0.7051566912711196,True,0.9998527776895303,,,False,
+SUSHI,2.678848604530457,,True,,True,,True,,True,,True,,True,0.6352758352758353,False,0.5160556917433111,True,0.9996716232654017,,,False,
+MINA,2.1659726181456134,,True,,True,,True,,True,,True,,True,0.56006216006216,False,1.0314945379360918,True,0.9981068781116216,,,False,
+EGLD,2.412845594825434,,True,,True,,True,,True,,True,,True,0.6149184149184149,False,0.6989464638214675,True,0.9977437903714248,,,False,
+HBAR,1.5025639537128452,,True,,True,,True,,True,,True,,True,0.46806526806526805,True,0.9096494514024654,True,0.9835786806570459,,,True,
+TON,,,False,,False,,False,,False,,False,,False,,,,,,,,False,Guard errors: Insufficient data: 7617 bars < 8000 required (16 folds × 500 min bars)

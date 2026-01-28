@@ -36,6 +36,7 @@ def main() -> None:
     parser.add_argument("--asset", required=True)
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--end-ts", default=None, help="Override research window end timestamp")
+    parser.add_argument("--debug", action="store_true", help="Print active bar counts for debugging")
     args = parser.parse_args()
 
     cfg = load_yaml("configs/families.yaml")
@@ -74,6 +75,8 @@ def main() -> None:
         payload = {
             "corr_policy": corr_policy,
             "active_union_bars": 0,
+            "active_long_bars": int(np.sum(np.abs(long_returns) > ret_eps)),
+            "active_short_bars": int(np.sum(np.abs(short_returns) > ret_eps)),
             "corr_union": None,
             "threshold": threshold,
             "passed": False,
@@ -90,10 +93,19 @@ def main() -> None:
     active_union = active_long | active_short
 
     active_union_bars = int(active_union.sum())
+    active_long_bars = int(active_long.sum())
+    active_short_bars = int(active_short.sum())
+    if args.debug:
+        print(
+            f"[portfolio_check] active_long={active_long_bars} "
+            f"active_short={active_short_bars} active_union={active_union_bars}"
+        )
     if int(active_long.sum()) < min_leg_active or int(active_short.sum()) < min_leg_active:
         payload = {
             "corr_policy": corr_policy,
             "active_union_bars": active_union_bars,
+            "active_long_bars": active_long_bars,
+            "active_short_bars": active_short_bars,
             "corr_union": None,
             "threshold": threshold,
             "passed": False,
@@ -106,6 +118,8 @@ def main() -> None:
         payload = {
             "corr_policy": corr_policy,
             "active_union_bars": active_union_bars,
+            "active_long_bars": active_long_bars,
+            "active_short_bars": active_short_bars,
             "corr_union": None,
             "threshold": threshold,
             "passed": False,
@@ -121,6 +135,8 @@ def main() -> None:
         payload = {
             "corr_policy": corr_policy,
             "active_union_bars": active_union_bars,
+            "active_long_bars": active_long_bars,
+            "active_short_bars": active_short_bars,
             "corr_union": 0.0,
             "threshold": threshold,
             "passed": False,
@@ -138,6 +154,8 @@ def main() -> None:
     payload = {
         "corr_policy": corr_policy,
         "active_union_bars": active_union_bars,
+        "active_long_bars": active_long_bars,
+        "active_short_bars": active_short_bars,
         "corr_union": corr_union,
         "threshold": threshold,
         "passed": passed,

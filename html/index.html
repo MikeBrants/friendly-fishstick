@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FINAL TRIGGER v2 — Strategy Families</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f9fafb;
+      --bg-tertiary: #f3f4f6;
+      --border-color: #e5e7eb;
+      --border-dark: #d1d5db;
+      --text-primary: #111827;
+      --text-secondary: #4b5563;
+      --text-tertiary: #6b7280;
+      --text-muted: #9ca3af;
+      --accent: #2563eb;
+      --accent-light: #eff6ff;
+      --success: #059669;
+      --success-light: #ecfdf5;
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+      --danger: #dc2626;
+      --danger-light: #fef2f2;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      font-size: 15px;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    /* Navigation */
+    .nav {
+      position: sticky;
+      top: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border-color);
+      z-index: 100;
+    }
+    
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 32px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .nav-brand {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-primary);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .nav-brand span {
+      background: var(--text-primary);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 32px;
+    }
+    
+    .nav-links a {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    
+    .nav-links a:hover {
+      color: var(--text-primary);
+    }
+    
+    /* Hero */
+    .hero {
+      padding: 80px 32px 64px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .hero-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 20px;
+    }
+    
+    .hero-label::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--success);
+      border-radius: 50%;
+    }
+    
+    .hero h1 {
+      font-size: 42px;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1.15;
+      margin-bottom: 16px;
+      color: var(--text-primary);
+    }
+    
+    .hero-subtitle {
+      font-size: 18px;
+      color: var(--text-secondary);
+      max-width: 640px;
+      line-height: 1.7;
+    }
+    
+    /* Section */
+    .section {
+      padding: 64px 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .section-divider {
+      border-top: 1px solid var(--border-color);
+    }
+    
+    .section-header {
+      margin-bottom: 40px;
+    }
+    
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    
+    .section-title {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+    
+    /* Cards Grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    
+    @media (max-width: 900px) {
+      .cards-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .card {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 28px;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    
+    .card:hover {
+      border-color: var(--border-dark);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    
+    .card-icon.family-a {
+      background: var(--success-light);
+      color: var(--success);
+    }
+    
+    .card-icon.family-b {
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+    
+    .card-icon.family-c {
+      background: var(--warning-light);
+      color: var(--warning);
+    }
+    
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text-primary);
+    }
+    
+    .card-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 16px;
+    }
+    
+    .badge-simple {
+      background: var(--success-light);
+      color: var(--success);
+    }
+    
+    .badge-medium {
+      background: var(--accent-light);
+      color: var(--accent);
+    }
+    
+    .badge-advanced {
+      background: var(--warning-light);
+      color: var(--warning);
+    }
+    
+    .card p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.65;
+      margin-bottom: 16px;
+    }
+    
+    .card-meta {
+      font-size: 13px;
+      color: var(--text-tertiary);
+      padding-top: 16px;
+      border-top: 1px solid var(--border-color);
+    }
+    
+    .card-meta strong {
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    
+    /* Technical Section */
+    .tech-block {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+    
+    .tech-block h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+    
+    .tech-block h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin: 24px 0 12px;
+      color: var(--text-primary);
+    }
+    
+    .tech-block p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+    
+    .tech-block ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+    
+    .tech-block li {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+    
+    .tech-block li strong {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+    
+    .tech-block code {
+      background: var(--bg-tertiary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: var(--text-primary);
+    }
+    
+    /* Pipeline Overview */
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin: 24px 0;
+    }
+    
+    @media (max-width: 768px) {
+      .pipeline {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    
+    .pipeline-phase {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+    }
+    
+    .pipeline-phase-num {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    
+    .pipeline-phase-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    
+    .pipeline-phase-desc {
+      font-size: 11px;
+      color: var(--text-tertiary);
+    }
+    
+    /* Guards List */
+    .guards-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-top: 16px;
+    }
+    
+    @media (max-width: 768px) {
+      .guards-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .guard-group {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    
+    .guard-group-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+    
+    .guard-group-title.hard {
+      color: var(--danger);
+    }
+    
+    .guard-group-title.soft {
+      color: var(--accent);
+    }
+    
+    .guard-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 13px;
+    }
+    
+    .guard-item:last-child {
+      border-bottom: none;
+    }
+    
+    .guard-name {
+      color: var(--text-secondary);
+    }
+    
+    .guard-value {
+      font-weight: 600;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      color: var(--text-primary);
+    }
+    
+    /* Table */
+    .table-wrapper {
+      overflow-x: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+    }
+    
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    
+    .comparison-table th {
+      background: var(--bg-secondary);
+      padding: 14px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text-primary);
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .comparison-table th:first-child {
+      color: var(--text-tertiary);
+      font-weight: 500;
+    }
+    
+    .comparison-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      vertical-align: top;
+    }
+    
+    .comparison-table tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .comparison-table td:first-child {
+      font-weight: 500;
+      color: var(--text-primary);
+      background: var(--bg-secondary);
+    }
+    
+    .comparison-table .col-a {
+      background: rgba(5, 150, 105, 0.03);
+    }
+    
+    .comparison-table .col-b {
+      background: rgba(37, 99, 235, 0.03);
+    }
+    
+    .comparison-table .col-c {
+      background: rgba(217, 119, 6, 0.03);
+    }
+    
+    /* Filter Modes Table */
+    .filter-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 16px;
+    }
+    
+    .filter-table th, .filter-table td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .filter-table th {
+      background: var(--bg-tertiary);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .filter-table td {
+      color: var(--text-secondary);
+    }
+    
+    .filter-table td:first-child {
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    
+    /* Usage Section */
+    .usage-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 24px;
+    }
+    
+    @media (max-width: 900px) {
+      .usage-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .usage-item {
+      padding: 24px;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+    }
+    
+    .usage-item h4 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+    
+    .usage-item p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    
+    /* Footer */
+    .footer {
+      border-top: 1px solid var(--border-color);
+      padding: 32px;
+      text-align: center;
+      margin-top: 64px;
+    }
+    
+    .footer p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    
+    /* Callout */
+    .callout {
+      background: var(--bg-secondary);
+      border-left: 3px solid var(--accent);
+      padding: 16px 20px;
+      border-radius: 0 8px 8px 0;
+      margin: 20px 0;
+    }
+    
+    .callout p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin: 0;
+    }
+    
+    .callout strong {
+      color: var(--text-primary);
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="#" class="nav-brand">
+        FINAL TRIGGER <span>v2</span>
+      </a>
+      <div class="nav-links">
+        <a href="#overview">Vue d'ensemble</a>
+        <a href="#technical">Documentation</a>
+        <a href="#comparison">Comparaison</a>
+        <a href="#usage">Utilisation</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="hero-label">Documentation Pipeline</div>
+    <h1>Les 3 Familles de Stratégies</h1>
+    <p class="hero-subtitle">
+      De la version la plus simple à la plus sophistiquée, avec un objectif unique : 
+      valider des stratégies réellement robustes, pas des coups de chance.
+    </p>
+  </header>
+
+  <!-- Overview Section -->
+  <section class="section section-divider" id="overview">
+    <div class="section-header">
+      <div class="section-label">Vue simple</div>
+      <h2 class="section-title">Comprendre les 3 Familles</h2>
+    </div>
+    
+    <div class="cards-grid">
+      <!-- Family A -->
+      <div class="card">
+        <div class="card-icon family-a">A</div>
+        <h3 class="card-title">Famille A — Version de base</h3>
+        <span class="card-badge badge-simple">Complexité simple</span>
+        <p>
+          On prend une stratégie (Ichimoku + ATR) et on la teste de façon « propre » 
+          sur des données historiques. Vérifier que la stratégie tient la route dans 
+          un scénario standard, sans couches additionnelles.
+        </p>
+        <div class="card-meta">
+          <strong>Analogie :</strong> Test crash de base — on vérifie si le châssis tient 
+          avant de rajouter les options.
+        </div>
+      </div>
+      
+      <!-- Family B -->
+      <div class="card">
+        <div class="card-icon family-b">B</div>
+        <h3 class="card-title">Famille B — Version contextuelle</h3>
+        <span class="card-badge badge-medium">Complexité moyenne</span>
+        <p>
+          On garde la même stratégie, mais on ajoute du contexte de marché 
+          (régimes, filtres, conditions) pour qu'elle soit plus intelligente. 
+          Valider que la logique reste cohérente quand les conditions changent.
+        </p>
+        <div class="card-meta">
+          <strong>Analogie :</strong> Tester la voiture sur route de montagne, 
+          autoroute et pavés.
+        </div>
+      </div>
+      
+      <!-- Family C -->
+      <div class="card">
+        <div class="card-icon family-c">C</div>
+        <h3 class="card-title">Famille C — Version avancée</h3>
+        <span class="card-badge badge-advanced">Complexité élevée</span>
+        <p>
+          On pousse la stratégie au maximum de sophistication acceptable : combinaisons 
+          de signaux, filtres additionnels, logique avancée, rescues. Surperformer 
+          A/B sans tomber dans l'overfitting.
+        </p>
+        <div class="card-meta">
+          <strong>Analogie :</strong> Version « full options » testée dans les pires 
+          conditions (neige, pluie, nuit).
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Technical Section -->
+  <section class="section section-divider" id="technical">
+    <div class="section-header">
+      <div class="section-label">Documentation technique</div>
+      <h2 class="section-title">Spécifications détaillées</h2>
+    </div>
+    
+    <!-- Pipeline Overview -->
+    <div class="tech-block">
+      <h3>Pipeline FINAL TRIGGER v2</h3>
+      <p>Les 3 Familles s'inscrivent dans un pipeline en 5 phases :</p>
+      
+      <div class="pipeline">
+        <div class="pipeline-phase">
+          <div class="pipeline-phase-num">Phase 1</div>
+          <div class="pipeline-phase-name">Screening</div>
+          <div class="pipeline-phase-desc">10 workers, 200 trials</div>
+        </div>
+        <div class="pipeline-phase">
+          <div class="pipeline-phase-num">Phase 2</div>
+          <div class="pipeline-phase-name">Validation</div>
+          <div class="pipeline-phase-desc">1 worker, 100+ trials</div>
+        </div>
+        <div class="pipeline-phase">
+          <div class="pipeline-phase-num">Phase 3</div>
+          <div class="pipeline-phase-name">Rescues</div>
+          <div class="pipeline-phase-desc">Dispersion + Filter</div>
+        </div>
+        <div class="pipeline-phase">
+          <div class="pipeline-phase-num">Phase 4</div>
+          <div class="pipeline-phase-name">Regime Stress</div>
+          <div class="pipeline-phase-desc">SIDEWAYS Sharpe&gt;0</div>
+        </div>
+        <div class="pipeline-phase">
+          <div class="pipeline-phase-num">Phase 5</div>
+          <div class="pipeline-phase-name">Portfolio</div>
+          <div class="pipeline-phase-desc">Corrélations &lt;0.5</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Guards -->
+    <div class="tech-block">
+      <h3>11 Guards de validation</h3>
+      <p>Critères de robustesse appliqués en Phase 2 :</p>
+      
+      <div class="guards-grid">
+        <div class="guard-group">
+          <div class="guard-group-title hard">7 Hard Guards (obligatoires)</div>
+          <div class="guard-item">
+            <span class="guard-name">Walk-Forward Efficiency</span>
+            <span class="guard-value">&gt; 0.6</span>
+          </div>
+          <div class="guard-item">
+            <span class="guard-name">Monte Carlo p-value</span>
+            <span class="guard-value">&lt; 0.05</span>
+          </div>
+          <div class="guard-item">
+            <span class="guard-name">Sensitivity</span>
+            <span class="guard-value">&lt; 15%</span>
+          </div>
+          <div class="guard-item">
+            <span class="guard-name">Bootstrap CI</span>
+            <span class="guard-value">&gt; 1.0</span>
+          </div>
+          <div class="guard-item">
+            <span class="guard-name">Top 10 Concentration</span>
+            <span class="guard-value">&lt; 40%</span>
+          </div>
+          <div class="guard-item">
+            <span class="guard-name">Trades minimum</span>
+            <span class="guard-value">≥ 60</span>
+          </div>
+          <div class="guard-item">
+            <span class="guard-name">Bars minimum</span>
+            <span class="guard-value">≥ 8000</span>
+          </div>
+        </div>
+        
+        <div class="guard-group">
+          <div class="guard-group-title soft">4 Soft Guards (recommandés)</div>
+          <div class="guard-item">
+            <span class="guard-name">Probability of Backtest Overfitting</span>
+            <span class="guard-value">&lt; 0.50</span>
+          </div>
+          <div class="guard-item">
+            <span class="guard-name">Deflated Sharpe Ratio</span>
+            <span class="guard-value">&gt; 85%</span>
+          </div>
+          <div class="guard-item">
+            <span class="guard-name">Combinatorial Purged CV</span>
+            <span class="guard-value">&gt; 0.8</span>
+          </div>
+          <div class="guard-item">
+            <span class="guard-name">Probabilistic Sharpe Ratio</span>
+            <span class="guard-value">&gt; 95%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Modes -->
+    <div class="tech-block">
+      <h3>Modes de filtrage</h3>
+      <p>Progression des filtres en Phase 3B (Filter Rescue) :</p>
+      
+      <table class="filter-table">
+        <thead>
+          <tr>
+            <th>Mode</th>
+            <th>Filtres</th>
+            <th>Trades min.</th>
+            <th>WFE min.</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Baseline</td>
+            <td>1</td>
+            <td>≥ 60</td>
+            <td>≥ 0.6</td>
+          </tr>
+          <tr>
+            <td>Moderate</td>
+            <td>5</td>
+            <td>≥ 50</td>
+            <td>≥ 0.6</td>
+          </tr>
+          <tr>
+            <td>Conservative</td>
+            <td>7</td>
+            <td>≥ 40</td>
+            <td>≥ 0.55</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Family Details -->
+    <div class="tech-block">
+      <h3>Famille A — Spécifications</h3>
+      <p>Version minimale viable de la stratégie.</p>
+      
+      <h4>Philosophie</h4>
+      <p>Répondre à la question : « Y a-t-il vraiment un edge brut dans cette logique, avant de rajouter du contexte, des filtres et des rescues ? »</p>
+      
+      <h4>Caractéristiques</h4>
+      <ul>
+        <li>Entrées basées sur le cœur de la stratégie (croisement Tenkan/Kijun, cloud break, ATR-based TP/SL)</li>
+        <li>Pas (ou très peu) de filtres de régime</li>
+        <li>Walk-forward classique avec WFE calculé à la Pardo (sur retours, pas sur Sharpe)</li>
+        <li>En Phase 1 : seuils soft (Sharpe&gt;0.5, WFE&gt;0.5, Trades&gt;50)</li>
+        <li>En Phase 2 : passage obligatoire des 7 guards hard + 4 soft</li>
+      </ul>
+      
+      <div class="callout">
+        <p><strong>Rôle :</strong> Sert de baseline de robustesse. Si elle échoue en Famille A, elle n'a rien à faire en B/C. Toute amélioration en B/C doit être jugée relativement à cette baseline.</p>
+      </div>
+    </div>
+
+    <div class="tech-block">
+      <h3>Famille B — Spécifications</h3>
+      <p>Ancrage dans le contexte de marché.</p>
+      
+      <h4>Philosophie</h4>
+      <p>« Est-ce que le même edge tient encore si on respecte les régimes, ou est-ce qu'on a juste optimisé une zone lucky du passé ? »</p>
+      
+      <h4>Caractéristiques</h4>
+      <ul>
+        <li>Détection de régimes (TREND / SIDEWAYS / CRASH) appliquée sur le temps d'entrée uniquement</li>
+        <li>SIDEWAYS n'est jamais filtré — il sert de test de robustesse</li>
+        <li>Introduction des filtres baseline / moderate / conservative</li>
+        <li>Respect strict de l'anti-pattern : <code>.shift(1)</code> obligatoire sur toutes les features rolling</li>
+        <li>Aucun accès au futur (pas de look-ahead, pas de fuite de régime)</li>
+      </ul>
+      
+      <div class="callout">
+        <p><strong>Rôle :</strong> Filtre contextuel qui écarte les stratégies ne marchant que dans un micro-régime. Valide celles qui gardent un edge acceptable quand le marché change.</p>
+      </div>
+    </div>
+
+    <div class="tech-block">
+      <h3>Famille C — Spécifications</h3>
+      <p>Sophistication maximale sous contrainte de robustesse.</p>
+      
+      <h4>Philosophie</h4>
+      <p>Pousser la stratégie le plus loin possible sans violer les guards ni les règles anti-overfitting. L'objectif n'est pas de fabriquer un « monster backtest » mais de voir jusqu'où on peut aller en restant dans une zone réaliste.</p>
+      
+      <h4>Caractéristiques</h4>
+      <ul>
+        <li>Combinaisons avancées : Ichimoku + ATR + structure de carnet ou vols relatives</li>
+        <li>TP multiples avec contrainte stricte : <code>tp1 &lt; tp2 &lt; tp3</code> obligatoire</li>
+        <li>Phase 3A : exploration via dispersion d26/d52/d78</li>
+        <li>Phase 3B : filter_rescue ciblé sur candidats prometteurs</li>
+        <li>Phase 4 : SIDEWAYS doit présenter Sharpe&gt;0, sinon exclusion</li>
+      </ul>
+      
+      <div class="callout">
+        <p><strong>Attention :</strong> Toute stratégie C avec métriques « trop belles » (Sharpe&gt;4, WFE&gt;2) doit être challengée systématiquement : rejouer les backtests, vérifier splits temporels, contrôler features.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Table -->
+  <section class="section section-divider" id="comparison">
+    <div class="section-header">
+      <div class="section-label">Synthèse</div>
+      <h2 class="section-title">Matrice comparative</h2>
+    </div>
+    
+    <div class="table-wrapper">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Dimension</th>
+            <th class="col-a">Famille A — Base</th>
+            <th class="col-b">Famille B — Contextuelle</th>
+            <th class="col-c">Famille C — Avancée</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Objectif principal</td>
+            <td class="col-a">Valider l'edge brut</td>
+            <td class="col-b">Valider l'edge en différents régimes</td>
+            <td class="col-c">Pousser la perf en gardant robustesse</td>
+          </tr>
+          <tr>
+            <td>Complexité</td>
+            <td class="col-a">Faible</td>
+            <td class="col-b">Moyenne</td>
+            <td class="col-c">Élevée</td>
+          </tr>
+          <tr>
+            <td>Filtres de régime</td>
+            <td class="col-a">Faibles ou absents</td>
+            <td class="col-b">Présents (entrée uniquement)</td>
+            <td class="col-c">Présents + rescues + stress avancés</td>
+          </tr>
+          <tr>
+            <td>Baseline/moderate/conservative</td>
+            <td class="col-a">Non</td>
+            <td class="col-b">Oui (Phase 3B)</td>
+            <td class="col-c">Oui (contraintes strictes)</td>
+          </tr>
+          <tr>
+            <td>Rescues (d26/52/78)</td>
+            <td class="col-a">Non</td>
+            <td class="col-b">Optionnel / limité</td>
+            <td class="col-c">Oui (Phase 3A)</td>
+          </tr>
+          <tr>
+            <td>Guards appliqués</td>
+            <td class="col-a">Soft en P1, hard+soft en P2</td>
+            <td class="col-b">Hard + soft</td>
+            <td class="col-c">Hard + soft + fine tuning</td>
+          </tr>
+          <tr>
+            <td>Risque d'overfitting</td>
+            <td class="col-a">Modéré</td>
+            <td class="col-b">Contrôlé</td>
+            <td class="col-c">Plus élevé → challengers systématiques</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Usage Section -->
+  <section class="section section-divider" id="usage">
+    <div class="section-header">
+      <div class="section-label">Guide</div>
+      <h2 class="section-title">Comment utiliser cette documentation</h2>
+    </div>
+    
+    <div class="usage-grid">
+      <div class="usage-item">
+        <h4>Lecteur non technique</h4>
+        <p>
+          Lire uniquement la section « Vue simple » pour comprendre 
+          les 3 Familles comme un produit, sans détails d'implémentation.
+        </p>
+      </div>
+      <div class="usage-item">
+        <h4>Dev / Quant</h4>
+        <p>
+          S'appuyer sur la documentation technique pour implémenter 
+          ou auditer les familles dans le code. Utiliser la matrice 
+          comme checklist.
+        </p>
+      </div>
+      <div class="usage-item">
+        <h4>Communication projet</h4>
+        <p>
+          Cette page peut être intégrée dans <code>docs/WORKFLOW_PIPELINE.md</code> 
+          ou exportée vers Notion/Confluence pour aligner l'équipe.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>FINAL TRIGGER v2 — Documentation Pipeline · Janvier 2026</p>
+  </footer>
+</body>
+</html>

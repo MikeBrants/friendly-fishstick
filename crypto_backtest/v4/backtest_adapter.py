@@ -55,6 +55,26 @@ def _bar_returns_from_equity(equity_curve: pd.Series) -> np.ndarray:
     return returns
 
 
+def _extract_trade_pnls(trades: pd.DataFrame) -> np.ndarray:
+    if trades is None or trades.empty:
+        return np.asarray([], dtype=float)
+    for col in ("pnl", "net_pnl", "gross_pnl"):
+        if col in trades.columns:
+            return trades[col].astype(float).to_numpy()
+    return np.asarray([], dtype=float)
+
+
+def _top10_concentration(trades: pd.DataFrame) -> float:
+    pnls = _extract_trade_pnls(trades)
+    if pnls.size == 0:
+        return 0.0
+    total_pnl = float(pnls.sum())
+    if total_pnl <= 0:
+        return 0.0
+    top10 = float(np.sort(pnls)[-10:].sum()) if pnls.size >= 10 else float(pnls.sum())
+    return (top10 / total_pnl) * 100.0
+
+
 def run_coupled_backtest(
     asset: str,
     recipe_config: dict[str, Any],
@@ -83,10 +103,14 @@ def run_coupled_backtest(
     backtester = VectorizedBacktester(BacktestConfig())
     result = backtester.run(data, strategy)
     metrics = compute_metrics(result.equity_curve, result.trades)
+    trade_count = int(len(result.trades)) if result.trades is not None else 0
+    top10_concentration = _top10_concentration(result.trades)
 
     return {
         "metrics": metrics,
         "trades": result.trades,
+        "trade_count": trade_count,
+        "top10_concentration": top10_concentration,
         "equity_curve": result.equity_curve,
         "bar_returns": _bar_returns_from_equity(result.equity_curve),
     }

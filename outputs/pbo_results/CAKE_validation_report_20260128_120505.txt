@@ -1,0 +1,17 @@
+GUARDS VALIDATION REPORT: CAKE
+======================================================================
+GUARD-001 Monte Carlo p-value: n/a -> PASS
+GUARD-002 Sensitivity variance: n/a% -> PASS
+GUARD-003 Bootstrap Sharpe CI lower: n/a -> PASS
+GUARD-005 Trade distribution top10: n/a% -> PASS
+GUARD-006 Stress1 Sharpe: n/a -> PASS
+GUARD-007 Regime reconciliation mismatch: n/a% -> PASS
+GUARD-008 PBO (Probability of Backtest Overfitting): 0.9326 -> FAIL
+GUARD-WFE: 0.71 -> PASS
+----------------------------------------------------------------------
+OVERFITTING (report-only):
+PSR (P[SR>0]): 0.9999
+DSR (deflated): n/a
+SR* (deflated threshold): n/a
+----------------------------------------------------------------------
+ALL PASS: NO

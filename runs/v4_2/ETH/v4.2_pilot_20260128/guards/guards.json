@@ -1,0 +1,49 @@
+{
+  "passed": false,
+  "failed": 4,
+  "catastrophic": true,
+  "guards": [
+    {
+      "name": "bars",
+      "passed": false,
+      "value": null,
+      "threshold": 12000.0
+    },
+    {
+      "name": "trades",
+      "passed": false,
+      "value": null,
+      "threshold": 60.0
+    },
+    {
+      "name": "sharpe",
+      "passed": true,
+      "value": 1.5716333557696256,
+      "threshold": 0.8
+    },
+    {
+      "name": "max_drawdown",
+      "passed": true,
+      "value": -0.06257395770833174,
+      "threshold": 0.35
+    },
+    {
+      "name": "profit_factor",
+      "passed": true,
+      "value": 1.3877043007256427,
+      "threshold": 1.05
+    },
+    {
+      "name": "wfe",
+      "passed": false,
+      "value": null,
+      "threshold": 0.6
+    },
+    {
+      "name": "top10_concentration",
+      "passed": false,
+      "value": null,
+      "threshold": 40.0
+    }
+  ]
+}

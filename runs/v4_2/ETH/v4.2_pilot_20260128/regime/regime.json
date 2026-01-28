@@ -1,0 +1,9 @@
+{
+  "wr_by_regime": {
+    "bull": 0.42424242424242425,
+    "bear": 0.2777777777777778,
+    "sideways": 0.42424242424242425
+  },
+  "delta_wr": 0.0,
+  "regime_signal_detected": false
+}

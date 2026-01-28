@@ -6,10 +6,12 @@ import json
 import sys
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from crypto_backtest.optimization.parallel_optimizer import load_data
 from crypto_backtest.v4.artifacts import get_run_root, ensure_run_dirs
 from crypto_backtest.v4.config import load_yaml, get_policy
 
@@ -39,6 +41,100 @@ def _score_from_metrics(metrics: dict) -> float:
     return 0.0
 
 
+def _extract_sharpe(metrics: dict) -> float:
+    if metrics.get("sharpe") is not None:
+        return float(metrics["sharpe"])
+    if metrics.get("sharpe_ratio") is not None:
+        return float(metrics["sharpe_ratio"])
+    return 0.0
+
+
+def _trade_count_from_result(result: dict) -> int:
+    if result.get("trade_count") is not None:
+        return int(result["trade_count"])
+    trades = result.get("trades")
+    if trades is None:
+        return 0
+    try:
+        return int(len(trades))
+    except TypeError:
+        return 0
+
+
+def _walk_forward_stats(
+    asset: str,
+    recipe_config: dict,
+    data_index: pd.Index,
+    n_splits: int,
+    train_ratio: float,
+    run_coupled_backtest,
+) -> dict:
+    n = len(data_index)
+    if n < 4 or n_splits <= 0:
+        return {"wfe": 0.0, "oos_sharpe": 0.0, "oos_trades": 0, "is_trades": 0, "splits": 0}
+
+    train_size = int(n * train_ratio)
+    remaining = n - train_size
+    if train_size < 2 or remaining < 2:
+        return {"wfe": 0.0, "oos_sharpe": 0.0, "oos_trades": 0, "is_trades": 0, "splits": 0}
+
+    split_size = remaining // n_splits
+    if split_size < 2:
+        return {"wfe": 0.0, "oos_sharpe": 0.0, "oos_trades": 0, "is_trades": 0, "splits": 0}
+
+    is_sharpes: list[float] = []
+    oos_sharpes: list[float] = []
+    is_trades = 0
+    oos_trades = 0
+    splits_run = 0
+
+    for split_id in range(n_splits):
+        train_end_idx = train_size + split_id * split_size
+        test_end_idx = train_end_idx + split_size
+        if test_end_idx > n:
+            break
+
+        train_end_ts = data_index[train_end_idx - 1]
+        test_start_ts = data_index[train_end_idx]
+        test_end_ts = data_index[test_end_idx - 1]
+
+        is_result = run_coupled_backtest(
+            asset=asset,
+            recipe_config=recipe_config,
+            mode="combined",
+            start_ts=None,
+            end_ts=pd.Timestamp(train_end_ts).isoformat(),
+        )
+        oos_result = run_coupled_backtest(
+            asset=asset,
+            recipe_config=recipe_config,
+            mode="combined",
+            start_ts=pd.Timestamp(test_start_ts).isoformat(),
+            end_ts=pd.Timestamp(test_end_ts).isoformat(),
+        )
+
+        is_metrics = is_result.get("metrics", {})
+        oos_metrics = oos_result.get("metrics", {})
+
+        is_sharpes.append(_extract_sharpe(is_metrics))
+        oos_sharpes.append(_extract_sharpe(oos_metrics))
+        is_trades += _trade_count_from_result(is_result)
+        oos_trades += _trade_count_from_result(oos_result)
+        splits_run += 1
+
+    mean_is = float(np.mean(is_sharpes)) if is_sharpes else 0.0
+    mean_oos = float(np.mean(oos_sharpes)) if oos_sharpes else 0.0
+    wfe = mean_oos / mean_is if mean_is > 0 else 0.0
+
+    return {
+        "wfe": wfe,
+        "oos_sharpe": mean_oos,
+        "oos_trades": int(oos_trades),
+        "is_trades": int(is_trades),
+        "splits": splits_run,
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="v4.2 baseline select")
     parser.add_argument("--asset", required=True)
@@ -49,6 +145,11 @@ def main() -> None:
     cfg = load_yaml("configs/families.yaml")
     policy = get_policy(cfg)
     data_end_ts = _compute_research_end(cfg, policy, args.end_ts)
+
+    data = load_data(args.asset, data_dir="data")
+    if data_end_ts:
+        data = data.loc[: pd.to_datetime(data_end_ts)]
+    data_index = data.index
 
     run_root = get_run_root(args.asset, args.run_id)
     ensure_run_dirs(run_root)
@@ -64,6 +165,7 @@ def main() -> None:
         ) from exc
 
     best = None
+    best_result = None
     best_score = float("-inf")
     for candidate in candidates:
         recipe_config = {
@@ -88,9 +190,38 @@ def main() -> None:
                 "metrics": metrics,
                 "train_end_ts": data_end_ts,
             }
+            best_result = result
 
     if best is None:
         raise ValueError("No coupled candidates found for baseline selection")
+
+    wf_stats = _walk_forward_stats(
+        asset=args.asset,
+        recipe_config={
+            "long_params": best["long_params"],
+            "short_params": best["short_params"],
+        },
+        data_index=data_index,
+        n_splits=5,
+        train_ratio=0.6,
+        run_coupled_backtest=run_coupled_backtest,
+    )
+
+    bars_total = cfg.get("dataset", {}).get("bars_total")
+    if bars_total is None:
+        bars_total = int(len(data_index))
+
+    best.update(
+        {
+            "wfe": wf_stats.get("wfe"),
+            "oos_sharpe": wf_stats.get("oos_sharpe"),
+            "oos_trades": wf_stats.get("oos_trades"),
+            "is_trades": wf_stats.get("is_trades"),
+            "trade_count": _trade_count_from_result(best_result or {}),
+            "bars": int(bars_total),
+            "top10_concentration": (best_result or {}).get("top10_concentration", 0.0),
+        }
+    )
 
     out_path = run_root / "baseline" / "baseline_best.json"
     out_path.write_text(json.dumps(best, indent=2, default=str))

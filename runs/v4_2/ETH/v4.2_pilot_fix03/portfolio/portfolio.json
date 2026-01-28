@@ -1,0 +1,10 @@
+{
+  "corr_policy": "max_positive",
+  "active_union_bars": 321,
+  "active_long_bars": 163,
+  "active_short_bars": 164,
+  "corr_union": -0.02826043778043036,
+  "threshold": 0.5,
+  "passed": true,
+  "reason": "PASS"
+}
