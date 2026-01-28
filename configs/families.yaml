@@ -1,0 +1,206 @@
+# =============================================================================
+# families.yaml — Model Families + Rescues (v4.2 FINAL, 1H)
+# =============================================================================
+meta:
+  owner: "Alex"
+  version: "4.2"
+  timeframe: "1H"
+  last_updated_utc: "2026-01-28"
+
+dataset:
+  bars_total: 17520
+  start_utc: "2024-01-28T17:00:00Z"
+  end_utc: "2026-01-27T16:00:00Z"
+  notes: "2 years of 1H data; bar-level sparse returns"
+
+holding_period_bars:
+  p50: 24
+  p95: 106
+  p99: 230
+  mean: 38
+  std: 47
+  min: 1
+  max: 576
+  sample_trades: 773
+
+pilot_assets:
+  - "ETH"
+  - "DOT"
+  - "SHIB"
+  - "ANKR"
+
+policy:
+  random_seed: 42
+
+  data:
+    holdout:
+      enabled: false
+      months: 3
+      mode: "soft_gate"
+
+  coupling:
+    method: "top_k_cross"
+    k_long: 10
+    k_short: 10
+    max_couples: 100
+
+  budgets:
+    max_families_per_asset: 3
+    max_rescues_per_family: 2
+    screening:
+      trials_long: 100
+      trials_short: 100
+      workers: 10
+    validation:
+      trials: 100
+      workers: 1
+
+  thresholds:
+    screening:
+      sharpe_min: 0.5
+      wfe_min: 0.5
+      trades_min: 50
+      short_ratio_min: 0.25
+      short_ratio_max: 0.75
+
+    baseline_by_filter_preset:
+      baseline:
+        wfe_min: 0.60
+        trades_min: 60
+        bars_min: 12000
+      moderate:
+        wfe_min: 0.60
+        trades_min: 50
+        bars_min: 12000
+      conservative:
+        wfe_min: 0.55
+        trades_min: 40
+        bars_min: 12000
+
+    guards:
+      hard_guards_total: 7
+      catastrophic_fail_min: 3
+      sharpe_min: 0.80
+      max_drawdown_max: 0.35
+      profit_factor_min: 1.05
+
+    pbo:
+      proxy_warning: 0.60
+      proxy_kill: 0.70
+      cscv_pass: 0.50
+
+    regime:
+      signal_threshold_wr_delta: 0.15
+      n_trades_min: 30
+
+    portfolio:
+      method: "two_pass_backtest"
+      corr_policy: "max_positive"
+      corr_scope: "active_union"
+      corr_long_short_max: 0.50
+      ret_eps: 1e-12
+      active_bars_min: 500
+      min_leg_active_bars: 150
+      compute_intersection: true
+      active_bars_min_intersection: 80
+      corr_intersection_max: 0.70
+      overlap_ratio_warn_below: 0.05
+
+    holdout:
+      trades_min: 20
+      sharpe_min: 0.00
+      max_drawdown_max: 0.45
+      profit_factor_min: 0.95
+
+  pbo:
+    annualization_factor: 8760
+    proxy:
+      enabled: true
+      folds: 8
+      purge_bars: 120
+      embargo_bars: 240
+    cscv:
+      folds: 10
+      purge_bars: 120
+      embargo_bars: 240
+
+filter_presets:
+  baseline:
+    active:
+      - "ichimoku_filter"
+      - "5in1_ichi_light"
+  moderate:
+    active:
+      - "ichimoku_filter"
+      - "5in1_ichi_light"
+      - "mama_kama_filter"
+      - "distance_filter"
+      - "volume_filter"
+  conservative:
+    active:
+      - "ichimoku_filter"
+      - "5in1_ichi_light"
+      - "mama_kama_filter"
+      - "distance_filter"
+      - "volume_filter"
+      - "ad_line_filter"
+      - "regression_filter"
+
+regime_definitions:
+  ichimoku_cloud_position:
+    description: "Price position relative to Ichimoku cloud at entry time"
+    parameters:
+      tenkan: 13
+      kijun: 34
+      senkou_b: 52
+      displacement: 26
+
+families:
+  A:
+    description: "Base - split L/S, no regime, no displacement"
+    dof_count: 1
+    strategy:
+      split_long_short: true
+      coupled_trials: true
+    filters:
+      preset: "baseline"
+    regime:
+      enabled: false
+    displacement:
+      enabled: false
+
+  B:
+    description: "Regime filter wrapper"
+    dof_count: 2
+    inherits: "A"
+    regime:
+      enabled: true
+      definition: "ichimoku_cloud_position"
+      policy:
+        bull: {long: "allow", short: "block"}
+        bear: {long: "block", short: "allow"}
+        sideways: {long: "allow", short: "allow"}
+
+  C:
+    description: "Regime + displacement grid"
+    dof_count: 3
+    inherits: "B"
+    displacement:
+      enabled: true
+      values: [26, 52, 78]
+      search_mode: "grid"
+    filters:
+      preset: "moderate"
+
+rescues:
+  R1:
+    description: "Switch to moderate filter preset"
+    type: "filter_preset"
+    preset: "moderate"
+    dof_change: 0
+
+  R2:
+    description: "Switch to conservative filter preset"
+    type: "filter_preset"
+    preset: "conservative"
+    dof_change: 0
