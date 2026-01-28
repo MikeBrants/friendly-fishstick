@@ -1,6 +1,6 @@
 # Jordan Dev Log — FINAL TRIGGER v2
 
-**Last Updated**: 28 Jan 2026, 08:24 UTC
+**Last Updated**: 28 Jan 2026, 08:27 UTC
 
 ---
 
@@ -9,6 +9,12 @@
 **Output**: status/v4_2_audit.md
 **Summary**: Audited repo entrypoints, artifact patterns, and core data structures. Added v4.2 1H calibration contract details to the audit doc.
 **Next**: PROMPT 02 — configs/families.yaml
+
+## 2026-01-28 — PROMPT 02 configs/families.yaml
+**Status**: TODO → DONE
+**Output**: configs/families.yaml; scripts/print_family_config.py
+**Summary**: Added v4.2 families/rescues YAML as single source of truth and a printer script to load/resolve configs.
+**Next**: PROMPT 03 — configs/router.yaml
 
 ## 1324 DONE jordan-dev -> system: CHALLENGER 100-TRIALS PIPELINE ✅
 
