@@ -138,6 +138,7 @@ def cscv_pbo(
     
     # Step 3: Compute λ for each path
     lambda_values = []
+    omega_values = []
     degradation_ratios = []
     
     for is_fold_ids in all_is_combinations:
@@ -168,10 +169,16 @@ def cscv_pbo(
         # Get OOS performance of best IS trial
         best_trial_oos_sharpe = oos_sharpes[best_is_idx]
         
-        # Compute logrank λ: percentile rank of best IS trial's OOS performance
-        # λ = (number of trials with OOS Sharpe <= best trial's OOS Sharpe) / n_trials
+        # Compute relative rank ω (omega) per Bailey & López de Prado (2014)
+        # ω = rank / (N + 1) ∈ (0, 1), avoids ω = 0 or 1
         rank = np.sum(oos_sharpes <= best_trial_oos_sharpe)
-        lambda_val = rank / n_trials
+        omega = rank / (n_trials + 1)
+
+        # Compute logit λ (lambda) = ln(ω / (1 - ω)) ∈ (-∞, +∞)
+        # λ < 0 ⟺ ω < 0.5 (underperformance)
+        lambda_val = np.log(omega / (1 - omega))
+
+        omega_values.append(omega)
         lambda_values.append(lambda_val)
         
         # Track degradation (OOS/IS performance ratio)
@@ -182,13 +189,19 @@ def cscv_pbo(
         raise ValueError("No valid paths computed. Check data size and purge gap.")
     
     # Step 4: Compute PBO
+    omega_array = np.array(omega_values)
     lambda_array = np.array(lambda_values)
-    pbo = np.mean(lambda_array < 0.5)
+
+    # PBO = P(λ < 0) = P(ω < 0.5) — proportion of paths where best IS underperforms OOS
+    pbo = np.mean(lambda_array < 0)
     
     return {
         "pbo": float(pbo),
         "pass": pbo < config.pbo_threshold,
+        "omega_distribution": omega_values,
         "lambda_distribution": lambda_values,
+        "omega_median": float(np.median(omega_array)),
+        "omega_mean": float(np.mean(omega_array)),
         "lambda_median": float(np.median(lambda_array)),
         "lambda_mean": float(np.mean(lambda_array)),
         "n_paths": len(lambda_values),
@@ -199,9 +212,10 @@ def cscv_pbo(
             "n_folds": config.n_folds,
             "purge_gap": config.purge_gap,
             "threshold": config.pbo_threshold,
+            "omega_std": float(np.std(omega_array)),
+            "omega_q25": float(np.percentile(omega_array, 25)),
+            "omega_q75": float(np.percentile(omega_array, 75)),
             "lambda_std": float(np.std(lambda_array)),
-            "lambda_q25": float(np.percentile(lambda_array, 25)),
-            "lambda_q75": float(np.percentile(lambda_array, 75)),
         }
     }
 
@@ -250,8 +264,9 @@ def guard_pbo_cscv(
         "pass": bool(result["pass"]),
         "n_paths": int(result["n_paths"]),
         "method": "CSCV",
+        "omega_median": float(result["omega_median"]),
         "lambda_median": float(result["lambda_median"]),
-        "degradation": float(result["degradation"]),
+        "degradation": float(result["degradation"]) if result["degradation"] is not None else None,
         "threshold": float(threshold),
     }
 
@@ -568,8 +583,8 @@ def _compute_sharpe(returns: np.ndarray, annualization: float) -> float:
 
 def plot_lambda_distribution(result: Dict, save_path: Optional[str] = None):
     """
-    Plot the λ distribution from CSCV results.
-    
+    Plot the λ distribution (logit) from CSCV results.
+
     Requires matplotlib.
     """
     try:
@@ -588,18 +603,18 @@ def plot_lambda_distribution(result: Dict, save_path: Optional[str] = None):
             edgecolor='white', linewidth=0.5)
     
     # Reference lines
-    ax.axvline(0.5, color='red', linestyle='--', linewidth=2, label='λ = 0.5 (random)')
+    ax.axvline(0, color='red', linestyle='--', linewidth=2, label='λ = 0 (random)')
     ax.axvline(np.median(lambda_vals), color='green', linestyle='-', linewidth=2,
                label=f'Median λ = {np.median(lambda_vals):.3f}')
     
-    # Shading for overfit region
-    ax.axvspan(0, 0.5, alpha=0.1, color='red', label='Overfit region')
+    # Shading for overfit region (λ < 0)
+    left_bound = ax.get_xlim()[0]
+    ax.axvspan(left_bound, 0, alpha=0.1, color='red', label='Overfit region (λ<0)')
     
-    ax.set_xlabel('λ (Logrank)', fontsize=12)
+    ax.set_xlabel('λ (Logit of relative rank)', fontsize=12)
     ax.set_ylabel('Density', fontsize=12)
     ax.set_title(f'CSCV λ Distribution | PBO = {pbo:.3f}', fontsize=14)
     ax.legend(loc='upper right')
-    ax.set_xlim(0, 1)
     
     # Add text box
     textstr = f'PBO: {pbo:.3f}\nPaths: {result["n_paths"]}\nTrials: {result["n_trials"]}'
