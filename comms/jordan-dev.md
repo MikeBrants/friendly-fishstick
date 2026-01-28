@@ -1,6 +1,6 @@
 # Jordan Dev Log — FINAL TRIGGER v2
 
-**Last Updated**: 28 Jan 2026, 08:42 UTC
+**Last Updated**: 28 Jan 2026, 08:43 UTC
 
 ---
 
@@ -51,6 +51,12 @@
 **Output**: crypto_backtest/v4/coupling.py; scripts/couple_v4_2.py
 **Summary**: Added top-k cross coupling step to build paired long/short candidates into coupled_candidates.json.
 **Next**: PROMPT 09 — Baseline Select
+
+## 2026-01-28 — PROMPT 09 Baseline Select
+**Status**: TODO → DONE
+**Output**: scripts/baseline_select_v4_2.py
+**Summary**: Added baseline selection step to evaluate coupled candidates on research window and save baseline_best.json.
+**Next**: PROMPT 10 — Guards v4.2
 
 ## 1324 DONE jordan-dev -> system: CHALLENGER 100-TRIALS PIPELINE ✅
 
