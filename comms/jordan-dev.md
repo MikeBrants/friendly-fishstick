@@ -1,6 +1,6 @@
 # Jordan Dev Log — FINAL TRIGGER v2
 
-**Last Updated**: 28 Jan 2026, 08:59 UTC
+**Last Updated**: 28 Jan 2026, 09:01 UTC
 
 ---
 
@@ -99,6 +99,12 @@
 **Output**: scripts/repro_check_v4_2.py
 **Summary**: Added reproducibility check that re-runs backtests and diffs bar_returns/trades/metrics.
 **Next**: PROMPT 13E — Portfolio Check
+
+## 2026-01-28 — PROMPT 13E Portfolio Check
+**Status**: TODO → DONE
+**Output**: scripts/portfolio_check_v4_2.py
+**Summary**: Implemented two-pass portfolio correlation check with sparse-safe masking and max_positive policy.
+**Next**: PROMPT 14 — Orchestrator v4.2
 
 ## 1324 DONE jordan-dev -> system: CHALLENGER 100-TRIALS PIPELINE ✅
 
