@@ -1,6 +1,6 @@
 # Jordan Dev Log — FINAL TRIGGER v2
 
-**Last Updated**: 28 Jan 2026, 08:36 UTC
+**Last Updated**: 28 Jan 2026, 08:40 UTC
 
 ---
 
@@ -39,6 +39,12 @@
 **Output**: crypto_backtest/v4/artifacts.py; scripts/init_run_v4_2.py
 **Summary**: Added v4.2 run layout utilities (subdirs, metadata, snapshots) and an init script for run setup.
 **Next**: PROMPT 07 — Screening (L/S) 100 Trials
+
+## 2026-01-28 — PROMPT 07 Screening (L/S) 100 Trials
+**Status**: TODO → DONE
+**Output**: crypto_backtest/v4/screening.py; scripts/screen_v4_2.py
+**Summary**: Implemented deterministic long/short screening (100 trials each) with top-20 candidate export to run artifacts.
+**Next**: PROMPT 08 — Coupling
 
 ## 1324 DONE jordan-dev -> system: CHALLENGER 100-TRIALS PIPELINE ✅
 
