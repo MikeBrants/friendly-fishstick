@@ -1,6 +1,6 @@
 # PROJECT STATE — FINAL TRIGGER v2
 
-**Updated**: 27 Jan 2026, 20:15 UTC+4
+**Updated**: 28 Jan 2026, 11:40 UTC+4
 **Phase**: ✅ **PR#21 COMPLETE — 100 Trials Validation**
 **Status**: 5 PROD, 3 QUARANTINE, 10 EXCLU
 
@@ -46,7 +46,7 @@
 ```
 SOL (Sharpe 1.83, 7/7 guards, 100T)
 AVAX (Sharpe 2.76, 7/7 guards, 100T)
-ETH (Sharpe 1.65, 7/7 guards, 100T)
+ETH (Sharpe 1.65, 8/8 guards, CSCV PBO 0.24, 100T)
 BTC (Sharpe 2.18, 7/7 guards, 100T)
 AXS (Sharpe 1.21, 7/7 guards, 300T baseline)
 ```
@@ -130,6 +130,7 @@ python scripts/run_full_pipeline.py \
 
 | Date | Action |
 |------|--------|
+| 28 Jan 11:38 | ETH CSCV PBO validated — PBO 0.2416, WFE 1.81, all guards pass |
 | 27 Jan 19:23 | 🟢 Plan A SUCCESS — SOL+AVAX récupérés, PR#21 ready |
 | 27 Jan 19:08 | 📋 Issue #30 créée — Plan C Contingency |
 | 27 Jan 17:25 | 🔴 Résultats 300T: 12/18 EXCLU |
