@@ -1,6 +1,6 @@
 # Jordan Dev Log — FINAL TRIGGER v2
 
-**Last Updated**: 28 Jan 2026, 08:49 UTC
+**Last Updated**: 28 Jan 2026, 08:51 UTC
 
 ---
 
@@ -69,6 +69,12 @@
 **Output**: scripts/regime_stats_v4_2.py
 **Summary**: Added stats-only regime computation using entry-time regimes and win-rate deltas.
 **Next**: PROMPT 12 — PBO Runners (Calibrated)
+
+## 2026-01-28 — PROMPT 12 PBO Runners (Calibrated)
+**Status**: TODO → DONE
+**Output**: scripts/pbo_v4_2.py
+**Summary**: Added calibrated proxy + CSCV PBO runners with returns-matrix build and JSON outputs.
+**Next**: PROMPT 13A — Direction Toggles
 
 ## 1324 DONE jordan-dev -> system: CHALLENGER 100-TRIALS PIPELINE ✅
 
