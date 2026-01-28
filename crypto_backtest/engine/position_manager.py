@@ -30,6 +30,8 @@ class MultiTPPositionManager:
         fees_bps: float = 0.0,
         slippage_bps: float = 0.0,
         risk_per_trade: float = 0.005,
+        enable_long: bool = True,
+        enable_short: bool = True,
     ) -> pd.DataFrame:
         """Simulate multi-TP trade management and return trades."""
         required = {"signal", "entry_price", "sl_price", "tp1_price", "tp2_price", "tp3_price"}
@@ -52,6 +54,10 @@ class MultiTPPositionManager:
 
         def open_position(signal_value: int, idx: int, ts, equity_value: float) -> dict[str, Any] | None:
             if signal_value == 0:
+                return None
+            if signal_value == 1 and not enable_long:
+                return None
+            if signal_value == -1 and not enable_short:
                 return None
             entry = float(signals["entry_price"].iloc[idx])
             sl = float(signals["sl_price"].iloc[idx])
