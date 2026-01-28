@@ -1,6 +1,6 @@
 # Jordan Dev Log — FINAL TRIGGER v2
 
-**Last Updated**: 28 Jan 2026, 08:28 UTC
+**Last Updated**: 28 Jan 2026, 08:33 UTC
 
 ---
 
@@ -21,6 +21,12 @@
 **Output**: configs/router.yaml
 **Summary**: Added v4.2 router state machine definition with HOLDOUT states wired and transitions set.
 **Next**: PROMPT 04 — Config Resolver + Validator
+
+## 2026-01-28 — PROMPT 04 Config Resolver + Validator
+**Status**: TODO → DONE
+**Output**: scripts/validate_configs.py; crypto_backtest/v4/config.py; scripts/test_config_resolution.py
+**Summary**: Implemented config validator and resolver utilities with inheritance/rescue support plus basic resolution tests.
+**Next**: PROMPT 05 — SKIP (CSCV exists)
 
 ## 1324 DONE jordan-dev -> system: CHALLENGER 100-TRIALS PIPELINE ✅
 
