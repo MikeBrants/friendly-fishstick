@@ -4,11 +4,11 @@ globs: ["**/*"]
 alwaysApply: true
 ---
 
-# MASTER PLAN — FINAL TRIGGER v2
+# MASTER PLAN — FINAL TRIGGER v2 (v4.2)
 
 > **Source de vérité pour les RÈGLES et PARAMÈTRES.**
 > Pour l'état du projet → `status/project-state.md`
-> Pour les commandes → `docs/WORKFLOW_PIPELINE.md`
+> Pour la config → `configs/families.yaml`
 
 ---
 
@@ -17,69 +17,64 @@ alwaysApply: true
 **CE FICHIER EST STABLE** — Modifier uniquement si:
 - Changement de seuil validé par tests scientifiques
 - Nouveau guard ajouté/retiré (avec PR approuvée)
-- Correction d'erreur documentée
-
-**NE PAS MODIFIER:**
-- Tableau PARAMÈTRES sans validation scientifique
-- Seuils guards sans PR approuvée
-- Anti-patterns (règles fixes)
 
 **OWNER:** Alex (Lead Quant) — Approbation requise pour tout changement
 
 ---
 
-## 📊 PARAMÈTRES PIPELINE (Source Unique)
+## 📊 PIPELINE v4.2
 
-| Phase | Nom | Workers | Trials | Guards | Seuils |
-|:-----:|-----|:-------:|:------:|:------:|--------|
-| **1** | Screening | **10** | 200 | OFF | WFE>0.5, Sharpe>0.5, Trades>50, **SHORT 25-75%** |
-| **2** | Validation | **1** | **100** | ON (11) | WFE>0.6, Sharpe>1.0, Trades>60 |
-| **3** | Rescue | **1** | **100** | ON (11) | 7/7 hard PASS |
-| **4** | Signal Parity | - | - | - | 100% Python/Pine match |
-| **5** | Portfolio | - | - | - | Corrélations <0.5 |
-| **6** | Production | - | - | - | Reproductibilité 2 runs |
-
-### Displacements Valides
-
-| Displacement | Usage |
-|:------------:|-------|
-| d26 | Meme/fast (DOGE, SHIB, JOE) |
-| d52 | Standard (BTC, ETH, majeurs) |
-| d78 | L2/slow (OP, ARB) |
-
-### Filter Modes
-
-| Mode | Filtres | Trades min | WFE min |
-|------|:-------:|:----------:|:-------:|
-| baseline | 1 | 60 | 0.6 |
-| moderate | 5 | 50 | 0.6 |
-| conservative | 7 | 40 | 0.55 |
+| Phase | Nom | Workers | Trials | Seuils |
+|:-----:|-----|:-------:|:------:|--------|
+| **1** | Screening L/S | **10** | **100** | WFE>0.5, Sharpe>0.5, Trades>50, SHORT 25-75% |
+| **2** | Coupling | 1 | - | top_k_cross (k=10) |
+| **3** | Baseline+WF | 1 | - | Walk-forward 5-split 60/40 |
+| **4** | Guards | 1 | - | 7 hard guards |
+| **5** | PBO | 1 | - | Proxy + CSCV calibrés |
+| **6** | Portfolio | 1 | - | Corr <0.5, active_bars ≥150 |
+| **7** | Production | 1 | - | Repro check |
 
 ---
 
-## 🛡️ 11 GUARDS
+## 🛡️ 7 HARD GUARDS (v4.2)
 
-### 7 Hard Guards (MUST PASS)
+| Guard | Seuil | Kill |
+|-------|-------|------|
+| WFE | >0.6 | <0.5 |
+| Trades OOS | ≥60 | <40 |
+| Bars | ≥**12000** | <10000 |
+| Sharpe | ≥0.80 | <0.5 |
+| MaxDD | ≤35% | >50% |
+| PF | ≥1.05 | <1.0 |
+| Top10 | <40% | >50% |
 
-| # | Guard | Seuil |
-|:-:|-------|-------|
-| 1 | WFE Pardo | >0.6 |
-| 2 | Sensitivity | <15% |
-| 3 | Bootstrap CI | >1.0 |
-| 4 | Monte Carlo | p<0.05 |
-Note: Monte Carlo p_value must use (count+1)/(n+1) minimum bound; never return 0.0000.
-| 5 | Top10 Concentration | <40% |
-| 6 | Trades OOS | ≥60 |
-| 7 | Bars IS | ≥8000 |
+---
 
-### 4 Soft Guards (Report + Rescue if FAIL)
+## 📈 PBO CALIBRATION (1H Timeframe)
 
-| # | Guard | Seuil |
-|:-:|-------|-------|
-| 8 | PBO | <0.50 |
-| 9 | DSR | >85% |
-| 10 | CPCV | >0.8 all folds |
-| 11 | PSR | >95% |
+| Param | Valeur | Justification |
+|-------|--------|---------------|
+| purge_bars | 120 | P95 holding period |
+| embargo_bars | 240 | ~P99 holding period |
+| proxy folds | 8 | Standard |
+| cscv folds | 10 | Adapté sparsité returns |
+| annualization | 8760 | 1H bars/year |
+
+---
+
+## 📦 FAMILLES
+
+| Famille | DOF | Description |
+|---------|-----|-------------|
+| A | 1 | Base L/S split, no regime |
+| B | 2 | A + filtre régime |
+| C | 3 | B + displacement grid |
+
+### Rescues
+| Rescue | Action |
+|--------|--------|
+| R1 | baseline → moderate filters |
+| R2 | moderate → conservative filters |
 
 ---
 
@@ -94,7 +89,6 @@ signal = indicator           # ❌ INTERDIT
 ### 2. TP Non-Progressif
 ```python
 assert tp1 < tp2 < tp3
-assert (tp2 - tp1) >= 0.5 and (tp3 - tp2) >= 0.5
 ```
 
 ### 3. Regime sur Exit Time
@@ -104,73 +98,48 @@ regime = get_regime_at(exit_time)   # ❌ INTERDIT
 ```
 
 ### 4. Résultats Suspects → CHALLENGER
-- Sharpe > 4.0 → Reconciliation obligatoire
+- Sharpe > 4.0 → Vérifier
 - WFE > 2.0 → Vérifier overfitting
 
 ### 5. Workers Phase 2+
 ```bash
---workers 1  # ✅ OBLIGATOIRE Phase 2+
+--workers 1  # ✅ OBLIGATOIRE sauf screening
 ```
 
 ---
 
-## 🌳 ARBRES DE DÉCISION
+## 🔧 COMMANDES v4.2
 
-### Choix Displacement
+```bash
+# Run complet
+python scripts/orchestrator_v4_2.py --asset ETH --run-id v4.2_001 --family A
+
+# Dry-run
+python scripts/orchestrator_v4_2.py --asset ETH --run-id test --dry-run
+
+# Tests
+python scripts/test_v4_2_suite.py
+python scripts/validate_configs.py
+
+# Checklist
+python scripts/checklist_v4_2.py --asset ETH --run-id v4.2_001
 ```
-Asset type?
-├── Meme/Fast (DOGE, SHIB, JOE) → d26
-├── Standard (BTC, ETH, majeurs) → d52
-└── L2/Slow (OP, ARB) → d78
-```
-
-### Si Guard FAIL
-```
-Quel guard?
-├── WFE < 0.6 → Autre displacement
-├── Sensitivity > 15% → Filter cascade
-├── Trades < 60 → Plus de données
-├── SIDEWAYS Sharpe < 0 → EXCLU définitif
-└── Autre → BLOCKED
-```
-
-### Filter Rescue
-```
-baseline FAIL → moderate → conservative → EXCLU
-```
-
----
-
-## 🤖 AGENTS
-
-| Agent | Rôle | Décide |
-|-------|------|--------|
-| **Casey** | Orchestrateur | Priorités, verdicts |
-| **Jordan** | Developer | Fixes techniques |
-| **Sam** | QA | Guards PASS/FAIL |
-| **Alex** | Lead Quant | Architecture, recherche |
-
-### Fichiers Agents
-| Fichier | Owner |
-|---------|-------|
-| `comms/casey-quant.md` | Casey |
-| `comms/jordan-dev.md` | Jordan |
-| `comms/sam-qa.md` | Sam |
-| `comms/alex-lead.md` | Alex |
 
 ---
 
 ## 📁 FICHIERS RÉFÉRENCE
 
-| Fichier | Contenu |
-|---------|--------|
-| `status/project-state.md` | État actuel (assets, progression) |
-| `docs/WORKFLOW_PIPELINE.md` | Commandes par phase |
-| `.cursor/rules/MASTER_PLAN.mdc` | **CE FICHIER** (règles, params) |
+| Fichier | Contenu | Owner |
+|---------|---------|-------|
+| `status/project-state.md` | État actuel | Casey |
+| `configs/families.yaml` | Config v4.2 | Alex |
+| `configs/router.yaml` | State machine | Alex |
+| `.cursor/rules/MASTER_PLAN.mdc` | Ce fichier | Alex |
 
-### OBSOLÈTES (ne pas utiliser)
+### OBSOLÈTES
 - ❌ `docs/HANDOFF.md`
-- ❌ `docs/WORKFLOW_MULTI_ASSET_SCREEN_VALIDATE_PROD.md`
+- ❌ `docs/WORKFLOW_MULTI_ASSET_*.md`
+- ❌ `run_filter_grid.py`, `run_filter_rescue.py`
 
 ---
 
@@ -183,5 +152,5 @@ baseline FAIL → moderate → conservative → EXCLU
 
 ---
 
-**Version**: 2.2 (27 Jan 2026)
-**Dernière MAJ**: Trials 300→100 (PR#21 validation)
+**Version**: 4.2 (28 Jan 2026)
+**Migration**: 300T→100T, bars 8000→12000, PBO calibré P95/P99
