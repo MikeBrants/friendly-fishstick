@@ -1,6 +1,6 @@
 # Jordan Dev Log — FINAL TRIGGER v2
 
-**Last Updated**: 28 Jan 2026, 08:43 UTC
+**Last Updated**: 28 Jan 2026, 08:45 UTC
 
 ---
 
@@ -57,6 +57,12 @@
 **Output**: scripts/baseline_select_v4_2.py
 **Summary**: Added baseline selection step to evaluate coupled candidates on research window and save baseline_best.json.
 **Next**: PROMPT 10 — Guards v4.2
+
+## 2026-01-28 — PROMPT 10 Guards v4.2
+**Status**: TODO → DONE
+**Output**: scripts/run_guards_v4_2.py
+**Summary**: Implemented v4.2 hard-guards runner with 7 checks and guards.json output schema.
+**Next**: PROMPT 11 — Regime Stats
 
 ## 1324 DONE jordan-dev -> system: CHALLENGER 100-TRIALS PIPELINE ✅
 
