@@ -12,7 +12,6 @@ states:
   - "BUILD_COUPLED"
   - "BASELINE_SELECT"
   - "GUARDS"
-  - "PBO_PROXY"
   - "REGIME_STATS"
   - "REGIME_DECISION"
   - "POLISH_OOS"
@@ -56,12 +55,6 @@ transitions:
 
   GUARDS:
     - action: "run_guards"
-      then: "PBO_PROXY"
-
-  PBO_PROXY:
-    - if: "pbo_proxy_enabled is False"
-      then: "REGIME_STATS"
-    - action: "compute_pbo_proxy"
       then: "REGIME_STATS"
 
   REGIME_STATS:

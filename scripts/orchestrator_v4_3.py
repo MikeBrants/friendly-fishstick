@@ -51,8 +51,6 @@ class OrchestratorV43:
             "run_baseline": self.handle_baseline,
             "select_and_backtest_best_couple": self.handle_baseline,
             "run_guards": self.handle_guards,
-            "run_pbo_proxy": self.handle_pbo_proxy,
-            "compute_pbo_proxy": self.handle_pbo_proxy,
             "run_regime_stats": self.handle_regime_stats,
             "run_polish_oos_comparison": self.handle_polish_oos_eval,
             "run_pbo_cscv": self.handle_pbo_cscv,
@@ -324,78 +322,6 @@ class OrchestratorV43:
             state["hard_guards_pass"] = 7
         return state
 
-    def handle_pbo_proxy(self, state: dict) -> dict:
-        """Run calibrated PBO proxy evaluation."""
-        asset, run_id = state["asset"], state["run_id"]
-        self.log(f"[PBO_PROXY] {asset}/{run_id}")
-
-        try:
-            from crypto_backtest.v4.backtest_adapter import run_coupled_backtest
-            from crypto_backtest.validation.pbo_legacy import probability_of_backtest_overfitting
-
-            policy = get_policy(self.config)
-            pbo_cfg = policy.get("pbo", {}).get("proxy", {})
-            data_end_ts = self._compute_research_end(policy)
-
-            run_root = get_run_root(asset, run_id)
-            coupled_path = run_root / "coupling" / "coupled_candidates.json"
-
-            if not coupled_path.exists():
-                self.log("[PBO_PROXY] No coupled candidates found")
-                return state
-
-            coupled = json.loads(coupled_path.read_text())
-            candidates = coupled.get("candidates", [])
-
-            returns_list = []
-            for candidate in candidates:
-                recipe_config = {
-                    "long_params": candidate["long"].get("params", {}),
-                    "short_params": candidate["short"].get("params", {}),
-                }
-                result = run_coupled_backtest(
-                    asset=asset,
-                    recipe_config=recipe_config,
-                    mode="combined",
-                    start_ts=None,
-                    end_ts=data_end_ts,
-                )
-                returns = self._extract_bar_returns(result)
-                if returns is not None and len(returns) > 0:
-                    returns_list.append(returns)
-
-            if not returns_list:
-                self.log("[PBO_PROXY] No returns data available")
-                return state
-
-            min_len = min(len(r) for r in returns_list)
-            returns_matrix = np.stack([r[:min_len] for r in returns_list], axis=0).astype(np.float32)
-
-            proxy_result = probability_of_backtest_overfitting(
-                returns_matrix,
-                n_splits=int(pbo_cfg.get("folds", 8)),
-                threshold=0.50,
-            )
-
-            pbo_value = float(proxy_result.pbo)
-
-            pbo_dir = run_root / "pbo"
-            pbo_dir.mkdir(parents=True, exist_ok=True)
-            payload = {
-                "K": returns_matrix.shape[0],
-                "T": returns_matrix.shape[1],
-                "folds": int(pbo_cfg.get("folds", 8)),
-                "pbo": pbo_value,
-            }
-            (pbo_dir / "pbo_proxy.json").write_text(json.dumps(payload, indent=2))
-
-            state["pbo_proxy_value"] = pbo_value
-            self.log(f"[PBO_PROXY] PBO={pbo_value:.3f}")
-
-        except Exception as e:
-            self.log(f"[PBO_PROXY] ERROR: {e}")
-        return state
-
     def handle_regime_stats(self, state: dict) -> dict:
         """Compute regime stats (side-aware, z-score, stability)."""
         asset, run_id = state["asset"], state["run_id"]
@@ -518,18 +444,113 @@ class OrchestratorV43:
         return state
 
     def handle_pbo_cscv(self, state: dict) -> dict:
-        """Load PBO CSCV result or stub."""
-        self.log(f"[PBO_CSCV] {state['asset']}/{state['run_id']}")
+        """Run CSCV PBO evaluation (10 folds, purge=120, embargo=240)."""
+        asset, run_id = state["asset"], state["run_id"]
+        self.log(f"[PBO_CSCV] {asset}/{run_id}")
 
-        cscv_path = self._get_path(state, Phases.PBO, ArtifactNames.PBO_CSCV)
+        try:
+            from crypto_backtest.v4.backtest_adapter import run_coupled_backtest
+            from crypto_backtest.validation.pbo_cscv import cscv_pbo_compat
 
-        if cscv_path.exists():
-            with open(cscv_path, "r", encoding="utf-8") as f:
-                cscv = json.load(f)
-            state["cscv_pass"] = cscv.get("passed", False)
-            self.log(f"[PBO_CSCV] Loaded: pass={state['cscv_pass']}")
-        else:
-            state["cscv_pass"] = True
+            policy = get_policy(self.config)
+            pbo_cfg = policy.get("thresholds", {}).get("pbo", {})
+            data_end_ts = self._compute_research_end(policy)
+
+            run_root = get_run_root(asset, run_id)
+            coupled_path = run_root / "coupling" / "coupled_candidates.json"
+
+            if not coupled_path.exists():
+                self.log("[PBO_CSCV] No coupled candidates found")
+                state["cscv_pass"] = False
+                return state
+
+            coupled = json.loads(coupled_path.read_text())
+            candidates = coupled.get("candidates", [])
+
+            # Collect returns from all candidates
+            returns_list = []
+            for candidate in candidates:
+                recipe_config = {
+                    "long_params": candidate["long"].get("params", {}),
+                    "short_params": candidate["short"].get("params", {}),
+                }
+                result = run_coupled_backtest(
+                    asset=asset,
+                    recipe_config=recipe_config,
+                    mode="combined",
+                    start_ts=None,
+                    end_ts=data_end_ts,
+                )
+                returns = self._extract_bar_returns(result)
+                if returns is not None and len(returns) > 0:
+                    returns_list.append(returns)
+
+            if not returns_list:
+                self.log("[PBO_CSCV] No returns data available")
+                state["cscv_pass"] = False
+                return state
+
+            # Stack returns matrix (K candidates x T bars)
+            min_len = min(len(r) for r in returns_list)
+            returns_matrix = np.stack([r[:min_len] for r in returns_list], axis=0).astype(np.float32)
+
+            K, T = returns_matrix.shape
+            self.log(f"[PBO_CSCV] Matrix K={K} candidates, T={T} bars")
+
+            # Run CSCV with calibrated params
+            cscv_result = cscv_pbo_compat(
+                returns_matrix,
+                folds=int(pbo_cfg.get("cscv_folds", 10)),
+                purge_bars=int(pbo_cfg.get("purge_bars", 120)),
+                embargo_bars=int(pbo_cfg.get("embargo_bars", 240)),
+                annualization_factor=8760,  # hourly data
+            )
+
+            pbo_value = float(cscv_result.get("pbo", 1.0))
+            threshold = float(pbo_cfg.get("cscv_pass_threshold", 0.50))
+            passed = pbo_value < threshold
+
+            # Save artifacts
+            pbo_dir = run_root / "pbo"
+            pbo_dir.mkdir(parents=True, exist_ok=True)
+
+            cscv_payload = {
+                "K": K,
+                "T": T,
+                "folds": int(pbo_cfg.get("cscv_folds", 10)),
+                "purge_bars": int(pbo_cfg.get("purge_bars", 120)),
+                "embargo_bars": int(pbo_cfg.get("embargo_bars", 240)),
+                "pbo": pbo_value,
+                "threshold": threshold,
+                "passed": passed,
+            }
+            (pbo_dir / "pbo_cscv.json").write_text(json.dumps(cscv_payload, indent=2))
+
+            # Save fold indices for Polish OOS comparison
+            if "fold_indices" in cscv_result:
+                (pbo_dir / "cscv_folds.json").write_text(
+                    json.dumps(cscv_result["fold_indices"], indent=2)
+                )
+
+            state["cscv_pass"] = passed
+            state["pbo_cscv_value"] = pbo_value
+            self.log(f"[PBO_CSCV] PBO={pbo_value:.3f} threshold={threshold} -> {'PASS' if passed else 'FAIL'}")
+
+        except ImportError:
+            self.log("[PBO_CSCV] Import error - marking as FAIL")
+            state["cscv_pass"] = False
+        except Exception:
+            import traceback
+            # Write traceback to file FIRST to avoid console encoding issues
+            run_root = get_run_root(asset, run_id)
+            pbo_dir = run_root / "pbo"
+            pbo_dir.mkdir(parents=True, exist_ok=True)
+            error_file = pbo_dir / "cscv_error.txt"
+            with open(error_file, "w", encoding="utf-8") as f:
+                traceback.print_exc(file=f)
+            self.log(f"[PBO_CSCV] ERROR occurred - see {error_file}")
+            state["cscv_pass"] = False
+
         return state
 
     def handle_portfolio_check(self, state: dict) -> dict:
@@ -700,7 +721,6 @@ class OrchestratorV43:
             "rescues_remaining": 2,
             "regime_mode": "off",
             "holdout_enabled": self.config.get("policy", {}).get("holdout", {}).get("enabled", False),
-            "pbo_proxy_enabled": False,
 
             # Screening results (will be set by handlers)
             "screen_long_success": False,

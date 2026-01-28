@@ -6,8 +6,8 @@ Drop-in replacement for the simplified guard_pbo function.
 
 Key differences from current implementation:
 - Symmetric data partitioning (not trial pairs)
-- Proper logrank (λ) calculation
-- 16 folds × C(16,8) = 12,870 paths
+- Proper logrank (lambda) calculation
+- 16 folds x C(16,8) = 12,870 paths
 - Purge gap to prevent temporal leakage
 - Optional Deflated Sharpe Ratio integration
 
@@ -94,8 +94,8 @@ def cscv_pbo(
     2. Generate all C(S, S/2) symmetric IS/OOS combinations
     3. For each combination:
        - Find best trial on IS data
-       - Compute its rank on OOS data (logrank λ)
-    4. PBO = proportion of paths where λ < 0.5
+       - Compute its rank on OOS data (logrank lambda)
+    4. PBO = proportion of paths where lambda < 0.5
     
     Parameters
     ----------
@@ -114,9 +114,9 @@ def cscv_pbo(
     dict with keys:
         - pbo: float, probability of backtest overfitting [0, 1]
         - pass: bool, True if pbo < threshold
-        - lambda_distribution: list of λ values for each path
-        - lambda_median: float, median λ
-        - lambda_mean: float, mean λ
+        - lambda_distribution: list of lambda values for each path
+        - lambda_median: float, median lambda
+        - lambda_mean: float, mean lambda
         - n_paths: int, number of paths evaluated
         - n_trials: int, number of trials in matrix
         - n_bars: int, number of bars in data
@@ -163,7 +163,7 @@ def cscv_pbo(
             f"Set config.max_paths=None for full CSCV."
         )
     
-    # Step 3: Compute λ for each path
+    # Step 3: Compute lambda for each path
     lambda_values = []
     omega_values = []
     degradation_ratios = []
@@ -196,13 +196,13 @@ def cscv_pbo(
         # Get OOS performance of best IS trial
         best_trial_oos_sharpe = oos_sharpes[best_is_idx]
         
-        # Compute relative rank ω (omega) per Bailey & López de Prado (2014)
-        # ω = rank / (N + 1) ∈ (0, 1), avoids ω = 0 or 1
+        # Compute relative rank omega (omega) per Bailey & Lopez de Prado (2014)
+        # omega = rank / (N + 1) in (0, 1), avoids omega = 0 or 1
         rank = np.sum(oos_sharpes <= best_trial_oos_sharpe)
         omega = rank / (n_trials + 1)
 
-        # Compute logit λ (lambda) = ln(ω / (1 - ω)) ∈ (-∞, +∞)
-        # λ < 0 ⟺ ω < 0.5 (underperformance)
+        # Compute logit lambda = ln(omega / (1 - omega)) in (-inf, +inf)
+        # lambda < 0 iff omega < 0.5 (underperformance)
         lambda_val = np.log(omega / (1 - omega))
 
         omega_values.append(omega)
@@ -219,7 +219,7 @@ def cscv_pbo(
     omega_array = np.array(omega_values)
     lambda_array = np.array(lambda_values)
 
-    # PBO = P(λ < 0) = P(ω < 0.5) — proportion of paths where best IS underperforms OOS
+    # PBO = P(lambda < 0) = P(omega < 0.5) - proportion of paths where best IS underperforms OOS
     pbo = np.mean(lambda_array < 0)
     
     return {
@@ -373,9 +373,9 @@ def deflated_sharpe_ratio(
 def _expected_max_sharpe(n_trials: int, n_bars: int, skew: float, kurt: float) -> float:
     """
     Compute E[max(SR)] under null hypothesis.
-    
-    Uses approximation: E[max] ≈ (1 - γ) * Z_{1-1/N} + γ * Z_{1-1/(N*e)}
-    where γ = Euler-Mascheroni constant ≈ 0.5772
+
+    Uses approximation: E[max] ~= (1 - gamma) * Z_{1-1/N} + gamma * Z_{1-1/(N*e)}
+    where gamma = Euler-Mascheroni constant ~= 0.5772
     """
     gamma = 0.5772156649  # Euler-Mascheroni
     
@@ -610,7 +610,7 @@ def _compute_sharpe(returns: np.ndarray, annualization: float) -> float:
 
 def plot_lambda_distribution(result: Dict, save_path: Optional[str] = None):
     """
-    Plot the λ distribution (logit) from CSCV results.
+    Plot the lambda distribution (logit) from CSCV results.
 
     Requires matplotlib.
     """
@@ -630,17 +630,17 @@ def plot_lambda_distribution(result: Dict, save_path: Optional[str] = None):
             edgecolor='white', linewidth=0.5)
     
     # Reference lines
-    ax.axvline(0, color='red', linestyle='--', linewidth=2, label='λ = 0 (random)')
+    ax.axvline(0, color='red', linestyle='--', linewidth=2, label='lambda = 0 (random)')
     ax.axvline(np.median(lambda_vals), color='green', linestyle='-', linewidth=2,
-               label=f'Median λ = {np.median(lambda_vals):.3f}')
-    
-    # Shading for overfit region (λ < 0)
+               label=f'Median lambda = {np.median(lambda_vals):.3f}')
+
+    # Shading for overfit region (lambda < 0)
     left_bound = ax.get_xlim()[0]
-    ax.axvspan(left_bound, 0, alpha=0.1, color='red', label='Overfit region (λ<0)')
-    
-    ax.set_xlabel('λ (Logit of relative rank)', fontsize=12)
+    ax.axvspan(left_bound, 0, alpha=0.1, color='red', label='Overfit region (lambda<0)')
+
+    ax.set_xlabel('lambda (Logit of relative rank)', fontsize=12)
     ax.set_ylabel('Density', fontsize=12)
-    ax.set_title(f'CSCV λ Distribution | PBO = {pbo:.3f}', fontsize=14)
+    ax.set_title(f'CSCV lambda Distribution | PBO = {pbo:.3f}', fontsize=14)
     ax.legend(loc='upper right')
     
     # Add text box
@@ -709,7 +709,7 @@ def main():
         print("="*60)
         print(f"PBO Score: {result['pbo']:.3f}")
         print(f"Pass: {'YES' if result['pass'] else 'NO'}")
-        print(f"λ Median: {result['lambda_median']:.3f}")
+        print(f"lambda Median: {result['lambda_median']:.3f}")
         print(f"Degradation: {result['degradation']:.2f}x" if result['degradation'] else "Degradation: N/A")
         print(f"Paths: {result['n_paths']}")
         print(f"Trials: {result['n_trials']}")
