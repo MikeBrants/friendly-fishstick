@@ -1,6 +1,6 @@
 # Jordan Dev Log — FINAL TRIGGER v2
 
-**Last Updated**: 28 Jan 2026, 08:27 UTC
+**Last Updated**: 28 Jan 2026, 08:28 UTC
 
 ---
 
@@ -15,6 +15,12 @@
 **Output**: configs/families.yaml; scripts/print_family_config.py
 **Summary**: Added v4.2 families/rescues YAML as single source of truth and a printer script to load/resolve configs.
 **Next**: PROMPT 03 — configs/router.yaml
+
+## 2026-01-28 — PROMPT 03 configs/router.yaml
+**Status**: TODO → DONE
+**Output**: configs/router.yaml
+**Summary**: Added v4.2 router state machine definition with HOLDOUT states wired and transitions set.
+**Next**: PROMPT 04 — Config Resolver + Validator
 
 ## 1324 DONE jordan-dev -> system: CHALLENGER 100-TRIALS PIPELINE ✅
 
