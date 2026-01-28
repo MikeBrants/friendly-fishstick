@@ -1,0 +1,128 @@
+# =============================================================================
+# router.yaml — Executable State Machine (v4.2)
+# =============================================================================
+meta:
+  owner: "Alex"
+  version: "4.2"
+
+states:
+  - "INIT"
+  - "SCREEN_LONG"
+  - "SCREEN_SHORT"
+  - "BUILD_COUPLED"
+  - "BASELINE_SELECT"
+  - "GUARDS"
+  - "PBO_PROXY"
+  - "REGIME_STATS"
+  - "REGIME_DECISION"
+  - "PBO_CSCV"
+  - "REPRO_CHECK"
+  - "PORTFOLIO_CHECK"
+  - "PORTFOLIO_DECISION"
+  - "FINAL_HOLDOUT"
+  - "HOLDOUT_DECISION"
+  - "NEXT_FAMILY"
+  - "PROD_READY"
+  - "REJECT"
+
+transitions:
+  INIT:
+    - then: "SCREEN_LONG"
+      set:
+        family_id: "A"
+        rescue_id: null
+        families_remaining: 3
+        rescues_remaining: 2
+
+  SCREEN_LONG:
+    - action: "run_screening_long"
+      then: "SCREEN_SHORT"
+
+  SCREEN_SHORT:
+    - action: "run_screening_short"
+      then: "BUILD_COUPLED"
+
+  BUILD_COUPLED:
+    - if: "long_candidates == 0 or short_candidates == 0"
+      then: "NEXT_FAMILY"
+      reason: "No candidates after screening"
+    - action: "build_coupled_matrix"
+      then: "BASELINE_SELECT"
+
+  BASELINE_SELECT:
+    - action: "select_and_backtest_best_couple"
+      then: "GUARDS"
+
+  GUARDS:
+    - action: "run_guards"
+      then: "PBO_PROXY"
+
+  PBO_PROXY:
+    - if: "pbo_proxy_enabled is False"
+      then: "REGIME_STATS"
+    - action: "compute_pbo_proxy"
+      then: "REGIME_STATS"
+
+  REGIME_STATS:
+    - action: "compute_regime_stats"
+      then: "REGIME_DECISION"
+
+  REGIME_DECISION:
+    - if: "regime_signal_detected is True and family_id == 'A'"
+      then: "NEXT_FAMILY"
+      set:
+        family_id: "B"
+        rescue_id: null
+        rescues_remaining: 2
+      reason: "Strong regime signal -> upgrade to Family B"
+    - then: "PBO_CSCV"
+
+  PBO_CSCV:
+    - action: "compute_pbo_cscv"
+      then: "REPRO_CHECK"
+
+  REPRO_CHECK:
+    - action: "run_repro_check"
+      then: "PORTFOLIO_CHECK"
+
+  PORTFOLIO_CHECK:
+    - action: "run_portfolio_check"
+      then: "PORTFOLIO_DECISION"
+
+  PORTFOLIO_DECISION:
+    - if: "portfolio_passed is False"
+      then: "REJECT"
+      reason: "Portfolio check failed"
+    - if: "holdout_enabled is True"
+      then: "FINAL_HOLDOUT"
+    - then: "PROD_READY"
+
+  FINAL_HOLDOUT:
+    - action: "run_final_holdout_check"
+      then: "HOLDOUT_DECISION"
+
+  HOLDOUT_DECISION:
+    - if: "holdout_passed is False"
+      then: "REJECT"
+      reason: "Final holdout failed"
+    - then: "PROD_READY"
+
+  NEXT_FAMILY:
+    - if: "families_remaining <= 1"
+      then: "REJECT"
+      reason: "All families exhausted"
+    - if: "family_id == 'A'"
+      then: "SCREEN_LONG"
+      set: {family_id: "B", rescue_id: null, rescues_remaining: 2, families_remaining: 2}
+    - if: "family_id == 'B'"
+      then: "SCREEN_LONG"
+      set: {family_id: "C", rescue_id: null, rescues_remaining: 2, families_remaining: 1}
+    - if: "family_id == 'C'"
+      then: "REJECT"
+      reason: "Family C exhausted"
+
+  PROD_READY:
+    - terminal: true
+
+  REJECT:
+    - terminal: true
