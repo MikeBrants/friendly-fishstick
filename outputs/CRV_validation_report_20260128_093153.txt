@@ -1,0 +1,17 @@
+GUARDS VALIDATION REPORT: CRV
+======================================================================
+GUARD-001 Monte Carlo p-value: 0.3826 -> FAIL
+GUARD-002 Sensitivity variance: -169.73% -> PASS
+GUARD-003 Bootstrap Sharpe CI lower: -2.26 -> FAIL
+GUARD-005 Trade distribution top10: -409.12% -> PASS
+GUARD-006 Stress1 Sharpe: -0.60 -> FAIL
+GUARD-007 Regime reconciliation mismatch: 0.00% -> PASS
+GUARD-008 PBO (Probability of Backtest Overfitting): n/a -> PASS
+GUARD-WFE: 12.38 -> PASS
+----------------------------------------------------------------------
+OVERFITTING (report-only):
+PSR (P[SR>0]): 0.4434
+DSR (deflated): n/a
+SR* (deflated threshold): n/a
+----------------------------------------------------------------------
+ALL PASS: NO

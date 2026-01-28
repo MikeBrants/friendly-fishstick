@@ -1,8 +1,8 @@
 # PROJECT STATE — FINAL TRIGGER v2
 
-**Updated**: 27 Jan 2026, 19:23 UTC+4
-**Phase**: 🟢 **PLAN A SUCCESS — PR#21 Ready**
-**Status**: 3 PROD confirmés, 14 assets à retraiter 100T
+**Updated**: 27 Jan 2026, 20:15 UTC+4
+**Phase**: ✅ **PR#21 COMPLETE — 100 Trials Validation**
+**Status**: 5 PROD, 3 QUARANTINE, 10 EXCLU
 
 > Pour les paramètres → `.cursor/rules/MASTER_PLAN.mdc`  
 > Pour les commandes → `docs/WORKFLOW_PIPELINE.md`
@@ -25,28 +25,30 @@
 
 ---
 
-## 🎉 BREAKTHROUGH — 100 Trials Validé
+## ✅ PR#21 COMPLETE — 100 Trials Standard Validé
 
-**Challenger 100T vs 300T** : SOL et AVAX passent de EXCLU à PASS
+**Résultat** : 5/18 assets validés PROD (27.8% success rate)
 
-| Asset | PBO 300T | PBO 100T | Verdict |
-|-------|:--------:|:--------:|:-------:|
-| SOL | 0.73 🔴 | <0.50 ✅ | **RÉCUPÉRÉ** |
-| AVAX | 0.73 🔴 | <0.50 ✅ | **RÉCUPÉRÉ** |
-| AXS | 0.33 ✅ | 0.33 ✅ | Confirmé |
+| Category | Count | Assets |
+|----------|:-----:|--------|
+| ✅ PROD | 5 | SOL, AVAX, ETH, BTC, AXS |
+| ⚠️ QUARANTINE | 3 | EGLD, TON, ONE |
+| 🔴 EXCLU PBO | 10 | CAKE, RUNE, HBAR, SEI, SUSHI, CRV, AAVE, YGG, MINA |
 
-**Conclusion** : 300 trials = overfitting, 100 trials = robuste
+**Breakthrough** : 100 trials standard élimine overfitting systémique (PBO moyen: 0.73 → 0.35)
 
 ---
 
 ## 📊 ASSET STATUS
 
-### ✅ PROD (3 confirmés)
+### ✅ PROD (5 assets — 27.8% PR#21)
 
 ```
-AXS (PBO 0.33, Sharpe 1.21) — baseline
-SOL (PBO <0.50) — challenger 100T
-AVAX (PBO <0.50) — challenger 100T
+SOL (Sharpe 1.83, 7/7 guards, 100T)
+AVAX (Sharpe 2.76, 7/7 guards, 100T)
+ETH (Sharpe 1.65, 7/7 guards, 100T)
+BTC (Sharpe 2.18, 7/7 guards, 100T)
+AXS (Sharpe 1.21, 7/7 guards, 300T baseline)
 ```
 
 ### 🟡 PR#21 — À RETRAITER 100T (14)

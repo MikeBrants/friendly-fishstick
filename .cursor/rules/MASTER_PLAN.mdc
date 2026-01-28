@@ -33,8 +33,8 @@ alwaysApply: true
 | Phase | Nom | Workers | Trials | Guards | Seuils |
 |:-----:|-----|:-------:|:------:|:------:|--------|
 | **1** | Screening | **10** | 200 | OFF | WFE>0.5, Sharpe>0.5, Trades>50, **SHORT 25-75%** |
-| **2** | Validation | **1** | 300 | ON (11) | WFE>0.6, Sharpe>1.0, Trades>60 |
-| **3** | Rescue | **1** | 300 | ON (11) | 7/7 hard PASS |
+| **2** | Validation | **1** | **100** | ON (11) | WFE>0.6, Sharpe>1.0, Trades>60 |
+| **3** | Rescue | **1** | **100** | ON (11) | 7/7 hard PASS |
 | **4** | Signal Parity | - | - | - | 100% Python/Pine match |
 | **5** | Portfolio | - | - | - | Corrélations <0.5 |
 | **6** | Production | - | - | - | Reproductibilité 2 runs |
@@ -183,5 +183,5 @@ baseline FAIL → moderate → conservative → EXCLU
 
 ---
 
-**Version**: 2.1 (26 Jan 2026)
-**Dernière MAJ**: Ajout règles MAJ + SHORT ratio
+**Version**: 2.2 (27 Jan 2026)
+**Dernière MAJ**: Trials 300→100 (PR#21 validation)

@@ -1,0 +1,17 @@
+GUARDS VALIDATION REPORT: SUSHI
+======================================================================
+GUARD-001 Monte Carlo p-value: 0.0010 -> PASS
+GUARD-002 Sensitivity variance: 4.38% -> PASS
+GUARD-003 Bootstrap Sharpe CI lower: 3.66 -> PASS
+GUARD-005 Trade distribution top10: 12.96% -> PASS
+GUARD-006 Stress1 Sharpe: 2.74 -> PASS
+GUARD-007 Regime reconciliation mismatch: 0.00% -> PASS
+GUARD-008 PBO (Probability of Backtest Overfitting): n/a -> PASS
+GUARD-WFE: 0.75 -> PASS
+----------------------------------------------------------------------
+OVERFITTING (report-only):
+PSR (P[SR>0]): 1.0000
+DSR (deflated): n/a
+SR* (deflated threshold): n/a
+----------------------------------------------------------------------
+ALL PASS: YES

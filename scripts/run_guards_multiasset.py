@@ -953,6 +953,8 @@ def _load_params(params_file: str) -> dict[str, dict[str, Any]]:
             params["displacement"] = int(row.displacement)
         if "wfe" in df.columns and pd.notna(row.wfe):
             params["wfe"] = float(row.wfe)
+        elif "wfe_pardo" in df.columns and pd.notna(row.wfe_pardo):
+            params["wfe"] = float(row.wfe_pardo)
         params_map[str(row.asset)] = params
     return params_map
 
@@ -1173,7 +1175,7 @@ def main() -> None:
     parser.add_argument("--workers", type=int, default=max(os.cpu_count() - 1, 1))
     parser.add_argument(
         "--guards",
-        default="mc,sensitivity,bootstrap,stress,regime,trade_dist,wfe",
+        default="mc,sensitivity,bootstrap,stress,regime,trade_dist,wfe,pbo",
         help="Comma-separated list of guards to run",
     )
     parser.add_argument("--mc-iterations", type=int, default=1000)

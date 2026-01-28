@@ -246,13 +246,13 @@ def guard_pbo_cscv(
     
     # Return format compatible with existing guard system
     return {
-        "pbo": result["pbo"],
-        "pass": result["pass"],
-        "n_paths": result["n_paths"],
+        "pbo": float(result["pbo"]),
+        "pass": bool(result["pass"]),
+        "n_paths": int(result["n_paths"]),
         "method": "CSCV",
-        "lambda_median": result["lambda_median"],
-        "degradation": result["degradation"],
-        "threshold": threshold,
+        "lambda_median": float(result["lambda_median"]),
+        "degradation": float(result["degradation"]),
+        "threshold": float(threshold),
     }
 
 
