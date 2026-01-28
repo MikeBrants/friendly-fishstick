@@ -1,6 +1,6 @@
 # Jordan Dev Log — FINAL TRIGGER v2
 
-**Last Updated**: 28 Jan 2026, 08:51 UTC
+**Last Updated**: 28 Jan 2026, 08:55 UTC
 
 ---
 
@@ -75,6 +75,12 @@
 **Output**: scripts/pbo_v4_2.py
 **Summary**: Added calibrated proxy + CSCV PBO runners with returns-matrix build and JSON outputs.
 **Next**: PROMPT 13A — Direction Toggles
+
+## 2026-01-28 — PROMPT 13A Direction Toggles
+**Status**: TODO → DONE
+**Output**: crypto_backtest/strategies/final_trigger.py; scripts/test_direction_toggles.py
+**Summary**: Added enable_long/enable_short gating to strategy signals plus a toggle smoke test script.
+**Next**: PROMPT 13B — Safety Net Engine
 
 ## 1324 DONE jordan-dev -> system: CHALLENGER 100-TRIALS PIPELINE ✅
 
