@@ -1,6 +1,6 @@
 # Jordan Dev Log — FINAL TRIGGER v2
 
-**Last Updated**: 28 Jan 2026, 09:03 UTC
+**Last Updated**: 28 Jan 2026, 09:05 UTC
 
 ---
 
@@ -111,6 +111,12 @@
 **Output**: scripts/orchestrator_v4_2.py
 **Summary**: Added state-machine executor wired to v4.2 actions and router transitions.
 **Next**: PROMPT 15-16 — Tests
+
+## 2026-01-28 — PROMPT 15-16 Tests
+**Status**: TODO → DONE
+**Output**: scripts/test_v4_2_suite.py; scripts/test_v4_2_integration.py
+**Summary**: Added unit and integration test scripts covering configs, toggles, portfolio logic, and smoke runs.
+**Next**: PROMPT 17-18 — Archive + Checklist
 
 ## 1324 DONE jordan-dev -> system: CHALLENGER 100-TRIALS PIPELINE ✅
 
