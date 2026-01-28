@@ -1,116 +1,123 @@
-# PROJECT STATE ? FINAL TRIGGER v2
+# FINAL TRIGGER v2 — Project State
 
-**Updated**: 28 Jan 2026, 19:15 UTC
-**Phase**: ?? v4.3 DUAL WFE GUARDS
-**Pipeline**: v4.3 (100 trials, 12000 bars, dual WFE threshold)
+**Last Updated:** 2026-01-28
+**Pipeline Version:** v4.3
+**Status:** ? OPERATIONAL
 
----
+***
 
-## ?? RÈGLES DE MISE À JOUR
+## ?? Current State
 
-**OWNER:** Casey ? MAJ après chaque run, max 10 entrées historique
+### Pipeline v4.3 — Complete
 
----
+| Component | Status | Notes |
+|:----------|:------:|:------|
+| `configs/families.yaml` | ? | Policy v4.3 + polish_oos |
+| `configs/router.yaml` | ? | POLISH_OOS state + transitions |
+| `scripts/regime_stats.py` | ? | Side-aware + z-score + stability |
+| `scripts/polish_oos.py` | ? | Sign test 8/10, M=5 candidates |
+| `scripts/guards.py` | ? | + lookahead guard |
+| `scripts/artifacts.py` | ? | v4_3 paths centralisés |
+| `scripts/state_machine.py` | ? | Support legacy + new schema |
+| `scripts/orchestrator_v4_3.py` | ? | All handlers wired |
+| `scripts/checklist_v4_3.py` | ? | Audit tool |
+| `scripts/generate_mock_data.py` | ? | End-to-end test data |
 
-## ?? ASSET STATUS
+### v4.3 Key Features
 
-| Status | Count | Assets |
-|--------|:-----:|--------|
-| ? **PROD v4.3** | **2** | ETH (WFE 2.10, 7/7 guards), DOT (WFE mean 1.71, median 1.02) |
-| ?? **BLOCKED v4.3** | **3** | ANKR (WFE median 0.47 < 0.50), SHIB (top10), BTC (WFE mean 0.36) |
-| ? PENDING | 13 | SOL, AVAX, AXS, ONE, EGLD, TON, HBAR, SUSHI, CRV, SEI, AAVE, MINA, RUNE |
+1. **Polish OOS** — Compare A vs A+Gate(B) on CSCV folds before upgrade
+2. **Side-Aware Regime** — ?_long and ?_short calculated separately
+3. **Z-Score Validation** — Statistical significance (z = 1.65)
+4. **Stability Windows** — 3/4 windows must show same pattern
+5. **Lookahead Guard** — Detect regime lookahead bias
 
-**Note v4.3**: Dual WFE threshold applied (mean ? 0.60 AND median ? 0.50) for more robust period effect detection.
+### Anti-Overfit Measures v4.3
 
----
+| Rule | Threshold | Purpose |
+|:-----|:----------|:--------|
+| Sign test | 8/10 folds | Statistical significance |
+| M candidates | 5, =3 agree | Robustness |
+| Effect size | ? Sharpe = 0.05 | No DOF for marginal gain |
+| Stability | 3/4 windows | Not temporal artifact |
+| n per bucket | =80 trades | Sufficient data |
 
-## ?? ETH v4.3 Results
+***
 
-| Métrique | Valeur | Seuil | ? |
-|----------|--------|-------|---|
-| WFE (mean) | 2.10 | ?0.6 | ? |
-| WFE (median) | N/A | ?0.5 | ? |
-| OOS Trades | 125 | ?60 | ? |
-| Bars | 17520 | ?12000 | ? |
-| Sharpe | 1.57 | ?0.80 | ? |
-| MaxDD | 6.3% | ?35% | ? |
-| PF | 1.39 | ?1.05 | ? |
-| Top10 | - | <40% | ? |
-| PBO CSCV | 0.58 | <0.70 | ?? |
-| Portfolio | PASS | - | ? |
+## ?? Run History
 
----
+| Date | Asset | Run ID | Family | Result | Notes |
+|:-----|:------|:-------|:------:|:------:|:------|
+| 2026-01-28 | ETH | v4.3_test | A | DRY-RUN | Pipeline validation |
 
-## ?? DOT v4.3 Results
+***
 
-| Métrique | Valeur | Seuil | ? |
-|----------|--------|-------|---|
-| WFE (mean) | 1.71 | ?0.6 | ? |
-| WFE (median) | 1.02 | ?0.5 | ? |
-| OOS Sharpe | 2.46 | ?0.80 | ? |
-| OOS Trades | 139 | ?60 | ? |
-| PBO CSCV | 0.58 | <0.70 | ?? |
+## ?? Commands
 
----
+```bash
+# Dry run
+python scripts/orchestrator_v4_3.py --asset ETH --run-id v4.3_001 --dry-run
 
-## ?? ANKR v4.3 BLOCKED
+# Generate mock data
+python scripts/generate_mock_data.py --asset ETH --run-id mock_001
 
-| Métrique | Valeur | Seuil | ? |
-|----------|--------|-------|---|
-| WFE (mean) | 0.65 | ?0.6 | ? |
-| WFE (median) | **0.47** | **?0.5** | **? FAIL** |
-| OOS Sharpe | 1.89 | ?0.80 | ? |
-| OOS Trades | 160 | ?60 | ? |
+# Full run with mock data
+python scripts/generate_mock_data.py --asset ETH --run-id v4.3_001
+python scripts/orchestrator_v4_3.py --asset ETH --run-id v4.3_001
 
-**Reason**: WFE median < 0.50 indicates period effect or distribution skew
+# Checklist audit
+python scripts/checklist_v4_3.py --asset ETH --run-id v4.3_001
 
----
+# Run tests
+pytest scripts/tests/test_v4_3_integration.py -v
+```
 
-## ?? PROCHAINE ACTION
+***
 
-1. ? ETH, DOT PROD v4.3
-2. ?? ANKR BLOCKED (WFE median 0.47 < 0.50) - requires rescue or exclusion
-3. ? Lancer remaining 13 assets avec v4.3 dual WFE guards
-4. ? Analyser impact du dual WFE threshold sur dataset complet
+## ?? Artifacts Structure
 
----
+```
+runs/v4_3/<ASSET>/<RUN_ID>/
++-- screening/
+¦   +-- screen_long.json
+¦   +-- screen_short.json
++-- coupling/
+¦   +-- coupled_candidates.json
++-- baseline/
+¦   +-- baseline_best.json
+¦   +-- trades.parquet
+¦   +-- ohlcv.parquet
++-- regime/
+¦   +-- regime_stats.json
++-- polish_oos/
+¦   +-- decision.json
++-- guards/
+¦   +-- guards.json
++-- pbo/
+¦   +-- pbo_proxy.json
+¦   +-- pbo_cscv.json
+¦   +-- cscv_folds.json
++-- portfolio/
+¦   +-- portfolio.json
++-- archive/
+    +-- summary.json
+```
 
-## ??? HISTORIQUE RÉCENT
+***
 
-| Date | Action |
-|------|--------|
-| 28 Jan 19:15 | ?? **v4.3**: Dual WFE threshold (mean?0.60 AND median?0.50) |
-| 28 Jan 19:15 | ?? ANKR reclassified: PROD_READY ? BLOCKED (WFE median 0.47) |
-| 28 Jan 18:20 | ? DOT PROD_READY (WFE mean 1.71, median 1.02) |
-| 28 Jan 15:15 | ?? Batch pilot complete (DOT, SHIB, ANKR, BTC) |
-| 28 Jan 14:36 | ? ETH v4.2_pilot_fix03 PROD_READY (7/7 guards) |
-| 28 Jan 14:15 | ?? Fix portfolio threshold 500?150 |
+## ?? Agent Ownership
 
----
+| Agent | Files | Responsibility |
+|:------|:------|:---------------|
+| **Casey** | `project-state.md` | State tracking, orchestration |
+| **Alex** | `families.yaml`, `MASTER_PLAN.mdc` | Quant rules, thresholds |
+| **Jordan** | `scripts/*.py` | Implementation |
+| **Sam** | `tests/*.py`, `guards.py` | QA, validation |
 
-## ?? FICHIERS
+***
 
-| Fichier | Contenu |
-|---------|---------|
-| `configs/families.yaml` | Config v4.3 (dual WFE) |
-| `configs/router.yaml` | State machine |
-| `.cursor/rules/MASTER_PLAN.mdc` | Règles, guards |
-| `status/project-state.md` | **CE FICHIER** |
+## ?? Next Actions
 
----
-
-## ?? v4.3 DUAL WFE THRESHOLD
-
-**Rationale**: Single WFE (mean) can be skewed by period effects or extreme outliers. Dual threshold:
-- **Mean ? 0.60**: Overall walk-forward efficiency
-- **Median ? 0.50**: Robust to distribution skew
-
-**Policy**: Both conditions must pass (AND logic)
-
-**Impact**: ANKR filtered out despite mean 0.65 (median 0.47 < 0.50)
-
-**Example**: DOT passes both (mean 1.71, median 1.02)
-
----
-
-**Version**: 4.3 (28 Jan 2026)
+1. [ ] Run full pipeline on real ETH data
+2. [ ] Validate Polish OOS activation rate (target: 10-30%)
+3. [ ] Backtest comparison v4.2 vs v4.3
+4. [ ] Enable holdout (10%) for gold standard

@@ -154,3 +154,63 @@ python scripts/checklist_v4_2.py --asset ETH --run-id v4.2_001
 
 **Version**: 4.2 (28 Jan 2026)
 **Migration**: 300T→100T, bars 8000→12000, PBO calibré P95/P99
+
+
+## v4.3 Upgrade Summary
+
+### New Components
+- `scripts/regime_stats.py` ? Side-aware regime detection
+- `scripts/polish_oos.py` ? A vs A+Gate comparison
+- `scripts/state_machine.py` ? Generic router executor
+- `scripts/artifacts.py` ? Centralized path management
+- `scripts/generate_mock_data.py` ? Test data generator
+
+### Polish OOS Decision Flow
+```
+REGIME_STATS ? signal_detected?
+  ?? NO  ? PBO_CSCV (stay A)
+  ?? YES ? POLISH_OOS
+            ?? UPGRADE_TO_B ? restart SCREEN_LONG with family=B
+            ?? STAY_A ? PBO_CSCV
+            ?? INSUFFICIENT_DATA ? PBO_CSCV
+```
+
+### Thresholds v4.3
+| Parameter | Value | Rationale |
+|:----------|:------|:----------|
+| `n_trades_min_per_bucket` | 80 | Statistical power |
+| `signal_z_min` | 1.65 | ~90% one-sided |
+| `stability_windows` | 4 | Temporal robustness |
+| `stability_pass_ratio` | 0.75 | 3/4 windows |
+| `polish_min_wins` | 8/10 | p?0.055 |
+| `min_candidates_agree` | 3/5 | Majority rule |
+| `min_median_delta_sharpe` | 0.05 | Effect size |
+
+---
+
+## Validation Commands
+
+```bash
+# Generate mock data
+python scripts/generate_mock_data.py --asset ETH --run-id mock_001
+
+# Run full pipeline on mock data
+python scripts/orchestrator_v4_3.py --asset ETH --run-id mock_001
+
+# Run integration tests
+pytest scripts/tests/test_v4_3_integration.py -v
+
+# Verify all artifacts
+python scripts/checklist_v4_3.py --asset ETH --run-id mock_001
+```
+
+---
+
+## Summary of Changes
+
+| File | Action | Description |
+|------|--------|-------------|
+| scripts/generate_mock_data.py | CREATE | Mock data generator for testing |
+| scripts/tests/test_v4_3_integration.py | CREATE | Integration tests |
+| status/project-state.md | UPDATE | Document v4.3 status |
+| .cursor/rules/MASTER_PLAN.mdc | UPDATE | Add v4.3 section |

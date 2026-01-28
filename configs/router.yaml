@@ -1,5 +1,5 @@
 # =============================================================================
-# router.yaml — Executable State Machine (v4.2)
+# router.yaml â€” Executable State Machine (v4.2)
 # =============================================================================
 meta:
   owner: "Alex"
@@ -15,6 +15,7 @@ states:
   - "PBO_PROXY"
   - "REGIME_STATS"
   - "REGIME_DECISION"
+  - "POLISH_OOS"
   - "PBO_CSCV"
   - "REPRO_CHECK"
   - "PORTFOLIO_CHECK"
@@ -64,18 +65,43 @@ transitions:
       then: "REGIME_STATS"
 
   REGIME_STATS:
-    - action: "compute_regime_stats"
+    - action: "run_regime_stats"
       then: "REGIME_DECISION"
 
   REGIME_DECISION:
-    - if: "regime_signal_detected is True and family_id == 'A'"
-      then: "NEXT_FAMILY"
-      set:
-        family_id: "B"
-        rescue_id: null
-        rescues_remaining: 2
-      reason: "Strong regime signal -> upgrade to Family B"
-    - then: "PBO_CSCV"
+    description: "Decide if regime signal detected"
+    transitions:
+      - if: "regime_signal_detected == True and family_id == 'A'"
+        then: "POLISH_OOS"
+        reason: "Regime signal detected, evaluate OOS"
+      - else:
+        then: "PBO_CSCV"
+        reason: "No regime signal or already B/C"
+
+  POLISH_OOS:
+    description: "Compare A vs A+Gate(B) on OOS folds"
+    action: "run_polish_oos_comparison"
+    transitions:
+      - if: "polish_decision == 'UPGRADE_TO_B'"
+        then: "SCREEN_LONG"
+        set:
+          family_id: "B"
+          regime_mode: "gate"
+          rescues_remaining: 2
+          polish_activated: true
+        reason: "Polish OOS passed: upgrade to B"
+      - if: "polish_decision == 'STAY_A'"
+        then: "PBO_CSCV"
+        set:
+          regime_mode: "off"
+          polish_activated: false
+        reason: "Polish OOS: A sufficient"
+      - if: "polish_decision == 'INSUFFICIENT_DATA'"
+        then: "PBO_CSCV"
+        set:
+          regime_mode: "off"
+          regime_insufficient_data: true
+        reason: "Not enough trades per bucket"
 
   PBO_CSCV:
     - action: "compute_pbo_cscv"
