@@ -1,6 +1,6 @@
 # Jordan Dev Log — FINAL TRIGGER v2
 
-**Last Updated**: 28 Jan 2026, 08:45 UTC
+**Last Updated**: 28 Jan 2026, 08:49 UTC
 
 ---
 
@@ -63,6 +63,12 @@
 **Output**: scripts/run_guards_v4_2.py
 **Summary**: Implemented v4.2 hard-guards runner with 7 checks and guards.json output schema.
 **Next**: PROMPT 11 — Regime Stats
+
+## 2026-01-28 — PROMPT 11 Regime Stats
+**Status**: TODO → DONE
+**Output**: scripts/regime_stats_v4_2.py
+**Summary**: Added stats-only regime computation using entry-time regimes and win-rate deltas.
+**Next**: PROMPT 12 — PBO Runners (Calibrated)
 
 ## 1324 DONE jordan-dev -> system: CHALLENGER 100-TRIALS PIPELINE ✅
 
