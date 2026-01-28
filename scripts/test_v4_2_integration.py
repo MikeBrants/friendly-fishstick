@@ -15,7 +15,8 @@ from crypto_backtest.v4.backtest_adapter import run_coupled_backtest
 
 
 def smoke() -> None:
-    returns = np.random.randn(10, 1000)
+    # Need enough bars for CSCV default min_bars_per_fold (500) * folds (10)
+    returns = np.random.randn(10, 6000)
     proxy = probability_of_backtest_overfitting(returns, n_splits=8)
     cscv = cscv_pbo_compat(returns, folds=10, purge_bars=5, embargo_bars=0, annualization_factor=8760)
     assert 0.0 <= proxy.pbo <= 1.0
