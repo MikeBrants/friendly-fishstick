@@ -1,6 +1,6 @@
 # Jordan Dev Log — FINAL TRIGGER v2
 
-**Last Updated**: 28 Jan 2026, 08:40 UTC
+**Last Updated**: 28 Jan 2026, 08:42 UTC
 
 ---
 
@@ -45,6 +45,12 @@
 **Output**: crypto_backtest/v4/screening.py; scripts/screen_v4_2.py
 **Summary**: Implemented deterministic long/short screening (100 trials each) with top-20 candidate export to run artifacts.
 **Next**: PROMPT 08 — Coupling
+
+## 2026-01-28 — PROMPT 08 Coupling
+**Status**: TODO → DONE
+**Output**: crypto_backtest/v4/coupling.py; scripts/couple_v4_2.py
+**Summary**: Added top-k cross coupling step to build paired long/short candidates into coupled_candidates.json.
+**Next**: PROMPT 09 — Baseline Select
 
 ## 1324 DONE jordan-dev -> system: CHALLENGER 100-TRIALS PIPELINE ✅
 
