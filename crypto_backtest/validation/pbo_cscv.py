@@ -53,6 +53,33 @@ DEFAULT_CONFIG = CSCVConfig()
 # CORE CSCV IMPLEMENTATION
 # =============================================================================
 
+def cscv_pbo_compat(
+    returns_matrix: np.ndarray,
+    folds: int = 16,
+    purge_bars: int = 24,
+    embargo_bars: int = 0,
+    annualization_factor: float | None = None,
+) -> Dict:
+    """
+    Compatibility wrapper for newer pipeline signatures.
+
+    Accepts folds/purge_bars/embargo_bars/annualization_factor and maps to CSCVConfig.
+    Note: embargo_bars is not implemented in CSCVConfig and is ignored (warning emitted).
+    """
+    if embargo_bars not in (0, None):
+        warnings.warn(
+            "embargo_bars is not supported in cscv_pbo; ignoring.",
+            stacklevel=2,
+        )
+    config = CSCVConfig(
+        n_folds=folds,
+        purge_gap=purge_bars,
+        annualization_factor=annualization_factor
+        if annualization_factor is not None
+        else DEFAULT_CONFIG.annualization_factor,
+    )
+    return cscv_pbo(returns_matrix, config=config)
+
 def cscv_pbo(
     returns_matrix: np.ndarray,
     n_folds: int = 16,
