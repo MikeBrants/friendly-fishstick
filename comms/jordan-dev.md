@@ -1,6 +1,6 @@
 # Jordan Dev Log — FINAL TRIGGER v2
 
-**Last Updated**: 28 Jan 2026, 08:33 UTC
+**Last Updated**: 28 Jan 2026, 08:35 UTC
 
 ---
 
@@ -27,6 +27,12 @@
 **Output**: scripts/validate_configs.py; crypto_backtest/v4/config.py; scripts/test_config_resolution.py
 **Summary**: Implemented config validator and resolver utilities with inheritance/rescue support plus basic resolution tests.
 **Next**: PROMPT 05 — SKIP (CSCV exists)
+
+## 2026-01-28 — PROMPT 05 CSCV Param Compatibility
+**Status**: TODO → DONE
+**Output**: crypto_backtest/validation/pbo_cscv.py
+**Summary**: Verified CSCV module and added a compatibility wrapper to accept folds/purge_bars/embargo_bars/annualization_factor.
+**Next**: PROMPT 06 — Artifacts Layout
 
 ## 1324 DONE jordan-dev -> system: CHALLENGER 100-TRIALS PIPELINE ✅
 
