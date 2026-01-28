@@ -1,6 +1,6 @@
 # Jordan Dev Log — FINAL TRIGGER v2
 
-**Last Updated**: 28 Jan 2026, 09:05 UTC
+**Last Updated**: 28 Jan 2026, 09:07 UTC
 
 ---
 
@@ -117,6 +117,12 @@
 **Output**: scripts/test_v4_2_suite.py; scripts/test_v4_2_integration.py
 **Summary**: Added unit and integration test scripts covering configs, toggles, portfolio logic, and smoke runs.
 **Next**: PROMPT 17-18 — Archive + Checklist
+
+## 2026-01-28 — PROMPT 17-18 Archive + Checklist
+**Status**: TODO → DONE
+**Output**: scripts/archive_v4_2.py; scripts/checklist_v4_2.py
+**Summary**: Added run summary archiver and definition-of-done checklist tooling for v4.2 runs.
+**Next**: DONE
 
 ## 1324 DONE jordan-dev -> system: CHALLENGER 100-TRIALS PIPELINE ✅
 
