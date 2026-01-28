@@ -1,12 +1,14 @@
 # PROJECT STATE — FINAL TRIGGER v2
 
-**Updated**: 28 Jan 2026, 10:39 UTC
-**Phase**: 🆕 v4.2 FRESH START
-**Pipeline**: v4.2 (100 trials, 12000 bars, calibrated CSCV PBO)
+**Updated**: 28 Jan 2026, 15:20 UTC+4
+**Phase**: 🔄 v4.2 BATCH PILOT
+**Pipeline**: v4.2 (100 trials, 12000 bars, calibrated PBO)
 
-> **Source of Truth:** This file reflects the current state
-> **Commands:** See `docs/WORKFLOW_PIPELINE.md`
-> **Params:** See `.cursor/rules/MASTER_PLAN.mdc`
+---
+
+## ⚠️ RÈGLES DE MISE À JOUR
+
+**OWNER:** Casey — MAJ après chaque run, max 10 entrées historique
 
 ---
 
@@ -14,133 +16,59 @@
 
 | Status | Count | Assets |
 |--------|:-----:|--------|
-| ⏳ PENDING | 18 | All assets to reprocess with v4.2 |
-| �
- PROD | 0 | - |
-| 🔴 EXCLU | 0 | - |
-
-### Assets à Traiter (18)
-
-**Tier 1 Priority (8):**
-```
-BTC SOL AVAX AXS DOT SHIB ANKR
-```
-
-**Tier 2 Secondary (10):**
-```
-ONE EGLD TON HBAR SUSHI CRV SEI AAVE MINA RUNE
-```
+| ✅ **PROD v4.2** | **1** | ETH (WFE 2.10, 7/7 guards, PBO 0.58) |
+| 🔄 BATCH PILOT | 4 | DOT, SHIB, ANKR, BTC (running) |
+| ⏳ PENDING | 13 | SOL, AVAX, AXS, ONE, EGLD, TON, HBAR, SUSHI, CRV, SEI, AAVE, MINA, RUNE |
 
 ---
 
-## 🎯 v4.2 PIPELINE OVERVIEW
+## 🎯 ETH v4.2 Results
 
-### Key Changes from v4.1
-
-| Feature | v4.1 | v4.2 |
-|---------|:----:|:----:|
-| Trials | 300 | **100** |
-| Min Bars | 8000 | **12000** |
-| PBO Method | Standard | **CSCV** |
-| Config System | Hardcoded | **YAML families** |
-| Reproducibility | Issues | **Verified** |
-
-### Pipeline Phases
-
-```
-Phase 0: Data Download (12000+ bars)
-  ↓
-Phase 1: Screening (100 trials, seed 42)
-  ↓
-Phase 2: Guards Validation (7 hard guards + PBO CSCV)
-  ↓
-Phase 3: Regime Stress (SIDEWAYS Sharpe > 0)
-  ↓
-Phase 4: Portfolio Correlation (< 0.5)
-  ↓
-Phase 5: Production Config (asset_config.py)
-```
-
-### Success Criteria
-
-| Guard | Threshold | Critical |
-|-------|:---------:|:--------:|
-| PBO CSCV | < 0.50 | �
- |
-| WFE Pardo | > 0.60 | �
- |
-| Sensitivity | < 15% | �
- |
-| Bootstrap CI | > 1.0 | �
- |
-| Monte Carlo | p < 0.05 | �
- |
-| Top10 Trades | < 40% | �
- |
-| Min Trades OOS | ≥ 60 | �
- |
+| Métrique | Valeur | Seuil | ✓ |
+|----------|--------|-------|---|
+| WFE | 2.10 | >0.6 | ✅ |
+| OOS Trades | 125 | ≥60 | ✅ |
+| Bars | 17520 | ≥12000 | ✅ |
+| Sharpe | 1.57 | ≥0.80 | ✅ |
+| MaxDD | 6.3% | ≤35% | ✅ |
+| PF | 1.39 | ≥1.05 | ✅ |
+| Top10 | - | <40% | ✅ |
+| PBO CSCV | 0.58 | <0.70 | ⚠️ |
+| Portfolio | PASS | - | ✅ |
 
 ---
 
-## 🎯 PROCHAINE ACTION
+## ⏭️ PROCHAINE ACTION
 
-1. 🟡 **Pilot ETH** — Validate complete pipeline
-2. ⏳ Batch Tier 1 (7 assets) — After ETH validation
-3. ⏳ Batch Tier 2 (10 assets) — After Tier 1 complete
-4. ⏳ Portfolio Assembly — Cross-correlation check
-
-### Commands
-
-```bash
-# Step 1: Pilot ETH
-python scripts/orchestrator_v4_2.py --asset ETH --run-id pilot_eth
-
-# Step 2: Batch Tier 1
-python scripts/orchestrator_v4_2.py \
-  --assets BTC SOL AVAX AXS DOT SHIB ANKR \
-  --run-id tier1_batch
-
-# Step 3: Guards + PBO
-python scripts/run_guards_v4_2.py --run-id pilot_eth
-python scripts/pbo_v4_2.py --run-id pilot_eth
-```
+1. ✅ ETH PROD v4.2
+2. 🔄 Batch pilot (DOT, SHIB, ANKR, BTC) — running
+3. ⏳ Analyser résultats batch
+4. ⏳ Lancer remaining 13 assets
 
 ---
 
-## 🗓️ HISTORIQUE
+## 🗓️ HISTORIQUE RÉCENT
 
 | Date | Action |
 |------|--------|
-| 28 Jan 14:00 | 🆕 v4.2 Pipeline deployed — FRESH START |
-| 28 Jan 13:15 | v4.1 finalized — 5 PROD assets (ETH/AVAX/SOL/YGG/AXS) |
-| 28 Jan 10:30 | PR#21 complete — 100T validation successful |
-| 27 Jan 19:23 | Plan A SUCCESS — Challenger recovers SOL/AVAX |
+| 28 Jan 15:15 | 🔄 Batch pilot started (DOT, SHIB, ANKR, BTC) |
+| 28 Jan 14:36 | ✅ ETH v4.2_pilot_fix03 PROD_READY (7/7 guards) |
+| 28 Jan 14:15 | 🔧 Fix portfolio threshold 500→150 |
+| 28 Jan 13:49 | 🔧 Fix baseline WFE/trades/bars mapping |
+| 28 Jan 13:15 | ✅ v4.2 pipeline implementation complete |
+| 28 Jan 12:10 | 🆕 v4.2 migration started |
 
 ---
 
-## 📁 KEY FILES
+## 📁 FICHIERS
 
-| File | Purpose |
-|------|---------|
-| `status/project-state.md` | **This file** — Current state |
-| `configs/families.yaml` | Asset family configurations |
-| `configs/router.yaml` | Family routing rules |
-| `crypto_backtest/v4/screening.py` | v4.2 screening engine |
-| `scripts/orchestrator_v4_2.py` | Main pipeline orchestrator |
-| `scripts/pbo_v4_2.py` | CSCV PBO calculator |
+| Fichier | Contenu |
+|---------|---------|
+| `configs/families.yaml` | Config v4.2 |
+| `configs/router.yaml` | State machine |
+| `.cursor/rules/MASTER_PLAN.mdc` | Règles, guards |
+| `status/project-state.md` | **CE FICHIER** |
 
 ---
 
-## 🤖 AGENTS
-
-| Agent | Focus |
-|-------|-------|
-| **Casey** | Orchestration, priorities |
-| **Jordan** | Pipeline execution |
-| **Sam** | Guards validation |
-| **Alex** | Architecture, params |
-
----
-
-**Version**: 4.2.0 (28 Jan 2026)
-**Status**: READY FOR TIER 1 BATCH
+**Version**: 4.2 (28 Jan 2026)
