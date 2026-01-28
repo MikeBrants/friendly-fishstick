@@ -1,9 +1,9 @@
 # =============================================================================
-# families.yaml � Model Families + Rescues (v4.2 FINAL, 1H)
+# families.yaml � Model Families + Rescues (v4.3, 1H)
 # =============================================================================
 meta:
   owner: "Alex"
-  version: "4.2"
+  version: "4.3"
   timeframe: "1H"
   last_updated_utc: "2026-01-28"
 
@@ -31,112 +31,95 @@ pilot_assets:
 
 policy:
   random_seed: 42
-
-  data:
-    holdout:
-      enabled: false
-      months: 3
-      mode: "soft_gate"
-
-  coupling:
-    method: "top_k_cross"
-    # ==========================================================================
-    # DOF (Degrees of Freedom) Options:
-    # - k=10: 100 couples tested (current default, higher overfitting risk)
-    # - k=5:  25 couples tested (reduced DOF, recommended if PBO > 0.6)
-    # ==========================================================================
-    # To switch: just change k_long, k_short, max_couples below
-    # TEST PLAN:
-    # 1. Run batch with k=10 (current)
-    # 2. If PBO > 0.6 for multiple assets, switch to k=5 and re-run
-    # ==========================================================================
-    k_long: 5     # LOW DOF MODE - reduced from 10
-    k_short: 5    # LOW DOF MODE - reduced from 10
-    max_couples: 25   # LOW DOF MODE - reduced from 100 (5×5=25)
-
-  budgets:
-    max_families_per_asset: 3
-    max_rescues_per_family: 2
-    screening:
-      trials_long: 100
-      trials_short: 100
-      workers: 10
-    validation:
-      trials: 100
-      workers: 1
+  version: "4.3"
 
   thresholds:
+    portfolio:
+      method: "two_pass_backtest"
+      corr_policy: "max_positive"
+      corr_long_short_max: 0.50
+      active_bars_min: 300
+
     screening:
-      sharpe_min: 0.5
-      wfe_min: 0.5
+      wfe_min: 0.50
+      sharpe_min: 0.50
       trades_min: 50
       short_ratio_min: 0.25
       short_ratio_max: 0.75
 
-    baseline_by_filter_preset:
-      baseline:
-        wfe_min: 0.60
-        trades_min: 60
-        bars_min: 12000
-      moderate:
-        wfe_min: 0.60
-        trades_min: 50
-        bars_min: 12000
-      conservative:
-        wfe_min: 0.55
-        trades_min: 40
-        bars_min: 12000
-
     guards:
-      hard_guards_total: 7
-      catastrophic_fail_min: 3
+      wfe_min: 0.60
+      trades_oos_min: 60
+      bars_min: 12000
       sharpe_min: 0.80
-      max_drawdown_max: 0.35
-      profit_factor_min: 1.05
+      max_dd_max: 35.0
+      pf_min: 1.05
+      top10_concentration_max: 40.0
 
     pbo:
-      proxy_warning: 0.60
-      proxy_kill: 0.70
-      cscv_pass: 0.50
-
-    regime:
-      signal_threshold_wr_delta: 0.15
-      n_trades_min: 30
-
-    portfolio:
-      method: "two_pass_backtest"
-      corr_policy: "max_positive"
-      corr_scope: "active_union"
-      corr_long_short_max: 0.50
-      ret_eps: 1e-12
-      active_bars_min: 150
-      min_leg_active_bars: 50
-      compute_intersection: true
-      active_bars_min_intersection: 80
-      corr_intersection_max: 0.70
-      overlap_ratio_warn_below: 0.05
-
-    holdout:
-      trades_min: 20
-      sharpe_min: 0.00
-      max_drawdown_max: 0.45
-      profit_factor_min: 0.95
-
-  pbo:
-    annualization_factor: 8760
-    # DEPRECATED: PBO proxy removed in v4.2 - only use CSCV
-    proxy:
-      enabled: false  # DISABLED - use CSCV only
-      folds: 8
       purge_bars: 120
       embargo_bars: 240
-    cscv:
+      proxy_folds: 8
+      cscv_folds: 10
+      cscv_pass_threshold: 0.50
+
+  regime:
+    signal_threshold_wr_delta: 0.15
+    n_trades_min_legacy: 30
+    n_trades_min_total: 120
+    n_trades_min_per_bucket: 80
+    n_trades_min_per_window: 20
+    signal_z_min: 1.65
+    side_aware: true
+    stability_windows: 4
+    stability_pass_ratio: 0.75
+
+    polish_oos:
+      enabled: true
+      max_candidates: 5
+      min_candidates_agree: 3
       folds: 10
       purge_bars: 120
       embargo_bars: 240
-    # Soft thresholds (log warning, don't block)
-    threshold_warning: 0.60
-    threshold_high_risk: 0.70
+      metric: "sharpe_oos"
+      min_wins: 8
+      tie_policy: "half"
+      min_median_delta_sharpe: 0.05
+      min_median_delta_maxdd: 3.0
+      require_both: false
+      logging:
+        log_activation: true
+        log_rejection_reason: true
+        warn_activation_rate_high: 0.80
+        warn_activation_rate_low: 0.05
+
+  rescues:
+    max_per_family: 2
+    R1:
+      type: "filter_preset"
+      preset: "moderate"
+      dof_change: 0
+      require_pbo_pass: true
+      pbo_max: 0.50
+    R2:
+      type: "filter_preset"
+      preset: "conservative"
+      dof_change: 0
+      require_pbo_pass: true
+      pbo_max: 0.50
+
+  holdout:
+    enabled: false
+    percentage: 0.10
+    min_sharpe: 0.0
+    max_dd_multiplier: 1.5
+    min_pf: 1.0
+
+  displacement:
+    values: 
+    search_mode: "grid"
+    min_positive_displacements: 2
+    log_winning_displacement: true
 
 filter_presets:
   baseline:

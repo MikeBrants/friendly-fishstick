@@ -47,6 +47,12 @@ def _load_baseline_metrics(baseline_best: dict) -> dict:
         "max_drawdown": max_dd,
         "profit_factor": profit_factor,
         "wfe": _safe_float(baseline_best.get("wfe") or metrics.get("wfe") or metrics.get("wfe_pardo")),
+        "wfe_median": _safe_float(
+            baseline_best.get("wfe_median")
+            or metrics.get("wfe_median")
+            or baseline_best.get("wfe_median_split")
+            or metrics.get("wfe_median_split")
+        ),
         "top10_concentration": _safe_float(
             baseline_best.get("top10_concentration")
             or metrics.get("top10_concentration")
@@ -70,7 +76,16 @@ def main() -> None:
 
     bars_min = float(baseline.get("bars_min", 12000))
     trades_min = float(baseline.get("trades_min", 60))
-    wfe_min = float(baseline.get("wfe_min", 0.60))
+    
+    # v4.3: Dual WFE threshold (mean AND median)
+    wfe_cfg = guards_cfg.get("wfe", {})
+    if isinstance(wfe_cfg, dict):
+        wfe_mean_min = float(wfe_cfg.get("mean_min", 0.60))
+        wfe_median_min = float(wfe_cfg.get("median_min", 0.50))
+    else:
+        # Fallback for old config
+        wfe_mean_min = float(baseline.get("wfe_min", 0.60))
+        wfe_median_min = 0.50
 
     sharpe_min = float(guards_cfg.get("sharpe_min", 0.80))
     max_dd_max = float(guards_cfg.get("max_drawdown_max", 0.35))
@@ -88,8 +103,20 @@ def main() -> None:
     sharpe = metrics.get("sharpe")
     max_dd = metrics.get("max_drawdown")
     pf = metrics.get("profit_factor")
-    wfe = metrics.get("wfe")
+    wfe_mean = metrics.get("wfe")
+    wfe_median = metrics.get("wfe_median")
     top10 = metrics.get("top10_concentration")
+
+    # v4.3: Dual WFE guard (mean AND median)
+    wfe_mean_passed = wfe_mean is not None and wfe_mean >= wfe_mean_min
+    wfe_median_passed = wfe_median is not None and wfe_median >= wfe_median_min
+    wfe_passed = wfe_mean_passed and wfe_median_passed
+    
+    wfe_reason = f"mean={wfe_mean:.2f}" if wfe_mean is not None else "mean=N/A"
+    if wfe_median is not None:
+        wfe_reason += f", median={wfe_median:.2f}"
+    else:
+        wfe_reason += ", median=N/A"
 
     guards = [
         {"name": "bars", "passed": bars is not None and bars >= bars_min, "value": bars, "threshold": bars_min},
@@ -118,10 +145,11 @@ def main() -> None:
             "threshold": pf_min,
         },
         {
-            "name": "wfe",
-            "passed": wfe is not None and wfe >= wfe_min,
-            "value": wfe,
-            "threshold": wfe_min,
+            "name": "WFE",
+            "passed": wfe_passed,
+            "value": {"mean": wfe_mean, "median": wfe_median},
+            "threshold": {"mean_min": wfe_mean_min, "median_min": wfe_median_min},
+            "reason": wfe_reason,
         },
         {
             "name": "top10_concentration",
