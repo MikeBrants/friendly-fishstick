@@ -1,8 +1,128 @@
 # Jordan Dev Log — FINAL TRIGGER v2
 
-**Last Updated**: 27 Jan 2026, 13:24 UTC
+**Last Updated**: 28 Jan 2026, 09:07 UTC
 
 ---
+
+## 2026-01-28 — PROMPT 01 Audit Repo + Contract
+**Status**: TODO → DONE
+**Output**: status/v4_2_audit.md
+**Summary**: Audited repo entrypoints, artifact patterns, and core data structures. Added v4.2 1H calibration contract details to the audit doc.
+**Next**: PROMPT 02 — configs/families.yaml
+
+## 2026-01-28 — PROMPT 02 configs/families.yaml
+**Status**: TODO → DONE
+**Output**: configs/families.yaml; scripts/print_family_config.py
+**Summary**: Added v4.2 families/rescues YAML as single source of truth and a printer script to load/resolve configs.
+**Next**: PROMPT 03 — configs/router.yaml
+
+## 2026-01-28 — PROMPT 03 configs/router.yaml
+**Status**: TODO → DONE
+**Output**: configs/router.yaml
+**Summary**: Added v4.2 router state machine definition with HOLDOUT states wired and transitions set.
+**Next**: PROMPT 04 — Config Resolver + Validator
+
+## 2026-01-28 — PROMPT 04 Config Resolver + Validator
+**Status**: TODO → DONE
+**Output**: scripts/validate_configs.py; crypto_backtest/v4/config.py; scripts/test_config_resolution.py
+**Summary**: Implemented config validator and resolver utilities with inheritance/rescue support plus basic resolution tests.
+**Next**: PROMPT 05 — SKIP (CSCV exists)
+
+## 2026-01-28 — PROMPT 05 CSCV Param Compatibility
+**Status**: TODO → DONE
+**Output**: crypto_backtest/validation/pbo_cscv.py
+**Summary**: Verified CSCV module and added a compatibility wrapper to accept folds/purge_bars/embargo_bars/annualization_factor.
+**Next**: PROMPT 06 — Artifacts Layout
+
+## 2026-01-28 — PROMPT 06 Artifacts Layout
+**Status**: TODO → DONE
+**Output**: crypto_backtest/v4/artifacts.py; scripts/init_run_v4_2.py
+**Summary**: Added v4.2 run layout utilities (subdirs, metadata, snapshots) and an init script for run setup.
+**Next**: PROMPT 07 — Screening (L/S) 100 Trials
+
+## 2026-01-28 — PROMPT 07 Screening (L/S) 100 Trials
+**Status**: TODO → DONE
+**Output**: crypto_backtest/v4/screening.py; scripts/screen_v4_2.py
+**Summary**: Implemented deterministic long/short screening (100 trials each) with top-20 candidate export to run artifacts.
+**Next**: PROMPT 08 — Coupling
+
+## 2026-01-28 — PROMPT 08 Coupling
+**Status**: TODO → DONE
+**Output**: crypto_backtest/v4/coupling.py; scripts/couple_v4_2.py
+**Summary**: Added top-k cross coupling step to build paired long/short candidates into coupled_candidates.json.
+**Next**: PROMPT 09 — Baseline Select
+
+## 2026-01-28 — PROMPT 09 Baseline Select
+**Status**: TODO → DONE
+**Output**: scripts/baseline_select_v4_2.py
+**Summary**: Added baseline selection step to evaluate coupled candidates on research window and save baseline_best.json.
+**Next**: PROMPT 10 — Guards v4.2
+
+## 2026-01-28 — PROMPT 10 Guards v4.2
+**Status**: TODO → DONE
+**Output**: scripts/run_guards_v4_2.py
+**Summary**: Implemented v4.2 hard-guards runner with 7 checks and guards.json output schema.
+**Next**: PROMPT 11 — Regime Stats
+
+## 2026-01-28 — PROMPT 11 Regime Stats
+**Status**: TODO → DONE
+**Output**: scripts/regime_stats_v4_2.py
+**Summary**: Added stats-only regime computation using entry-time regimes and win-rate deltas.
+**Next**: PROMPT 12 — PBO Runners (Calibrated)
+
+## 2026-01-28 — PROMPT 12 PBO Runners (Calibrated)
+**Status**: TODO → DONE
+**Output**: scripts/pbo_v4_2.py
+**Summary**: Added calibrated proxy + CSCV PBO runners with returns-matrix build and JSON outputs.
+**Next**: PROMPT 13A — Direction Toggles
+
+## 2026-01-28 — PROMPT 13A Direction Toggles
+**Status**: TODO → DONE
+**Output**: crypto_backtest/strategies/final_trigger.py; scripts/test_direction_toggles.py
+**Summary**: Added enable_long/enable_short gating to strategy signals plus a toggle smoke test script.
+**Next**: PROMPT 13B — Safety Net Engine
+
+## 2026-01-28 — PROMPT 13B Safety Net Engine
+**Status**: TODO → DONE
+**Output**: crypto_backtest/engine/position_manager.py
+**Summary**: Added open-position guards to enforce enable_long/enable_short at execution layer.
+**Next**: PROMPT 13C — Adapter Modes + Slicing
+
+## 2026-01-28 — PROMPT 13C Adapter Modes + Slicing
+**Status**: TODO → DONE
+**Output**: crypto_backtest/v4/backtest_adapter.py
+**Summary**: Added backtest adapter with combined/long_only/short_only modes and time slicing support.
+**Next**: PROMPT 13D — Repro Check
+
+## 2026-01-28 — PROMPT 13D Repro Check
+**Status**: TODO → DONE
+**Output**: scripts/repro_check_v4_2.py
+**Summary**: Added reproducibility check that re-runs backtests and diffs bar_returns/trades/metrics.
+**Next**: PROMPT 13E — Portfolio Check
+
+## 2026-01-28 — PROMPT 13E Portfolio Check
+**Status**: TODO → DONE
+**Output**: scripts/portfolio_check_v4_2.py
+**Summary**: Implemented two-pass portfolio correlation check with sparse-safe masking and max_positive policy.
+**Next**: PROMPT 14 — Orchestrator v4.2
+
+## 2026-01-28 — PROMPT 14 Orchestrator v4.2
+**Status**: TODO → DONE
+**Output**: scripts/orchestrator_v4_2.py
+**Summary**: Added state-machine executor wired to v4.2 actions and router transitions.
+**Next**: PROMPT 15-16 — Tests
+
+## 2026-01-28 — PROMPT 15-16 Tests
+**Status**: TODO → DONE
+**Output**: scripts/test_v4_2_suite.py; scripts/test_v4_2_integration.py
+**Summary**: Added unit and integration test scripts covering configs, toggles, portfolio logic, and smoke runs.
+**Next**: PROMPT 17-18 — Archive + Checklist
+
+## 2026-01-28 — PROMPT 17-18 Archive + Checklist
+**Status**: TODO → DONE
+**Output**: scripts/archive_v4_2.py; scripts/checklist_v4_2.py
+**Summary**: Added run summary archiver and definition-of-done checklist tooling for v4.2 runs.
+**Next**: DONE
 
 ## 1324 DONE jordan-dev -> system: CHALLENGER 100-TRIALS PIPELINE ✅
 
