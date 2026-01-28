@@ -1,65 +1,83 @@
 """Production asset configuration for the validated portfolio.
 
-Updated: 2026-01-26 16:30 UTC
+Updated: 2026-01-28 12:00 UTC
 All TP values are progressive: TP1 < TP2 < TP3 with min gap 0.5
 
-NOTE: TIA and CAKE reclassified from Phase 4 to Phase 2 post-PR#8 (guard002 threshold 15%)
+🎉 PR#21 COMPLETE — 100 Trials Standard (28 Jan 2026):
+✅ ETH: 100% VALIDATED (8/8 guards, PBO 0.24, SIDEWAYS 1.98, Phase 4/5/6 PASS)
+✅ SOL: 7/7 guards PASS (100T), Sharpe 2.96, WFE 1.27 — PENDING Phase 4
 
-✅ RESET COMPLETE (25 Jan 2026, 15:30 UTC):
-- ETH: baseline PASS (Sharpe 3.22, WFE 1.22)
-- MINA: baseline PASS (Sharpe 2.58, WFE 1.13) — NEW params
-- YGG: baseline PASS (Sharpe 3.11, WFE 0.78) — NEW params
-- RUNE: baseline PASS (Sharpe 2.42, WFE 0.61) — params completed
+❌ PR#21 FAIL (100T, 28 Jan 2026):
+- BTC: WFE 0.54 < 0.6 (overfit)
+- AVAX: WFE 0.48 < 0.6 (overfit)
 
-❌ EXCLUDED (26 Jan 2026, 16:30 UTC) — Regime Stress Test FAIL:
-- EGLD: SIDEWAYS Sharpe -4.59 (Issue #17 TASK 3)
-- AVAX: SIDEWAYS Sharpe -0.36 (Issue #17 TASK 3)
+❌ EXCLUDED (26 Jan 2026) — Regime Stress Test FAIL:
+- EGLD: SIDEWAYS Sharpe -4.59
+- AVAX (old params): SIDEWAYS Sharpe -0.36
 
 ❌ FAILED RE-VALIDATION (need Phase 3A rescue or EXCLU):
-- OSMO: Sharpe 0.68, WFE 0.19 — SEVERE OVERFIT
-- AR: WFE 0.39, Trades 41 — WFE + low trades
-- OP: Sharpe 0.03, WFE 0.01 — SEVERE FAIL (likely EXCLU)
-- METIS: WFE 0.48 — overfit
+- OSMO, AR, OP, METIS
 
-VALID FILTER MODES (NEW SYSTEM):
+VALID FILTER MODES:
 - baseline: Ichimoku only (default)
-- moderate: 5 filters (distance, volume, regression, kama, ichimoku)
-- conservative: 7 filters (all + strict ichimoku)
-
-OBSOLETE MODES (DO NOT USE):
-- medium_distance_volume, light_kama, light_distance, light_volume,
-- light_regression, medium_kama_distance, medium_kama_volume, medium_kama_regression
+- moderate: 5 filters
+- conservative: 7 filters
 """
 
 ASSET_CONFIG = {
     "BTC": {
+        # ❌ FAIL PR#21 (28 Jan 2026, 100 trials)
+        # WFE 0.54 < 0.6 (overfit), OOS Sharpe 1.65, Degradation 45.7%
+        # Status: PENDING rescue (Phase 3A displacement or Phase 4 filters)
         "pair": "BTC/USDT",
         "atr": {
-            "sl_mult": 4.5,
-            "tp1_mult": 4.25,
-            "tp2_mult": 7.5,
-            "tp3_mult": 9.5,
+            "sl_mult": 4.25,
+            "tp1_mult": 4.5,
+            "tp2_mult": 8.0,
+            "tp3_mult": 9.0,
         },
-        "ichimoku": {"tenkan": 6, "kijun": 37},
-        "five_in_one": {"tenkan_5": 9, "kijun_5": 29},
+        "ichimoku": {"tenkan": 10, "kijun": 20},
+        "five_in_one": {"tenkan_5": 13, "kijun_5": 29},
         "displacement": 52,
         "filter_mode": "baseline",
     },
     "ETH": {
-        # ✅ RESET COMPLETE (25 Jan 2026, 14:40 UTC)
-        # Migrated from OBSOLETE 'medium_distance_volume' to 'baseline'
-        # Results: OOS Sharpe 3.22, WFE 1.22, Trades 72, MC p=0.006
+        # 🎉 100% VALIDATED (28 Jan 2026, 100 trials + Phase 4/5/6)
+        # 8/8 Guards PASS (Monte Carlo 0.002, Sensitivity 13.81%, Bootstrap 1.12,
+        #                  Top10 25.31%, Stress1 1.11, Regime 0.00%, PBO 0.24, WFE 1.81)
+        # Phase 4: SIDEWAYS Sharpe 1.98 (27 trades) ✅
+        # Phase 5: Correlation 0.32 with SOL ✅
+        # Phase 6: PBO (CSCV) 0.2416, PSR 98.4% ✅
+        # OOS: Sharpe 3.21, Return +314.6%, MaxDD -1.04%, Trades 69
+        # Status: PRODUCTION READY 🚀
         "pair": "ETH/USDT",
         "atr": {
-            "sl_mult": 3.0,
-            "tp1_mult": 5.0,
+            "sl_mult": 4.25,
+            "tp1_mult": 2.25,
             "tp2_mult": 6.0,
-            "tp3_mult": 7.5,
+            "tp3_mult": 10.0,
         },
-        "ichimoku": {"tenkan": 12, "kijun": 36},
-        "five_in_one": {"tenkan_5": 8, "kijun_5": 17},
+        "ichimoku": {"tenkan": 13, "kijun": 20},
+        "five_in_one": {"tenkan_5": 13, "kijun_5": 19},
         "displacement": 52,
-        "filter_mode": "baseline",  # Valid mode (was medium_distance_volume)
+        "filter_mode": "baseline",
+    },
+    "SOL": {
+        # ✅ PR#21 SUCCESS (28 Jan 2026, 100 trials)
+        # 7/7 Hard Guards PASS, WFE 1.27, OOS Sharpe 2.96
+        # OOS: Return +291.9%, MaxDD -1.03%, Trades 96, PF 1.94
+        # Status: PENDING Phase 4 (SIDEWAYS test) + Phase 5 (correlations)
+        "pair": "SOL/USDT",
+        "atr": {
+            "sl_mult": 4.5,
+            "tp1_mult": 2.5,
+            "tp2_mult": 5.0,
+            "tp3_mult": 8.5,
+        },
+        "ichimoku": {"tenkan": 11, "kijun": 25},
+        "five_in_one": {"tenkan_5": 10, "kijun_5": 17},
+        "displacement": 52,
+        "filter_mode": "baseline",
     },
     "JOE": {
         "pair": "JOE/USDT",
@@ -89,7 +107,6 @@ ASSET_CONFIG = {
         "five_in_one": {"tenkan_5": 12, "kijun_5": 26},
         "displacement": 65,
         "filter_mode": "baseline",
-        # "status": "PENDING_RESCUE",
     },
     "MINA": {
         # ✅ RE-VALIDATED (25 Jan 2026, 15:20 UTC)
@@ -107,22 +124,22 @@ ASSET_CONFIG = {
         "filter_mode": "baseline",
     },
     "AVAX": {
-        # ❌ EXCLUDED (26 Jan 2026, 16:30 UTC) — Regime Stress Test FAIL
-        # Baseline FAILED (WFE 0.51), MODERATE PASSED (25 Jan 2026)
-        # Results: OOS Sharpe 2.00, WFE 0.66, Trades 81, Sensitivity 2.77%
-        # ⚠️ REGIME STRESS TEST FAIL: SIDEWAYS Sharpe -0.36 (75 trades, 25.3% win rate)
-        # Decision: EXCLUDED from PROD portfolio (Issue #17 TASK 3)
+        # ❌ FAIL PR#21 (28 Jan 2026, 100 trials)
+        # WFE 0.48 < 0.6 (overfit), OOS Sharpe 2.05, Degradation 52.1%
+        # Old params (26 Jan): EXCLUDED for Regime SIDEWAYS -0.36
+        # New params (28 Jan 100T): Still FAIL WFE, needs rescue
+        # Status: PENDING rescue (Phase 3A displacement or Phase 4 filters)
         "pair": "AVAX/USDT",
         "atr": {
             "sl_mult": 3.0,
-            "tp1_mult": 4.75,
-            "tp2_mult": 8.5,
-            "tp3_mult": 9.0,
+            "tp1_mult": 1.5,
+            "tp2_mult": 7.5,
+            "tp3_mult": 10.0,
         },
-        "ichimoku": {"tenkan": 9, "kijun": 22},
-        "five_in_one": {"tenkan_5": 8, "kijun_5": 17},
+        "ichimoku": {"tenkan": 20, "kijun": 32},
+        "five_in_one": {"tenkan_5": 12, "kijun_5": 16},
         "displacement": 52,
-        "filter_mode": "moderate",  # Baseline failed WFE, moderate PASS
+        "filter_mode": "baseline",
     },
     "AR": {
         # ❌ FAILED RE-VALIDATION (25 Jan 2026) — NEEDS RESCUE
@@ -139,7 +156,6 @@ ASSET_CONFIG = {
         "five_in_one": {"tenkan_5": 9, "kijun_5": 22},
         "displacement": 52,
         "filter_mode": "baseline",
-        # "status": "PENDING_RESCUE",
     },
     "ANKR": {
         "pair": "ANKR/USDT",
@@ -182,7 +198,6 @@ ASSET_CONFIG = {
         "five_in_one": {"tenkan_5": 9, "kijun_5": 23},
         "displacement": 78,
         "filter_mode": "baseline",
-        # "status": "LIKELY_EXCLU",
     },
     "DOT": {
         "pair": "DOT/USDT",
@@ -309,7 +324,6 @@ ASSET_CONFIG = {
         "five_in_one": {"tenkan_5": 8, "kijun_5": 17},
         "displacement": 52,
         "filter_mode": "baseline",
-        # "status": "PENDING_RESCUE",
     },
     "YGG": {
         # ✅ RE-VALIDATED (25 Jan 2026, 15:20 UTC)
