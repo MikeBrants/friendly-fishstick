@@ -1,201 +1,138 @@
 # PROJECT STATE — FINAL TRIGGER v2
 
-**Updated**: 28 Jan 2026, 13:15 UTC+4
-**Phase**: 🎉 **PR#21 FINALIZED — 5 PROD PORTFOLIO**
-**Status**: 5 PROD (AXS/AVAX/ETH/SOL/YGG), 7 EXCLU (TIER 2+3 combined)
+**Updated**: 28 Jan 2026, 14:00 UTC+4
+**Phase**: 🆕 v4.2 FRESH START
+**Pipeline**: v4.2 (100 trials, 12000 bars, calibrated CSCV PBO)
 
-> Pour les paramètres → `.cursor/rules/MASTER_PLAN.mdc`  
-> Pour les commandes → `docs/WORKFLOW_PIPELINE.md`
-
----
-
-## ⚠️ RÈGLES DE MISE À JOUR
-
-**CE FICHIER CHANGE SOUVENT** — Mettre à jour:
-- Après chaque Phase complétée
-- Quand un asset change de status (PENDING → PROD ou → EXCLU)
-- Max 1× par jour sauf urgence
-
-**FORMAT OBLIGATOIRE:**
-- Header "Updated" : toujours mettre à jour la date
-- Assets : listes simples, pas de tableaux détaillés
-- Historique : garder **max 10 entrées** (supprimer les plus anciennes)
-
-**OWNER:** Casey (Orchestrateur) — Seul autorisé à modifier ce fichier
-
----
-
-## 🎉 PR#21 FINALIZED — Portfolio of 5
-
-**100 Trials Standard → FINAL DECISION: TIER 2 EXCLUDED**
-
-| Status | Count | Assets | PBO Range | Decision |
-|:------:|:-----:|--------|:---------:|:--------:|
-| ✅ **PROD** | **5** | **AXS, AVAX, ETH, SOL, YGG** | 0.13-0.40 | PRODUCTION |
-| 🔴 **EXCLU** | **7** | EGLD, SUSHI, MINA (TIER 2) + TON, HBAR, CRV, CAKE (TIER 3) | 0.53-0.93 | EXCLUDED |
-
-**PROD Portfolio Details**:
-- **ETH**: PBO 0.13 (CSCV 0.24), Sharpe 3.21, WFE 1.81, Phase 4/5/6 ✅
-- **AVAX**: PBO 0.13 (Challenger), Sharpe 2.05, WFE 0.42
-- **SOL**: PBO 0.33 (Challenger), Sharpe 2.96, WFE 1.27
-- **YGG**: PBO 0.40 (PR#21 100T), Sharpe 3.40, WFE 0.89, **Best improvement -52.5%**
-- **AXS**: PBO 0.33 (PR#20 300T), Sharpe 1.21
-
-**TIER 2 EXCLUDED (28 Jan 2026, 13:15 UTC):**
-- EGLD (PBO 0.53), SUSHI (PBO 0.60), MINA (PBO 0.53)
-- Reason: Elevated overfitting risk despite guards PASS
-- Decision: Conservative approach, strict PBO < 0.50 threshold
+> **Source of Truth:** This file reflects the current state
+> **Commands:** See `docs/WORKFLOW_PIPELINE.md`
+> **Params:** See `.cursor/rules/MASTER_PLAN.mdc`
 
 ---
 
 ## 📊 ASSET STATUS
 
-### ✅ TIER 1: PROD READY (5 assets)
+| Status | Count | Assets |
+|--------|:-----:|--------|
+| ⏳ PENDING | 18 | All assets to reprocess with v4.2 |
+| ✅ PROD | 0 | - |
+| 🔴 EXCLU | 0 | - |
 
-```
-ETH (PBO 0.13, Sharpe 3.21, WFE 1.81) — 100% validated
-AVAX (PBO 0.13, Sharpe 2.05)
-SOL (PBO 0.33, Sharpe 2.96)
-YGG (PBO 0.40, Sharpe 3.40) — Best improvement (-52.5% vs 300T)
-AXS (PBO 0.33, Sharpe 1.21)
-```
+### Assets à Traiter (18)
 
-### 🔴 EXCLU PR#21 (7 assets total)
-
-**TIER 2 EXCLUDED (borderline PBO 0.53-0.60):**
+**Tier 1 Priority (8):**
 ```
-EGLD (PBO 0.53, Sharpe 2.08) — Guards PASS but elevated risk
-MINA (PBO 0.53, Sharpe 2.12) — Guards PASS but elevated risk
-SUSHI (PBO 0.60, Sharpe 2.51) — Guards PASS but elevated risk
+ETH BTC SOL AVAX AXS DOT SHIB ANKR
 ```
 
-**TIER 3 EXCLUDED (critical PBO or guards FAIL):**
-
+**Tier 2 Secondary (10):**
 ```
-CAKE (PBO 0.93) — Critical overfitting
-CRV (PBO 0.87) — Critical overfitting + guards FAIL
-TON (PBO 0.60) — Guards FAIL (4/7)
-HBAR (PBO 0.60) — Guards FAIL (5/7)
-```
-
-### ⏸️ NON TRAITÉS (9 assets)
-
-```
-SHIB DOT TIA NEAR DOGE ANKR JOE GALA ZIL
+ONE EGLD TON HBAR SUSHI CRV SEI AAVE MINA RUNE
 ```
 
 ---
 
-## 🎯 PR#21 — RERUN 100 TRIALS
+## 🎯 v4.2 PIPELINE OVERVIEW
 
-### Commande
+### Key Changes from v4.1
+
+| Feature | v4.1 | v4.2 |
+|---------|:----:|:----:|
+| Trials | 300 | **100** |
+| Min Bars | 8000 | **12000** |
+| PBO Method | Standard | **CSCV** |
+| Config System | Hardcoded | **YAML families** |
+| Reproducibility | Issues | **Verified** |
+
+### Pipeline Phases
+
+```
+Phase 0: Data Download (12000+ bars)
+  ↓
+Phase 1: Screening (100 trials, seed 42)
+  ↓
+Phase 2: Guards Validation (7 hard guards + PBO CSCV)
+  ↓
+Phase 3: Regime Stress (SIDEWAYS Sharpe > 0)
+  ↓
+Phase 4: Portfolio Correlation (< 0.5)
+  ↓
+Phase 5: Production Config (asset_config.py)
+```
+
+### Success Criteria
+
+| Guard | Threshold | Critical |
+|-------|:---------:|:--------:|
+| PBO CSCV | < 0.50 | ✅ |
+| WFE Pardo | > 0.60 | ✅ |
+| Sensitivity | < 15% | ✅ |
+| Bootstrap CI | > 1.0 | ✅ |
+| Monte Carlo | p < 0.05 | ✅ |
+| Top10 Trades | < 40% | ✅ |
+| Min Trades OOS | ≥ 60 | ✅ |
+
+---
+
+## 🎯 PROCHAINE ACTION
+
+1. 🟡 **Pilot ETH** — Validate complete pipeline
+2. ⏳ Batch Tier 1 (7 assets) — After ETH validation
+3. ⏳ Batch Tier 2 (10 assets) — After Tier 1 complete
+4. ⏳ Portfolio Assembly — Cross-correlation check
+
+### Commands
 
 ```bash
-python scripts/run_full_pipeline.py \
-  --assets BTC ETH ONE EGLD TON HBAR SUSHI CRV SEI AAVE MINA RUNE YGG CAKE \
-  --trials-atr 100 --trials-ichi 100 \
-  --seed 42 \
-  --workers 1 \
-  --run-guards \
-  --output-prefix pr21_100trials
+# Step 1: Pilot ETH
+python scripts/orchestrator_v4_2.py --asset ETH --run-id pilot_eth
+
+# Step 2: Batch Tier 1
+python scripts/orchestrator_v4_2.py \
+  --assets BTC SOL AVAX AXS DOT SHIB ANKR \
+  --run-id tier1_batch
+
+# Step 3: Guards + PBO
+python scripts/run_guards_v4_2.py --run-id pilot_eth
+python scripts/pbo_v4_2.py --run-id pilot_eth
 ```
 
-### Paramètres
-
-| Param | Valeur | Note |
-|-------|--------|------|
-| trials | **100** | Nouveau standard |
-| workers | 1 | Obligatoire Phase 2+ |
-| seed | 42 | Reproductibilité |
-
-### Durée Estimée
-
-~5-6h pour 14 assets
-
 ---
 
-## 🎯 PHASE ACTUELLE
-
-| Phase | Status | Détails |
-|-------|--------|--------|
-| 0 Data | ✅ Done | 26 assets téléchargés |
-| 1 Screening | ✅ Done | 26/26 complete |
-| 2 Validation 300T | ✅ Done | 12/18 EXCLU (overfitting) |
-| **Plan A Challenger** | ✅ **SUCCESS** | SOL+AVAX récupérés |
-| **PR#21 100T** | 🟡 **READY** | 14 assets à lancer |
-| 3-6 | ⏸️ Pending | Après PR#21 |
-
----
-
-## 📈 PROGRESSION
-
-| Métrique | Cible | Actuel |
-|----------|-------|--------|
-| Assets PROD | 10-15 | **5** ✅ |
-| PR#21 Success Rate | >50% | 55.6% (5/9) |
-| PBO Threshold | <0.50 | **STRICT** (conservative) |
-| Improvement Rate | >50% | 100% (8/8 improved) |
-| Assets Remaining | 9 | SHIB, DOT, TIA, NEAR, DOGE, ANKR, JOE, GALA, ZIL |
-
----
-
-## ⏭️ PROCHAINE ACTION
-
-1. ✅ ~~Valider Plan A~~ — SUCCESS
-2. ✅ ~~Lancer PR#21~~ — **COMPLETE**
-3. ✅ ~~Consolider PBO PR#21~~ — **COMPLETE**
-4. ✅ ~~DÉCISION TIER 2~~ — **EXCLUDED** (conservative)
-5. ✅ ~~MAJ asset_config.py~~ — **5 PROD finalized**
-6. 🎯 **Phase 4/5 pour 4 assets** — SOL, AVAX, YGG, AXS (regime + portfolio)
-7. ⏳ Test 9 assets restants (100T) — Optional expansion
-8. ⏳ Déploiement production — Paper trading setup
-
----
-
-## 🗓️ HISTORIQUE RÉCENT
+## 🗓️ HISTORIQUE
 
 | Date | Action |
 |------|--------|
-| 28 Jan 13:00 | 🎉 PR#21 COMPLETE — 5 PROD, 3 QUARANTINE, 4 EXCLU |
-| 28 Jan 11:38 | ETH Phase 4/5/6 validated — SIDEWAYS 1.98, Corr 0.32 |
-| 28 Jan 10:32 | PR#21 PBO Complete — 9/9 calculés, 100% improved vs 300T |
-| 27 Jan 19:23 | 🟢 Plan A SUCCESS — SOL+AVAX PBO 0.13/0.33 |
-| 27 Jan 17:25 | 🔴 PR#20 300T: 12/18 EXCLU (overfitting systémique) |
-| 27 Jan 08:32 | ✅ PR#20 MEGA BATCH Complete (18 assets) |
-| 26 Jan 20:45 | ✅ Issue #17 COMPLETE — Regime-Robust WF |
+| 28 Jan 14:00 | 🆕 v4.2 Pipeline deployed — FRESH START |
+| 28 Jan 13:15 | v4.1 finalized — 5 PROD assets (ETH/AVAX/SOL/YGG/AXS) |
+| 28 Jan 10:30 | PR#21 complete — 100T validation successful |
+| 27 Jan 19:23 | Plan A SUCCESS — Challenger recovers SOL/AVAX |
 
 ---
 
-## 🔗 ISSUES ACTIVES
+## 📁 KEY FILES
 
-| Issue | Titre | Priorité | Status |
-|:-----:|-------|:--------:|:------:|
-| #30 | Plan C Contingency Long/Short | 🟡 STANDBY | Plan A success |
-| #25 | PR#20 Finalization | ✅ DONE | Remplacé par PR#21 |
+| File | Purpose |
+|------|---------|
+| `status/project-state.md` | **This file** — Current state |
+| `configs/families.yaml` | Asset family configurations |
+| `configs/router.yaml` | Family routing rules |
+| `crypto_backtest/v4/screening.py` | v4.2 screening engine |
+| `scripts/orchestrator_v4_2.py` | Main pipeline orchestrator |
+| `scripts/pbo_v4_2.py` | CSCV PBO calculator |
 
 ---
 
 ## 🤖 AGENTS
 
-| Agent | Focus actuel |
-|-------|-------------|
-| **Casey** | Supervision PR#21 |
-| **Jordan** | Exécution PR#21 (14 assets) |
-| **Sam** | Consolidation PBO post-PR#21 |
-| **Alex** | MAJ MASTER_PLAN.mdc (trials default) |
+| Agent | Focus |
+|-------|-------|
+| **Casey** | Orchestration, priorities |
+| **Jordan** | Pipeline execution |
+| **Sam** | Guards validation |
+| **Alex** | Architecture, params |
 
 ---
 
-## 📁 FICHIERS
-
-| Fichier | Contenu |
-|---------|--------|
-| `.cursor/rules/MASTER_PLAN.mdc` | Params, guards, règles |
-| `docs/WORKFLOW_PIPELINE.md` | Commandes par phase |
-| `status/project-state.md` | **CE FICHIER** (état) |
-| `reports/CHALLENGER_PBO_COMPARISON.md` | Justification 100T |
-| `outputs/*_pbo_*.json` | Résultats PBO par asset |
-
----
-
-**Version**: 2.4 (27 Jan 2026)
+**Version**: 4.2.0 (28 Jan 2026)
+**Status**: READY FOR PILOT
