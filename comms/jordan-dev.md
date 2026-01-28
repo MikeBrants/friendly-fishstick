@@ -1,6 +1,6 @@
 # Jordan Dev Log — FINAL TRIGGER v2
 
-**Last Updated**: 28 Jan 2026, 08:56 UTC
+**Last Updated**: 28 Jan 2026, 08:58 UTC
 
 ---
 
@@ -87,6 +87,12 @@
 **Output**: crypto_backtest/engine/position_manager.py
 **Summary**: Added open-position guards to enforce enable_long/enable_short at execution layer.
 **Next**: PROMPT 13C — Adapter Modes + Slicing
+
+## 2026-01-28 — PROMPT 13C Adapter Modes + Slicing
+**Status**: TODO → DONE
+**Output**: crypto_backtest/v4/backtest_adapter.py
+**Summary**: Added backtest adapter with combined/long_only/short_only modes and time slicing support.
+**Next**: PROMPT 13D — Repro Check
 
 ## 1324 DONE jordan-dev -> system: CHALLENGER 100-TRIALS PIPELINE ✅
 
