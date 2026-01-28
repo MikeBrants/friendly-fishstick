@@ -1,27 +1,31 @@
 """Production asset configuration for the validated portfolio.
 
-Updated: 2026-01-28 12:00 UTC
+Updated: 2026-01-28 13:00 UTC
 All TP values are progressive: TP1 < TP2 < TP3 with min gap 0.5
 
-🎉 PR#21 COMPLETE — 100 Trials Standard (28 Jan 2026):
-✅ ETH: 100% VALIDATED (8/8 guards, PBO 0.24, SIDEWAYS 1.98, Phase 4/5/6 PASS)
-✅ SOL: 7/7 guards PASS (100T), Sharpe 2.96, WFE 1.27 — PENDING Phase 4
+🎉 PR#21 COMPLETE — 100 Trials Standard Validated (28 Jan 2026)
 
-❌ PR#21 FAIL (100T, 28 Jan 2026):
-- BTC: WFE 0.54 < 0.6 (overfit)
-- AVAX: WFE 0.48 < 0.6 (overfit)
+✅ TIER 1 PROD (5 assets) — All guards PASS + PBO < 0.50:
+- ETH: PBO 0.13 (CSCV 0.24), Sharpe 3.21, Phase 4/5/6 ✅
+- AVAX: PBO 0.13, Sharpe 2.05 (Challenger 100T)
+- SOL: PBO 0.33, Sharpe 2.96 (Challenger 100T)
+- YGG: PBO 0.40, Sharpe 3.40 (PR#21 100T, -52.5% vs 300T) ⭐
+- AXS: PBO 0.33, Sharpe 1.21 (PR#20 300T)
 
-❌ EXCLUDED (26 Jan 2026) — Regime Stress Test FAIL:
-- EGLD: SIDEWAYS Sharpe -4.59
-- AVAX (old params): SIDEWAYS Sharpe -0.36
+⚠️ TIER 2 QUARANTINE (3 assets) — All guards PASS but PBO 0.50-0.70:
+- EGLD: PBO 0.53, Sharpe 2.08 (borderline)
+- SUSHI: PBO 0.60, Sharpe 2.51
+- MINA: PBO 0.53, Sharpe 2.12 (borderline)
+Decision: Accept avec allocation 0.5× or exclude?
 
-❌ FAILED RE-VALIDATION (need Phase 3A rescue or EXCLU):
-- OSMO, AR, OP, METIS
+🔴 TIER 3 EXCLU (4 assets) — PBO critical or guards FAIL:
+- CAKE: PBO 0.93 (critical overfitting)
+- CRV: PBO 0.87 + guards FAIL
+- TON: PBO 0.60 + guards FAIL (4/7)
+- HBAR: PBO 0.60 + guards FAIL (5/7)
 
-VALID FILTER MODES:
-- baseline: Ichimoku only (default)
-- moderate: 5 filters
-- conservative: 7 filters
+FILTER MODES:
+- baseline: Ichimoku only (default, all PROD use this)
 """
 
 ASSET_CONFIG = {
@@ -109,8 +113,10 @@ ASSET_CONFIG = {
         "filter_mode": "baseline",
     },
     "MINA": {
-        # ✅ RE-VALIDATED (25 Jan 2026, 15:20 UTC)
-        # OOS Sharpe 2.58, WFE 1.13, Trades 60, 7/7 guards PASS
+        # ⚠️ TIER 2 QUARANTINE (28 Jan 2026, PR#21 100T)
+        # PBO 0.53 (borderline 0.50-0.70), improved -24% vs 300T (0.70 → 0.53)
+        # All guards PASS, OOS Sharpe 2.12
+        # Decision pending: Accept avec allocation 0.5× or exclude?
         "pair": "MINA/USDT",
         "atr": {
             "sl_mult": 4.25,
@@ -256,10 +262,10 @@ ASSET_CONFIG = {
         "filter_mode": "baseline",
     },
     "CAKE": {
-        # Reclassified from Phase 4 to Phase 2 baseline post-PR#8 (guard002 threshold 15%)
-        # Phase 2 validation: 2026-01-24 14:46:04
-        # Variance: 10.76% < 15% threshold → PASS
-        # OOS Sharpe: 2.46, WFE: 0.81, Trades: 90
+        # 🔴 TIER 3 EXCLU (28 Jan 2026, PR#21 100T)
+        # PBO 0.93 (CRITICAL overfitting), improved -5% vs 300T (0.98 → 0.93)
+        # All guards PASS but PBO critical → EXCLUDED
+        # OOS Sharpe: 2.56
         "pair": "CAKE/USDT",
         "atr": {
             "sl_mult": 2.25,
@@ -290,13 +296,11 @@ ASSET_CONFIG = {
         "filter_mode": "baseline",
     },
     "EGLD": {
-        # ❌ EXCLUDED (26 Jan 2026, 16:30 UTC) — Regime Stress Test FAIL
-        # Phase 2 validation: 7/7 guards PASS (baseline)
-        # Variance: 5.01% < 15% → PASS
-        # OOS Sharpe: 2.13, WFE: 0.69, Trades: 91, MC p=0.01
-        # ⚠️ REGIME STRESS TEST FAIL: SIDEWAYS Sharpe -4.59 (60 trades, 35% win rate)
-        # ⚠️ MARKDOWN also negative: -5.15 Sharpe (6 trades)
-        # Decision: EXCLUDED from PROD portfolio (Issue #17 TASK 3)
+        # ⚠️ TIER 2 QUARANTINE (28 Jan 2026, PR#21 100T)
+        # PBO 0.53 (borderline 0.50-0.70), improved -20% vs 300T (0.67 → 0.53)
+        # All guards PASS, OOS Sharpe 2.08
+        # Decision pending: Accept avec allocation 0.5× or exclude?
+        # Note: Old params (26 Jan) FAILED Regime SIDEWAYS -4.59
         "pair": "EGLD/USDT",
         "atr": {
             "sl_mult": 5.0,
@@ -306,6 +310,23 @@ ASSET_CONFIG = {
         },
         "ichimoku": {"tenkan": 5, "kijun": 28},
         "five_in_one": {"tenkan_5": 8, "kijun_5": 19},
+        "displacement": 52,
+        "filter_mode": "baseline",
+    },
+    "SUSHI": {
+        # ⚠️ TIER 2 QUARANTINE (28 Jan 2026, PR#21 100T)
+        # PBO 0.60 (elevated risk 0.50-0.70), improved -18% vs 300T (0.73 → 0.60)
+        # All guards PASS, OOS Sharpe 2.51
+        # Decision pending: Accept avec allocation 0.5× or exclude?
+        "pair": "SUSHI/USDT",
+        "atr": {
+            "sl_mult": 3.5,
+            "tp1_mult": 2.5,
+            "tp2_mult": 6.0,
+            "tp3_mult": 9.0,
+        },
+        "ichimoku": {"tenkan": 12, "kijun": 28},
+        "five_in_one": {"tenkan_5": 10, "kijun_5": 18},
         "displacement": 52,
         "filter_mode": "baseline",
     },
@@ -326,17 +347,35 @@ ASSET_CONFIG = {
         "filter_mode": "baseline",
     },
     "YGG": {
-        # ✅ RE-VALIDATED (25 Jan 2026, 15:20 UTC)
-        # OOS Sharpe 3.11, WFE 0.78, Trades 78, 7/7 guards PASS
+        # 🎉 TIER 1 PROD (28 Jan 2026, PR#21 100T)
+        # PBO 0.40 (PASS), improved -52.5% vs 300T (0.84 → 0.40) ⭐
+        # All guards PASS, OOS Sharpe 3.40, WFE 0.89, Trades 72
+        # Status: PRODUCTION READY
         "pair": "YGG/USDT",
         "atr": {
             "sl_mult": 4.25,
             "tp1_mult": 2.75,
             "tp2_mult": 7.5,
-            "tp3_mult": 9.5,
+            "tp3_mult": 8.5,  # Updated from 9.5 (PR#21 100T)
         },
-        "ichimoku": {"tenkan": 10, "kijun": 20},
+        "ichimoku": {"tenkan": 7, "kijun": 23},  # Updated (PR#21 100T)
         "five_in_one": {"tenkan_5": 8, "kijun_5": 17},
+        "displacement": 52,
+        "filter_mode": "baseline",
+    },
+    "AXS": {
+        # ✅ TIER 1 PROD (PR#20 300T, validated with PBO)
+        # PBO 0.33 (PASS), OOS Sharpe 1.21
+        # Status: PRODUCTION READY
+        "pair": "AXS/USDT",
+        "atr": {
+            "sl_mult": 2.5,
+            "tp1_mult": 2.0,
+            "tp2_mult": 4.5,
+            "tp3_mult": 7.5,
+        },
+        "ichimoku": {"tenkan": 7, "kijun": 20},
+        "five_in_one": {"tenkan_5": 10, "kijun_5": 21},
         "displacement": 52,
         "filter_mode": "baseline",
     },
