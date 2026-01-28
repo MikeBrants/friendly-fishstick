@@ -22,6 +22,8 @@ class FinalTriggerParams:
     price_tol_pct: float = 0.0001
     debug_signals: bool = False
     debug_signals_path: str = "debug_signals.csv"
+    enable_long: bool = True
+    enable_short: bool = True
     mama_fast_limit: float = 0.5
     mama_slow_limit: float = 0.05
     kama_length: int = 20
@@ -84,6 +86,8 @@ class FinalTriggerStrategy(BaseStrategy):
 
         n = len(data)
         debug_enabled = self.params.debug_signals
+        enable_long = self.params.enable_long
+        enable_short = self.params.enable_short
         buy_signal_raw = np.zeros(n, dtype=bool)
         sell_signal_raw = np.zeros(n, dtype=bool)
         ichi_long_active = np.zeros(n, dtype=bool)
@@ -143,18 +147,18 @@ class FinalTriggerStrategy(BaseStrategy):
             prev_pending_long = pending_long
             prev_pending_short = pending_short
 
-            armed_long_strict = ichi_long_active[i] and (
+            armed_long_strict = enable_long and ichi_long_active[i] and (
                 not self.params.use_mama_kama_filter or cond_mk_long.iloc[i]
             )
-            armed_short_strict = ichi_short_active[i] and (
+            armed_short_strict = enable_short and ichi_short_active[i] and (
                 not self.params.use_mama_kama_filter or cond_mk_short.iloc[i]
             )
-            armed_long_grace_ok = ichi_long_active[i] and (
+            armed_long_grace_ok = enable_long and ichi_long_active[i] and (
                 not self.params.use_mama_kama_filter
                 or cond_mk_long.iloc[i]
                 or cross_long_ok.iloc[i]
             )
-            armed_short_grace_ok = ichi_short_active[i] and (
+            armed_short_grace_ok = enable_short and ichi_short_active[i] and (
                 not self.params.use_mama_kama_filter
                 or cond_mk_short.iloc[i]
                 or cross_short_ok.iloc[i]
@@ -166,12 +170,20 @@ class FinalTriggerStrategy(BaseStrategy):
                 pending_long = False
                 pending_short = False
 
-            if not ichi_long_active[i]:
+            if enable_long and not ichi_long_active[i]:
                 final_long_active = False
-            if not ichi_short_active[i]:
+            if enable_short and not ichi_short_active[i]:
+                final_short_active = False
+            if not enable_long:
+                pending_long = False
+                lock_long_cycle = False
+                final_long_active = False
+            if not enable_short:
+                pending_short = False
+                lock_short_cycle = False
                 final_short_active = False
 
-            if (
+            if enable_long and (
                 self.params.strict_lock_5in1_last
                 and bullish_signal.iloc[i]
                 and ichi_long_active[i]
@@ -182,7 +194,7 @@ class FinalTriggerStrategy(BaseStrategy):
                 else:
                     lock_long_cycle = True
 
-            if (
+            if enable_short and (
                 self.params.strict_lock_5in1_last
                 and bearish_signal.iloc[i]
                 and ichi_short_active[i]
@@ -193,28 +205,42 @@ class FinalTriggerStrategy(BaseStrategy):
                 else:
                     lock_short_cycle = True
 
-            if prev_pending_long and not armed_long_grace_ok:
+            if enable_long and prev_pending_long and not armed_long_grace_ok:
                 pending_long = False
                 if self.params.strict_lock_5in1_last:
                     lock_long_cycle = True
 
-            if prev_pending_short and not armed_short_grace_ok:
+            if enable_short and prev_pending_short and not armed_short_grace_ok:
                 pending_short = False
                 if self.params.strict_lock_5in1_last:
                     lock_short_cycle = True
 
-            allow_long = not self.params.strict_lock_5in1_last or not lock_long_cycle
-            allow_short = not self.params.strict_lock_5in1_last or not lock_short_cycle
+            allow_long = enable_long and (
+                not self.params.strict_lock_5in1_last or not lock_long_cycle
+            )
+            allow_short = enable_short and (
+                not self.params.strict_lock_5in1_last or not lock_short_cycle
+            )
 
             pending_long_ok = (
-                self.params.grace_bars == 1 and prev_pending_long and armed_long_grace_ok
+                enable_long
+                and self.params.grace_bars == 1
+                and prev_pending_long
+                and armed_long_grace_ok
             )
             pending_short_ok = (
-                self.params.grace_bars == 1 and prev_pending_short and armed_short_grace_ok
+                enable_short
+                and self.params.grace_bars == 1
+                and prev_pending_short
+                and armed_short_grace_ok
             )
 
-            trigger_long = (bullish_signal.iloc[i] and armed_long_strict) or pending_long_ok
-            trigger_short = (bearish_signal.iloc[i] and armed_short_strict) or pending_short_ok
+            trigger_long = enable_long and (
+                (bullish_signal.iloc[i] and armed_long_strict) or pending_long_ok
+            )
+            trigger_short = enable_short and (
+                (bearish_signal.iloc[i] and armed_short_strict) or pending_short_ok
+            )
 
             new_long = trigger_long and allow_long and not final_long_active
             new_short = trigger_short and allow_short and not final_short_active
@@ -255,7 +281,7 @@ class FinalTriggerStrategy(BaseStrategy):
         tp3_price = np.full(n, np.nan)
 
         for i in range(n):
-            if new_long_close[i]:
+            if enable_long and new_long_close[i]:
                 entry = float(close.iloc[i])
                 atr_val = float(atr.iloc[i])
                 signal[i] = 1
@@ -264,7 +290,7 @@ class FinalTriggerStrategy(BaseStrategy):
                 tp1_price[i] = entry + self.params.tp1_mult * atr_val
                 tp2_price[i] = entry + self.params.tp2_mult * atr_val
                 tp3_price[i] = entry + self.params.tp3_mult * atr_val
-            elif new_short_close[i]:
+            elif enable_short and new_short_close[i]:
                 entry = float(close.iloc[i])
                 atr_val = float(atr.iloc[i])
                 signal[i] = -1
